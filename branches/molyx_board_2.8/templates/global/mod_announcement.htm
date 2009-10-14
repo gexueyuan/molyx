@@ -1,0 +1,41 @@
+<script type="text/javascript" src="{lang:thread.js}"></script>
+<script type="text/javascript" src='./scripts/thread.js'></script>
+<div class="pformstrip">{$lang['announcement']}</div>
+<form action="moderate.php" name="mutliact" method="post">
+<input type="hidden" name="s" value="{sessionid}" />
+<input type="hidden" name="do" value="doannouncement" />
+<div class='ucpcontentct'>
+<div class='wgborder'>
+<table width='100%' border='0' cellspacing='1' cellpadding='4' class='ttable'>
+<tbody>
+<tr class='tcat'>
+	<th width="35%">{$lang['annoucetitle']}</th>
+	<th align="center" width="10%">{$lang['startdate']}</th>
+	<th align="center" width="10%">{$lang['enddate']}</th>
+	<th width="25%">{$lang['announceforum']}</th>
+	<th width="15%">{$lang['action']}</th>
+</tr>
+<if="is_array($announce)">
+<foreach="$announce AS $data">
+<tr>
+<td class="row1"><strong><a href="announcement.php{sessionurl}id={$data['id']}">{$data['title']}</a></strong> {$data['inactive']}<div class="desc">{$lang['announceuser']}: <a href="profile.php{sessionurl}u={$data['userid']}" target="_blank">{$data['name']}</a></div></td>
+<td class="row2" align="center">{$data['startdate']}</td>
+<td class="row1" align="center">{$data['enddate']}</td>
+<td class="row2">{$data['forumlist']}</td>
+<td class="row1" align="center">
+{$data['action']}
+</td>
+</tr>
+</foreach>
+<else>
+<tr>
+<td class="row1" colspan="5" align="center">{$lang['noannounce']}</td>
+</tr>
+</if>
+<tr>
+<td class="pformstrip" colspan="5" align="center"><input type='submit' class='button' value='{$lang['addannouncement']}' /></td>
+</tr>
+</tbody></table>
+</div>
+</div>
+</form>

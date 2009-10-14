@@ -1,0 +1,304 @@
+{template:header}
+<script language='javascript' type='text/javascript'>
+//<![CDATA[
+var addquotebutton     = "images/<#IMAGE#>/p_mq_add.gif";
+var removequotebutton  = "images/<#IMAGE#>/p_mq_remove.gif";
+var realthisforum = "{$forum['id']}";
+var thisforum = "{$forum['id']}";
+
+function recommend() {
+	if (document.all){
+		var clipBoardContent="";
+		clipBoardContent+="{$lang['recommend_info']}";
+		clipBoardContent+="\\\\\\\\\\\\\\\\\\\\\\\n";
+		clipBoardContent+="{$lang['recommend_title']}{$title_no_tags}";
+		clipBoardContent+="\\\\\\\\\\\\\\\\\\\\\\\n";
+		clipBoardContent+="{$bboptions['bburl']}/showthread.php{sessionurl}t={$thread['tid']}";
+		window.clipboardData.setData("Text",clipBoardContent);
+		alert("{$lang['recommend_results']}");
+	}
+}
+
+function doZoom(obj, size)
+{
+	$(obj).style.fontSize = size + 'px';
+	return false;
+}
+//]]>
+</script>
+<script type="text/javascript" src="{lang:thread.js}"></script>
+<script type="text/javascript" src='./scripts/thread.js'></script>
+<a name='top'></a>
+<div id="title_show">
+	<ul class="maincolor">
+		<li><a href='subscribe.php{sessionurl}f={$forum['id']}&amp;t={$thread['tid']}&amp;pp={$_INPUT['pp']}'>{$lang['subscribethread']}</a></li>
+		<li><a href='###' onclick="send_mailto_friend({$thread['tid']});">{$lang['sendtofriend']}</a></li>
+		<li><a href='printthread.php{sessionurl}t={$thread['tid']}'>{$lang['showprintable']}</a></li>
+	</ul>
+	<if="$bbuserinfo['is_mod'] && !empty($mod_thread)">
+	{$mod_thread}
+	</if>
+	<div class="desc">
+	<if="$thread['logtext']">
+		{$thread['logtext']}
+	<else>
+	{$thread['dateline']}&nbsp;by&nbsp;{$thread[postusername]}
+	</if>
+	</div>
+</div>
+<div class="top_ad">{ads:thread,$forum['id']}</div>
+<div class="page_nav">
+	<ul class="new_button">
+		<li>
+			<strong>
+			<a href='newreply.php{sessionurl}f={$forum['id']}&amp;t={$thread['tid']}'>
+			<if="$thread[replybutton][button]=='closed'">
+				{$lang['threadclosed']}
+			<elseif="$thread[replybutton][button]=='t_moved'">
+				{$lang['threadmoved']}
+			<elseif="$thread[replybutton][button]=='newreply'">
+				{$lang['replypost']}
+			</if>
+			</a>
+			</strong>
+		</li>
+		<li><strong><a href='newthread.php{sessionurl}f={$forum['id']}' title='{$lang['newthread']}'>{$lang['newthread']}</a></strong></li>
+	</ul>
+	{$thread['pagenav']}
+</div>
+
+<div class="thread_title">
+	<h1>{$thread['title']}</h1>
+	<div class="tdesc title_bottom">
+		{$thread['post']} {$lang['thread_replies']}
+		{$thread['views']} {$lang['thread_hits']}
+		{$thread['lastpost']} {$lang['thread_update']}
+		</div>
+	<div style="position:relative;">
+		<div class="digg"{$digg_event}>
+			<div>
+				<span><strong>{$lang['commend_the_thread']}</strong></span>
+				<span class="tdesc">{$your_digg_exp}</span>
+			</div>
+			<em id="digg_exponent_{$thread['tid']}">{$thread['digg_exps']}</em>
+			<div class="digg_l">
+				<span class="desc">{$lang['commend_thread_exp']}</span>
+				<span id="digg_users_num_{$thread['tid']}" class="tdesc" style="display:inline;">{$thread['digg_users']}</span>
+			</div>
+		</div>
+	</div>
+	<!-- end -->
+	<!--
+	<div class='tcat'>
+		<div style="float:right;">
+			<a href='redirect.php{sessionurl}t={$thread['tid']}&amp;goto=old'>&laquo; {$lang['prevthread']}</a>&nbsp;&nbsp;
+			<a href='redirect.php{sessionurl}t={$thread['tid']}&amp;goto=new'>{$lang['nextthread']} &raquo;</a>
+		</div>
+	</div>
+	 -->
+	</div>
+	<if="$thread['pollstate']">
+<div class="ttable">
+		<script language='JavaScript' type="text/javascript">
+		//<![CDATA[
+		function get_votes()
+		{
+			window.location = "showthread.php{sessionurl}f={$forum['id']}&t={$thread['tid']}&mode=showpoll";
+		}
+		function show_votes()
+		{
+			window.location = "showthread.php{sessionurl}f={$forum['id']}&t={$thread['tid']}";
+		}
+		//]]>
+		</script>
+		<form action="newpoll.php" method="post">
+		<input type='hidden' name='s' value="{sessionid}" />
+		<input type='hidden' name='do' value="add" />
+		<input type='hidden' name='t' value="{$thread['tid']}" />
+		<input type='hidden' name='pp' value="{$_INPUT['pp']}" />
+		<table width='100%' cellpadding='4' cellspacing='1' class='ttable'>
+		<tbody>
+		<tr>
+		<td class='thead' align='right'>[ <a href="###" onClick="javascript:window.open('misc.php{sessionurl}do=show_voters&amp;pollid={$poll_data['pollid']}','ShowVoters','width=200,height=300,resizable=yes,scrollbars=yes');">{$lang['view_voters']}</a> ] &nbsp; {$edit_poll} &nbsp; {$delete_poll}
+		</td>
+		</tr>
+		<tr>
+		<td class='item_list' width='100%'>
+		<fieldset class="fieldset">
+		<legend align='center'><strong>{$poll_data['question']}</strong></legend>
+		<table cellpadding="5" align="left" width="100%">
+		<tbody>
+		<if="$show['results']">
+		<foreach="$showvoters AS $id => $data">
+		<tr>
+		<td class='item_change' align="right" width="30%">{$data['choice']}</td>
+		<td class='item_list' align='left' width="70%"><img src='images/<#IMAGE#>/bar_left.gif' border='0' height='11' align='middle' alt='' /><img src='images/<#IMAGE#>/bar.gif' border='0' width='{$data['width']}' height='11' align='middle' alt='' /><img src='images/<#IMAGE#>/bar_right.gif' border='0' height='11' align='middle' alt='' />&nbsp;[{$data['percent']}%]</td>
+		<td class='item_change' nowrap='nowrap'> [ <strong>{$data['votes']}</strong> ] </td>
+		</tr>
+		</foreach>
+		<tr>
+		<td class='item_change' colspan='3' align='right'><strong>{$lang['totalpolls']}: [ {$votetotal} ]</strong></td>
+		</tr>
+		<else>
+		<foreach="$showvoters AS $id => $data">
+		<tr>
+		<td class='item_change' colspan='3' align="left">
+		<if="$poll_data['multipoll']">
+		<input type='checkbox' name='poll_vote[]' value='{$data['id']}' />
+		<else>
+		<input type="radio" name="poll_vote[]" value="{$data['id']}" class="radiobutton" />
+		</if>
+		&nbsp;<strong>{$data['choice']}</strong></td>
+		</tr>
+		</foreach>
+		</if>
+		</tbody></table>
+		</fieldset>
+		</td>
+		</tr>
+		<tr>
+		<td class='pformstrip'>
+		<div align="center">{$votepoll}&nbsp;{$showresult}</div>
+		</td>
+		</tr>
+		</tbody></table>
+		</form>
+</div>
+</if>
+<form name='modform' id='modform' method='post' action='moderate.php'>
+<input type='hidden' name='s' value='{sessionid}' />
+<input type='hidden' name='f' id='forum_id' value='{$thread['forumid']}' />
+<input type='hidden' name='t' value='{$thread['tid']}' />
+<input type='hidden' name='posthash' value='{$posthash}' />
+<input type='hidden' name='pp' value='{$_INPUT['pp']}' />
+<input type='hidden' name='p' value='{$_INPUT['p']}' />
+{template:showthread_post}
+<if="$bbuserinfo['is_mod'] && !empty($mod)">
+<div id='post_op' class="ttable">
+	<input type="checkbox" id="selectall" onclick="SelectTag('div');" />
+	<ul>
+		{$mod}
+	</ul>
+</div>
+</if>
+</form>
+<div class="page_nav">
+	<ul class="new_button">
+		<li>
+			<strong>
+			<a href='newreply.php{sessionurl}f={$forum['id']}&amp;t={$thread['tid']}'>
+			<if="$thread[replybutton][button]=='closed'">
+				{$lang['threadclosed']}
+			<elseif="$thread[replybutton][button]=='t_moved'">
+				{$lang['threadmoved']}
+			<elseif="$thread[replybutton][button]=='newreply'">
+				{$lang['replypost']}
+			</if>
+			</a>
+			</strong>
+		</li>
+		<li><strong><a href='newthread.php{sessionurl}f={$forum['id']}' title='{$lang['newthread']}'>{$lang['newthread']}</a></strong></li>
+	</ul>
+	{$thread['pagenav']}
+</div>
+<if="$show['quickreply']">
+<form name='mxbform' id='mxbform' action="newreply.php" method='post' onsubmit='return submit_form(1);'>
+	<input type='hidden' name='do' value='update' />
+	<input type='hidden' name='s' value='{sessionid}' />
+	<input type='hidden' name='f' value='{$forum['id']}' />
+	<input type='hidden' name='givecash' value='{$forum['paypoints']}' />
+	<input type='hidden' name='allowbbcode' value='{$forum['allowbbcode']}' />
+	<input type='hidden' name='t' value='{$thread['tid']}' />
+	<input type='hidden' name='pnum' id="pnum" value='{$postajaxrep}' />
+	<input type='hidden' name='qreply' value='1' />
+	<input type='hidden' name='userhash' value='{$posthash}' />
+	<if="$bbuserinfo['usewysiwyg']">
+	<input type='hidden' name='wysiwyg' value='1' />
+	</if>
+	<script language='JavaScript' type="text/javascript">
+	//<![CDATA[
+	function smilie_pop()
+	{
+	window.open('misc.php{sessionurl}do=icon{$showwysiwyg}','misc','width=500,height=300,resizable=yes,scrollbars=yes');
+	}
+	function getMessageLength() {
+	 mxeGet();
+	  return calculate_byte(mxeTxH.value);
+	}
+	function checklength() {
+	 if (postmaxchars != 0) message = "{$lang['allowmostlength']} "+postmaxchars+" {$lang['chars']}";
+	 else message = "";
+	 var messageLength = getMessageLength();
+	 alert("{$lang['youhaveinput']} "+messageLength+" {$lang['chars']}" + message);
+	}
+	function submit_form(isMsg) {
+	document.mxbform.submitform.disabled = true;
+	{$loadjs}
+	  mxeGet();
+	  if (document.query)
+	  {
+	  if (document.query.mxbform.post.value=="") {
+	   alert("{$lang['mustinputcontent']}");
+	   return false;
+	  }
+	 var messageLength = getMessageLength();
+	  if ((postmaxchars != 0) && (messageLength > postmaxchars)) {
+	   alert("{$lang['postcharstoolong']} "+postmaxchars+" {$lang['chars']}{$lang['youhaveinput']} "+messageLength+" {$lang['chars']}");
+	   document.mxbform.submitform.disabled = false;
+	   return false;
+	  } else if ((postminchars != 0) && (messageLength < postminchars)) {
+	   alert("{$lang['postcharstooshort']} "+postminchars+" {$lang['chars']}{$lang['youhaveinput']} "+messageLength+" {$lang['chars']}");
+	   document.mxbform.submitform.disabled = false;
+	   return false;
+	  } else {
+	   mxbform.submit();
+	  }
+	  }
+	}
+	//]]>
+	</script>
+	<div id="quick_reply" class="ttable">
+		<em>{$lang['quickreply']}</em>
+		<div class="ttable">
+			<div>
+			<if="$bboptions['quickeditorloadmode']==2">
+				<textarea id="post" rows="" cols="" name="post" style="width:500px;height:200px;" onclick="load_qmxe();"></textarea>
+			<else>
+				<textarea id="post" rows="" cols="" name="post" style="width:500px;height:200px;"></textarea>
+			</if>
+			</div>
+			<input type='button' id='submitform' name='submitform' accesskey="s" value='{$lang['addreply']}' tabindex='3' <if="$bboptions['quickeditorloadmode']==2"> disabled="disabled"</if> onclick="quick_reply();" />
+			<input id='quick_preview' type='submit' accesskey="p" name='preview' value='{$lang['moreoptions']}' tabindex='4' />
+			<if="$antispam['imagehash']">
+			<span id="antispamtext">
+				<input type='hidden' id="imagehash" name='imagehash' value='{$antispam['imagehash']}' />
+				<input type='text' size='4' maxlength='4' name='antispam' id='antispam' value='' class="input_normal" tabindex='2' />
+				<span id="antispamtext_show">
+				<if="$antispam['text']==1">
+					<img src="register.php{sessionurl}do=showimage&amp;rc={$antispam['imagehash']}&amp;simg=1" alt="" />
+				<else>
+					{$antispam['text']}
+				</if>
+				</span>
+				<cite>{$lang['antispam']}</cite>
+			</span>
+			</if>
+		</div>
+		<div>
+			<fieldset>
+				<legend>{$lang['moreoptions']}</legend>
+				<label for='allowsmile'><input tabindex='5' type='checkbox' name='allowsmile' id='allowsmile' value='1' class="checkbox" checked="checked" /><a href='###' onclick='smilie_pop();'>{$lang['allowsmilies']}</a></label>
+				<label for='showsignature'><input tabindex='6' type='checkbox' name='showsignature' id='showsignature' value='1' class="checkbox" checked="checked" />{$lang['allowsignature']}</label>
+				<label for='parseurl'><input tabindex='7' type='checkbox' name='parseurl' id='parseurl' value='1' class="checkbox" checked="checked" />{$lang['parseurl']}</label>
+				<label for='quotepost'><input tabindex='8' type='checkbox' name='quotepost' id='quotepost' value='1' class="checkbox" checked="checked" />{$lang['quoteselectedpost']}</label>
+				<label for='redirect'><input tabindex='9' type='checkbox' name='redirect' id='redirect' value='1' class="checkbox"{$redirect} />{$lang['redirectforum']}</label>
+				<if="$bbuserinfo['cananonymous']">
+				<label for='anonymous'><input tabindex='10' name='anonymous' id='anonymous' type='checkbox' value='1' /><strong>{$lang['anonymouspost']}</strong></label>
+				</if>
+				<input type="hidden" name="checkurl" value="0" />
+			</fieldset>
+		</div>
+	</div>
+</form>
+</if>
+{template:footer}

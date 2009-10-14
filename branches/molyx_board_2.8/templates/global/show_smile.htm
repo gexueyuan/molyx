@@ -1,0 +1,49 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="keywords" content="{$bboptions['bbtitle']},MolyX,board,bbs,blog,forum,php,mysql" />
+<meta name="description" content="{$bboptions['bbtitle']} - Powered By MolyX.com" />
+<title> {$pagetitle} - Powered By MolyX.com </title>
+{CACHE_CSS}
+<script language="JavaScript" type="text/javascript" src='./lang/{$bboptions['language']}/global.js'></script>
+<script type="text/javascript" src='./scripts/global.js'></script>
+<script type="text/javascript">
+//<![CDATA[
+function add_smile(id,code,smiles) {
+	if (window.opener.query) {
+		window.opener.query.insert_smilies(id,code,smiles,'{$bboptions['bburl']}');
+	}
+                               if (window.opener) {
+		window.opener.insert_smilies(id,code,smiles,'{$bboptions['bburl']}');
+	}
+}
+//]]>
+</script>
+</head>
+<body>
+<div style='padding:6px'>
+<table width='100%' cellpadding='4' cellspacing='1' class='ttable'>
+<tbody>
+<tr>
+<td colspan='4' class='thead'>{$lang['smiles']}</td>
+</tr>
+<tr>
+<foreach="$emoticons AS $data">
+<php>
+$count++;
+</php>
+<td align='center' class='row2' valign='middle' id="smileid_{$data['id']}"><a href="javascript:add_smile({$data['id']},'{$data['smiletext']}','{$data['image']}')"><img src='images/smiles/{$data['image']}' border='0' alt='{$data['image']}' /></a></td>
+<td align='center' class='row1' valign='middle'><a href="javascript:add_smile({$data['id']},'{$data['smiletext']}','{$data['image']}')">{$data['smiletext']}</a></td>
+<if="$count==2">
+</tr><tr align='center'>
+<php>
+$count=0;
+</php>
+</if>
+</foreach>
+</tr></tbody></table>
+<br />
+</div>
+</body>
+</html>

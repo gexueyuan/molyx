@@ -1,0 +1,130 @@
+{template:header}
+<if="$show['threadmode']">
+	<if="count($allthread)">
+		<div id="find_post">
+		<if="$bbuserinfo['supermod']">
+		<form name='modform' id='modform' method='post' action='moderate.php'>
+		<script language='JavaScript' type="text/javascript">
+		//<![CDATA[
+			var Mform = document.modform;
+			Mform.onkeydown = Mformkeydown;
+			function Mformkeydown(){
+				if(isIE && window.event.keyCode==13){
+					window.event.returnValue = false;
+				} else return;
+			}
+		//]]>
+		</script>
+		</if>
+		<dl>
+			<foreach="$allthread AS $data">
+			<dt id='ttid{$data['tid']}' class='item_change'{$data['ajax_edit_thread_title']}>
+				{$data['thread_checkbox']}
+				{$data['ajax_edit_thread_title_attr']}
+				<h3><a href="showthread.php{sessionurl}t={$data['tid']}{$hignlight}"><span id="show{$data['tid']}">{$data['threadtitle']}</span></a></h3>
+			</dt>
+			<dd>{$data['user_avatar']}<em>{$data['postusername']}</em></dd>
+			<dd>{$lang['_forum']}<em><a href="forumdisplay.php{sessionurl}f={$data['forumid']}" title="{$data['forum_full_name']}">{$data['forum_name']}</a></em></dd>
+			<dd>{$lang['posttime']}<em>{$data['dateline']}</em></dd>
+			<dd>{$lang['_replynums']}<em>{$data['post']}</em></dd>
+			<dd>{$lang['_viewnums']}<em>{$data['views']}</em></dd>
+			<dd>{$lang['lastpost']}<em>{$data['lastpost']}</em>By<em>{$data['lastposter']}</em></dd>
+			<if="$data['st']"><dd><em><a href="forumdisplay.php{sessionurl}f={$data['forumid']}&st={$data['stopic']}">{$data['st']}</a></em></dd></if>
+			<if="$data['showpages']"><dd class="mini_page">{$data['showpages']}</dd></if>
+			</foreach>
+		</dl>
+		<if="$bbuserinfo['supermod'] || $bbuserinfo['candobatch']">
+		<div id='post_op' class="ttable">
+			<input type='hidden' name='s' value='{sessionid}' />
+			<input type='hidden' name='posthash' value='{$posthash}' />
+			<input type='hidden' value='{$_INPUT['showposts']}' name='showposts' />
+			<input type='hidden' value='{$_INPUT['searchid']}' name='searchid' />
+			<input type='hidden' name='search_type' value='{$search_type}' />
+			<input type='hidden' value='{$_INPUT['searchin']}' name='searchin' />
+			<input type='hidden' value='{$_INPUT['highlight']}' name='highlight' />
+			<input type="checkbox" id="selectall" onclick="SelectTag('dt');"  />
+			<ul>
+				<li onclick="ajax_submit_form('modform','openclose', 'tid');">{$lang['openclose']}</li>
+				<li onclick="ajax_submit_form('modform','stickorcancel', 'tid');">{$lang['stickorcancel']}</li>
+				<li onclick="ajax_submit_form('modform','mergethreads', 'tid');">{$lang['threadmerge']}</li>
+				<li onclick="ajax_submit_form('modform','deletethreads', 'tid');">{$lang['threaddelete']}</li>
+				<li onclick="ajax_submit_form('modform','approveorcancel', 'tid');">{$lang['approveorcancel']}</li>
+			</ul>
+		</div>
+		</form>
+		</if>
+		</div>
+	<else>
+		<div class="item_list" style="line-height:3em;">{$lang['nothread']}</div>
+	</if>
+<else>
+	<if="count($allpost)">
+		<div id="find_post">
+		<if="$bbuserinfo['supermod'] || $bbuserinfo['candobatch']">
+		<form name='modform' id='modform' method='post' action='moderate.php'>
+		</if>
+			<dl class="item_list">
+			<foreach="$allpost AS $data">
+				<dt class='item_change' >
+					<em>
+					<if="$bbuserinfo['supermod'] || $bbuserinfo['candobatch']">
+						<button id="opobject_{$data['post']['pid']}" class="button_normal" onclick="ajax_submit_form('modform','deletepost', 'pid', {$data['post']['pid']});" />{$lang['deletepost']}</button>
+						<input type='checkbox' id='pid_{$data['post']['pid']}' name='pid[]' value='{$data['post']['pid']}' title="{$lang['managepost']}: ID - {$data['post']['pid']}" />
+						<input type='hidden' name='tid[{$data['post']['pid']}]' value='{$data['post']['tid']}' />
+						</if>
+						<a href='showthread.php{sessionurl}t={$data['post']['tid']}'>{$data['post']['threadtitle']}</a>
+					</em>
+				</dt>
+				<dd id='search_div_{$data['post']['pid']}' class="post_text">
+					<div class="user_profile">
+						{$data['user']['avatar']}
+						<em>{$data['post']['username']}</em>
+						<div><cite>{$data['user']['grouptitle']}</cite></div>
+						<ul>
+						<li>{$lang['_useposts']}: {$data['user']['posts']}</li>
+						<li>{$lang['_joindate']}: {$data['user']['joindate']}</li>
+						</ul>
+					</div>
+					{$data['post']['pagetext']}
+				</dd>
+				<dd>{$lang['_forum']}<em><a href="forumdisplay.php{sessionurl}f={$data['post']['forumid']}">{$data['post']['forum_name']}</a></em></dd>
+				<dd>{$lang['_post']}<em><a href='redirect.php{sessionurl}t={$data['post']['tid']}&amp;highlight={$data['post']['keywords']}&amp;goto=findpost&amp;p={$data['post']['pid']}' class='linkthru'>#{$data['post']['pid']}</a></em></dd>
+				<dd>{$lang['posttime']}<em>{$data['post']['dateline']}</em></dd>
+				<dd>{$lang['_replynums']}<em>{$data['post']['thread_post']}</em></dd>
+				<dd>{$lang['_viewnums']}<em>{$data['post']['views']}</em></dd>
+			</foreach>
+			</dl>
+		<if="$bbuserinfo['supermod'] || $bbuserinfo['candobatch']">
+			<div id='post_op' class="ttable">
+				<input type='hidden' name='s' value='{sessionid}' />
+				<input type='hidden' name='userid' value='{$data['user']['id']}' />
+				<input type='hidden' name='search_type' value='{$search_type}' />
+				<input type='hidden' name='posttable' value='{$posttable}' />
+				<input type="checkbox" id="selectall" onclick="SelectTag('dt');" />
+				<ul>
+					<li onclick="ajax_submit_form('modform','deletepost', 'pid');">{$lang['deletepost']}</li>
+					<li onclick="ajax_submit_form('modform','approvepost', 'pid');">{$lang['approvepost']}</li>
+					<li onclick="ajax_submit_form('modform','unapprovepost', 'pid');">{$lang['unapprovepost']}</li>
+				</ul>
+			</div>
+		</form>
+		</if>
+		</div>
+	</if>
+</if>
+<div class="page_nav">
+	{$pagelinks}
+</div>
+<div id="search_in">
+	<em>在结果中查找</em>
+	<div>
+	<form action='search.php' method='post'>
+		<input type='hidden' name='s' value='{sessionid}' />
+		<input type='hidden' name='do' value='searchinresults' />
+		<input type='hidden' name='searchid' value='{$searchid}' />
+		<input type='text' size='22' name='keywords' value='{$keywords}' class="input_normal" />
+		<input type='submit' value='{$lang['_search']}' class="button_normal" />
+	</form>
+	</div>
+</div>
+{template:footer}

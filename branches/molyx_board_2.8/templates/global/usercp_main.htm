@@ -1,0 +1,77 @@
+{template:header}
+{template:usercp_menu}
+<div id="ucp_content">
+	<h3>{$lang['usercp']}</h3>
+	<em>{$lang['accountssummary']}</em>
+		<ul class="ucp">
+			<li>{$lang['_email']}: {$info['email']}</li>
+			<li>{$lang['_useposts']}: {$info['posts']}</li>
+			<li>{$lang['_joindate']}: {$info['joindate']}</li>
+			<li>{$lang['perdaypost']}: {$info['daily_average']}</li>
+		</ul>
+	<if="$show_safe">
+		<p>{$lang['nosafe']}:{$lang['nosafedesc']}</p>
+	</if>
+	<em>{$lang['newuploadattachs']}</em>
+		<if="$show['attachment']">
+		<ul class="ucp">
+			<foreach="$attachment AS $attach">
+			<li>
+				<img src='images/{$attach['image']}' class="inline" alt='{$lang['_attachment']}' />
+				<a href='attachment.php{sessionurl}id={$attach['attachmentid']}&amp;u={$attach['userid']}&amp;extension={$attach['extension']}&amp;attach={$attach['location']}&amp;filename={$attach['filename']}&amp;attachpath={$attach['attachpath']}' title='' target='_blank'>{$attach['filename']}</a>
+				<span class='desc'>( {$lang['_clicknums']}: {$attach['counter']} )</span>
+			</li>
+			</foreach>
+		</ul>
+		<else>
+		<p>{$lang['nouploadattachs']}</p>
+		</if>
+	<if="$show['message']">
+	<table width='100%' cellspacing='0' cellpadding='0'>
+	<caption class='tcat'>{$lang['unreadpms']}</caption>
+	<thead class='thead'>
+		<tr align="left">
+			<th width='60%'>{$lang['pmtitle']}</th>
+			<th width='15%'>{$lang['_pmsender']}</th>
+			<th width='25%'>{$lang['_pmsendtime']}</th>
+		</tr>
+	</thead>
+	<tbody class="tbody">
+	<foreach="$unread_pmlist AS $data">
+		<tr class='item_list'>
+			<td>
+				<a class="li" href='private.php{sessionurl}do=showpm&amp;folderid={$data['folderid']}&amp;pmid={$data['pmid']}'>{$data['title']}</a>
+			</td>
+			<td><a href='profile.php{sessionurl}u={$data['fromuserid']}'>{$data['fromusername']}</a></td>
+			<td class="time">{$data['date']}</td>
+		</tr>
+	</foreach>
+	</tbody>
+	</table>
+	</if>
+	<if="$show['thread']">
+	<table width='100%' cellspacing='0' cellpadding='0'>
+	<caption class='tcat'>{$lang['recentreadthread']}</caption>
+	<thead class='thead'>
+		<tr align="left">
+			<th width='60%'>{$lang['_thread']}</th>
+			<th width='15%'>{$lang['threadstarter']}</th>
+			<th width='25%'>{$lang['lastpost']}</th>
+		</tr>
+	</thead>
+	<tbody class="tbody">
+	<foreach="$thread AS $data">
+		<tr class='item_list'>
+			<td>
+				<a class="li" href="showthread.php{sessionurl}t={$data['tid']}" title="{$lang['threadcreated']}: {$data['dateline']}">{$data['title']}</a>
+				{$data[showpages]}
+			</td>
+			<td>{$data['postusername']}</td>
+			<td class="time">{$data['lastpost']} - {$data['lastposter']}</td>
+		</tr>
+	</foreach>
+	</tbody>
+	</table>
+	</if>
+</div>
+{template:footer}

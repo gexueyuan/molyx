@@ -1,0 +1,25 @@
+{template:header}
+{template:usercp_menu}
+<div id="ucp_content">
+	<h3>{$lang['editfolder']}</h3>
+	<p class="desc">{$lang['editfolderdesc']}</p>
+	<form action="private.php" method="post">
+		<input type='hidden' name='s' value='{sessionid}' />
+		<input type='hidden' name='do' value='savefolders' />
+		<ul class="ucp">
+		<foreach="$curfolders AS $id => $data">
+			<li>
+				<input type='text' name='folder[{$id}]' value='{$data[foldername]}' title='{$lang['folderid']}: {$id}' class='input_normal' />
+				<div class="desc">( {$lang['pmnums']}:{$data[pmcount]}{$data[extra]} )</div>
+			</li>
+		</foreach>
+		</ul>
+	<em>{$lang['addnewfolder']}</em>
+	<p class="desc">{$lang['addnewfolderdesc']}</p>
+		<ul class="ucp">
+		{$newfolder}
+		</ul>
+	<div class="ucp item_change"><input type='submit' value=' {$lang['dochange']} ' class='input_big' /></div>
+	</form>
+</div>
+{template:footer}

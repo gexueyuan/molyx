@@ -1,0 +1,16 @@
+<div id="smiliespage">
+	<if="$smiles && is_array($smiles)">
+	<ul>
+	<foreach="$smiles as $smile">
+		<li id="smileid_{$smile['id']}" ><img onclick="insert_smilies({$smile['id']},'{$smile['smiletext']}','{$smile['image']}');" src="images/smiles/{$smile['image']}" class="inline" alt="{$smile['smiletext']}" onmouseover="this.style.cursor='pointer';" /></li>
+	</foreach>
+	</ul>
+	</if>
+	<if="$smile_count > $all_smiles">
+	<div align="center">
+		<a href='javascript:smiles_page(0, 0);' id="smileslastpage">&laquo;</a>&nbsp;&nbsp;
+		<a href='###' onclick='smilie_pop();'>{$lang['showall']}</a>
+		&nbsp;&nbsp;<a href='javascript:smiles_page(0, 1);' id="smilesnextpage">&raquo;</a>
+	</div>
+	</if>
+</div>

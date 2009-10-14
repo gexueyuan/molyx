@@ -1,0 +1,72 @@
+{template:header}
+{template:usercp_menu}
+<div id="ucp_content">
+	<h3>{$lang['manageattachment']}</h3>
+	<div class='ucp'>
+		<div class="capacity ttable">
+		<if="$show['limit']">
+			<strong>{$lang['usedspace']}{$lang['leftspace']}</strong>
+			<div><img src='images/<#IMAGE#>/bar_left.gif' alt='' /><img src='images/<#IMAGE#>/bar.gif' style="height:11px;width:{$info['img_width']}px;" alt='' /><img src='images/<#IMAGE#>/bar_right.gif' alt='' /></div>
+			<cite style="text-align:left;">0%</cite>
+			<cite style="text-align:center;">50%</cite>
+			<cite style="text-align:right;">100%</cite>
+		<else>
+			{$lang['usedspace']}
+		</if>
+		</div>
+	</div>
+	<form action="usercp.php" name='mutliact' method="post">
+		<input type='hidden' name='s' value='{sessionid}' />
+		<input type='hidden' name='do' value='attach' />
+		<input type='hidden' name='sort' value='{$_INPUT['sort']}' />
+		<div class='ucp'>
+			<table cellpadding='0' cellspacing='1' width="100%" class="ttable">
+			<thead>
+				<tr class="thead" align="left">
+					<th width='20%'>{$lang['_attachment']}</th>
+					<th width='15%'>{$lang['_filesize']}</th>
+					<th width='60%'>{$lang['inthreads']}</th>
+					<th width='5%' align="center"><input name="allbox" type="checkbox" value="{$lang['_selectall']}" onclick="CheckAll(document.mutliact);" /></th>
+				</tr>
+			</thead>
+			<tbody class="tbody">
+				<if="is_array($attach)">
+				<foreach="$attach AS $data">
+				<tr id="{$data['attachmentid']}" align="left" class="item_list" onmouseover="this.className='item_change';" onmouseout="this.className='item_list';">
+					<td>
+						<img src='images/{$data['image']}' class='inline' alt='{$lang['_attachment']}' />
+						<a href='attachment.php{sessionurl}id={$data['attachmentid']}&amp;u={$data['userid']}&amp;extension={$data['extension']}&amp;attach={$data['location']}&amp;filename={$data['filename']}&amp;attachpath={$data['attachpath']}' title='{$data['filename']}' target='_blank'>{$data['shortname']}</a>
+						<div class='desc'>( {$lang['_clicknums']}: {$data['counter']} )</div>
+					</td>
+					<td>{$data['filesize']}</td>
+					<td>
+						<if="$data['postid'] > 0">
+						<a href='showthread.php{sessionurl}t={$data['tid']}'>{$data['title']}</a>
+						<else>
+						{$data['title']}
+						</if>
+						<div class='time'>{$data['dateline']}</div>
+					</td>
+					<td align='center'><input type='checkbox' name='attachid[]' value='{$data['attachmentid']}' class='checkbox' /></td>
+				</tr>
+				</foreach>
+				<tr>
+					<td colspan='4' align='right' class='item_change'>
+						<input type='submit' value='{$lang['deleteselectattachs']}' class='button_normal' />
+					</td>
+				</tr>
+				<else>
+				<tr align="center" class="item_list">
+					<td colspan='4'>{$lang['nouploadattachs']}</td>
+				</tr>
+				</if>
+			</tbody>
+			</table>
+			<div class="page_nav">
+				<div style="float:right;">{$lang['totalattachs']}</div>
+				{$pages}
+			</div>
+		</div>
+	</form>
+</div>
+{template:footer}

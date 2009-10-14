@@ -1,0 +1,54 @@
+{template:header}
+<div class='wbborder'></div>
+<if="$message">
+<div class='wborder'>
+<div class='pformstrip'>{$lang['currentrss']}</div>
+<div class='tablepad'>{$message}</div>
+</div>
+</if>
+<form action="misc.php" method="post" name='rss' onsubmit='return validate()'>
+<input type='hidden' name='s' value="{sessionid}" />
+<input type='hidden' name='do' value="rss" />
+<input type='hidden' name='update' value="1" />
+<div class='wttborder'>
+<table width='100%' cellpadding='4' cellspacing='1' class='ttable'>
+<tbody>
+<tr>
+<td class='thead' colspan='2'>
+<img src='images/<#IMAGE#>/nav_m.gif' border='0' alt='' />&nbsp;{$lang['rsssyndication']}
+</td>
+</tr>
+<tr>
+<td class="tablepad" colspan='2'>
+{$lang['whatisrss']}
+</td>
+</tr>
+<tr>
+<td class='pformstrip' colspan='2'>{$lang['ltsyndication']}</td>
+</tr>
+  <tr>
+   <td class="row1" width='30%'><strong>{$lang['syndicationforum']}</strong><div class="desc">{$lang['syndicationforumdesc']}</div></td>
+   <td class="row2" width='70%'>
+<select name='forumlist[]' style='width:100%;' size='10' multiple='multiple'>
+<option value='0'{$selected}>{$lang['allforums']}</option>
+<optgroup label='-----------------------'>
+{$showforum}
+</optgroup>
+</select>
+</td>
+  </tr>
+  <tr>
+   <td class="row1" width='30%'><strong>{$lang['rssversion']}</strong></td>
+   <td class="row2" width='70%'><input type="radio" name="version" value="rss" checked="checked" />&nbsp;RSS 0.92 ({$lang['defaultsetting']})<br /><input type="radio" name="version" value="rss2.0"  />&nbsp;RSS 2.00</td>
+  </tr>
+  <tr>
+   <td class="row1" width='30%'><strong>{$lang['onetimeslimit']}</strong><div class="desc">{$lang['onetimeslimitdesc']}</div></td>
+   <td class="row2" width='70%'><input type='text' size='3' maxlength='32' name='limit' value='20' class='bginput' /> {$lang['perthreads']}</td>
+  </tr>
+  <tr>
+   <td class="pformstrip" colspan="2" align="center"><input type="submit" accesskey="s" value=" {$lang['rsssyndication']} " class="button" /></td>
+  </tr>
+</tbody></table>
+</div>
+</form>
+{template:footer}

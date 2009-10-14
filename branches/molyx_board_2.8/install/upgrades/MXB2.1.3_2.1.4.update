@@ -1,0 +1,59 @@
+<?php
+class CUpdate
+{
+	var		$UpdaterVer		= 1.0;
+	var		$OldVersion		= '2.1.3';
+	var		$NewVersion		= '2.1.4';
+	var		$Error			= '';
+	var		$Author			= 'Molyx Development Team';
+	var		$Date			= '2005-05-07';
+	var		$Notes			= '';
+	
+	function AllowUpdate()
+	{
+		global $DB;
+		$version = $DB->query_first("SELECT defaultvalue FROM ".TABLE_PREFIX."setting WHERE varname='version'");
+		
+		if( strtolower($version['defaultvalue']) != strtolower($this->OldVersion) )
+			return 0;
+		else
+			return 1;
+	}
+	
+	function SetError($errmsg)
+	{
+		$this->Error = $errmsg;
+	}
+	
+	function GetError()
+	{
+		return $this->Error;
+	}
+
+	/* the actual update.
+	 *
+	 * RETURN VALUES
+	 *
+	 *	1 - update failed (set error with $this->SetError() )
+	 *	0 - update sucessfull
+	 */
+	function RunUpdate()
+	{
+		global $DB;
+		$DB->return_die = 1;
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'showguest' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '是否在在线列表内显示游客', '如果开启了这个选项，那么在在线列表内将一并显示游客列表', 10, 'yes_no', 'showguest', '', '0', '', 9, 1);");
+		}
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET title='允许游客直接查看帖子内的图片？' WHERE varname='guestviewimg'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."setting DROP INDEX `groupid`, ADD INDEX `groupid` ( `groupid` , `displayorder` , `title` )");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."attachment ADD INDEX `userid` ( `userid` , `dateline` )");
+
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue='".$this->NewVersion."' WHERE varname='version'");
+
+		$DB->return_die = 0;
+		return 0;
+	}	
+}
+
+?>

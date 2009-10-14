@@ -1,0 +1,1230 @@
+<?php
+class CUpdate
+{
+	var		$UpdaterVer		= 1.0;
+	var		$OldVersion		= '2.1.4';
+	var		$NewVersion		= '2.5.0';
+	var		$Error			= '';
+	var		$Author			= 'Molyx Development Team';
+	var		$Date			= '2005-12-29';
+	var		$Notes			= '';
+	
+	function AllowUpdate()
+	{
+		global $DB;
+		$version = $DB->query_first("SELECT defaultvalue FROM ".TABLE_PREFIX."setting WHERE varname='version'");
+		
+		if( strtolower($version['defaultvalue']) != strtolower($this->OldVersion) )
+			return 0;
+		else
+			return 1;
+	}
+	
+	function SetError($errmsg)
+	{
+		$this->Error = $errmsg;
+	}
+	
+	function GetError()
+	{
+		return $this->Error;
+	}
+
+	/* the actual update.
+	 *
+	 * RETURN VALUES
+	 *
+	 *	1 - update failed (set error with $this->SetError() )
+	 *	0 - update sucessfull
+	 */
+	function RunUpdate()
+	{
+		global $DB;
+		$DB->return_die = 1;
+
+		show_update(TABLE_PREFIX.'ad');
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."ad (
+						  id mediumint(8) unsigned NOT NULL auto_increment,
+						  `name` varchar(250) NOT NULL default '',
+						  `type` varchar(30) NOT NULL default '',
+						  ad_in varchar(255) NOT NULL default '',
+						  starttime int(10) unsigned NOT NULL default '0',
+						  endtime int(10) unsigned NOT NULL default '0',
+						  codetype tinyint(3) unsigned NOT NULL default '0',
+						  code mediumtext NOT NULL default '',
+						  htmlcode mediumtext NOT NULL default '',
+						  click mediumint(8) unsigned NOT NULL default '0',
+						  displayorder smallint(3) NOT NULL default '0',
+						  PRIMARY KEY  (id)
+					  ) ".$add_charset."
+		");
+
+		show_update(TABLE_PREFIX.'administrator');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."administrator CHANGE aid aid mediumint(8) unsigned NOT NULL default 0");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."administrator ADD caneditads tinyint(1) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."administrator ADD caneditinvite tinyint(1) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."administrator ADD caneditbank tinyint(1) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."administrator ADD cansendpms tinyint(1) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."administrator ADD caneditjs tinyint(1) NOT NULL default '0'");
+
+		show_update(TABLE_PREFIX.'adminlog');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."adminlog 
+			CHANGE adminlogid adminlogid int(10) unsigned NOT NULL auto_increment, 
+			CHANGE userid userid mediumint(8) unsigned NOT NULL default '0', 
+			CHANGE script script varchar(255) NOT NULL default '', 
+			CHANGE action action varchar(255) NOT NULL default '', 
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0', 
+			CHANGE note note mediumtext NOT NULL default '',
+			CHANGE host host char(15) NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."adminlog ADD INDEX userid ( userid )");
+
+		show_update(TABLE_PREFIX.'adminsession');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."adminsession 
+			CHANGE username username varchar(32) NOT NULL default '', 
+			CHANGE host host char(15) NOT NULL default '',
+			CHANGE location location VARCHAR(250)  NOT NULL  default ''
+		");
+
+		show_update(TABLE_PREFIX.'adminsession');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."adminsession DROP PRIMARY KEY");
+
+		show_update(TABLE_PREFIX.'adminsession');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."adminsession TYPE = HEAP");
+
+		show_update(TABLE_PREFIX.'announcement');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."announcement 
+			CHANGE pagetext pagetext mediumtext NOT NULL default '', 
+			CHANGE forumid forumid mediumtext NOT NULL default ''
+		");
+
+		show_update(TABLE_PREFIX.'antispam');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."antispam 
+			CHANGE host host char(15) NOT NULL default '', 
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0'
+		");
+
+		show_update(TABLE_PREFIX.'attachment');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."attachment 
+			CHANGE posthash posthash varchar(32) NOT NULL default '', 
+			CHANGE visible visible tinyint(1) NOT NULL default '1', 
+			CHANGE thumbwidth thumbwidth smallint(5) unsigned NOT NULL default '0', 
+			CHANGE thumbheight thumbheight smallint(5) unsigned NOT NULL default '0'
+		");
+
+		show_update(TABLE_PREFIX.'attachment');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."attachment ADD inpost tinyint(1) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."attachment DROP INDEX filesize");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."attachment ADD INDEX blogid (blogid)");
+
+		show_update(TABLE_PREFIX.'attachmenttype');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."attachmenttype 
+			CHANGE id id smallint(5) unsigned NOT NULL auto_increment, 
+			CHANGE attachimg attachimg mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."attachmenttype ADD INDEX useavatar (useavatar)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."attachmenttype ADD INDEX usepost (usepost)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."attachmenttype ADD INDEX extension (extension)");
+
+		show_update(TABLE_PREFIX.'award');
+		$DB->query_unbuffered("DROP TABLE ".TABLE_PREFIX."award");
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."award (
+						  id smallint(5) unsigned NOT NULL auto_increment,
+						  name varchar(50) NOT NULL default '',
+						  explanation varchar(255) NOT NULL default '',
+						  img varchar(255) NOT NULL default '',
+						  used tinyint(1) NOT NULL default '0',
+						  gender tinyint(1) NOT NULL default '0',
+						  `date` smallint(5) unsigned NOT NULL default '0',
+						  onlinetime smallint(5) unsigned NOT NULL default '0',
+						  posts smallint(5) unsigned NOT NULL default '0',
+						  reputation smallint(5) unsigned NOT NULL default '0',
+						  strategy smallint(5) unsigned NOT NULL default '0',
+						  PRIMARY KEY  (id),
+						  KEY used (used)
+					  ) ".$add_charset."
+		");
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '论坛建设奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('论坛建设奖', '你对社区建设作出了不可磨灭的贡献，特发此奖。', './images/award/7.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '最佳情侣奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('最佳情侣奖', '不多说了，祝你们在以后的日子里更加幸福！', './images/award/12.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '优秀斑竹奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('优秀斑竹奖', '在您的管理的版面里会员热情高涨，特发此奖，请继续努力。', './images/award/5.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '最佳创作奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('最佳创作奖', '你的创作有独到的新意，让大家受益非浅，特发此奖，请继续努力喔。', './images/award/14.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '灌水天才奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('灌水天才奖', '你灌水真是厉害呀，值得大家学习，特发此奖。', './images/award/10.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '贴图大师奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('贴图大师奖', '您的贴图真不错，特发此奖，请继续努力。', './images/award/4.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '论坛鼓励奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('论坛鼓励奖', '由于你的努力，带动了大家的热情，特发此奖，希望你继续成为大家学习的目标。', './images/award/11.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '论坛卫士奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('论坛卫士奖', '由于你的关心，让我们的论坛能在一片清静的天空中发展，特发此奖。', './images/award/2.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '聊天天才奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('聊天天才奖', '聊吧聊吧', './images/award/9.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '美眉专用章' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('美眉专用章', '各位帅哥请注意哈！', './images/award/6.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '帅哥专用章' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('帅哥专用章', '各位美眉清注意喔！', './images/award/8.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '最佳宣传奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('最佳宣传奖', '由于你的带动，使我们的论坛人气更旺，特发此奖，加油喔。', './images/award/1.gif')");
+		}
+
+		$show = $DB->query_first("SELECT name FROM ".TABLE_PREFIX."award WHERE name = '幽默大师奖' LIMIT 1");
+		if(!$show['name']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."award (name, explanation, img) VALUES ('幽默大师奖', '你总能给人们带来欢乐，特发此奖。', './images/award/13.gif')");
+		}
+
+		show_update(TABLE_PREFIX.'award_request');
+		$DB->query_unbuffered("DROP TABLE ".TABLE_PREFIX."award_request");
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."award_request (
+						   aid smallint(5) unsigned NOT NULL default '0',
+						  uid mediumint(8) unsigned NOT NULL default '0',
+						  post mediumtext NOT NULL default '',
+						  dateline int(10) unsigned NOT NULL default '0',
+						  PRIMARY KEY  (aid, uid)
+					  ) ".$add_charset."
+		");
+
+		show_update(TABLE_PREFIX.'badword');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."badword 
+			CHANGE id id smallint(5) unsigned NOT NULL auto_increment, 
+			CHANGE badafter badafter varchar(250) NOT NULL default '', 
+			CHANGE type type tinyint(1) NOT NULL default '0'
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."badword ADD INDEX badbefore (badbefore, type)");
+
+		show_update(TABLE_PREFIX.'banfilter');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."banfilter 
+			CHANGE id id smallint(5) unsigned NOT NULL auto_increment,
+			CHANGE content content mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."banfilter ADD INDEX type (type)");
+
+		show_update(TABLE_PREFIX.'banklog');
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."banklog (
+						  id mediumint(8) unsigned NOT NULL auto_increment,
+						  dateline int(10) unsigned NOT NULL default '0',
+						  action varchar(250) NOT NULL default '',
+						  fromuserid mediumint(8) unsigned NOT NULL default '0',
+						  touserid mediumint(8) unsigned NOT NULL default '0',
+						  PRIMARY KEY (id)
+					  ) ".$add_charset."
+		");
+
+		show_update(TABLE_PREFIX.'bbcode');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."bbcode 
+			CHANGE bbcodeid bbcodeid smallint(5) unsigned NOT NULL auto_increment,
+			CHANGE description description mediumtext NOT NULL default '',
+			CHANGE bbcodeexample bbcodeexample mediumtext NOT NULL default '',
+			CHANGE bbcodereplacement bbcodereplacement mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."bbcode SET imagebutton='1' WHERE imagebutton != ''");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."bbcode CHANGE imagebutton imagebutton tinyint(1) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."bbcode ADD INDEX imagebutton (imagebutton)");
+		$show = $DB->query_first("SELECT bbcodetag FROM ".TABLE_PREFIX."bbcode WHERE bbcodetag = 'movie' LIMIT 1");
+		if(!$show['bbcodetag']) {
+			$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."bbcode SET bbcodereplacement = '<div align=\'center\'><object id=\'player\' width=\'400\' height=\'300\' classid=\'clsid:6bf52a52-394a-11d3-b153-00c04f79faa6\' codebase=\'http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.cab#version=6,4,5,715\' standby=\'Loading Microsoft Windows Media player Components...\' type=\'application/x-oleobject\' align=\'center\'><param name=\'url\' value=\'{content}\' /><param name=\'uimode\' value=\'full\' /><param name=\'autostart\' value=\'0\' /><param name=\'transparentatstart\' value=\'1\' /><param name=\'animationatstart\' value=\'1\' /><param name=\'showcontrols\' value=\'1\' /><param name=\'showstatusbar\' value=\'1\' /><embed type=\'application/x-mplayer2\' pluginspage=\'http://www.microsoft.com/windows/downloads/contents/products/mediaplayer/\' src=\'{content}\' align=\'middle\' width=\'400\' height=\'300\' showcontrols=\'1\' showstatusbar=\'1\' autostart=\'0\' showdisplay=\'1\' showstatusbar=\'0\'></embed></object><br /><a href=\'{content}\' target=\'_blank\'>点此下载</a></div>' WHERE bbcodetag = 'movie'");
+		}
+
+		$show = $DB->query_first("SELECT bbcodetag FROM ".TABLE_PREFIX."bbcode WHERE bbcodetag = 'music' LIMIT 1");
+		if(!$show['bbcodetag']) {
+			$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."bbcode SET bbcodereplacement = '<div align=\'center\'><object id=\'player\' width=\'400\' height=\'66\' classid=\'clsid:6bf52a52-394a-11d3-b153-00c04f79faa6\' codebase=\'http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.cab#version=6,4,5,715\' standby=\'Loading Microsoft Windows Media player Components...\' type=\'application/x-oleobject\' align=\'center\'><param name=\'url\' value=\'{content}\' /><param name=\'uimode\' value=\'mini\' /><param name=\'autostart\' value=\'0\' /><param name=\'transparentatstart\' value=\'1\' /><param name=\'showdisplay\' value=\'0\' /><param name=\'showtracker\' value=\'1\' /><param name=\'animationatstart\' value=\'1\' /><param name=\'showcaptioning\' value=\'0\' /><param name=\'allowchangedisplaysize\' value=\'0\' /><param name=\'showcontrols\' value=\'1\' /><param name=\'showstatusbar\' value=\'1\' /><embed type=\'application/x-mplayer2\' pluginspage=\'http://www.microsoft.com/windows/downloads/contents/products/mediaplayer/\' src=\'{content}\' align=\'middle\' width=\'400\' height=\'66\' showcontrols=\'1\' showstatusbar=\'1\' showdisplay=\'0\' showstatusbar=\'0\'></embed></object><br /><a href=\'{content}\' target=\'_blank\'>点此下载</a></div>' WHERE bbcodetag = 'music'");
+		}
+
+		$show = $DB->query_first("SELECT bbcodetag FROM ".TABLE_PREFIX."bbcode WHERE bbcodetag = 'real' LIMIT 1");
+		if(!$show['bbcodetag']) {
+			$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."bbcode SET bbcodereplacement = '<div align=\'center\'><object id=\'{content}\' classid=\'clsid:cfcdaa03-8be4-11cf-b84b-0020afbbccfa\' height=\'300\' width=\'400\'><param name=\'controls\' value=\'imagewindow\' /><param name=\'nologo\' value=\'1\' /><param name=\'console\' value=\'{content}\' /><param name=\'autostart\' value=\'0\' /><embed type=\'audio/x-pn-realaudio-plugin\' console=\'clip1\' controls=\'imagewindow\' height=\'300\' width=\'400\' nologo=\'true\' autostart=\'0\' /></embed></object><br /><object id=\'{content}\' classid=\'clsid:cfcdaa03-8be4-11cf-b84b-0020afbbccfa\' width=\'400\' height=\'50\'><param name=\'controls\' value=\'controlpanel,statusbar\' /><param name=\'console\' value=\'{content}\' /><param name=\'autostart\' value=\'0\' /><param name=\'src\' value=\'{content}\' /><embed src=\'{content}\' type=\'audio/x-pn-realaudio-plugin\' console=\'clip1\' controls=\'controlpanel\' width=\'400\' height=\'50\' autostart=\'0\' nojava=\'true\'></embed></object><br /><a href=\'{content}\' target=\'_blank\'>点此下载</a></div>' WHERE bbcodetag = 'real'");
+		}
+
+		show_update(TABLE_PREFIX.'birthday');
+		$DB->query_unbuffered("DROP TABLE ".TABLE_PREFIX."birthday");
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."birthday (
+						  id MEDIUMINT(8) unsigned default '0' NOT NULL,
+						  dateline INT(10) unsigned default '0' NOT NULL,
+						  PRIMARY KEY (id)
+					  ) ".$add_charset."
+		");
+
+		show_update(TABLE_PREFIX.'cache');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."cache 
+			CHANGE data data mediumtext NOT NULL default '', 
+			CHANGE `is_array` `is_array` tinyint(1) NOT NULL default '0'
+		");
+
+		show_update(TABLE_PREFIX.'credit');
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."credit (
+						   creditid mediumint(8) unsigned NOT NULL auto_increment,
+						  name varchar(40) NOT NULL default '',
+						  tag_name varchar(40) NOT NULL default '',
+						  newthread smallint(3) NOT NULL default '0',
+						  newreply smallint(3) NOT NULL default '0',
+						  quintessence smallint(3) NOT NULL default '0',
+						  award smallint(3) NOT NULL default '0',
+						  downattach smallint(3) NOT NULL default '0',
+						  sendpm smallint(3) NOT NULL default '0',
+						  search smallint(3) NOT NULL default '0',
+						  c_limit smallint(3) NOT NULL default '0',
+						  used tinyint(1) unsigned NOT NULL default '0',
+						  PRIMARY KEY  (creditid)
+					  ) ".$add_charset."
+		");
+
+		show_update(TABLE_PREFIX.'cron');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."cron 
+			CHANGE nextrun nextrun int(10) unsigned NOT NULL default '0', 
+			CHANGE monthday monthday tinyint(2) NOT NULL default '-1', 
+			CHANGE hour hour tinyint(2) NOT NULL default '-1', 
+			CHANGE description description mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."cron DROP INDEX nextrun");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."cron ADD INDEX enabled (enabled, nextrun)");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."cron SET enabled = '0' WHERE filename='renameupload.php'");
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."cron WHERE filename = 'award_promotion.php' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."cron (title, filename, nextrun, weekday, monthday, hour, minute, cronhash, loglevel, description, enabled) VALUES ('自动颁发勋章', 'award_promotion.php', 0, -1, -1, 12, -1, '', 1, '通过本任务可以自动对符合条件的用户授予勋章', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."cron WHERE filename = 'cleantoday.php' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."cron (title, filename, nextrun, weekday, monthday, hour, minute, cronhash, loglevel, description, enabled) VALUES ('更新每日发帖信息', 'cleantoday.php', 0, -1, -1, 0, 0, '', 0, '每天0点重置今日发帖信息', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."cron WHERE filename = 'rebuildglobalstick.php' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."cron (title, filename, nextrun, weekday, monthday, hour, minute, cronhash, loglevel, description, enabled) VALUES ('重建总置顶主题', 'rebuildglobalstick.php', 0, -1, -1, 1, -1, '', 1, '重新建立总置顶主题的各种相关信息', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."cron WHERE filename = 'refreshjs.php' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."cron (title, filename, nextrun, weekday, monthday, hour, minute, cronhash, loglevel, description, enabled) VALUES ('刷新JS生成代码', 'refreshjs.php', 0, -1, -1, 0, 0, '', 0, '在这里刷新 JavaScript 调用设定的参数', 1)");
+		}
+
+
+		show_update(TABLE_PREFIX.'cronlog');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."cronlog 
+			CHANGE description description mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."cronlog ADD INDEX title (title)");
+
+		show_update(TABLE_PREFIX.'faq');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."faq 
+			CHANGE text text mediumtext NOT NULL default '',
+			CHANGE description description mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."faq ADD INDEX parentid (parentid)");
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."faq WHERE title = '积分策略扩展' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."faq (title, text, description, parentid, displayorder) VALUES ('积分策略扩展', '', '', 0, 4)");
+			$faqid = $DB->insert_id();
+		}
+
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."faq WHERE title = '什么是积分策略扩展？' LIMIT 1");
+		if(!$show['title'] AND $faqid) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."faq (title, text, description, parentid, displayorder) VALUES ('什么是积分策略扩展？', '积分策略扩展是论坛的对用户贡献度的一种扩充管理手段。当用户在“发布新主题”，“回复帖子”，“上传或下载附件”，“获得精华主题评分及获得勋章”，“发送短消息”时自动根据管理员设定的相关参数而得到的相关附加用户参数。这个参数不但表明了用户对论坛的相关贡献度大小，而且，一定的参数下限会影响到用户使用论坛的一些相关模块的权限。', '', ".$faqid.", 1)");
+		}
+
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."faq WHERE title = '当前论坛设定了哪些积分扩展模块？' LIMIT 1");
+		if(!$show['title'] AND $faqid) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."faq (title, text, description, parentid, displayorder) VALUES ('当前论坛设定了哪些积分扩展模块？', '论坛管理员已设定了以下模块用于用户积分扩展设定：<br /><br /><#show_credit#><br /><br />说明：<br />如果该参数为正数，则用户在执行相关操作时，会相应对此设定的数值进行累加。<br />如果该参数为负数，则用户在执行相关操作时，会相应对此设定的数值进行减法操作。<br />如果该参数不存在，则用户所做操作对此积分模块不存在影响。<br />如果用户的某积分达到管理员设定的积分下限，则相应涉及到减法操作的项目将无法完成。', '', ".$faqid.", 2)");
+		}
+
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."faq WHERE title = '为什么我的一些操作无法执行？' LIMIT 1");
+		if(!$show['title'] AND $faqid) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."faq (title, text, description, parentid, displayorder) VALUES ('为什么我的一些操作无法执行？', '如果你的积分扩展参数低于管理员设定的某些功能限定时，那么可能你的一些相关操作将被限制。直到你的这个积分值高于管理员设定的标准才可以继续执行这个操作。', '', ".$faqid.", 3)");
+		}
+
+		show_update(TABLE_PREFIX.'forum');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."forum 
+			CHANGE description description mediumtext NOT NULL default '', 
+			CHANGE lastposter lastposter varchar(32) NOT NULL default '', 
+			CHANGE status status tinyint(1) NOT NULL default '1', 
+			CHANGE password password varchar(32) NOT NULL default '', 
+			CHANGE lastthread lastthread varchar(128) NOT NULL default '', 
+			CHANGE sortby sortby varchar(32) NOT NULL default '', 
+			CHANGE sortorder sortorder varchar(32) NOT NULL default '', 
+			CHANGE prune prune tinyint(3) NOT NULL default '100', 
+			CHANGE parentid parentid mediumint(5) NOT NULL default '-1', 
+			CHANGE customerror customerror mediumtext NOT NULL default '', 
+			CHANGE permissions permissions mediumtext NOT NULL default '', 
+			CHANGE specialtopic specialtopic mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."forum ADD forcespecial tinyint(1) unsigned NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."forum ADD url varchar(255) NOT NULL default ''");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."forum ADD todaypost mediumint(3) unsigned NOT NULL default '0' AFTER post");
+		$fs = $DB->query( "SELECT id, specialtopic FROM ".TABLE_PREFIX."forum WHERE specialtopic != ''" );
+		if ($DB->num_rows($fs)) {
+			while($f = $DB->fetch_array($fs)) {
+				$up_forum_stid = array();
+				$f['specialtopic'] = stripslashes($f['specialtopic']);
+				$f['specialtopic'] = preg_replace("#(s:(\d+):\"(\S+)\")#isUe", "\$this->parse_seze('\\2', '\\3')", $f['specialtopic']);
+				$specialtopic = unserialize(stripslashes($f['specialtopic']));
+				if (is_array($specialtopic)) {
+					foreach ($specialtopic AS $id => $value) {
+						$old_st = $DB->query_first("SELECT * FROM ".TABLE_PREFIX."speicaltopic WHERE LOWER(name)='".strtolower($value)."' OR name='".$value."'");
+						if (!$old_st['id']) {
+							$DB->query("INSERT INTO ".TABLE_PREFIX."speicaltopic (name, forumids) VALUES ('".$value."', '".$f['id']."')");
+							$st_id = $DB->insert_id();
+							$up_forum_stid[] = $st_id;
+							$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."thread SET stopic={$st_id} WHERE forumid={$f['id']} AND stopic={$id}");
+						} else {
+							$old_st['forumids'] = $old_st['forumids'].",".$f['id'];
+							$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."speicaltopic SET forumids = '".$old_st['forumids']."' WHERE id = {$old_st['id']}");
+							$up_forum_stid[] = $old_st['id'];
+							$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."thread SET stopic={$old_st['id']} WHERE forumid={$f['id']} AND stopic={$id}");
+						}					
+					}
+				}
+				if (is_array($up_forum_stid)) {
+					$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."forum SET specialtopic='".implode(",", $up_forum_stid)."' WHERE id={$f['id']}");
+				}
+			}
+		}
+
+		show_update(TABLE_PREFIX.'icon');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."icon
+			CHANGE id id smallint(5) unsigned NOT NULL auto_increment,
+			CHANGE displayorder displayorder smallint(3) unsigned NOT NULL default '0'
+		");
+		$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."icon (id, icontext, image, displayorder) VALUES ('', ':question:', 'question.gif', 0), ('', ':post:', 'post.gif', 0), ('', ':photo:', 'photo.gif', 0), ('', ':music:', 'music.gif', 0), ('', ':good:', 'good.gif', 0), ('', ':go:', 'go.gif', 0), ('', ':bad:', 'bad.gif', 0), ('', ':attention:', 'attention.gif', 0), ('', ':surprise:', 'surprise.gif', 0), ('', ':warter:', 'warter.gif', 0)");
+
+		show_update(TABLE_PREFIX.'inviteduser');
+		$DB->query_unbuffered("DROP TABLE ".TABLE_PREFIX."inviteduser");
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."inviteduser (
+						  invitedid int(8) unsigned NOT NULL auto_increment,
+						  userid mediumint(8) NOT NULL default '0',
+						  email varchar(60) NOT NULL default '',
+						  sendtime int(10) NOT NULL default '0',
+						  expiry tinyint(1) NOT NULL default '0',
+						  regsterid mediumint(8) unsigned NOT NULL default '0',
+						  validatecode varchar(10) NOT NULL default '',
+						  PRIMARY KEY  (invitedid),
+						  KEY email (email)
+					  ) ".$add_charset."
+		");
+
+		show_update(TABLE_PREFIX.'javascript');
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."javascript (
+						  id smallint(6) NOT NULL auto_increment,
+						  `name` varchar(250) NOT NULL default '',
+						  description mediumtext NOT NULL default '',
+						  `type` tinyint(1) NOT NULL default '0',
+						  jsname varchar(250) NOT NULL default '',
+						  nextrun int(10) NOT NULL default '0',
+						  inids varchar(250) NOT NULL default '',
+						  numbers smallint(3) NOT NULL default '0',
+						  perline tinyint(1) NOT NULL default '0',
+						  selecttype varchar(20) NOT NULL default '0',
+						  daylimit tinyint(1) NOT NULL default '0',
+						  orderby tinyint(1) NOT NULL default '0',
+						  trimtitle smallint(5) NOT NULL default '0',
+						  trimdescription smallint(5) NOT NULL default '0',
+						  trimpagetext smallint(5) NOT NULL default '-1',
+						  refresh smallint(5) unsigned NOT NULL default '0',
+						  export tinyint(1) NOT NULL default '0',
+						  htmlcode mediumtext NOT NULL default '',
+						  PRIMARY KEY  (id)
+					  ) ".$add_charset."
+		");
+
+		show_update(TABLE_PREFIX.'league');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."league
+			CHANGE siteurl siteurl varchar(255) NOT NULL default '',
+			CHANGE siteinfo siteinfo mediumtext NOT NULL default '',
+			CHANGE displayorder displayorder smallint(3) unsigned NOT NULL default '0', 
+			CHANGE type type tinyint(1) NOT NULL default '0'
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."league ADD INDEX type (type)");
+
+		show_update(TABLE_PREFIX.'moderator');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."moderator
+			CHANGE moderatorid moderatorid smallint(5) NOT NULL auto_increment, 
+			CHANGE forumid forumid smallint(5) unsigned NOT NULL default '0', 
+			CHANGE usergroupid usergroupid smallint(3) unsigned NOT NULL default '0', 
+			CHANGE isgroup isgroup tinyint(1) NOT NULL default '0',
+			CHANGE caneditposts caneditposts tinyint(1) NOT NULL default '0',
+			CHANGE caneditthreads caneditthreads tinyint(1) NOT NULL default '0',
+			CHANGE candeleteposts candeleteposts tinyint(1) NOT NULL default '0',
+			CHANGE candeletethreads candeletethreads tinyint(1) NOT NULL default '0',
+			CHANGE canviewips canviewips tinyint(1) NOT NULL default '0',
+			CHANGE canopenclose canopenclose tinyint(1) NOT NULL default '0',
+			CHANGE canremoveposts canremoveposts tinyint(1) NOT NULL default '0',
+			CHANGE canstickthread canstickthread tinyint(1) NOT NULL default '0',
+			CHANGE canmoderateposts canmoderateposts tinyint(1) NOT NULL default '0',
+			CHANGE canmanagethreads canmanagethreads tinyint(1) NOT NULL default '0',
+			CHANGE caneditusers caneditusers tinyint(1) NOT NULL default '0',
+			CHANGE cansplitthreads cansplitthreads tinyint(1) NOT NULL default '0',
+			CHANGE canmergethreads canmergethreads tinyint(1) NOT NULL default '0'
+		");
+
+		show_update(TABLE_PREFIX.'moderator');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."moderator DROP INDEX forumid, ADD INDEX forumid (forumid, userid)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."moderator DROP INDEX userid");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."moderator DROP INDEX usergroupid");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."moderator DROP canmassmove");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."moderator DROP canmassprune");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."moderator ADD caneditrule TINYINT( 1 ) NOT NULL default '0'");
+
+		show_update(TABLE_PREFIX.'moderatorlog');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."moderatorlog
+			CHANGE moderatorlogid moderatorlogid int(10) unsigned NOT NULL auto_increment,
+			CHANGE forumid forumid smallint(5) unsigned NOT NULL default '0',
+			CHANGE threadid threadid int(10) unsigned NOT NULL default '0',
+			CHANGE postid postid int(10) unsigned NOT NULL default '0',
+			CHANGE userid userid mediumint(8) unsigned NOT NULL default '0',
+			CHANGE username username varchar(32) NOT NULL default '',
+			CHANGE host host char(15) NOT NULL default '',
+			CHANGE referer referer varchar(255) NOT NULL default '',
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0',
+			CHANGE title title varchar(128) NOT NULL default '',
+			CHANGE action action varchar(128) NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."moderatorlog ADD INDEX userid (userid)");
+
+		show_update(TABLE_PREFIX.'pm');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."pm
+			CHANGE pmid pmid int(10) unsigned NOT NULL auto_increment,
+			CHANGE messageid messageid int(10) unsigned NOT NULL default '0',
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0',
+			CHANGE folderid folderid smallint(3) NOT NULL default '0',
+			CHANGE attach attach int(10) unsigned NOT NULL default '0',
+			CHANGE userid userid mediumint(8) unsigned NOT NULL default '0',
+			CHANGE usergroupid usergroupid varchar(255) NOT NULL default '',
+			CHANGE pmreadtime pmreadtime int(10) unsigned NOT NULL default '0'
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."pm DROP INDEX fromuserid, ADD INDEX fromuserid (fromuserid,tracking)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."pm DROP INDEX userid");
+
+		show_update(TABLE_PREFIX.'pmtext');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."pmtext
+			CHANGE pmtextid pmtextid int(10) unsigned NOT NULL auto_increment,
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0',
+			CHANGE message message mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."pmtext DROP INDEX savedcount");
+
+		show_update(TABLE_PREFIX.'pmuserlist');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."pmuserlist
+			CHANGE id id mediumint(8) unsigned NOT NULL auto_increment,
+			CHANGE contactid contactid mediumint(8) unsigned NOT NULL default '0',
+			CHANGE userid userid mediumint(8) unsigned NOT NULL default '0',
+			CHANGE allowpm allowpm tinyint(1) NOT NULL default '0',
+			CHANGE description description varchar(50) NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."pmuserlist DROP INDEX userid, ADD INDEX userid (userid,contactid)");
+
+		show_update(TABLE_PREFIX.'poll');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."poll
+			CHANGE pollid pollid mediumint(8) unsigned NOT NULL auto_increment,
+			CHANGE tid tid int(10) unsigned NOT NULL default '0',
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0',
+			CHANGE options options mediumtext NOT NULL default '',
+			CHANGE question question varchar(255) NOT NULL default '',
+			CHANGE voters voters mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."poll DROP INDEX tid, ADD INDEX tid (tid)");
+		$DB->query( "SELECT pollid, options FROM ".TABLE_PREFIX."poll" );
+		if ($DB->num_rows()) {
+			while($p = $DB->fetch_array()) {
+				$p['options'] = stripslashes($p['options']);
+				$p['options'] = preg_replace("#(s:(\d+):\"(\S+)\")#isUe", "\$this->parse_seze('\\2', '\\3')", $p['options']);
+				$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."poll SET options = '".addslashes($p['options'])."' WHERE pollid={$p['pollid']}");
+			}
+		}
+
+		show_update(TABLE_PREFIX.'post');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."post
+			CHANGE pid pid int(10) unsigned NOT NULL auto_increment,
+			CHANGE pagetext pagetext mediumtext NOT NULL default '',
+			CHANGE userid userid mediumint(8) unsigned NOT NULL default '0',
+			CHANGE username username varchar(32) NOT NULL default '',
+			CHANGE showsignature showsignature tinyint(1) NOT NULL default '0',
+			CHANGE allowsmile allowsmile tinyint(1) NOT NULL default '0',
+			CHANGE host host char(15) NOT NULL default '',
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0',
+			CHANGE iconid iconid smallint(5) unsigned NOT NULL default '0',
+			CHANGE moderate moderate tinyint(1) NOT NULL default '0',
+			CHANGE newthread newthread tinyint(1) NOT NULL default '0',
+			CHANGE posthash posthash varchar(32) NOT NULL default '',
+			CHANGE anonymous anonymous tinyint(1) NOT NULL default '0',
+			CHANGE hidepost hidepost mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."post DROP INDEX threadid, ADD INDEX threadid (threadid)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."post ADD cashpost varchar(100) NOT NULL default ''");
+
+		show_update(TABLE_PREFIX.'search');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."search
+			CHANGE userid userid mediumint(8) unsigned default '0',
+			CHANGE threadid threadid mediumtext NOT NULL default '',
+			CHANGE host host char(15) NOT NULL default '',
+			CHANGE postid postid mediumtext NOT NULL default '',
+			CHANGE query query mediumtext NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."search ADD INDEX dateline (dateline)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."search ADD INDEX userid (userid)");
+
+		show_update(TABLE_PREFIX.'session');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."session
+			CHANGE username username varchar(32) NOT NULL default '',
+			CHANGE host host char(15) NOT NULL default '',
+			CHANGE useragent useragent varchar(100) NOT NULL default '',
+			CHANGE lastactivity lastactivity int(10) unsigned NOT NULL default '0',
+			CHANGE invisible invisible tinyint(1) NOT NULL default '0',
+			CHANGE usergroupid usergroupid smallint(3) unsigned NOT NULL default '0',
+			CHANGE badlocation badlocation tinyint(1) NOT NULL default '0',
+			CHANGE location location VARCHAR(250)  NOT NULL  default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."session ADD mobile tinyint(1) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."session DROP PRIMARY KEY");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."session DROP INDEX inthread");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."session DROP INDEX inforum");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."session DROP INDEX userid");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."session DROP INDEX lastactivity");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."session TYPE = HEAP");
+
+		show_update(TABLE_PREFIX.'setting');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."setting
+			CHANGE settingid settingid int(10) unsigned NOT NULL auto_increment,
+			CHANGE description description mediumtext NOT NULL default '',
+			CHANGE value value mediumtext NOT NULL default '',
+			CHANGE defaultvalue defaultvalue mediumtext NOT NULL default '',
+			CHANGE dropextra dropextra mediumtext NOT NULL default '',
+			CHANGE addcache addcache tinyint(1) NOT NULL default '1'
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."setting DROP INDEX varname");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."setting DROP INDEX groupid, ADD INDEX groupid ( groupid )");
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'isajax' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '是否在全局使用AJAX技术', '如果使用AJAX技术的话，则用户可以更方便的进行无刷新页面操作，减少服务器带宽，但同时相应会对用户浏览器增加部分负担。', 1, 'yes_no', 'isajax', '', '1', '', 8, 1)");
+		}
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'remoteattach' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '远程附件URL地址', '如果设定此选项，则此论坛作为镜像服务器使用，用户无法通过此论坛上传附件。请注意关闭主服务器的计划任务更改附件文件夹地址功能', 1, 'input', 'remoteattach', '', '', '', 3, 1)");
+		}
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'mxemode' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '编辑器默认初始化模式', '如果用户第一次登录，或Cookies未设定编辑器的时候，系统分配的默认编辑器为BBCODE模式还是WYSIWYG模式', 8, 'dropdown', 'mxemode', '0', '1', '0=bbcode\r\n1=wysiwyg', 19, 1)");
+		}
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'redirecturl' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '默认页面跳转地址', '当系统无法获取要跳转的页面URL地址时，默认将程序跳转到的位置。', 3, 'dropdown', 'redirecturl', '', '1', '1=论坛首页\n2=网站首页', 6, 1)");
+		}
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'useantispam' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '使用验证码', '用户在发帖时必须填写验证码后才能正常发布信息，可以防止一些恶意灌水机的使用。', 7, 'yes_no', 'useantispam', '', '1', '', 18, 1)");
+		}
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'gstickyprefix' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '\'总置顶主题\' 的前缀', '', 12, 'input', 'gstickyprefix', '', '总置顶: ', '', 2, 1)");
+		}
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'gstickyprefix' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '\'总置顶主题\' 的前缀', '', 12, 'input', 'gstickyprefix', '', '总置顶: ', '', 2, 1)");
+		}
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'openolrank' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '开启在线时长等级功能？', '是否开启在线时长等级功能。如果选择“否”，那么对应的在线时长等级相关的功能将全部关闭。', 19, 'yes_no', 'openolrank', '1', '1', '', 1, 1)");
+		}
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'olrankstart' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '起步时长', '在线时长等级第一级所需的时长（小时数）', 19, 'input', 'olrankstart', '5', '5', '', 2, 1)");
+		}
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'olrankstep' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '递进时长', '升级到下一级别比升级到此级别增加的时长。比如，如果递进时长为5，升级到第1级需要10小时，升级到第2级则需要10+5=15小时，第3级需要20小时，以此类推。', 19, 'input', 'olrankstep', '2', '2', '', 3, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'showtoday' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('是否在页面显示当日发帖统计？', '如果使用的话，则前台板块及统计列表内会显示当日的发帖数量', 1, 'yes_no', 'showtoday', '', '1', '', 10, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'miibeian' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('网站备案信息代码', '请在这里填写你的网站备案信息ID。<br />详细参考：<a href=\'http://www.miibeian.gov.cn\' target=\'_blank\'>信产部备案网站</a>', 1, 'input', 'miibeian', '', '', '', 11, 1)");
+		}
+		$DB->query_unbuffered("DELETE FROM ".TABLE_PREFIX."setting WHERE varname = 'sessiontimeout'");
+
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'isopeninvite' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('是否打开邀请注册', '', 20, 'yes_no', 'isopeninvite', '', '0', '', 1, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'default_lang' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('默认使用的语言包', '默认用户访问网站使用的语言包', 1, 'dropdown', 'default_lang', '', 'zh-cn', '#show_lang#', 9, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'allowuploadsigimg' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('允许从本地上传图片到签名内？', '', 6, 'yes_no', 'allowuploadsigimg', '', '1', '', 7, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'sigimgdimension' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('从本地上传图片的最大尺寸', '(宽度 <b>x</b> 高度)', 6, 'input', 'sigimgdimension', '', '300x500', '', 8, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'award_deduct' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('申请荣誉勋章花费的资金', '用户每次申请颁发荣誉勋章所扣除的金钱及积分。请使用（金钱|积分）的方式设定参数。', 15, 'input', 'award_deduct', '', '100|3', '', 20, 0)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'newuser_give' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('新注册用户初始化给与的资金及积分', '新注册用户初始化的资金及积分值。请使用（金钱|积分）的方式设定参数。', 15, 'input', 'newuser_give', '', '', '', 7, 0)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'newuser_pm' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('新注册用户的短消息欢迎信息', '可以使用HTML代码及BBCODE代码', 15, 'textarea', 'newuser_pm', '', '', '', 8, 0)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'nolimitinviteusergroup' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('选择拥有无限邀请权的用户组', '按Shift或Ctrl选择多个', 20, 'multi', 'nolimitinviteusergroup', '', '6,7', '#show_groups#', 2, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'limitinvitegroup' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('选择拥有限制邀请权的用户组', '按Shift或Ctrl选择多个', 20, 'multi', 'limitinvitegroup', '', '6,7', '#show_groups#', 3, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'limitregtime' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('用户注册时间达到', '发送无限邀请权限此项不填（单位：天）', 20, 'input', 'limitregtime', '', '300', '', 4, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'limitposttitlenum' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('用户发帖数达到', '', 20, 'input', 'limitposttitlenum', '', '500', '', 5, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'inviteminnum' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('用户最少可以有几个邀请权限', '', 20, 'input', 'inviteminnum', '', '5', '', 6, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'invitemaxnum' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('用户最多可以有几个邀请权限', '', 20, 'input', 'invitemaxnum', '', '10', '', 7, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'invitexpiry' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('具有限制邀请注册权限用户的使用期限', '', 20, 'input', 'invitexpiry', '', '5', '', 8, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'inviteduserexpiry' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('用户发出邀请后几天内注册有效', '', 20, 'input', 'inviteduserexpiry', '', '6', '', 9, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'timenotlogin' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('仅对多长时间有登录的用户发放','若用户在设定时间之内没登录过将不能得到该权限（单位：天）',20,'input','timenotlogin','','30','',10,1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'modreptype' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('评分类型奖励', '用户组有权利给某些用户奖励或处罚,可以选择加分或者加社区币.', 1, 'dropdown', 'modreptype', '2', '1', '1=积分\r\n2=社区币', 26, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'modrepmax' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('社区币奖励限制金额', '奖励会员的最大数额及最小数额,在设置该值的正负之间.', 1, 'input', 'modrepmax', '100', '100', '', 27, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'spider_roup' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('对搜索引擎Spider使用的用户组', '对于不开放游客访问的论坛而言，设定搜索引擎蜘蛛访问时的用户组，可以更方便的让搜索引擎索引论坛资源', 21, 'dropdown', 'spider_roup', '', '3', '#show_groups#', 1, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'spiderid' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('搜索引擎BOT设定', '请使用 | 分隔开每个BOT参数', 21, 'input', 'spiderid', '', 'baiduspider|googlebot|msnbot|Slurp', '', 2, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'birthday_send' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('是否对当日生日用户发送祝贺信？', '请在后边的对话框内填写生日祝贺信，此功能对数据库负荷有一定影响，因此不建议10万用户以上论坛使用。<br />在文字内容中可以使用以下标签:<br />{name}:用户名; {money}:金钱; {reputation}:声望; <br />如果使用了自定义积分策略，请使用 {唯一标签} 的方式添加内容。', 10, 'textarea', 'birthday_send', '', '0', '', 10, 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'birthday_send_type' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('祝贺信发送方式', '使用哪种方式发送用户生日祝贺信', 10, 'dropdown', 'birthday_send_type', '', '1', '1=站内邮件和短消息\r\n2=短消息\r\n3=站内邮件', 11, 0)");
+		}
+
+
+
+		show_update(TABLE_PREFIX.'settinggroup');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."settinggroup
+			CHANGE description description mediumtext NOT NULL default ''
+		");
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."settinggroup WHERE title = '在线时长等级设置' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."settinggroup (groupid, title, description, groupcount) VALUES (19, '在线时长等级设置', '统计用户在线时间长短，同时进行相应的等级判定。这里是一些相关的设置。', 4)");
+		}		
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."settinggroup WHERE title = '邀请注册条件设定' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."settinggroup (title, description, groupcount) VALUES ('邀请注册条件设定', '设定用户具有邀请注册权限的条件。', 9)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."settinggroup WHERE title = '搜索引擎设定' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."settinggroup (title, description, groupcount) VALUES (21, '搜索引擎设定', '在这里设定搜索引擎 Spider 相关参数', 2)");
+		}
+
+
+		show_update(TABLE_PREFIX.'settinggroup');
+		$show = $DB->query_first("SELECT groupid FROM ".TABLE_PREFIX."settinggroup WHERE title = '广告中心设置' LIMIT 1");
+		if(!$show['groupid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."settinggroup (title, description, groupcount) VALUES ('广告中心设置', '在这里设定广告中心的相关参数', 2)");
+			$adgroupid = $DB->insert_id();
+		} else {
+			$adgroupid = $show['groupid'];
+		}
+
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'adcolumns' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('页面广告平排的列数','超过设定值则自动换行','{$adgroupid}','input','adcolumns','','4','','1','1')");
+		}
+
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."setting WHERE varname = 'adinpost' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('贴内广告每页显示的条数','设定主题每页内显示的广告条数，超过设定条数的帖子将不显示广告，设置为 0 将在每个帖子内显示广告','{$adgroupid}','input','adinpost','','0','','2','1')");
+		}
+
+
+		show_update(TABLE_PREFIX.'speicaltopic');
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."speicaltopic (
+						  id mediumint(8) NOT NULL auto_increment,
+						  name varchar(32) NOT NULL default '',
+						  forumids varchar(255) NOT NULL default '',
+						  PRIMARY KEY  (id)
+					  ) ".$add_charset."
+		");
+
+		show_update(TABLE_PREFIX.'smile');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."smile
+			CHANGE id id smallint(5) unsigned NOT NULL auto_increment,
+			CHANGE displayorder displayorder smallint(3) NOT NULL default '0'
+		");
+		$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."smile (id, smiletext, image, displayorder) VALUES
+			('', ':run:', 'run.gif', 0),
+			('', ':prejudice:', 'prejudice.gif', 0),
+			('', ':laugh:', 'laugh.gif', 0),
+			('', ':glad:', 'glad.gif', 0),
+			('', ':cool:', 'cool.gif', 0),
+			('', ':bother:', 'bother.gif', 0),
+			('', ':bored:', 'bored.gif', 0),
+			('', ':angry:', 'angry.gif', 0),
+			('', ':afraid:', 'afraid.gif', 0),
+			('', ':shine:', 'shine.gif', 0),
+			('', ':smile:', 'smile.gif', 0),
+			('', ':surprise:', 'surprise.gif', 0),
+			('', ':teeth:', 'teeth.gif', 0)
+		");
+
+		show_update(TABLE_PREFIX.'strikes');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."strikes
+			CHANGE username username varchar(32) NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."strikes DROP INDEX strikeip, ADD INDEX strikeip (strikeip, username)");
+
+		show_update(TABLE_PREFIX.'style');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."style
+			CHANGE styleid styleid smallint(5) NOT NULL auto_increment,
+			CHANGE css css mediumtext NOT NULL default '',
+			CHANGE csscache csscache mediumtext NOT NULL default '',
+			CHANGE version version VARCHAR(20) NOT NULL default ''
+		");
+
+		show_update(TABLE_PREFIX.'subscribeforum');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."subscribeforum
+			CHANGE subscribeforumid subscribeforumid mediumint(8) unsigned NOT NULL auto_increment,
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0',
+			CHANGE userid userid mediumint(8) NOT NULL default '0'
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."subscribeforum DROP INDEX forumid, ADD INDEX forumid (forumid, userid)");
+
+		show_update(TABLE_PREFIX.'subscribethread');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."subscribethread
+			CHANGE subscribethreadid subscribethreadid mediumint(8) unsigned NOT NULL auto_increment,
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0'
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."subscribethread DROP INDEX threadid");
+
+		show_update(TABLE_PREFIX.'template');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."template
+			CHANGE tid tid int(10) unsigned NOT NULL auto_increment,
+			CHANGE styleid styleid smallint(5) NOT NULL default '0',
+			CHANGE title title varchar(255) NOT NULL default '',
+			CHANGE template template mediumtext NOT NULL default ''
+		");
+
+		show_update(TABLE_PREFIX.'templategroup');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."templategroup
+			CHANGE templategroup templategroup mediumtext NOT NULL default '',
+			CHANGE noheader noheader tinyint(1) NOT NULL default '0'
+		");
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'footjs' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'footjs', '<<<footjs>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'headjs' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'headjs', '<<<headjs>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'misc_whovoters' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'misc_whovoters', '<<<misc_whovoters>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'bank_showlog' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'bank_showlog', '<<<bank_showlog>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_index' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_index', '<<<wap_header>>>\r\n<<<wap_index>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_info' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_info', '<<<wap_header>>>\r\n<<<wap_info>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_login' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_login', '<<<wap_header>>>\r\n<<<wap_login>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_redirect' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_redirect', '<<<wap_header>>>\r\n<<<wap_redirect>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_register' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_register', '<<<wap_header>>>\r\n<<<wap_register>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_forumdisplay' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_forumdisplay', '<<<wap_header>>>\r\n<<<wap_forumdisplay>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_forum_password' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_forum_password', '<<<wap_header>>>\r\n<<<wap_forum_password>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_search' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_search', '<<<wap_header>>>\r\n<<<wap_search>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_search_results' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_search_results', '<<<wap_header>>>\r\n<<<wap_search_results>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_showthread' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_showthread', '<<<wap_header>>>\r\n<<<wap_showthread>>>\r\n<<<wap_footer>>>', 1)");
+		} else {
+			$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."templategroup SET noheader = 1 WHERE title = 'wap_showthread'");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_post' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_post', '<<<wap_header>>>\r\n<<<wap_post>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_pm_home' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_pm_home', '<<<wap_header>>>\r\n<<<wap_pm_home>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_pm_list' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_pm_list', '<<<wap_header>>>\r\n<<<wap_pm_list>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_pm_show' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_pm_show', '<<<wap_header>>>\r\n<<<wap_pm_show>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_pm_post' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_pm_post', '<<<wap_header>>>\r\n<<<wap_pm_post>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_announcement' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_announcement', '<<<wap_header>>>\r\n<<<wap_announcement>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'showthread_post' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'showthread_post', '<<<showthread_post>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'attach' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'attach', '<<<attach>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'wap_attachment' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'wap_attachment', '<<<wap_header>>>\r\n<<<wap_attachment>>>\r\n<<<wap_footer>>>', 1)");
+		}
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."templategroup SET templategroup='<<<sub_forum>>>\r\n<<<forum_rule>>>\r\n<<<forum_top>>>\r\n<<<forum_announce>>>\r\n<<<forum_threadlist>>>\r\n<<<forum_end>>>' WHERE title = 'forumdisplay' LIMIT 1");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."templategroup SET templategroup='<<<sub_forum>>>\r\n<<<forum_rule>>>\r\n<<<forum_top>>>\r\n<<<forum_announce>>>\r\n<<<forum_threadlist>>>\r\n<<<forum_end>>>' WHERE title = 'forumdisplay' LIMIT 1");
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'usercp_invitesend' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (title, templategroup, noheader) VALUES ('usercp_invitesend', '<<<usercp_menu>>>\r\n<<<usercp_invitesend>>>\r\n<<<usercp_end>>>', 0)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'award_request' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (title, templategroup, noheader) VALUES ('award_request', '<<<award_request>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'showaward' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (title, templategroup, noheader) VALUES ('showaward', '<<<showaward>>>', 0)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'lostpassword_safe' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (title, templategroup, noheader) VALUES ('lostpassword_safe', '<<<lostpassword_safe>>>', 0)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'forum_ad' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (title, templategroup, noheader) VALUES ('forum_ad', '<<<forum_ad>>>', 1)");
+		}
+		$DB->query_unbuffered("DELETE FROM ".TABLE_PREFIX."templategroup WHERE title = 'license'");
+
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'forumlist_column' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (title, templategroup, noheader) VALUES ('forumlist_column', '<<<forumlist_column>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'forumlist_normal' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (title, templategroup, noheader) VALUES ('forumlist_normal', '<<<forumlist_normal>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'sub_forum_column' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (title, templategroup, noheader) VALUES ('sub_forum_column', '<<<sub_forum_column>>>', 1)");
+		}
+		$show = $DB->query_first("SELECT title FROM ".TABLE_PREFIX."templategroup WHERE title = 'sub_forum_normal' LIMIT 1");
+		if(!$show['title']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (title, templategroup, noheader) VALUES ('sub_forum_normal', '<<<sub_forum_normal>>>', 1)");
+		}
+
+		show_update(TABLE_PREFIX.'thread');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."thread
+			CHANGE tid tid int(10) unsigned NOT NULL auto_increment,
+			CHANGE open open tinyint(1) unsigned default '1',
+			CHANGE post post int(10) unsigned NOT NULL default '0',
+			CHANGE postuserid postuserid mediumint(8) unsigned NOT NULL default '0',
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0',
+			CHANGE lastposterid lastposterid mediumint(8) unsigned NOT NULL default '0',
+			CHANGE lastpost lastpost int(10) unsigned NOT NULL default '0',
+			CHANGE iconid iconid smallint(5) unsigned NOT NULL default '0',
+			CHANGE postusername postusername varchar(32) NOT NULL default '',
+			CHANGE lastposter lastposter varchar(32) NOT NULL default '',
+			CHANGE pollstate pollstate tinyint(1) NOT NULL default '0',
+			CHANGE lastvote lastvote int(10) unsigned NOT NULL default '0',
+			CHANGE views views smallint(5) unsigned NOT NULL default '0',
+			CHANGE forumid forumid smallint(5) unsigned NOT NULL default '0',
+			CHANGE visible visible tinyint(1) NOT NULL default '1',
+			CHANGE sticky sticky tinyint(1) NOT NULL default '0',
+			CHANGE moved moved varchar(64) NOT NULL default '',
+			CHANGE votetotal votetotal smallint(5) unsigned NOT NULL default '0',
+			CHANGE attach attach smallint(3) unsigned NOT NULL default '0',
+			CHANGE firstpostid firstpostid mediumint(8) unsigned NOT NULL default '0',
+			CHANGE lastpostid lastpostid mediumint(8) unsigned NOT NULL default '0',
+			CHANGE modposts modposts smallint(5) unsigned NOT NULL default '0',
+			CHANGE allrep allrep smallint(5) NOT NULL default '0'
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."thread ADD logtext mediumtext NOT NULL default ''");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."thread DROP INDEX forumid, ADD INDEX forumid (forumid,sticky,visible)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."thread DROP INDEX firstpostid");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."thread DROP INDEX lastpostid");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."thread ADD allcash smallint(5) NOT NULL default '0'");
+
+		show_update(TABLE_PREFIX.'user');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user
+			CHANGE id id int(10) unsigned NOT NULL auto_increment,
+			CHANGE name name varchar(32) NOT NULL default '',
+			CHANGE joindate joindate int(10) unsigned NOT NULL default '0',
+			CHANGE host host char(15) NOT NULL default '',
+			CHANGE posts posts mediumint(7) unsigned NOT NULL default '0',
+			CHANGE style style smallint(5) unsigned NOT NULL default '0',
+			CHANGE lastpost lastpost int(10) unsigned NOT NULL default '0',
+			CHANGE lastvisit lastvisit int(10) unsigned NOT NULL default '0',
+			CHANGE lastactivity lastactivity int(10) unsigned NOT NULL default '0',
+			CHANGE viewprefs viewprefs varchar(64) NOT NULL default '-1&-1',
+			CHANGE liftban liftban varchar(100) NOT NULL default '',
+			CHANGE pmfolders pmfolders mediumtext NOT NULL default '',
+			CHANGE signature signature mediumtext NOT NULL default '',
+			CHANGE avatartype avatartype tinyint(1) NOT NULL default '0',
+			CHANGE options options int(10) unsigned NOT NULL default '0',
+			CHANGE cash cash int(15) NOT NULL default '0',
+			CHANGE bank bank int(15) NOT NULL default '0',
+			CHANGE mkaccount mkaccount int(10) NOT NULL default '0',
+			CHANGE reputation reputation smallint(5) NOT NULL default '0'
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD popo varchar(150) NOT NULL default ''");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD uc int(15) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD skype varchar(150) NOT NULL default ''");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD mobile bigint(20) unsigned NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD onlinetime int(10) unsigned NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user DROP INDEX name");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user DROP INDEX lastactivity");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user DROP INDEX bank, DROP INDEX mkaccount, ADD INDEX mkaccount (mkaccount, bank)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD INDEX mobile (mobile)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD award_data varchar(255) NOT NULL default ''");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD INDEX ( award_data )");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD INDEX ( lastactivity )");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."user SET options = 103");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD referrerid int( 8 ) NOT NULL default '0' AFTER pmtotal");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD ishasinvite varchar(200) NOT NULL default '' AFTER pmtotal");
+
+
+		show_update(TABLE_PREFIX.'useractivation');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."useractivation
+			CHANGE userid userid mediumint(8) unsigned NOT NULL default '0',
+			CHANGE usergroupid usergroupid smallint(3) unsigned NOT NULL default '0',
+			CHANGE tempgroup tempgroup smallint(3) unsigned NOT NULL default '0',
+			CHANGE dateline dateline int(10) unsigned NOT NULL default '0',
+			CHANGE host host char(15) NOT NULL default ''
+		");
+
+		show_update(TABLE_PREFIX.'usergroup');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."usergroup
+			CHANGE usergroupid usergroupid smallint(3) unsigned NOT NULL auto_increment,
+			CHANGE groupicon groupicon varchar(250) NOT NULL default '',
+			CHANGE onlineicon onlineicon varchar(250) NOT NULL default '',
+			CHANGE opentag opentag varchar(250) NOT NULL default '',
+			CHANGE closetag closetag varchar(250) NOT NULL default '',
+			CHANGE cancustomtitle cancustomtitle tinyint(1) NOT NULL default '0',
+			CHANGE cananonymous cananonymous tinyint(1) NOT NULL default '0',
+			CHANGE canview canview tinyint(1) NOT NULL default '0',
+			CHANGE canviewmember canviewmember tinyint(1) NOT NULL default '0',
+			CHANGE canviewothers canviewothers tinyint(1) NOT NULL default '0',
+			CHANGE cansearch cansearch tinyint(1) NOT NULL default '0',
+			CHANGE canemail canemail tinyint(1) NOT NULL default '0',
+			CHANGE caneditprofile caneditprofile tinyint(1) NOT NULL default '0',
+			CHANGE canpostnew canpostnew tinyint(1) NOT NULL default '0',
+			CHANGE canreplyown canreplyown tinyint(1) NOT NULL default '0',
+			CHANGE canreplyothers canreplyothers tinyint(1) NOT NULL default '0',
+			CHANGE caneditpost caneditpost tinyint(1) NOT NULL default '0',
+			CHANGE candeletepost candeletepost tinyint(1) NOT NULL default '0',
+			CHANGE canopenclose canopenclose tinyint(1) NOT NULL default '0',
+			CHANGE candeletethread candeletethread tinyint(1) NOT NULL default '0',
+			CHANGE canpostpoll canpostpoll tinyint(1) NOT NULL default '0',
+			CHANGE canvote canvote tinyint(1) NOT NULL default '0',
+			CHANGE supermod supermod tinyint(1) NOT NULL default '0',
+			CHANGE cancontrolpanel cancontrolpanel tinyint(1) NOT NULL default '0',
+			CHANGE canappendedit canappendedit tinyint(1) NOT NULL default '0',
+			CHANGE canviewoffline canviewoffline tinyint(1) NOT NULL default '0',
+			CHANGE passmoderate passmoderate tinyint(1) NOT NULL default '0',
+			CHANGE passflood passflood tinyint(1) NOT NULL default '0',
+			CHANGE canuseavatar canuseavatar tinyint(1) NOT NULL default '0',
+			CHANGE hidelist hidelist tinyint(1) NOT NULL default '0',
+			CHANGE canpostclosed canpostclosed tinyint(1) NOT NULL default '0',
+			CHANGE canposthtml canposthtml tinyint(1) NOT NULL default '0',
+			CHANGE caneditthread caneditthread tinyint(1) NOT NULL default '0',
+			CHANGE canpmattach canpmattach tinyint(1) NOT NULL default '0',
+			CHANGE candownload candownload tinyint(1) NOT NULL default '1',
+			CHANGE canshow canshow tinyint(1) NOT NULL default '1',
+			CHANGE canblog canblog tinyint(1) NOT NULL default '0',
+			CHANGE canuseflash canuseflash tinyint(1) NOT NULL default '0',
+			CHANGE passbadword passbadword tinyint(1) NOT NULL default '0',
+			CHANGE pmquota pmquota int(5) NOT NULL default '50',
+			CHANGE pmsendmax pmsendmax int(5) NOT NULL default '0',
+			CHANGE searchflood searchflood mediumint(6) NOT NULL default '20',
+			CHANGE edittimecut edittimecut int(10) NOT NULL default '0',
+			CHANGE attachlimit attachlimit int(10) NOT NULL default '0',
+			CHANGE bankloanlimit bankloanlimit int(10) NOT NULL default '0',
+			CHANGE canmodrep canmodrep varchar(255) NOT NULL default ''
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."usergroup ADD cansigimg tinyint(1) NOT NULL default '0' AFTER canuseflash");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."usergroup SET cansigimg=1 WHERE usergroupid IN (4, 6, 7)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."usergroup ADD cansignature tinyint(1) NOT NULL default '1'");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."usergroup SET cansignature=0 WHERE usergroupid IN (1, 2, 5)");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."usergroup ADD cansearchpost tinyint(1) NOT NULL default '0'");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."usergroup SET cansearchpost=1 WHERE usergroupid IN (4, 6, 7)");
+
+
+		show_update(TABLE_PREFIX.'userolrank');
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."userolrank (
+							  onlinerankid smallint(5) unsigned NOT NULL auto_increment,
+							  onlinerankimg mediumtext NOT NULL default '',
+							  maxnum smallint(5) unsigned NOT NULL default '1',
+							  onlineranklevel smallint(5) unsigned NOT NULL default '0',
+							  PRIMARY KEY  (onlinerankid),
+							  KEY onlineranklevel (onlineranklevel)
+						) ".$add_charset."
+		");
+		$show = $DB->query_first("SELECT onlinerankid FROM ".TABLE_PREFIX."userolrank LIMIT 1");
+		if(!$show['onlinerankid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."userolrank (onlinerankid, onlinerankimg, maxnum, onlineranklevel) VALUES (1, 'ollevel1.gif', 3, 1), (2, 'ollevel2.gif', 3, 2), (3, 'ollevel3.gif', 3, 3)");
+		}
+
+		show_update(TABLE_PREFIX.'usertitle');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."usertitle
+			CHANGE id id smallint(5) unsigned NOT NULL auto_increment,
+			CHANGE post post int(10) unsigned NOT NULL default '0',
+			CHANGE title title varchar(128) NOT NULL default '',
+			CHANGE ranklevel ranklevel varchar(128) NOT NULL default ''
+		");
+ 
+		show_update(TABLE_PREFIX.'userextra');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."userextra DROP exlog");
+ 		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."userextra
+			CHANGE id id mediumint(8) unsigned NOT NULL default '0',
+			CHANGE loanreturn loanreturn int(10) NOT NULL default '0',
+			CHANGE loanamount loanamount int(10) NOT NULL default '0',
+			CHANGE loaninterest loaninterest smallint(5) NOT NULL default '0'
+		");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."userextra ADD question varchar(255) NOT NULL default ''");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."userextra ADD answer varchar(255) NOT NULL default ''");
+
+		show_update(TABLE_PREFIX.'userexpand');
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."userexpand (
+						   id mediumint(8) unsigned NOT NULL default '0',
+						PRIMARY KEY (id)
+					  ) ".$add_charset."
+		");
+
+		show_update(TABLE_PREFIX.'userpromotion');
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."userpromotion CHANGE reputation reputation int(10) NOT NULL default '0'");
+
+		show_update(TABLE_PREFIX.'userolrank');
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."userolrank (
+						   onlinerankid smallint(5) unsigned NOT NULL auto_increment,
+						   onlinerankimg mediumtext NOT NULL default '',
+						   maxnum smallint(5) unsigned NOT NULL default '1',
+						   onlineranklevel smallint(5) unsigned NOT NULL default '0',
+						   PRIMARY KEY  (onlinerankid),
+						   KEY onlineranklevel (onlineranklevel)
+					  ) ".$add_charset."
+		");
+
+		$show = $DB->query_first("SELECT onlinerankid FROM ".TABLE_PREFIX."userolrank WHERE onlinerankimg = 'ollevel1.gif' LIMIT 1");
+		if(!$show['onlinerankid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."userolrank (onlinerankid, onlinerankimg, maxnum, onlineranklevel) VALUES (1, 'ollevel1.gif', 3, 1)");
+		}
+		$show = $DB->query_first("SELECT onlinerankid FROM ".TABLE_PREFIX."userolrank WHERE onlinerankimg = 'ollevel2.gif' LIMIT 1");
+		if(!$show['onlinerankid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."userolrank (onlinerankid, onlinerankimg, maxnum, onlineranklevel) VALUES (2, 'ollevel2.gif', 3, 2)");
+		}
+		$show = $DB->query_first("SELECT onlinerankid FROM ".TABLE_PREFIX."userolrank WHERE onlinerankimg = 'ollevel3.gif' LIMIT 1");
+		if(!$show['onlinerankid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."userolrank (onlinerankid, onlinerankimg, maxnum, onlineranklevel) VALUES (3, 'ollevel3.gif', 3, 3)");
+		}
+
+
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue='".$this->NewVersion."' WHERE varname='version'");
+
+		$DB->return_die = 0;
+		return 0;
+	}
+	function parse_seze($len=0, $text=''){
+		return "s:".strlen($text).":\"".$text."\"";
+	}
+}
+
+?>

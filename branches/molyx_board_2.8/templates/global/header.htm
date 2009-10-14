@@ -1,0 +1,173 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="robots" content="index,follow" />
+<title> {$pagetitle} - Powered by MolyX</title>
+<meta name="keywords" content="{$bboptions['bbkeywords']}" />
+<meta name="description" content="{$bboptions['bbdescription']}" />
+<meta name="generator" content="MolyX {$bboptions['version']}" />
+<meta name="author" content="HOGE Software Co., Ltd." />
+<meta name="copyright" content="2004-2007 HOGE Software Co., Ltd." />
+<meta name="MSSmartTagsPreventParsing" content="True" />
+<link rel="shortcut icon" href="favicon.ico" />
+<link rel="archives" title="{$bboptions['bbtitle']}" href="{$bboptions['bburl']}/archive/" />
+<if="$rsslink">
+<link rel="alternate" type="application/rss+xml" title="{$pagetitle}" href="{$bboptions['bburl']}/rss.php?version=rss2.0&amp;fid={$forum['id']}" />
+</if>
+{CACHE_CSS}
+{$mxajaxscript}
+{echo_head_elements}
+</head>
+<body>
+<!-- show operation begin -->
+<div id="operation_pannel">
+	<div class="opborder">
+		<div id="show_operation"></div>
+	</div>
+</div>
+<!-- show operation end -->
+<!-- show process begin -->
+<div id="show_process">
+</div>
+<!-- show process end -->
+
+<div class="wrapper">
+<a id="top" name="top" accesskey="t"></a>
+<!-- #head#menu#nav begin -->
+<div id="header">
+	<div class="header_ad">{ads:header,$forum['id']}</div>
+	<h2><a href='{$bboptions['forumindex']}{si_sessionurl}' title='{$bboptions['bbtitle']}'><img src="images/<#IMAGE#>/logo.gif" alt="" /></a></h2>
+</div>
+<div class="ttable">
+<div id="menu">
+	<ul>
+	<if="$bbuserinfo['id']">
+		<li><a href='profile.php{sessionurl}u={$bbuserinfo['id']}'>{$bbuserinfo['name']}</a></li>
+		<!-- 显示我的状态 -->
+		<li><div id="usercurdo" onclick="changemedotext();" title="{$bbuserinfo['usercurdo']}"><cite>{$bbuserinfo['userdotime']}</cite><em>{$bbuserinfo['userdo']}</em></div></li>
+		<!-- 结束 -->
+		<li><a href='login.php{sessionurl}do=logout'>{$lang['_logout']}</a></li>
+		<li><a href='private.php{si_sessionurl}'>{$lang['_pm']}({$bbuserinfo['pmunread']})</a></li>
+		<li><a href='usercp.php{si_sessionurl}' title='{$lang['_usercpdesc']}'>{$lang['_usercp']}</a></li>
+		<if="$bboptions['enablesearches']">
+		<li><a href='search.php{si_sessionurl}' title='{$lang['_searchdesc']}'>{$lang['_search']}</a></li>
+		</if>
+	<else>
+		<li><a href='login.php{si_sessionurl}'>{$lang['_login']}</a></li>
+		<li><a href='register.php{si_sessionurl}'>{$lang['_registeraccount']}</a></li>
+	</if>
+		<li><a href='memberlist.php{si_sessionurl}'>{$lang['_memberlist']}</a></li>
+		<li><a href='faq.php{si_sessionurl}'>{$lang['_faq']}</a></li>
+		<li><a href="alldo.php{si_sessionurl}" title="{$lang['seealldoing']}">{$lang['doing']}</a></li>
+		<if="$bbuserinfo['cancontrolpanel']"><li><a href='{$bboptions['adminurl']}/' target='_blank'>{$lang['_admincp']}</a></li></if>
+	</ul>
+</div>
+<div id='nav'>
+	<div>
+		<if="$bbuserinfo['id']">
+		<form action='search.php' method='post'>
+		<input type='hidden' name='s' value='{sessionid}' />
+		<input type='hidden' name='do' value='search' />
+		<input type='text' size='30' name='keywords'  onfocus="this.value=''" value='{$lang['quicksearch']}' class="input_normal" />
+		<input type='submit' value='{$lang['_search']}' class="button_normal" />
+		</form>
+		<else>
+		<form action="login.php" method="post">
+		<input type='hidden' name='s' value='{sessionid}' />
+		<input type='hidden' name='do' value='login' />
+		<input type='hidden' name='cookiedate' value='1' />
+		<input type='hidden' name='logintype' value='1' />
+		<input type='hidden' name='referer' value="{$referer}" />
+		<input type="text" size="10" name="username" onfocus="if (this.value == '{$lang['username']}') this.value = ''" value="{$lang['username']}" class="input_normal" />
+		<input type='password' size='10' name='password' value='' class="input_normal" />
+		<select name="cookiedate" class="select_normal">
+		<option value="31536000">{$lang['oneyear']}</option>
+		<option value="2592000" selected="selected">{$lang['onemonth']}</option>
+		<option value="86400">{$lang['oneday']}</option>
+		<option value="3600">{$lang['onehour']}</option>
+		<option value="0">{$lang['browser']}</option>
+		</select>
+		<input type='submit' value='{$lang['_ok']}' class="button_normal" />
+		</form>
+		</if>
+	</div>
+	<if="is_array( $nav )">
+	<ul>
+		<li><a href='{$bboptions['forumindex']}{si_sessionurl}'><img src="images/<#IMAGE#>/nav.gif" alt="{$bboptions['bbtitle']}" /></a><a href='{$bboptions['forumindex']}{si_sessionurl}'>{$bboptions['bbtitle']}</a></li>
+		<foreach="$nav as $n">
+		<if="$n">
+		<li>&raquo;&nbsp;{$n}</li>
+		</if>
+		</foreach>
+	</ul>
+	<else>
+		<if="count( $forums->cache[announcement] )">
+		<div id="nav_anoc">
+			<ul id="nav_anoc_cont">
+			<foreach="$forums->cache[announcement] AS $announcedata">
+				<if="$announcedata['forumid']==-1">
+				<li><a href='{$bboptions['bburl']}/announcement.php?id={$announcedata['id']}' title="{$announcedata['notagtitle']}">{$announcedata['titlecut']}</a></li>
+				</if>
+			</foreach>
+			</ul>
+		</div>
+		<script language='JavaScript' type="text/javascript">
+		//<![CDATA[
+			var speed = 2500;
+			var mqdiv = $('nav_anoc');
+			var mqcont = $('nav_anoc_cont');
+			var MyMar = setInterval(Marquee,speed)
+			function Marquee(){
+				var mqline = parseInt(mqdiv.offsetHeight);
+				if(mqdiv.scrollTop + mqline >= mqcont.offsetHeight) mqdiv.scrollTop = 0;
+				else mqdiv.scrollTop += mqline;
+			}
+			mqdiv.onmouseover=function() {clearInterval(MyMar)}
+			mqdiv.onmouseout=function() {MyMar=setInterval(Marquee,speed)}
+		//]]>
+		</script>
+		</if>
+	<ul>
+		<li><a href="{$bboptions['forumindex']}{si_sessionurl}"><img src="images/<#IMAGE#>/nav.gif" alt="{$bboptions['bbtitle']}" /></a></li>
+		<li><a href="announcement.php{si_sessionurl}">{$lang['announcement']}</a></li>
+		<li><a href="findposts.php{sessionurl}do=getquintessence">{$lang['quintessencearea']}</a></li>
+		<li><a href="misc.php{sessionurl}do=allforumread">{$lang['makeallread']}</a></li>
+		<li><a href="findposts.php{sessionurl}do=getnew">{$lang['getnew']}</a></li>
+		<li><a href="{$bboptions['bburl']}/rss.php?version=rss2.0&amp;fid={$forum['id']}"><img src="images/<#IMAGE#>/rss.gif" alt="" /></a></li>
+	</ul>
+	</if>
+</div>
+</div>
+<!-- #head#menu#nav end -->
+<!-- user activation begin -->
+<if="$bbuserinfo['usergroupid'] == 1">
+<div id="activation">
+	<em>{$lang['_activation']}</em>
+	<if="$bboptions[moderatememberstype]=='admin'">
+	{$lang['_activation_byadmin']}
+	<else>
+	<php>
+	$activation_byemail = sprintf( $forums->lang['_activation_byemail'], $bbuserinfo['email'] );
+	</php>
+	{$activation_byemail}[ <a href='register.php{sessionurl}do=resend'>{$lang['_activation_resend']}</a> ]
+	</if>
+</div>
+</if>
+<!-- user activation end -->
+<if="$bbuserinfo['showpm']">
+<div id="pmnotice">
+	<em>
+		<a href='private.php{sessionurl}do=ignorepm'>{$lang['_ignorepm']}</a>
+		<a href='private.php{sessionurl}do=list&amp;folderid=0' target='_blank'>{$lang['_viewpm']}</a>
+		{$bbuserinfo['pminfo']}
+	</em>
+	<dl>
+		<foreach="$bbuserinfo['newpm'] AS $pmlist">
+		<dt><a href='private.php{sessionurl}do=showpm&amp;folderid=0&amp;pmid={$pmlist['pmid']}' target='_blank'>{$pmlist['title']}</a></dt>
+		<dd><a href='profile.php{sessionurl}u={$pmlist['id']}' target='_blank'>{$pmlist['name']}</a></dd>
+		<dd>{$pmlist['dateline']}</dd>
+		</foreach>
+	</dl>
+</div>
+</if>

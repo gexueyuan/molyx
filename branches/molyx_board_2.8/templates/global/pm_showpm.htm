@@ -1,0 +1,43 @@
+{template:header}
+{template:usercp_menu}
+<div id="ucp_content">
+	<h3>{$lang['pm']}</h3>
+	<div class="ucp">
+		<div class="div_post">
+		<div class="item_list">
+			<div class="user_profile" onmouseover="this.className='user_profile action_area';" onmouseout="this.className='user_profile';">
+				{$user['avatar']}
+				<em><a href="profile.php{sessionurl}u={$user['id']}">{$user['name']}</a></em>
+				<div><cite>{$user['grouptitle']}</cite></div>
+				<ul>
+					<li>{$lang['_useposts']}: {$user['posts']}</li>
+					<li>{$lang['_joindate']}: {$user['joindate']}</li>
+				</ul>
+			</div>
+			<div class="post_content">
+				<div class="post_info">
+					<ul>
+						<li><a href='private.php{sessionurl}do=buddy&amp;u={$user['id']}'>{$lang['addtolist']}</a></li>
+						<li><a href='private.php{sessionurl}do=pmdelete&amp;folderid={$pm['folderid']}&amp;pmid={$pm['pmid']}'>{$lang['deletepm']}</a></li>
+					</ul>
+					{$pm['title']}
+					<cite class="time">{$pm['dateline']}</cite>
+				</div>
+				<div class="post_text">
+					{$pm['message']}
+				</div>
+				<div class="attach">
+					{$attachment}
+				</div>
+			</div>
+		</div>
+		</div>
+		<div class="page_nav">
+			<ul class="new_button">
+				<li><strong><a href='private.php{sessionurl}do=newpm&amp;pmid={$pm['pmid']}&amp;u={$user['id']}&amp;fwd=1'>{$lang['forwardpm']}</a></strong></li>
+				<li><strong><a href='private.php{sessionurl}do=newpm&amp;u={$user['id']}&amp;pmid={$pm['pmid']}'>{$lang['replypm']}</a></strong></li>
+			</ul>
+		</div>
+	</div>
+</div>
+{template:footer}
