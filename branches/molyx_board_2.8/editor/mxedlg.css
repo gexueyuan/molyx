@@ -1,7 +1,0 @@
-/* $Id: mxedlg.css 307 2007-10-19 04:51:45Z sancho $ */
-* { margin:0; padding:0; }
-html { background:#fff; color:#333; font:12px/1.6em tahoma,verdana,arial,sans-serif; cursor:default; }
-input, textarea, select, button { font:12px/1.6em tahoma,verdana,arial,sans-serif; }
-	*+html, *+html input, *+html textarea, *+html select, *+html button { font-family:'Microsoft YaHei',tahoma,verdana,arial,sans-serif; }
-form { display:inline; }
-body{ margin:3px; overflow:hidden; }
