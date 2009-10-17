@@ -1,0 +1,78 @@
+{template:header}
+{template:usercp_menu}
+<div id="ucp_content">
+	<h3>{$lang['editprofile']}</h3>
+	<form action="usercp.php" method="post" name='theForm'>
+		<input type='hidden' name='s' value='{sessionid}' />
+		<input type='hidden' name='posthash' value='{$posthash}' />
+		<input type='hidden' name='do' value='doprofile' />
+		<div class='ucp'>
+		<fieldset class='ucp'>
+			<legend>{$lang['mysafe']}</legend>
+			<p>{$lang['mysafedesc']}</p>
+			<p>
+				{$lang['myquestion']}
+				<if="$bbuserinfo['question']">
+				: {$bbuserinfo['question']}
+				<else>
+				<input type='text' size='40' maxlength='1200' name='question' value='{$bbuserinfo['question']}' class="input_normal" />
+				</if>
+			</p>
+			<p>
+			{$lang['myanswer']}
+			<input type='text' size='40' maxlength='1200' name='answer' value='' class="input_normal" />
+			</p>
+			<if="$bbuserinfo['question'] AND $bbuserinfo['answer']">
+			<p>
+			{$lang['newmyquestion']}
+			<input type='text' size='40' maxlength='1200' name='newquestion' value='' class="input_normal" />
+			</p>
+			<p>
+			{$lang['newmyanswer']}
+			<input type='text' size='40' maxlength='1200' name='newanswer' value='' class="input_normal" />
+			</p>
+			</if>
+		</fieldset>
+		</div>
+		<if="!empty($usrext_field['must'])">
+		<em>{$lang['userprofilemustfill']}</em>
+		<div class='ucp'>
+			<foreach="$usrext_field['must'] as $v">
+			<p>
+				{$v['name']}：
+				{$v['html']}
+			</p>
+			</foreach>
+		</div>
+		</if>
+		<em>{$lang['userprofileitems']}</em>
+		<div class='ucp'>
+			<p>
+				{$lang['gender']}：
+				<input type="radio" name="gender" value="1" {$male_check} /> {$lang['_male']}
+				<input type="radio"  name="gender" value="2" {$female_check} /> {$lang['_female']}
+				<input type="radio"  name="gender" value="0" {$default_check} /> {$lang['unknowgender']}
+			</p>
+			<p>
+				{$lang['birthday']}：
+				<select name='year' class="select_normal">
+					{$year}
+				</select>
+				<select name='month' class="select_normal">
+					{$mon}
+				</select>
+				<select name='day' class="select_normal">
+					{$day}
+				</select>
+			</p>
+			<foreach="$usrext_field['other'] as $v">
+			<p>
+				{$v['name']}：
+				{$v['html']}
+			</p>
+			</foreach>
+		</div>
+		<div class='ucp item_list'><input type="submit" accesskey="s" value=" {$lang['updateprofile']} " class="input_big" /></div>
+	</form>
+</div>
+{template:footer}

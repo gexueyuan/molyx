@@ -1,0 +1,469 @@
+{template:header}
+<script type="text/javascript" src="./scripts/changetitle.js"></script>
+<script language='JavaScript' type="text/javascript">
+//<![CDATA[
+var attach_maxnum = {$upload['maxnum']};
+var attach_num = 0;
+var thisforum = "{$forum['id']}";
+function smilie_pop() {
+	window.open('misc.php{sessionurl}do=icon&amp;wysiwyg=1','misc','width=500,height=300,resizable=yes,scrollbars=yes');
+}
+
+function getMessageLength() {
+ mxeGet();
+ return calculate_byte(mxeTxH.value);
+}
+
+var postmaxchars = "{$bboptions['maxpostchars']}";
+var postminchars = "{$bboptions['minpostchars']}";
+var override = "";
+function submit_form(isMsg) {
+ mxeGet();
+<if="$forum['forcespecial']">
+  if (document.mxbform.specialtopic && document.mxbform.specialtopic.value=="") {
+   alert("{$lang['forcespecial']}");
+   reinit();
+   return false;
+ }
+</if>
+  if (isMsg == 1) {
+   if ((document.mxbform.title.value != null)  && (document.mxbform.title.value.length < 2)) {
+     alert("{$lang['mustinputtitle']}");
+     reinit();
+      return false;
+   }
+  }
+  if (document.mxbform.post.value=="") {
+   alert("{$lang['mustinputcontent']}");
+   reinit();
+   return false;
+  }
+  return messagetolong();
+}
+
+function checklength() {
+ if (postmaxchars != 0) message = "{$lang['allowmostlength']} "+postmaxchars+" {$lang['chars']}";
+ else message = "";
+ var messageLength = getMessageLength();
+ alert("{$lang['youhaveinput']} "+messageLength+" {$lang['chars']}" + message);
+}
+
+function messagetolong() {
+	$('submitform').disabled = true;
+	var messageLength = getMessageLength();
+	if ((postmaxchars != 0) && (messageLength > postmaxchars)) {
+		alert("{$lang['postcharstoolong']} "+postmaxchars+" {$lang['chars']}{$lang['youhaveinput']} "+messageLength+" {$lang['chars']}");
+		reinit();
+		return false;
+	} else if ((postminchars != 0) && (messageLength < postminchars)) {
+		alert("{$lang['postcharstooshort']} "+postminchars+" {$lang['chars']}{$lang['youhaveinput']} "+messageLength+" {$lang['chars']}");
+		reinit();
+		return false;
+	} else {
+		document.mxbform.submit();
+	}
+}
+
+function changesel() {
+	var thisvalue = document.mxbform.hidetype.value;
+	var hidecreditcond = document.getElementById("hidecreditcond");
+	var hidecond= document.getElementById("hidecond");
+	var hidegrpid= document.getElementById("hidegrpid");
+	var hidecredit= document.getElementById("hidecredit");
+	if (thisvalue != 0 && thisvalue != 11 && thisvalue != 111 && thisvalue != 999 ) {
+		if (hidecreditcond) {
+			hidecreditcond.disabled = true;
+		}
+		eval( 'hidecond.style.display=""' );
+		eval( 'hidegrpid.style.display="none"' );
+		eval( 'hidecredit.style.display="none"' );
+		return;
+	} else if (thisvalue == 11 ) {
+		eval( 'hidecond.style.display="none"' );
+		eval( 'hidegrpid.style.display=""' );
+		eval( 'hidecredit.style.display="none"' );
+		return;
+	} else if (thisvalue == 999 ) {
+		document.getElementById("hidecreditcond").disabled = false;
+		eval( 'hidecond.style.display="none"' );
+		eval( 'hidegrpid.style.display="none"' );
+		eval( 'hidecredit.style.display=""' );
+		return;
+	}
+	eval( 'hidecond.style.display="none"' );
+	eval( 'hidegrpid.style.display="none"' );
+	eval( 'hidecredit.style.display="none"' );
+}
+
+function sendattach() {
+	var attachframe = $('mxb_attachform');
+	var formValue = $('mxbform');
+	if (attachframe.attachment0.value) {
+		if (formValue.s) {
+			var s = formValue.s.value;
+		} else {
+			var s = '';
+		}
+		if (formValue.f) {
+			var f = formValue.f.value;
+		} else {
+			var f = 0;
+		}
+		var posthash = formValue.posthash.value;
+		if (formValue.p) {
+			var p = formValue.p.value;
+		} else {
+			var p = 'NULL';
+		}
+		$('attach_do').value = "upload";
+		attachframe.s.value = s;
+		attachframe.f.value = f;
+		attachframe.posthash.value = posthash;
+		attachframe.attach_num.value = attach_num;
+		attachframe.submit();
+		$('submitform').disabled = true;
+		if ($('preview')) {
+			$('preview').disabled = true;
+		}
+		var info = "<font color=red>"+lang_g['g_refering']+"</font>";
+		$('attachbutton').innerHTML = info;
+		attach_num = 0;
+	} else {
+		alert(lang_g['g_selectat']);
+	}
+}
+
+function removeattach(id) {
+	var okdelete = confirm("{$lang['deleteattachs']}");
+	if ( okdelete == true ) {
+		//ajaxremoveattach(id);
+		if ( id != "" ) {
+			$('attach_do').value = 'delete';
+			document.mxb_attachform.removeattachid.value = id;
+			var attachframe = $('mxb_attachform');
+			if (attachframe.attachment0.value) {
+				sendattach();
+			} else {
+				var formValue = $('mxbform');
+				if (formValue.s) {
+					var s = formValue.s.value;
+				} else {
+					var s = '';
+				}
+				if (formValue.f) {
+					var f = formValue.f.value;
+				} else {
+					var f = 0;
+				}
+				var posthash = formValue.posthash.value;
+				if (formValue.p) {
+					var p = formValue.p.value;
+				} else {
+					var p = 'NULL';
+				}
+				attachframe.s.value = s;
+				attachframe.f.value = f;
+				attachframe.posthash.value = posthash;
+				attachframe.attach_num.value = attach_num;
+				attachframe.submit();
+				$('submitform').disabled = true;
+				if ($('preview')) {
+					$('preview').disabled = true;
+				}
+				var info = "<font color=red>"+lang_g['g_refering']+"</font>";
+				$('attachbutton').innerHTML = info;
+				attach_num = 0;
+			}
+			document.mxb_attachform.removeattachid.value = 0;
+		}
+	} else {
+		document.mxb_attachform.removeattachid.value = 0;
+		return false;
+	}
+}
+
+function check_form_attach() {
+	var attachframe = $('mxb_attachform');
+	var formValue = document.mxbform;
+	mxeGet();
+	if (attachframe && attachframe.attachment0.value) {
+		attachframe.is_send.value = 1;
+		sendattach();
+	} else {
+		submit_form(1);
+	}
+}
+
+function preview() {
+	document.mxbform.preview.value = '1';
+	submit_form(1);
+}
+
+function createattach(obj)
+{
+	var newelement;
+	if (obj.id == 'attachment'+attach_num)  {
+		attach_num= attach_num + 1;
+		if (attach_num == attach_maxnum) {
+			return;
+		}
+		newinput = document.createElement('input');
+		newinput.type = 'file';
+		newinput.name = 'attachment'+attach_num;
+		newinput.id = 'attachment'+attach_num;
+		newinput.size = 30;
+		newinput.className = 'input_big';
+		newinput.onchange = function(){createattach(this)};
+		newelement = document.createElement('div');
+		newelement.appendChild(newinput);
+		document.getElementById('attachdiv').appendChild(newelement);
+	}
+}
+
+function reinit()
+{
+	 if($('attachbutton')) {
+		 $('attachbutton').innerHTML = '<input type="button" name="uploadbutton" id="uploadbutton" value=" {$lang['_addattach']} " class="input_big" onclick="sendattach();" />';
+	}
+	 $('submitform').disabled = false;
+	 if ($('preview')){
+	 	 $('preview').disabled = false;
+	 }
+}
+//]]>
+</script>
+<if="$show['errors']">
+<div id='errors'>
+	<h3>{$lang['posterrors']}</h3>
+	<p>{$errors}</p>
+</div>
+</if>
+<div id='previewpost'<if="$show['preview']"> style="display:'';"<else> style="display:none;"</if>>
+	<h3>{$lang['previewpost']}</h3>
+	<div class='item_list' id="previewpostcontent">{$preview}</div>
+</div>
+{$form_start}
+<div class="separate"><!-- separate block --></div>
+<table width='100%' cellpadding='4' cellspacing='1' class='ttable'>
+<caption class='tcat'>
+	<if="$bbuserinfo['id']">
+		<span>
+		{$lang['loginuser']}:{$bbuserinfo['name']}
+		<if="$bbuserinfo['cananonymous']">
+		<input name='anonymous' id="anonymous" type='checkbox' value='1' /><label for="anonymous">{$lang['anonymous']}</label>
+		</if>
+		</span>
+	<else>
+		<span>
+		{$lang['unregisteruser']}:{$lang['inputusername']}<input type='text' size='40' maxlength='40' name='username' value='{$_INPUT['username']}' class='input_normal' />
+		</span>
+	</if>
+	{$postdesc}
+</caption>
+<tbody class="tbody">
+<if="$show['title']">
+<tr class='item_list'>
+	<td>{$lang['threadtitle']}</td>
+	<td>
+		<if="$threadprefix">
+			<select onchange="document.mxbform.title.focus(); document.mxbform.title.value = this.options[this.selectedIndex].value + document.mxbform.title.value;">
+			<option selected value="">{$lang['type']}</option>
+			<foreach="$threadprefix AS $value">
+				<option value="{$value}">{$value}</option>
+			</foreach>
+			</select>
+		</if>
+		<input type='text' size='40' maxlength='50' name='title' value='{$title}' tabindex='1' class='input_normal' />
+		<if="$show['colorpicker']">
+		<input type='hidden' name='titlecolor' id='titlecolor' value="{$_INPUT['titlecolor']}"  />
+		<span><button id='title_color' onclick="editcolor(); return false;" style="background-color:{$_INPUT['titlecolor']};" /></button></span>
+		<label for="titlebold">
+			<input type='checkbox' name='titlebold' id="titlebold" value='1' {$checked['titlebold']} />
+			{$lang['titlebold']}
+		</label>
+		</if>
+	</td>
+</tr>
+<if="$specialtopic">
+<tr class='item_list'>
+	<td>{$lang['selectspecialtopic']}</td>
+	<td>
+		<select name='specialtopic' class='bginput'><option{$special_selected[0]} value=''>{$lang['selectspecialtopic']}</option>
+		<foreach="$specialtopic AS $val">
+		<option value="{$val}"{$special_selected[$val]}>{$forumsspecial[$val]['name']}</option>
+		</foreach>
+		</select>
+	</td>
+</tr>
+</if>
+</if>
+<if="$antispam['imagehash']">
+<tr class='item_list'>
+	<td>{$lang['antispam']}</td>
+	<td id="antispamtext">
+		<input type='hidden' name='imagehash' value='{$antispam['imagehash']}' />
+		<input type='text' size='4' maxlength='4' name='antispam' value='' tabindex='2' class='input_normal' />
+		<if="$antispam['text']==1">
+		<img src='register.php{sessionurl}do=showimage&amp;rc={$antispam['imagehash']}&amp;simg=1' alt='' />
+		<else>
+		{$antispam['text']}
+		</if>
+	</td>
+</tr>
+</if>
+<if="$show['poll']">
+<tr class='item_list'>
+	<td>{$lang['_poll']}{$lang['question']}</td>
+	<td><input type='text' tabindex='3' size='40' maxlength='250' name='question' value='{$_INPUT['question']}' class='input_normal' /></td>
+</tr>
+<tr class='item_list'>
+	<td>
+		{$lang['selectoptions']}
+		<ul>
+		<li>{$lang['optionsdesc']}</li>
+		<li><input type='checkbox' size='40' value='1' name='allow_disc' id="allow_disc" /><label for="allow_disc">{$lang['onlyusepoll']}</label></li>
+		<li><input type='checkbox' size='40' value='1' name='allowmultipoll' id="allowmultipoll" /><label for="allowmultipoll">{$lang['multipoll']}</label></li>
+		<li>{$extra}</li>
+		</ul>
+	</td>
+	<td>
+		<textarea cols='60' tabindex='4' rows='8' name='polloptions'>{$poll}</textarea>
+	</td>
+</tr>
+</if>
+<tr class='item_change'>
+	<td colspan="2">{$lang['postcontent']}</td>
+</tr>
+<tr class='item_list' valign='top'>
+	<td id="newpost_op">
+		<fieldset>
+			<legend>{$lang['smilies']}</legend>
+			{template:show_post_smile}
+		</fieldset>
+		<fieldset>
+		<legend>{$lang['postoptions']}</legend>
+			<ul>
+			<li><label for='allowsmile'><input type='checkbox' name='allowsmile' id='allowsmile' value='1' {$checked['smiles']} />&nbsp;{$lang['allowsmilies']}</label></li>
+			<li><label for='showsignature'><input type='checkbox' name='showsignature' id='showsignature' value='1' {$checked['signature']} />&nbsp;{$lang['allowsignature']}</label></li>
+			<li><label for='parseurl'><input type='checkbox' name='parseurl' id='parseurl' value='1' {$checked['parseurl']} />&nbsp;{$lang['parseurl']}</label></li>
+			<li><label for='redirect'><input type='checkbox' name='redirect' id='redirect' value='1' {$checked['redirect']} />&nbsp;{$lang['redirectforum']}</label></li>
+			<if="$show['blog']">
+			<li><label for='useblog'><input type='checkbox' name='useblog' id='useblog' value='1' {$checked['useblog']} />&nbsp;{$lang['useblog']} {$bloglist}</label></li>
+			</if>
+			<if="$show['appendedit']">
+			<li><label for='appendedit'><input type='checkbox' name='appendedit' id='appendedit' value='1' checked='checked' />&nbsp;{$lang['addeditinfo']}</label></li>
+			</if>
+			<input type="hidden" name="checkurl" value="0" />
+		</fieldset>
+		<if="is_array($credit_list)">
+		<fieldset>
+		<legend>{$lang['_action_will']}</legend>
+			<ul>
+			<foreach="$credit_list AS $credit">
+			<li>{$credit[0]}{$credit[1]}</li>
+			</foreach>
+			</ul>
+		</fieldset>
+		</if>
+	</td>
+	<td>
+		<textarea id="post" name="post" rows="" cols="" style="height:400px;width:600px;">{$content}</textarea>
+	</td>
+</tr>
+<if="$show['docredit']">
+<tr class='item_list'>
+	<td>{$lang['creditoption']}</td>
+	<td>
+	<label for='docredit'><input type='checkbox' name='docredit' id='docredit' value='1'/>&nbsp;{$lang['actioneffectcredit']}</label>
+	</td>
+</tr>
+</if>
+<tr class='item_list'>
+	<td>{$lang['viewlimit']}</td>
+	<td>
+	{$lang['viewlimitdesc']}<br />
+	<select name="hidetype" class="select_normal" onchange='changesel()'>
+		<foreach="$hidetypes AS $thistype">
+		  <option value="{$thistype['val']}"<if="$hideinfo['type']==$thistype['val']"> selected</if>>{$thistype['des']}</option>
+		</foreach>
+	</select>
+	<if="$hideinfo['type']<11 AND $hideinfo['type']">
+	<span  id="hidecond" style="display:">
+	<input type="text" size="20" class="input_normal" name="hidecond" value="{$hideinfo['cond']}" />
+	<else>
+	<span  id="hidecond" style="display:none">
+	<input type="text" size="20" class="input_normal" name="hidecond" value="" />
+	</if>
+	</span>
+	<if="$hideinfo['type']==11">
+	<span id="hidegrpid" style="display:">
+	<else>
+	<span id="hidegrpid" style="display:none">
+	</if>
+	<select name="hidegrpid" class="select_normal">
+	  <option value="0">=={$lang['nogroupselect']}==</option>
+		<foreach="$usergrp AS $thisgrp">
+		  <option value="{$thisgrp['usergroupid']}"<if="$hideinfo['type']==11 AND $hideinfo['cond']==$thisgrp['usergroupid']"> selected</if>>{$thisgrp['grouptitle']}</option>
+		</foreach>
+	</select>
+	</span>
+	<if="$hideinfo['type']==999">
+	<span id="hidecredit" style="display:">
+	<else>
+	<span id="hidecredit" style="display:none">
+	</if>
+	<if="is_array($hidecredit)">
+	<select name="hidecredit" class="select_normal">
+		<foreach="$hidecredit AS $credit_type => $name">
+		  <option value="{$credit_type}"<if="$hideinfo['type']==999 AND $hideinfo['credit_type']==$credit_type"> selected="selected"</if>>{$name}</option>
+		</foreach>
+	</select>
+	<input type="text" size="20" class="input_normal" id="hidecreditcond" name="hidecreditcond" value="{$hideinfo['cond']}" />
+	</if>
+	</span>
+	</td>
+</tr>
+<if="$modoptions">
+<tr class='item_list'>
+	<td>{$lang['modoptions']}</td>
+	<td>{$modoptions}</select></td>
+</tr>
+</if>
+</form>
+<if="$show['upload'] AND !$bboptions['remoteattach']">
+<tr class='item_change'>
+<td colspan="2">{$lang['_attachment']}</td>
+</tr>
+<tr class='item_list'>
+<td valign='top'>{$lang['attachmentleft']}: {$upload['left']}
+</td>
+<td>
+<form action="attach.php" method="post" enctype="multipart/form-data" id="mxb_attachform" name="mxb_attachform" target="attachframe">
+<input type="hidden" name="s" value="" />
+<input type="hidden" name="f" value="" />
+<input type="hidden" name="posthash" value="" />
+<input type="hidden" name="do" id="attach_do" value="upload" />
+<input type="hidden" name="upload" value="1" />
+<input type="hidden" name="removeattachid" id="removeattachid" value="0" />
+<input type="hidden" name="is_send" id="is_send" value="0" />
+<input type="hidden" name="attach_num" id="attach_num" value="0" />
+<input type="hidden" name="pagetype" id="pagetype" value="new"/>
+<div id="attachdiv"><div><input type='file' size='30' name='attachment0' id='attachment0' class='input_big' onchange="createattach(this);" /></div></div>
+<span id="attachbutton"><input type="button" name="uploadbutton" id="uploadbutton" value=" {$lang['addattachment']} " class='input_big' onclick='sendattach();' /></span>
+<div id='showattach'>{$upload['tmp']}</div>
+<iframe src="about:blank" width="0" height="0" frameborder="0" id="attachframe" name="attachframe"></iframe>
+</form>
+</td>
+</tr>
+</if>
+<tr class='item_change'>
+<td width="180">&nbsp;</td>
+<td>
+	<input type="button" id="sub_form" onclick='submit_form(1);' style="visibility:hidden;display:none" />
+	<input type="button" name="submitform" id="submitform" value=" {$lang['_submit']} " tabindex='7' class='input_big' accesskey='s' onclick="check_form_attach();" />&nbsp;
+	<input type="button" name="preview" id="preview" value="{$lang['previewpost']}" tabindex='8' class='input_big'{$previewfunc} />
+</td>
+</tr>
+</tbody>
+</table>
+{template:footer}

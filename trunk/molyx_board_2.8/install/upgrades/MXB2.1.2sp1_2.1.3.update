@@ -1,0 +1,75 @@
+<?php
+class CUpdate
+{
+	var		$UpdaterVer		= 1.0;
+	var		$OldVersion		= '2.1.2 SP1';
+	var		$NewVersion		= '2.1.3';
+	var		$Error			= '';
+	var		$Author			= 'Molyx Development Team';
+	var		$Date			= '2005-03-14';
+	var		$Notes			= '';
+	
+	function AllowUpdate()
+	{
+		global $DB;
+		$version = $DB->query_first("SELECT defaultvalue FROM ".TABLE_PREFIX."setting WHERE varname='version'");
+		
+		if( strtolower($version['defaultvalue']) != strtolower($this->OldVersion) )
+			return 0;
+		else
+			return 1;
+	}
+	
+	function SetError($errmsg)
+	{
+		$this->Error = $errmsg;
+	}
+	
+	function GetError()
+	{
+		return $this->Error;
+	}
+
+	/* the actual update.
+	 *
+	 * RETURN VALUES
+	 *
+	 *	1 - update failed (set error with $this->SetError() )
+	 *	0 - update sucessfull
+	 */
+	function RunUpdate()
+	{
+		global $DB;
+		$DB->return_die = 1;
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."userpromotion ADD reputation int(10) unsigned NOT NULL default '0' AFTER posts");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."forum ADD forumrule tinyint(1) NOT NULL default '0'");
+
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."templategroup SET templategroup='<<<forum_rule>>>\r\n<<<sub_forum>>>\r\n<<<forum_top>>>\r\n<<<forum_announce>>>\r\n<<<forum_threadlist>>>\r\n<<<forum_end>>>' WHERE title='forumdisplay'");
+
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'showdescription' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '开启主题说明功能', '如果关闭主题说明功能，在主题列表内将不显示主题说明选项', 12, 'yes_no', 'showdescription', '', '1', '', 13, 1);");
+		}
+
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'watermark' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '开启图片水印功能', '是否在发帖时使用上传附件水印功能。如果images根目录下有 watermark.png 图片的话，将优先使用图片水印。', 7, 'yes_no', 'watermark', '', '0', '', 16, 1);");
+		}
+
+		$show = $DB->query_first("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'markposition' LIMIT 1");
+		if(!$show['settingid']) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '水印图片出现的位置', '如果开启了上面的水印功能，并且使用图片水印的话，请在这里设定图片水印出现的位置。', 7, 'dropdown', 'markposition', '', '4', '1=左上\n2=左下\n3=右上\n4=右下\n5=中间', 17, 1);");
+		}
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."settinggroup SET title='', description='' WHERE groupid='18'");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."cron SET minute=0 WHERE filename='bankpayinterest.php'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."blog CHANGE postid postid INT( 10 ) UNSIGNED DEFAULT '0' NOT NULL");
+
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue='".$this->NewVersion."' WHERE varname='version'");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue='1.1' WHERE varname='blogversion'");
+
+		$DB->return_die = 0;
+		return 0;
+	}	
+}
+
+?>

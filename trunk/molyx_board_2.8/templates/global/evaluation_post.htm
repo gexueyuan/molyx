@@ -1,0 +1,59 @@
+<div class="op_title" onmousedown="begindrag('operation_pannel', event);">
+	<cite onclick="hideElement('operation_pannel');"><img src="images/<#IMAGE#>/x.gif" alt="" /></cite>
+	<h3>{$lang['evaluationpost']}</h3>
+</div>
+<form action="" method="post" name='evaluation_form' id='evaluation_form'>
+<foreach="$input AS $n => $v">
+	<input type='hidden' name='{$n}' value='{$v}' />
+</foreach>
+	<div class="item_list">
+		<div style="float:right" class="desc">{$lang['actionuser']}&nbsp;:&nbsp;{$bbuserinfo['name']}</div>
+		<label for="ev_showping"><input type="radio" id="ev_showping" name="action" value="showping" checked="checked"/>{$lang['evaluation']}</label>
+		<label for="ev_delping"><input type="radio" id="ev_delping" name="action" value="delping" />{$lang['delevaluation']}</label>
+		&nbsp;&nbsp;
+		<label for="ev_pm"><input type="checkbox" id="ev_pm" name="sendpm" value="yes" checked="checked"/>{$lang['sendevalpm']}</label>
+	</div>
+	<table width='100%' cellpadding='0' cellspacing='0'>
+	<tbody class="tbody">
+		<tr>
+			<td align="right" class="item_list">{$lang['author']}</td>
+			<td class="item_list"><a href='profile.php{sessionurl}u={$authorid}'>{$author}</a></td>
+		</tr>
+		<tr>
+			<td align="right" class="item_list">{$lang['evalcreditunit']}</td>
+			<td class="item_list">
+				<select name='actcredit' class="select_normal" id='actcredit' onChange="changecredit()">
+				{$creditlists}
+				</select>
+				<input type='text' name='amount' class="input_normal" value='1' size='5' class='bginput' >
+				{$amountdesc}
+				<span id='evalcreditdesc' class="desc"></span>
+			</td>
+		</tr>
+		<tr>
+			<td align="right" valign="top" class="item_list">
+				<select name="" size="7" multiple="multiple" class="dropdown" onchange="this.form.evalmessage.value=this.value">
+					<option value="">{$lang['definition']}</option>
+					<option value="">-------------</option>
+					<option value="{$lang['adpost']}">{$lang['adpost']}</option>
+					<option value="{$lang['floodpost']}">{$lang['floodpost']}</option>
+					<option value="{$lang['illegalpost']}">{$lang['illegalpost']}</option>
+					<option value="{$lang['differpost']}">{$lang['differpost']}</option>
+					<option value="{$lang['repeatpost']}">{$lang['repeatpost']}</option>
+					<option value="">-------------</option>
+					<option value="{$lang['goodpost']}">{$lang['goodpost']}</option>
+					<option value="{$lang['originalpost']}">{$lang['originalpost']}</option>
+				</select>
+			</td>
+			<td class="item_list">
+				<div>{$lang['evalmessage']}</div>
+				<textarea cols='75' rows='5'  name='evalmessage' id='evalmessage'></textarea>
+			</td>
+		</tr>
+	</tbody>
+	</table>
+	<div class="item_list" align="center">
+		<input name="eval_btn" type="button" class="button_normal" accesskey="s" value=" {$lang['_submit']} " onclick="do_evaluation_post('evaluation_form');" />
+		<input type="button" name="reset_btn" class="button_normal" accesskey="c" value=" {$lang['_cancel']} " onclick="hideElement('operation_pannel');" />
+	</div>
+</form>

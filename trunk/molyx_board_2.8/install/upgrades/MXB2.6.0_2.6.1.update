@@ -1,0 +1,77 @@
+<?php
+class CUpdate
+{
+	var		$UpdaterVer		= 1.0;
+	var		$OldVersion		= '2.6.0';
+	var		$NewVersion		= '2.6.1';
+	var		$Error			= '';
+	var		$Author			= 'Molyx Development Team';
+	var		$Date			= '2006-09-29';
+	var		$Notes			= '';
+	
+	function AllowUpdate()
+	{
+		global $DB;
+		$version = $DB->query_first("SELECT defaultvalue FROM ".TABLE_PREFIX."setting WHERE varname='version'");
+		
+		if( strtolower($version['defaultvalue']) != strtolower($this->OldVersion) )
+			return 0;
+		else
+			return 1;
+	}
+	
+	function SetError($errmsg)
+	{
+		$this->Error = $errmsg;
+	}
+	
+	function GetError()
+	{
+		return $this->Error;
+	}
+
+	/* the actual update.
+	 *
+	 * RETURN VALUES
+	 *
+	 *	1 - update failed (set error with $this->SetError() )
+	 *	0 - update sucessfull
+	 */
+	function RunUpdate()
+	{
+		global $DB, $add_charset, $a_lang;
+		$DB->return_die = 1;
+
+		show_update(TABLE_PREFIX.'cron');
+		$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."cron` (`title`, `filename`, `nextrun`, `weekday`, `monthday`, `hour`, `minute`, `cronhash`, `loglevel`, `description`, `enabled`) VALUES 
+		('".$a_lang['mysql']['cron']['threadviews']."', 'threadviews.php', 0, -1, -1, 1, -1, '', 1, '".$a_lang['mysql']['cron']['threadviewsdesc']."', 1),
+		('".$a_lang['mysql']['cron']['attachmentviews']."', 'attachmentviews.php', 0, -1, -1, 1, -1, '', 1, '".$a_lang['mysql']['cron']['attachmentviewsdesc']."', 1)");
+
+		
+		show_update(TABLE_PREFIX.'setting');
+		$DB->query_unbuffered("DELETE FROM `".TABLE_PREFIX."setting` WHERE `varname` = 'rewritestatus'");
+		$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."setting` (`title`, `description`, `groupid`, `type`, `varname`, `value`, `defaultvalue`, `dropextra`, `displayorder`, `addcache`) VALUES 
+			('".$a_lang['mysql']['setting']['threadviewsdelay']."', '".$a_lang['mysql']['setting']['threadviewsdelaydesc']."', 2, 'yes_no', 'threadviewsdelay', '', '0', '', 3, 1),
+			('".$a_lang['mysql']['setting']['attachmentviewsdelay']."', '".$a_lang['mysql']['setting']['attachmentviewsdelaydesc']."', 2, 'yes_no', 'attachmentviewsdelay', '', '0', '', 4, 1),
+			('".$a_lang['mysql']['setting']['rewritestatus']."','".$a_lang['mysql']['setting']['rewritestatusdesc']."','21','yes_no','rewritestatus','','0','','3','1')");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue='".$this->NewVersion."' WHERE varname='version'");
+
+		show_update(TABLE_PREFIX.'settinggroup');
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 3 WHERE groupid = 21");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 4 WHERE groupid = 2");
+
+
+		show_update(TABLE_PREFIX.'thread');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."thread` CHANGE `views` `views` int(10) unsigned NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."thread` CHANGE `votetotal` `votetotal` int(10) unsigned NOT NULL default '0'");
+
+		$DB->return_die = 0;
+		return 0;
+	}
+
+	function parse_seze($len=0, $text=''){
+		return "s:".strlen($text).":\"".$text."\"";
+	}
+}
+
+?>

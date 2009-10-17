@@ -1,0 +1,23 @@
+<div class="op_title" onmousedown="begindrag('operation_pannel', event);">
+	<cite onclick="hideElement('operation_pannel');"><img src="images/<#IMAGE#>/x.gif" alt="" /></cite>
+	<h3>{$lang['sendmailto']}</h3>
+</div>
+<form action="sendmessage.php" method="post" name='send_mailform' id='send_mailform'>
+	<input type='hidden' name='s' value='{$sessionid}' />
+	<input type='hidden' name='do' value='mailmember' />
+	<input type='hidden' name='send' value='1' />
+	<input type='hidden' name='url' value='{url}' />
+	<div class="item_list"><p class="highlight">{$lang['notice']}</p></div>
+	<div class="item_list">
+		{$lang['subject']}&nbsp;:&nbsp;<input type='text' name='subject' value='{$_INPUT['subject']}' size='50' maxlength='50' class='input_normal' />
+	</div>
+	<div class="item_list">
+		{$lang['mailcontent']}
+		<div class="desc">{$lang['mailcontentdesc']}</div>
+		<textarea cols='90' rows='5'  name='message'>{$_INPUT['message']}</textarea>
+	</div>
+	<div class="item_list" align="center">
+		<input type="button" class="button_normal" accesskey="s" value="{$lang['dosend']}" onclick="send_mailto_user({$user['id']}, 'send_mailform');" />
+		<input type="button" class="button_normal" name="reset_btn" accesskey="c" value=" {$lang['_cancel']} " onclick="hideElement('operation_pannel');" />
+	</div>
+</form>

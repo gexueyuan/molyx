@@ -1,0 +1,48 @@
+<form action='moderate.php' method='post' name='mxbform'>
+<input type='hidden' name='do' value='editpoll' />
+<input type='hidden' name='s' value='{sessionid}' />
+<input type='hidden' name='f' value='{$fid}' />
+<input type='hidden' name='t' value='{$tid}' />
+<input type='hidden' name='posthash' value='{$posthash}' />
+<input type='hidden' name='update' value='1' />
+<div class='pformstrip'>{$lang['editpoll']}: {$t_title}</div>
+<div class='ucpcontentct'>
+<table width='100%' cellpadding='6' border='0' cellspacing='0'>
+<tbody>
+<if="$docredit">
+<tr>
+<td class='row1'><strong>{$lang['editpolleffectcredit']}</strong></td>
+<td class='row2'><select name='docredit'><option value='0'>{$lang['_no']}</option><option value='1'>{$lang['_yes']}</option></select></td>
+</tr>
+</if>
+<tr>
+<td class='row1'><strong>{$lang['threadpoll']}</strong></td>
+<td class='row2'><input type='text' size='60' maxlength='250' name='question' value='{$question}' class='bginput' /></td>
+</tr>
+<tr>
+<td class='row1'><strong>{$lang['onlyusepoll']}</strong></td>
+<td class='row2'><select name='pollonly'><option value='0'>{$lang['_no']}</option><option value='1'>{$lang['_yes']}</option></select></td>
+</tr>
+<tr>
+<td class='row1'><strong>{$lang['multipoll']}</strong></td>
+<td class='row2'><select name='multipoll'><option value='0' {$disallowmulti}>{$lang['_no']}</option><option value='1' {$allowmulti}>{$lang['_yes']}</option></select></td>
+</tr>
+<foreach="$polloptions AS $data">
+<tr>
+<td class='row1'><strong>{$lang['selectoptions']}: {$data[0]}</strong></td>
+<td class='row2'><input type='text' size='60' maxlength='250' name='poll[{$data[0]}]' value='{$data[1]}' class='bginput' /></td>
+<td class='row2'><input type='text' size='7' maxlength='250' name='votes[{$data[0]}]' value='{$data[2]}' class='bginput' /></td>
+</tr>
+</foreach>
+<if="is_array($newpoll)">
+<foreach="$newpoll AS $id">
+<tr>
+<td class='row1'><strong>{$lang['selectoptions']}: {$id}</strong> {$lang['noused']}</td>
+<td class='row2'><input type='text' size='60' maxlength='250' name='poll[{$id}]' value='' class='bginput' /></td>
+<td class='row2'><input type='text' size='7' maxlength='250' name='votes[{$id}]' value='0' class='bginput' /></td>
+</tr>
+</foreach>
+</if>
+</tbody></table>
+</div>
+<div class='pformstrip' align='center'><input type="submit" name="submit" value=" {$lang['editpoll']} " class="button" /></div></form>

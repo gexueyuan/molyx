@@ -1,0 +1,86 @@
+{template:header}
+{template:usercp_menu}
+<script language="JavaScript" type="text/javascript">
+//<![CDATA[
+var thisforum = 'signature';
+tag_prompt = "{$lang['tagprompt']}";
+font_formatter_prompt = "{$lang['formatprompt']} - ";
+link_text_prompt = "{$lang['textprompt']}";
+link_url_prompt = "{$lang['urlprompt']}";
+link_email_prompt = "{$lang['emailprompt']}";
+list_type_prompt = "{$lang['typeprompt']}";
+list_item_prompt = "{$lang['itemprompt']}";
+
+function smilie_pop() {
+	window.open('misc.php{sessionurl}do=icon','misc','width=500,height=300,resizable=yes,scrollbars=yes');
+}
+
+function getMessageLength() {
+ mxeGet();
+ return calculate_byte(mxeTxH.value);
+}
+
+var postmaxchars = "{$bboptions['signaturemaxlength']}";
+var override = "";
+function submit_form(isMsg) {
+  mxeGet();
+
+  return messagetolong();
+}
+
+function checklength() {
+ if (postmaxchars != 0) message = "{$lang['allowmostlength']} "+postmaxchars+" {$lang['chars']}";
+ else message = "";
+
+ var messageLength = getMessageLength();
+ alert("{$lang['youhaveinput']} "+messageLength+" {$lang['chars']}" + message);
+}
+
+function messagetolong() {
+ var messageLength = getMessageLength();
+ document.mxbform.submitform.disabled = true;
+ if ((postmaxchars != 0) && (messageLength > postmaxchars)) {
+  alert("{$lang['postcharstoolong']} "+postmaxchars+" {$lang['chars']}{$lang['youhaveinput']} "+messageLength+" {$lang['chars']}");
+  document.mxbform.submitform.disabled = false;
+  return false;
+  } else {
+  document.mxbform.submit();
+ }
+}
+//]]>
+</script>
+<div id="ucp_content">
+	<h3>{$lang['editsignature']}</h3>
+	<form action='usercp.php' method='post' name='mxbform' onsubmit='return submit_form(1);' enctype='multipart/form-data'>
+		<input type='hidden' name='s' value='{sessionid}' />
+		<input type='hidden' name='do' value='dosignature' />
+		<input type='hidden' name='posthash' value='{$posthash}' />
+		<em>{$lang['currentsignature']}</em>
+		<div class="ucp">
+			{$signature}
+		</div>
+		<em>{$lang['editsignature']}</em>
+		<div class='ucp'>
+			<table cellpadding='0' cellspacing='1' width='100%' border='0'>
+			<tbody>
+				<tr>
+					<td><textarea id='post' name='post' style="height:200px;width:600px;" rows="" cols="">{$signature1}</textarea></td>
+				</tr>
+			</tbody>
+			</table>
+		</div>
+		<if="$bboptions['allowuploadsigimg'] AND $bbuserinfo['cansigimg']">
+		<em>{$lang['upload_sig_img']}</em>
+		<div class='ucp'>
+			<div class="desc">{$lang['only_one_sig_img']}</div>
+			<input type='file' name='sig_img' size='50' value='' tabindex="1" class='input_big' />
+			<div>
+				<input type='checkbox' name='delete' value='1' />
+				{$lang['deletesigimg']}
+			</div>
+		</div>
+		</if>
+		<div class="ucp item_change"><input type='submit' name="submitform" id="submitform" accesskey="s" value=' {$lang['updatesignature']} ' class='input_big' /></div>
+	</form>
+</div>
+{template:footer}

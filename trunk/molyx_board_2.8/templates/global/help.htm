@@ -1,0 +1,44 @@
+{template:header}
+<div class="separate"><!-- separate block --></div>
+<form action="faq.php" method="post">
+	<input type='hidden' name='do' value='search' />
+	<input type='hidden' name='s' value='{sessionid}' />
+	<div class='ttable'>
+		<div class='tcat'>{$lang['searchfaq']}</div>
+		<div class='item_change padding'>
+			<input type='text' maxlength='60' size='30' name='q' value="{$_INPUT['q']}" class='input_normal' />
+			<select name="q_by" class="select_normal">
+				<option value="">{$lang['searchtnc']}</option>
+				<option value="1">{$lang['searchtitle']}</option>
+				<option value="0">{$lang['searchcontent']}</option>
+			</select>
+			<input type='submit' value=' {$lang['_search']} ' class='button_normal' />
+		</div>
+	</div>
+</form>
+
+<foreach="$forums->faqcache['root'] as $id => $cat_data">
+	<if="is_array( $forums->faqcache[ $cat_data['id'] ] )">
+	<div class='ttable'>
+		<div class='tcat'>{$cat_data['title']}</div>
+			<if="$cat_data['description']">
+			<div class='thead'>{$cat_data['description']}</div>
+			</if>
+		<ul class="item_list padding help">
+		<foreach="$forums->faqcache[ $cat_data['id'] ] as $id => $subfaq">
+			<if="$subfaq['content']">
+			<li>
+				{$subfaq['text']}
+			</li>
+			<else>
+			<li>
+				<a href='faq.php{sessionurl}do=content&amp;id={$subfaq['id']}'>{$subfaq['title']}</a>
+				<if="$subfaq['description']"><div class='desc'>{$subfaq['description']}</div></if>
+			</li>
+			</if>
+		</foreach>
+		</ul>
+	</div>
+	</if>
+</foreach>
+{template:footer}

@@ -1,0 +1,78 @@
+<?php
+class CUpdate
+{
+	var		$UpdaterVer		= 1.0;
+	var		$OldVersion		= '2.1.2';
+	var		$NewVersion		= '2.1.2 SP1';
+	var		$Error			= '';
+	var		$Author			= 'Molyx Development Team';
+	var		$Date			= '2005-03-14';
+	var		$Notes			= '';
+	
+	function AllowUpdate()
+	{
+		global $DB;
+		$version = $DB->query_first("SELECT defaultvalue FROM ".TABLE_PREFIX."setting WHERE varname='version'");
+		
+		if( strtolower($version['defaultvalue']) != strtolower($this->OldVersion) )
+			return 0;
+		else
+			return 1;
+	}
+	
+	function SetError($errmsg)
+	{
+		$this->Error = $errmsg;
+	}
+	
+	function GetError()
+	{
+		return $this->Error;
+	}
+
+	/* the actual update.
+	 *
+	 * RETURN VALUES
+	 *
+	 *	1 - update failed (set error with $this->SetError() )
+	 *	0 - update sucessfull
+	 */
+	function RunUpdate()
+	{
+		global $DB;
+		$DB->return_die = 1;
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."post ADD hidepost MEDIUMTEXT");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."forum ADD specialtopic MEDIUMTEXT");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."forum ADD style smallint(5) unsigned NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."thread ADD stopic smallint(5) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."blog ADD postid tinyint(1) unsigned NOT NULL default '0'");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."usergroup SET canshow=1 WHERE groupid IN (1,2)");
+		$blog_index = $DB->query_first("SELECT templategroupid FROM ".TABLE_PREFIX."templategroup WHERE title = 'blog_index' LIMIT 1");
+		if(!$blog_index) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'blog_index', '<<<blog_index>>>', 0);");
+		}
+		$misc_whobought = $DB->query_first("SELECT templategroupid FROM ".TABLE_PREFIX."templategroup WHERE title = 'misc_whobought' LIMIT 1");
+		if(!$misc_whobought) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'misc_whobought', '<<<misc_whobought>>>', 1);");
+		}
+		$archive_index = $DB->query_first("SELECT templategroupid FROM ".TABLE_PREFIX."templategroup WHERE title = 'archive_index' LIMIT 1");
+		if(!$archive_index) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'archive_index', '<<<archive_header>>>\r\n<<<archive_body>>>\r\n<<<archive_index>>>\r\n<<<archive_footer>>>', 1);");
+		}
+		$archive_showthread = $DB->query_first("SELECT templategroupid FROM ".TABLE_PREFIX."templategroup WHERE title = 'archive_showthread' LIMIT 1");
+		if(!$archive_showthread) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'archive_showthread', '<<<archive_header>>>\r\n<<<archive_body>>>\r\n<<<archive_showthread>>>\r\n<<<archive_footer>>>', 1);");
+		}
+		$archive_threadlist = $DB->query_first("SELECT templategroupid FROM ".TABLE_PREFIX."templategroup WHERE title = 'archive_threadlist' LIMIT 1");
+		if(!$archive_threadlist) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'archive_threadlist', '<<<archive_header>>>\r\n<<<archive_body>>>\r\n<<<archive_threadlist>>>\r\n<<<archive_footer>>>', 1);");
+		}
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue='".$this->NewVersion."' WHERE varname='version'");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue='1.0' WHERE varname='blogversion'");
+
+		$DB->return_die = 0;
+		return 0;
+	}	
+}
+
+?>

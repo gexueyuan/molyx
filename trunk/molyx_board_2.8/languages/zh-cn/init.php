@@ -1,0 +1,25 @@
+<?php
+$lang = array (
+  'fieldusergroup1_title' => '等待验证的会员',
+  'fieldusergroup2_title' => '游客',
+  'fieldusergroup3_title' => '注册会员',
+  'fieldusergroup4_title' => '站长',
+  'fieldusergroup5_title' => '被封禁会员',
+  'fieldusergroup6_title' => '管理员',
+  'fieldusergroup7_title' => '版主',
+  'fieldusergroup4_rank' => '管理员',
+  'fieldusergroup6_rank' => '超级版主',
+  'fieldusergroup7_rank' => '版主',
+  'fieldusergroup8_title' => '见习版主',
+  'fieldusergroup9_title' => '管理员',
+  'fieldusergroup9_rank' => '管理员',
+  'fieldusergroup10_title' => '见习版主',
+  'fieldusergroup10_rank' => '版主',
+  'fieldusergroup11_title' => '贵宾',
+  'fieldusergroup11_rank' => '版主',
+  'fieldusergroup12_title' => '管理员1',
+  'fieldusergroup12_rank' => '管理员',
+  'fieldusergroup13_title' => '超级版主',
+  'fieldusergroup13_rank' => '超级版主',
+);
+?>
