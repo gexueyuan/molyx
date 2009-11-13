@@ -267,7 +267,7 @@ class login
 			$password = $forums->func->get_cookie('password');
 			If ($userid AND $password)
 			{
-				$DB->query("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='$userid' AND password='$password'");
+				$DB->query("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='$userid' AND password=" . $DB->validate($password));
 				if ($user = $DB->fetch_array())
 				{
 					$bbuserinfo = $user;
