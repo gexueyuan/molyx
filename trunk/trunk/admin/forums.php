@@ -297,7 +297,7 @@ class forums
 			'allowhtml' => $_INPUT['allowhtml'],
 			'status' => $_INPUT['status'],
 			'password' => $_INPUT['password'],
-			'lastpostid' => 0,
+//			'lastpostid' => 0,
 			'sortby' => $_INPUT['sortby'],
 			'sortorder' => $_INPUT['sortorder'],
 			'prune' => $_INPUT['prune'],
