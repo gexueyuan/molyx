@@ -1,0 +1,10 @@
+var lang_g = [];
+lang_g['g_intm'] = '请输入页码，最大页数：';
+lang_g['g_edv'] = '修改成功';
+lang_g['g_delt'] = '你确实要删除这条信息吗?';
+lang_g['g_check_email'] = 'E-Mail不匹配!';
+lang_g['g_check_password'] = '密码不匹配!';
+lang_g['g_refering'] = '正在提交，请等候......';
+lang_g['g_selectat'] = '请选择上传文件。';
+lang_g['g_outstr'] = '输入内容字数不符合';
+lang_g['confirmop'] = '您确认要执行该操作吗？';

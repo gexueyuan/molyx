@@ -1,0 +1,31 @@
+<script language='JavaScript' type="text/javascript">
+//<![CDATA[
+function contact_admin() {
+  adminuser = '{$user}';
+  admindomain = '{$domain}';
+  window.location = 'mailto:'+adminuser+'@'+admindomain+'?subject={$lang['sitequestion']}';
+}
+//]]>
+</script>
+<div id='errors'>
+	<h3>{$lang['errorsinfo']}</h3>
+	<p>{$message}</p>
+	<if="( THIS_SCRIPT == 'newthread' OR THIS_SCRIPT == 'newreply' OR THIS_SCRIPT == 'editpost' OR THIS_SCRIPT == 'newpoll' OR THIS_SCRIPT == 'private' ) AND $_POST['post']">
+	<p>{$lang['postdatasaved']}</p>
+	<p>
+	{$lang['datasaved']}
+	</p>
+	<div>
+	<form name='mehform'>
+	<input type='button' tabindex='1' value=' {$lang['copytext']} ' onclick='highlightAll(saved_text);' class='input_big' />
+	<textarea cols='80' rows='5' name='saved' accessKey='c' tabindex='2' id='saved_text'>{$_POST['post']}</textarea>
+	</form>
+	</div>
+	</if>
+	<em>{$lang['usefullink']}</em>
+	<ul>
+		<li><a href='faq.php{si_sessionurl}'>{$lang['forumfaq']}</a></li>
+		<li><a href='javascript:contact_admin();'>{$lang['contactadmin']}</a></li>
+		<li><a href='javascript:history.go(-1)'>{$lang['gotoback']}</a></li>
+	</ul>
+</div>

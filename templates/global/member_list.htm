@@ -1,0 +1,120 @@
+{template:header}
+<div class="page_nav">
+	{$member['pagenav']}
+</div>
+<form action='memberlist.php{si_sessionurl}' method='post'>
+<div class="ttable">
+	<div class='tcat'>
+		<button style='float:right;' class='button_normal' onclick='toggle("findmember"); return false;'>{$lang['findmembers']}</button>
+		{$lang['memberlist']}
+	</div>
+	<div class="item_change" id="findmember">
+		<ul>
+			<li>
+				{$lang['username']}
+				<select name='name_box' class="select_normal">
+					<option value='begins'>{$lang['firstchars']}</option>
+					<option value='contains'>{$lang['include']}</option>
+				</select>
+				<input type='text' size='25' name='name' value='{$_POST['name']}' class='input_normal' />
+			</li>
+			<li>
+				{$lang['gender']}
+				<select name='gender' class="select_normal">
+					<option value=''>{$lang['any']}</option>
+					<option value='male'>{$lang['male']}</option>
+					<option value='female'>{$lang['female']}</option>
+				</select>
+			</li>
+			<li>
+				{$lang['posts']}
+				<select name='posts_ltmt' class="select_normal">
+					<option value='lt'>{$lang['postlessthan']}</option>
+					<option value='mt'>{$lang['postmorethan']}</option>
+				</select>
+				<input type='text' size='15' name='posts' value='{$_POST['posts']}' class='input_normal' />
+			</li>
+			<li><input type='submit' value='{$lang['_ok']}' class='button_normal' /></li>
+		</ul>
+		<ul>
+			<li>
+				{$lang['joindate']}
+				<select name='joindate_ltmt' class="select_normal">
+					<option value='lt'>{$lang['lessthan']}</option>
+					<option value='mt'>{$lang['morethan']}</option>
+				</select>
+				<input type='text' size='10' name='joindate' value='{$_POST['joindate']}' class='input_normal' />
+				<span class='time'>(yyyy-mm-dd)</span>
+			</li>
+			<li>
+				{$lang['newposttime']}
+				<select name='lastpost_ltmt' class="select_normal">
+					<option value='lt'>{$lang['lessthan']}</option>
+					<option value='mt'>{$lang['morethan']}</option>
+				</select>
+				<input type='text' size='10' name='lastpost' value='{$_POST['lastpost']}' class='input_normal' />
+				<span class='time'>(yyyy-mm-dd)</span>
+			</li>
+			<li>
+				{$lang['lastvisittime']}
+				<select name='lastvisit_ltmt' class="select_normal">
+					<option value='lt'>{$lang['lessthan']}</option>
+					<option value='mt'>{$lang['morethan']}</option>
+				</select>
+				<input type='text' size='10' name='lastvisit' value='{$_POST['lastvisit']}' class='input_normal' />
+				<span class='time'>(yyyy-mm-dd)</span>
+			</li>
+		</ul>
+	</div>
+</div>
+<table width="100%" border="0" cellspacing="1" cellpadding="0" class='ttable'>
+<thead class='thead'>
+	<tr align='left'>
+		<th width='30%'>{$lang['username']}</th>
+		<th width='20%'>{$lang['_usergroup']}</th>
+		<th width='20%'>{$lang['_useranks']}</th>
+		<th width='15%'>{$lang['joindate']}</th>
+		<th width='15%'>{$lang['posts']}</th>
+	</tr>
+</thead>
+<tbody class="tbody">
+<if="$show['nouser']">
+	<tr class="item_change">
+	<td colspan='5' align='center'>{$lang['nomembers']}</td>
+	</tr>
+<else>
+	<foreach="$userlist AS $user">
+	<tr class="item_list" onmouseover="this.className='item_change';" onmouseout="this.className='item_list';">
+		<td><a href="profile.php{sessionurl}u={$user['id']}">{$user['name']}</a></td>
+		<td>{$user['grouptitle']}</td>
+		<td>{$user['title']}</td>
+		<td class="time">{$user['joindate']}</td>
+		<td>{$user['posts']}</td>
+	</tr>
+	</foreach>
+	<tr class="item_change">
+		<td colspan="5">
+			<select name='filter' class="select_normal">
+				{$filter_html}
+			</select>
+			{$lang['sort']}
+			<select name='sortby' class="select_normal">
+				{$sortby_html}
+			</select>
+			{$lang['by']}
+			<select name='order' class="select_normal">
+				{$order_html}
+			</select>
+			{$lang['onepages']}
+			<select name='max_results' class="select_normal">
+				{$max_results_html}
+			</select>
+			{$lang['results']}
+			<input type='submit' value='{$lang['_ok']}' class='button_normal' />
+		</td>
+	</tr>
+</if>
+</tbody>
+</table>
+</form>
+{template:footer}

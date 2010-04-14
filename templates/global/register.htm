@@ -1,0 +1,185 @@
+{template:header}
+<if="!$_INPUT['step']">
+	<div class="separate"><!-- separate block --></div>
+	<form action='register.php' name='terms' method='post' onsubmit='return agree_terms()'>
+		<input type='hidden' name='step' value='2' />
+		<input type='hidden' name='s' value='{sessionid}' />
+		<div class="ttable">
+			<div class='tcat'>{$lang['registerterms']}</div>
+			<div class="thead">{$lang['registertermsdesc']}</div>
+			<div id="register" class='item_list' style="text-align:center;">
+				<blockquote>
+					{$text}
+				</blockquote>
+				<label for='agree_cbox'>
+					<input type='checkbox' id='agree_cbox' name='agree_to_terms' value='1' />
+					<em>{$lang['agreetoterms']}</em>
+				</label>
+				<input type="submit" value="{$lang['continuestep']}" class="input_big" />
+			</div>
+		</div>
+	</form>
+<else>
+	<if="$errors">
+	<div id='errors'>
+		<h3>{$lang['registererrors']}</h3>
+		<p>{$errors}</p>
+	</div>
+	</if>
+	<div class="separate"><!-- separate block --></div>
+	<form action="register.php" method="post" name='REG' onsubmit='return validate()'>
+		<input type='hidden' name='step' value='3' />
+		<input type='hidden' name='agree_to_terms' value='1' />
+		<input type='hidden' name='do' value='create' />
+		<div class="ttable">
+			<div class='tcat'>{$lang['register']}</div>
+			<div id="register" class='item_list'>
+			  <div style='display:none' id='regmore'>
+				<dl>
+					<dt style="color:green;font-size:14px;font-weight:bold;">{$lang['optional']}</dt>
+					<dd class="desc">{$lang['optionaldesc']}</dd>
+					<dd>
+						<label for='usepm'><input type='checkbox' name='usepm' id='usepm' value='1' {$usepm} />{$lang['usepm']}</label>
+						<label for='pmpop'><input type='checkbox' name='pmpop' id='pmpop' value='1' {$pmpop} />{$lang['pmpop']}</label>
+						<label for='pmover'><input type='checkbox' name='pmover' id='pmover' value='1' {$pmover} />{$lang['pmover']}</label>
+						<label for='pmwarn'><input type='checkbox' name='pmwarn' id='pmwarn' value='1' {$pmwarn} />{$lang['pmwarn']}</label>
+						<label for='pmwarnmode'><input type='checkbox' name='pmwarnmode' id='pmwarnmode' value='1' {$pmwarnmode} />{$lang['pmwarnmode']}</label>
+						<label for='emailonpm'><input type='checkbox' name='emailonpm' id='emailonpm' value='1' {$emailonpm} />{$lang['emailonpm']}</label>
+						<label for='usewysiwyg'><input type='checkbox' name='usewysiwyg' id='usewysiwyg' value='1' {$usewysiwyg} />{$lang['usewysiwyg']}</label>
+						<label for='hideemail'><input type='checkbox' name='hideemail' id='hideemail' value='1' {$hideemail} />{$lang['hideemail']}</label>
+						<label for='allowadmin'><input type='checkbox' name='allowadmin' id='allowadmin' value='1' {$allowadmin} />{$lang['allowadmin']}</label>
+					</dd>
+				</dl>
+				<dl>
+					<dt>{$lang['gender']}</dt>
+					<dd class="desc">{$lang['genderdesc']}</dd>
+					<dd>
+						<label for='gender_0'><input type="radio" name="gender" id="gender_0" value="" checked="checked" />{$lang['unknowgender']}</label>
+						<label for='gender_1'><input type="radio" name="gender" id="gender_1" value="1" />{$lang['male']}</label>
+						<label for='gender_2'><input type="radio" name="gender" id="gender_2" value="2" />{$lang['famale']}</label>
+					</dd>
+				</dl>
+				<dl>
+					<dt>{$lang['timezone']}</dt>
+					<dd class="desc">{$lang['timezonedesc']}</dd>
+					<dd>
+						{$time_select}
+						<label for='dst'><input type='checkbox' name='dst' id='dst' value='1' {$dst_checked} />{$lang['usedst']}</label>
+					</dd>
+				</dl>
+				<foreach="$usrext_field['other'] as $v">
+				<dl>
+					<dt>{$v['name']}</dt>
+					<dd class="desc">
+						{$v['desc']}
+					</dd>
+					<dd>
+						{$v['html']}
+					</dd>
+				</dl>
+				</foreach>
+			</div>
+			<div id="regbase">
+			<div style="color:red;font-size:14px;font-weight:bold;">{$lang['mustfill']}</div>
+				<dl>
+					<dt>{$lang['_username']}</dt>
+					<dd class="desc">
+						{$lang['namedesc']}
+						<span class="help" title='{$lang['namefaq']}'>(?)</span>
+						<img id="name_img_ok" class="inline" src='images/<#IMAGE#>/note_ok.gif' />
+						<img id="name_img_err" class="inline" src='images/<#IMAGE#>/note_error.gif' />
+						<em id="name_ver"></em>
+					</dd>
+					<dd>
+						<input type='text' size='25' maxlength='64' value='{$_INPUT['username']}' name='username' id='user_name' class='input_normal' tabindex="1" onblur="check_user_account();" />
+					</dd>
+				</dl>
+				<dl>
+					<dt>{$lang['_password']}</dt>
+					<dd class="desc">
+						{$lang['passworddesc']}
+						<span class="help" title='{$lang['passwordfaq']}'>(?)</span>
+					</dd>
+					<dd><input type='password' size='25' maxlength='32' value='{$_POST['password']}' name='password' id='pass_word' class='input_normal' tabindex="2" /></dd>
+					<dd class="desc">
+						{$lang['confirmpassword']}
+						<span class="help" title='{$lang['confirmpasswordfaq']}'>(?)</span>
+						<img id="pass_img_ok" class="inline" src='images/<#IMAGE#>/note_ok.gif' />
+						<img id="pass_img_err" class="inline" src='images/<#IMAGE#>/note_error.gif' />
+						<em id='pass_ver'></em>
+					</dd>
+					<dd><input type='password' size='25' maxlength='32' value='{$_POST['passwordconfirm']}'  name='passwordconfirm' id='passwordconfirm' class='input_normal' tabindex="3"  onblur="check_user_password();" /></dd>
+				</dl>
+				<dl>
+					<dt>{$lang['_email']}</dt>
+					<dd class="desc">
+						{$lang['_email']}
+						<span class="help" title='{$lang['emailfaq']}'>(?)</span>
+						<img id="mail_img_ok" class="inline" src='images/<#IMAGE#>/note_ok.gif' />
+						<img id="mail_img_err" class="inline" src='images/<#IMAGE#>/note_error.gif' />
+						<em id="mail_ver"></em>
+					</dd>
+					<dd>
+						<input type='text' size='25' maxlength='50' value='{$_POST['email']}'  name='email' id='email' class='input_normal' tabindex="4" onblur="check_user_email();" />
+					</dd>
+<!-- 				<dd class="desc">
+						{$lang['confirmemail']}
+						<span class="help" title='{$lang['confirmemailfaq']}'>(?)</span>
+					</dd>
+					<dd><input type='text' size='25' maxlength='50'  value='{$_POST['emailconfirm']}' name='emailconfirm' id='emailconfirm' class='input_normal' tabindex="5" onblur="confirm_user_email();" /></dd>
+					<dd><input type='text' width='100%' size='25' maxlength='50' value='{$_POST['emailcharset']}'  name='emailcharset' id='emailcharset' class='input_normal' /></dd>
+-->
+					<if="$show['extra']">
+					<dd class="desc">
+						{$lang['emailextra']}
+					</dd>
+					</if>
+				</dl>
+				<php>$i = 6;</php>
+				<foreach="$usrext_field['must'] as $v">
+				<dl>
+					<dt>{$v['name']}</dt>
+					<dd class="desc">
+						{$v['desc']}
+					</dd>
+					<dd>
+						<php>
+						echo sprintf($v['html'], $i);
+						++$i;
+						</php>
+					</dd>
+				</dl>
+				</foreach>
+				<if="$show['gd']">
+				<input type='hidden' name='regimagehash' value='{$regimagehash}' />
+				<dl>
+					<dt>{$lang['affirmimagehash']}</dt>
+					<dd><img class="inline" src='register.php{sessionurl}do=showimage&amp;rc={$regimagehash}' alt="" /></dd>
+					<dd class="desc">{$lang['inputimagecode']}</dd>
+					<dd><input type="text" size="25" maxlength="32" name="imagestamp" class="input_normal" tabindex="{$i}" /></dd>
+				</dl>
+				<php>++$i;</php>
+				<elseif="$show['gif']">
+				<input type='hidden' name='regimagehash' value='{$regimagehash}' />
+				<dl>
+					<dt>{$lang['affirmimagehash']}</dt>
+					<dd>
+						{$image}
+					</dd>
+					<dd class="desc">{$lang['inputimagecode']}</dd>
+					<dd><input type='text' size='25' maxlength='32' name='imagestamp' class='input_normal' tabindex="{$i}" /></dd>
+				</dl>
+				</if>
+				<php>++$i;</php>
+				<dl>
+					<dt>{$lang['moreinfo']}</dt>
+					<dd><label for='show_moreinfo'><input type='checkbox' id="show_moreinfo" onclick='toggle("regmore");' />{$lang['moreinfo']}</label></dd>
+				</dl>
+			</div>
+			<div style="text-align:center;">
+				<input type="submit" id="submit_registerinfo" accesskey="s" value="{$lang['finalregister']}" class="input_big" tabindex="{$i}" />
+			</div>
+		</div>
+	</form>
+</if>
+{template:footer}

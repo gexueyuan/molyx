@@ -1,0 +1,611 @@
+<?php
+class CUpdate
+{
+	var		$UpdaterVer		= 2.0;
+	var		$OldVersion		= '2.6.1';
+	var		$NewVersion		= '2.8.0 Beta2';
+	var		$Error			= '';
+	var		$Author			= 'Molyx Development Team';
+	var		$Date			= '2008-05-25';
+	var		$Notes			= '';
+
+	function AllowUpdate()
+	{
+		global $DB;
+		$version = $DB->query_first("SELECT defaultvalue FROM ".TABLE_PREFIX."setting WHERE varname='version'");
+
+		if( strtolower($version['defaultvalue']) != strtolower($this->OldVersion) )
+			return 0;
+		else
+			return 1;
+	}
+
+	function SetError($errmsg)
+	{
+		$this->Error = $errmsg;
+	}
+
+	function GetError()
+	{
+		return $this->Error;
+	}
+
+	/* the actual update.
+	 *
+	 * RETURN VALUES
+	 *
+	 *	1 - update failed (set error with $this->SetError() )
+	 *	0 - update sucessfull
+	 */
+	function RunUpdate()
+	{
+		global $DB, $add_charset, $a_lang;
+		$DB->return_die = 1;
+
+		show_update(TABLE_PREFIX.'administrator');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."administrator` DROP `caneditinvite`");
+
+		show_update(TABLE_PREFIX.'adminsession');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."adminsession` ADD PRIMARY KEY (`sessionhash`)");
+
+		show_update(TABLE_PREFIX.'area');
+		$DB->query_unbuffered("CREATE TABLE `".TABLE_PREFIX."area` (
+			`areaid` smallint(4) NOT NULL auto_increment,
+			`areaname` varchar(60) NOT NULL default '',
+			`forumid` int(10) NOT NULL default '0',
+			`show_record` tinyint(2) NOT NULL default '0',
+			`orderid` smallint(4) NOT NULL default '0',
+			PRIMARY KEY  (`areaid`),
+			KEY forumid (forumid)
+		) TYPE=MyISAM;".$add_charset);
+
+		show_update(TABLE_PREFIX.'area_content');
+		$DB->query_unbuffered("CREATE TABLE `".TABLE_PREFIX."area_content` (
+			`id` int(10) NOT NULL auto_increment,
+			`title` varchar(255) character set utf8 NOT NULL default '',
+			`titlelink` varchar(255) character set utf8 default NULL,
+			`target` varchar(10) character set utf8 default NULL,
+			`orderid` int(10) NOT NULL default '0',
+			`areaid` smallint(4) NOT NULL default '0',
+			PRIMARY KEY  (`id`),
+			KEY areaid (areaid)
+		) TYPE=MyISAM;".$add_charset);
+
+		show_update(TABLE_PREFIX.'attachment');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachment` ADD `hidetype` varchar(254) default NULL");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachment` ADD `posttable` varchar(60) default NULL");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachment` ADD `threadid` INT(10) unsigned default 0");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachment` DROP INDEX `blogid`");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachment` DROP INDEX `postid`");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachment` ADD INDEX `threadid` (`threadid`)");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachment` ADD INDEX `postid` ( `postid` , `posttable` )");
+
+		show_update(TABLE_PREFIX.'attachmenttype');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachmenttype` ADD `maxsize` mediumint(8) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachmenttype` DROP INDEX `useavatar`");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachmenttype` DROP INDEX `usepost`");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."attachmenttype` ADD INDEX usepost (`usepost`, `useavatar`)");
+
+		show_update(TABLE_PREFIX.'award');
+		$DB->query_unbuffered("DROP TABLE `".TABLE_PREFIX."award`");
+
+		show_update(TABLE_PREFIX.'award_request');
+		$DB->query_unbuffered("DROP TABLE `".TABLE_PREFIX."award_request`");
+
+		show_update(TABLE_PREFIX.'splittable');
+		$DB->query_unbuffered("CREATE TABLE `".TABLE_PREFIX."splittable` (
+			`id` int(5) NOT NULL auto_increment,
+			`name` varchar(250) NOT NULL default '',
+			`minpid` int(10) NOT NULL default '0',
+			`maxpid` int(10) NOT NULL default '0',
+			`isdefaulttable` tinyint(1) NOT NULL default '0',
+			`isempty` tinyint(1) NOT NULL default '0',
+			`dateline` int(10) NOT NULL default '0',
+			PRIMARY KEY  (`id`)
+			) TYPE=MyISAM".$add_charset);
+		$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."splittable` (`id`, `name`, `minpid`, `maxpid`, `isdefaulttable`, `isempty`, `dateline`) VALUES
+			(1, 'post', 0, 0, 1, 0, 0)");
+
+		show_update(TABLE_PREFIX.'creditevent');
+		$DB->query_unbuffered("CREATE TABLE `".TABLE_PREFIX."creditevent` (
+			  eventid int(11) NOT NULL auto_increment,
+			  eventtag varchar(50) NOT NULL default '',
+			  eventname varchar(50) NOT NULL default '',
+			  eventtype tinyint(4) NOT NULL default '0',
+			  defaultvalue varchar(50) NOT NULL default '',
+			  PRIMARY KEY  (`eventid`)
+			)".$add_charset);
+		$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."creditevent` (eventtag, eventname, eventtype, defaultvalue) VALUES
+			('upattach', '" . $a_lang['mysql']['creditevent']['upattach'] . "', 1, '+5'),
+			('downattach', '" . $a_lang['mysql']['creditevent']['downattach'] . "', 1, '-2'),
+			('sendpm', '" . $a_lang['mysql']['creditevent']['sendpm'] . "', 1, '-1'),
+			('sendgrouppm', '" . $a_lang['mysql']['creditevent']['sendgrouppm'] . "', 1, '-5'),
+			('search', '" . $a_lang['mysql']['creditevent']['search'] . "', 1, '-3'),
+			('register', '" . $a_lang['mysql']['creditevent']['register'] . "', 1, '+15'),
+			('uploadavatar', '" . $a_lang['mysql']['creditevent']['uploadavatar'] . "', 1, '-5'),
+			('addsignature', '" . $a_lang['mysql']['creditevent']['addsignature'] . "', 1, '-5'),
+			('newthread', '" . $a_lang['mysql']['creditevent']['newthread'] . "', 2, '+3'),
+			('newpoll', '" . $a_lang['mysql']['creditevent']['newpoll'] . "', 2, '+3'),
+			('replythread', '" . $a_lang['mysql']['creditevent']['replythread'] . "', 2, '+1'),
+			('threadpoll', '" . $a_lang['mysql']['creditevent']['threadpoll'] . "', 2, '+1'),
+			('delthread', '" . $a_lang['mysql']['creditevent']['delthread'] . "', 2, '-5'),
+			('quintessence', '" . $a_lang['mysql']['creditevent']['quintessence'] . "', 2, '+10'),
+			('newreply', '" . $a_lang['mysql']['creditevent']['newreply'] . "', 3, '+2'),
+			('delreply', '" . $a_lang['mysql']['creditevent']['delreply'] . "', 3, '-4'),
+			('replypoll', '" . $a_lang['mysql']['creditevent']['replypoll'] . "', 3, '+1'),
+			('hidepostmax', '" . $a_lang['mysql']['creditevent']['hidepostmax'] . "', 4, '500'),
+			('hidepostmin', '" . $a_lang['mysql']['creditevent']['hidepostmin'] . "', 4, '-500'),
+			('paypostmax', '" . $a_lang['mysql']['creditevent']['paypostmax'] . "', 4, '+50'),
+			('paypostmin', '" . $a_lang['mysql']['creditevent']['paypostmin'] . "', 4, '-50'),
+			('evaluationmax', '" . $a_lang['mysql']['creditevent']['evaluationmax'] . "', 4, '+40'),
+			('evaluationmin', '" . $a_lang['mysql']['creditevent']['evaluationmin'] . "', 4, '-40'),
+			('evalthreadscore', '" . $a_lang['mysql']['creditevent']['evalthreadscore'] . "', 4, '+80'),
+			('editthread', '" . $a_lang['mysql']['creditevent']['editthread'] . "', 2, '-1'),
+			('editpost', '" . $a_lang['mysql']['creditevent']['editpost'] . "', 3, '-1'),
+			('editpoll', '" . $a_lang['mysql']['creditevent']['editpoll'] . "', 2, '-1'),
+			('threadhighlight', '" . $a_lang['mysql']['creditevent']['threadhighlight'] . "', 2, '-2')
+		");
+
+		show_update(TABLE_PREFIX.'cache');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."cache` CHANGE `title` `title` varchar(32) NOT NULL default ''");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."cache` ADD `time` INT( 10 ) NOT NULL default 0");
+		$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."cache` (`title` , `data` , `is_array`, `time`) VALUES
+			('numbermembers', '0', '0', '0'),
+			('maxonline', '0', '0', '0'),
+			('maxonlinedate', '0', '0', '0'),
+			('newusername', '', '0', '0'),
+			('newuserid', '0', '0', '0')");
+
+		show_update(TABLE_PREFIX.'creditrule');
+		$DB->query_unbuffered("CREATE TABLE `".TABLE_PREFIX."creditrule` (
+			  `ruleid` int(10) NOT NULL auto_increment,
+			  `creditid` int(5) NOT NULL default '0',
+			  `type` tinyint(3) NOT NULL default '0',
+			  `lists` text NOT NULL,
+			  `parameters` text NOT NULL,
+			  PRIMARY KEY  (`ruleid`),
+			  KEY creditid (creditid)
+			)".$add_charset);
+
+		show_update(TABLE_PREFIX.'credit');
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."tmpcredit (
+			  `creditid` int(5) unsigned NOT NULL auto_increment,
+			  `name` varchar(40) NOT NULL default '',
+			  `tag` varchar(40) NOT NULL default '',
+			  `unit` varchar(30) NOT NULL default '',
+			  `downlimit` smallint(3) NOT NULL default '0',
+			  `used` tinyint(1) NOT NULL default '0',
+			  `isdefault` tinyint(1) NOT NULL default '0',
+			  `initvalue` int(10) NOT NULL default '0',
+			  `inittime` int(10) NOT NULL default '0',
+			  `initevalvalue` int(10) NOT NULL default '0',
+			  `initevaltime` int(10) NOT NULL default '0',
+			  PRIMARY KEY  (`creditid`),
+			  KEY tag (tag)
+			)".$add_charset);
+		$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."tmpcredit` (`creditid`, `name`, `tag`, `unit`, `downlimit`, `used`, `initvalue`, `inittime`, `initevalvalue`, `initevaltime`, `isdefault`) VALUES
+		(1, '积分', 'reputation', '分', 0, 1, 10, 0, 20, 24, 1)");
+		$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."creditrule` (`creditid`, `type`, `lists`, `parameters`) VALUES
+		(1, 0, '', 'a:26:{s:8:\"upattach\";i:5;s:10:\"downattach\";i:-2;s:6:\"sendpm\";i:-1;s:11:\"sendgrouppm\";i:-5;s:6:\"search\";i:-3;s:8:\"register\";i:15;s:12:\"uploadavatar\";i:-5;s:12:\"addsignature\";i:-5;s:9:\"newthread\";i:3;s:7:\"newpoll\";i:3;s:11:\"replythread\";i:1;s:10:\"threadpoll\";i:1;s:9:\"delthread\";i:-5;s:12:\"quintessence\";i:10;s:8:\"newreply\";i:2;s:8:\"delreply\";i:-4;s:9:\"replypoll\";i:1;s:11:\"hidepostmax\";i:500;s:11:\"hidepostmin\";i:-500;s:10:\"paypostmax\";i:50;s:10:\"paypostmin\";i:-50;s:13:\"evaluationmax\";i:40;s:13:\"evaluationmin\";i:-40;s:15:\"evalthreadscore\";i:80;s:10:\"editthread\";i:-1;s:8:\"editpost\";i:-1;}');");
+
+		$q = $DB->query("SELECT * FROM ".TABLE_PREFIX."credit");
+		$i = 0;
+		while ($r = $DB->fetch_array($q))
+		{
+			if ($r['tag_name'] == 'reputation')
+			{
+				continue;
+			}
+			$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."tmpcredit`(name, tag, unit, downlimit, used, initvalue, inittime, initevalvalue, initevaltime, isdefault) VALUES
+			('" . $r['name'] . "', '" . $r['tag_name'] . "', '', '" . $r['c_limit'] . "', '" . $r['used'] . "', 0, 0, 0, 0, 0)");
+			$c_id = $DB->insert_id();
+			$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."userexpand`
+				ADD `eval" . $r['tag_name'] . "` INT(10) NOT NULL default '0'");
+			$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."creditrule`(`creditid`, `type`, `lists`, `parameters`) VALUES
+			('$c_id', 0, '', 'a:26:{s:8:\"upattach\";i:5;s:10:\"downattach\";i:-2;s:6:\"sendpm\";i:-1;s:11:\"sendgrouppm\";i:-5;s:6:\"search\";i:-3;s:8:\"register\";i:15;s:12:\"uploadavatar\";i:-5;s:12:\"addsignature\";i:-5;s:9:\"newthread\";i:3;s:7:\"newpoll\";i:3;s:11:\"replythread\";i:1;s:10:\"threadpoll\";i:1;s:9:\"delthread\";i:-5;s:12:\"quintessence\";i:10;s:8:\"newreply\";i:2;s:8:\"delreply\";i:-4;s:9:\"replypoll\";i:1;s:11:\"hidepostmax\";i:500;s:11:\"hidepostmin\";i:-500;s:10:\"paypostmax\";i:50;s:10:\"paypostmin\";i:-50;s:13:\"evaluationmax\";i:40;s:13:\"evaluationmin\";i:-40;s:15:\"evalthreadscore\";i:80;s:10:\"editthread\";i:-1;s:8:\"editpost\";i:-1;}')");
+			$i++;
+		}
+		$DB->query_unbuffered("DROP TABLE `".TABLE_PREFIX."credit`");
+		$DB->query_unbuffered("RENAME TABLE `".TABLE_PREFIX."tmpcredit` TO `".TABLE_PREFIX."credit`");
+
+		show_update(TABLE_PREFIX.'digg_log');
+		$DB->query_unbuffered("CREATE TABLE `".TABLE_PREFIX."digg_log` (
+			  `digg_id` int(10) NOT NULL auto_increment,
+			  `threadid` int(10) NOT NULL default '0',
+			  `user_id` int(10) NOT NULL default '0',
+			  `exponent` float(10,3) NOT NULL default '0.000',
+			  `digg_time` int(10) NOT NULL default '0',
+			  `ip` varchar(60) NOT NULL default '',
+			  `username` varchar(100) NOT NULL default '',
+			  PRIMARY KEY  (`digg_id`),
+			  KEY `threadid` (`threadid`),
+			  KEY `user_id` (`user_id`)
+			) TYPE=MyISAM".$add_charset);
+
+		show_update(TABLE_PREFIX.'cron');
+		$DB->query_unbuffered("DELETE FROM `".TABLE_PREFIX."cron` WHERE `filename` IN ('bankloancheck.php', 'bankpayinterest.php', 'award_promotion.php')");
+		$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."cron` (title, filename, nextrun, weekday, monthday, hour, minute, cronhash, loglevel, description, enabled) VALUES
+			('" . $a_lang['mysql']['cron']['cleanrecycle'] . "', 'cleanrecycle.php', 0, -1, -1, 0, 0, '', 0, '" . $a_lang['mysql']['cron']['cleanrecycledesc'] . "', 1),
+			('" . $a_lang['mysql']['cron']['forum_active_user'] . "', 'forum_active_user.php', 0, -1, -1, 4, -1, '', 0, '" . $a_lang['mysql']['cron']['forum_active_userdesc'] . "', 1),
+			('" . $a_lang['mysql']['cron']['top_digg_thread'] . "', 'top_digg_thread.php', 0, -1, -1, 1, -1, '', 0, '" . $a_lang['mysql']['cron']['top_digg_threaddesc'] . "', 1),
+			('" . $a_lang['mysql']['cron']['forum_active_user'] . "', 'forum_active_user.php', 0, -1, -1, 4, 0, '', 0, '" . $a_lang['mysql']['cron']['forum_active_userdesc'] . "', 1)
+		");
+
+		show_update(TABLE_PREFIX.'forum');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."forum` DROP `lastposterid`, DROP `lastposter`, DROP `lastthread`, DROP `lastpost`, DROP `paypoints`");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."forum` CHANGE `id` `id` MEDIUMINT( 5 ) UNSIGNED NOT NULL AUTO_INCREMENT");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."forum` ADD `this_thread` MEDIUMINT( 6 ) UNSIGNED NOT NULL DEFAULT '0'");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."forum` ADD `lastpostid` INT( 10 ) UNSIGNED NOT NULL DEFAULT '0'");
+
+		show_update(TABLE_PREFIX.'forum_attr');
+		$DB->query_unbuffered("CREATE TABLE `".TABLE_PREFIX."forum_attr` (
+			  `forumid` int(10) NOT NULL default '0',
+			  `forumrule` text NULL,
+			  PRIMARY KEY  (`forumid`)
+			) TYPE=MyISAM".$add_charset);
+
+		show_update(TABLE_PREFIX.'inviteduser');
+		$DB->query_unbuffered("DROP TABLE `".TABLE_PREFIX."inviteduser`");
+
+		show_update(TABLE_PREFIX.'moderator');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."moderator`
+			ADD `cangstickthread` tinyint(1) NOT NULL default '0',
+			ADD `canqstickthread` tinyint(1) NOT NULL default '0',
+			ADD `canquintessence` tinyint(1) NOT NULL default '0',
+			ADD `modcancommend` tinyint(1) NOT NULL default '0',
+			ADD `canbanpost` tinyint(1) NOT NULL default '0',
+			ADD `bantimelimit` varchar(30) NOT NULL default '',
+			ADD `canbanuser` tinyint(1) NOT NULL default '0',
+			ADD `sendbanmsg` tinyint(1) NOT NULL default '0'"
+		);
+
+		show_update(TABLE_PREFIX.'moderatorlog');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."moderatorlog`
+			CHANGE `title` `title` TEXT NULL");
+
+		show_update(TABLE_PREFIX.'pm');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."pm` ADD INDEX ( `userid` )");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."pm` ADD INDEX ( `touserid` )");
+
+		show_update(TABLE_PREFIX.'poll');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."poll`
+			ADD `addtorecycle` int(10) unsigned NOT NULL default '0',
+			ADD `rawthreadid` int(10) NOT NULL default '0',
+			ADD `rawforumid` int(10) NOT NULL default '0'");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."poll` ADD INDEX (`forumid`)");
+
+		show_update(TABLE_PREFIX.'post');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."post`
+			ADD updateuid int(10) NOT NULL default '0',
+			ADD updateuname varchar(200) NOT NULL default '',
+			ADD updatetime int(10) NOT NULL default '0',
+			ADD logtext mediumtext NULL,
+			ADD location tinyint(1) NOT NULL default '0',
+			ADD state tinyint(1) NOT NULL default '0',
+			ADD rawthreadid int(10) NOT NULL default '0',
+			ADD displayuptlog TINYINT( 1 ) NOT NULL default '0',
+			ADD posttype TINYINT( 1 ) NOT NULL DEFAULT '0'
+		");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."post` DROP `cashpost`");
+
+		show_update(TABLE_PREFIX.'search');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."search` DROP `threadid`, DROP `maxpost`, DROP `maxthread`, DROP `postid`");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."search`
+			ADD `maxrecord` int(10) NOT NULL default '0',
+			ADD `searchype` varchar(20) NOT NULL default '',
+			ADD `posttable` varchar(60) NULL,
+			ADD `presearchid` varchar(32) NULL");
+
+		show_update(TABLE_PREFIX.'session');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."session` ADD PRIMARY KEY (`sessionhash`)");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."session` ADD INDEX userid (`userid`)");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."session` ADD INDEX lastactivity (`lastactivity`)");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."session` ADD `avatar` TINYINT( 1 ) NOT NULL default '0'");
+
+		show_update(TABLE_PREFIX.'style');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."style` ADD `title_en` varchar(150) NOT NULL default ''");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."style` DROP `csstype`");
+
+		show_update(TABLE_PREFIX.'templategroup');
+		$DB->query_unbuffered("DROP TABLE `".TABLE_PREFIX."templategroup`");
+
+		show_update(TABLE_PREFIX.'template');
+		$DB->query_unbuffered("DROP TABLE `".TABLE_PREFIX."template`");
+
+		show_update(TABLE_PREFIX.'thread');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."thread` TYPE = MYISAM");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."thread` DROP `allcash`");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."thread`
+			CHANGE `firstpostid` `firstpostid` INT( 10 ) UNSIGNED NOT NULL DEFAULT '0',
+			CHANGE `allrep` `allrep` varchar(255) NOT NULL default '',
+			CHANGE `firstpostid` `firstpostid` int(10) unsigned NOT NULL default '0',
+			CHANGE `lastpostid` `lastpostid` INT( 10 ) UNSIGNED NOT NULL DEFAULT '0'");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."thread`
+			 ADD `deleted` int(10) NOT NULL default '0',
+			 ADD `rawforumid` mediumint(5) NOT NULL default '0',
+			 ADD `addtorecycle` int(10) unsigned NOT NULL default '0',
+			 ADD `posttable` varchar(60) NOT NULL default '',
+			 ADD `titletext` text NULL,
+			 ADD `stickforumid` int(10) NOT NULL default '0',
+			 ADD `digg_users` int(10) NOT NULL default '0',
+			 ADD `digg_exps` float(10, 3) NOT NULL default '0',
+			 ADD `mod_commend` tinyint(1) NOT NULL default '0'
+		");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."thread` ADD INDEX lastpost (lastpost,forumid)");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."thread` ADD INDEX postuserid (postuserid)");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."thread` ADD INDEX stickforumid (stickforumid, sticky)");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."thread` ADD FULLTEXT KEY titletext (titletext)");
+
+		show_update(TABLE_PREFIX.'userextrafield');
+		$DB->query_unbuffered("CREATE TABLE `".TABLE_PREFIX."userextrafield` (
+			fieldid int(5) unsigned NOT NULL auto_increment,
+			fieldname varchar(50) NOT NULL default '',
+			fieldtag varchar(50) NOT NULL default '',
+			fielddesc text NOT NULL,
+			showtype varchar(50) NOT NULL default '',
+			ismustfill tinyint(1) NOT NULL default '0',
+			length int(3) NOT NULL default '0',
+			maxlength int(3) NOT NULL default '0',
+			minlength int(3) NOT NULL default '0',
+			tablename varchar(32) NOT NULL default '',
+			datatype varchar(32) NOT NULL default '',
+			checkregular text NULL,
+			listcontent text NULL,
+			type tinyint(1) NOT NULL default '0',
+			isonly tinyint(1) unsigned NOT NULL default '0',
+			PRIMARY KEY  (fieldid)
+		) TYPE=MyISAM".$add_charset);
+
+		show_update(TABLE_PREFIX.'user');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."user` DROP INDEX (`mobile`), DROP INDEX (`lastactivity`), DROP INDEX (`award_data`)");
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."user`
+			ADD `emailcharset` varchar(50) NOT NULL default '',
+			ADD `usercurdo` text NULL,
+			ADD `avatar` tinyint(1) NOT NULL default '0',
+			ADD `userdotime` int(10) NOT NULL default '0'");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."user` SET usercurdo = customtitle, userdotime=" . (TIMENOW - 144000));
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."user` DROP customtitle");
+
+		show_update(TABLE_PREFIX.'userdo');
+		$DB->query_unbuffered("CREATE TABLE `".TABLE_PREFIX."userdo` (
+			did int(10) NOT NULL auto_increment,
+			userid int(10) NOT NULL default '0',
+			dowhat text NOT NULL,
+			time int(10) NOT NULL default '0',
+			touserid int(10) NOT NULL default '0',
+			tousername varchar(200) NOT NULL default '',
+			PRIMARY KEY  (did),
+			KEY userid (userid),
+			KEY touserid (touserid)
+		) TYPE=MyISAM".$add_charset);
+
+		show_update(TABLE_PREFIX.'evaluationlog');
+		$DB->query_unbuffered("CREATE TABLE `".TABLE_PREFIX."evaluationlog` (
+			evaluationid int(10) NOT NULL auto_increment,
+			forumid smallint(5) NOT NULL default '0',
+			threadid int(10) NOT NULL default '0',
+			postid int(10) NOT NULL default '0',
+			postuserid mediumint(8) NOT NULL default '0',
+			actionuserid mediumint(8) NOT NULL default '0',
+			affect INT(10) NOT NULL default '0',
+			creditid INT(10) NOT NULL default '0',
+			creditname varchar(60) NOT NULL default '',
+			reason varchar(255) NOT NULL default '',
+			dateline int(10) NOT NULL default '0',
+			actionusername VARCHAR( 250 ) NOT NULL,
+			PRIMARY KEY (evaluationid),
+			KEY postid (postid),
+			KEY threadid (threadid),
+			KEY postuserid (postuserid),
+			KEY creditid (creditid)
+		) TYPE=MyISAM".$add_charset);
+
+		show_update(TABLE_PREFIX.'usergroup');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."usergroup`
+			  ADD `grouppower` int(5) NOT NULL default '0',
+			  ADD `canevaluation` tinyint(1) NOT NULL default '0',
+			  ADD `canevalsameuser` tinyint(1) NOT NULL default '0'"
+		  );
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."usergroup` DROP cancustomtitle");
+		$DB->query_unbuffered("DELETE FROM `".TABLE_PREFIX."usergroup` WHERE usergroupid IN (1,2,3,4,5,6,7)");
+		$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."usergroup` (usergroupid, grouptitle, groupranks, groupicon, grouppower, onlineicon, opentag, closetag, cananonymous, canview, canviewmember, canviewothers, cansearch, canemail, caneditprofile, canpostnew, canreplyown, canreplyothers, caneditpost, candeletepost, canopenclose, candeletethread, canpostpoll, canvote, supermod, cancontrolpanel, canappendedit, canviewoffline, passmoderate, passflood, canuseavatar, hidelist, canpostclosed, canposthtml, caneditthread, canpmattach, candownload, canshow, canuseflash, passbadword, perpostattach, pmquota, pmsendmax, searchflood, edittimecut, attachlimit, attachnum, canblog, canevaluation, canevalsameuser, cansigimg, cansignature, cansearchpost, displayorder) VALUES
+			(1, 'fieldusergroup1_title', '', '', 2, '', '', '', 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1),
+			(2, 'fieldusergroup2_title', '', '', 1, 'images/online/guest.gif', '', '', 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 2),
+			(3, 'fieldusergroup3_title', '', '', 4, 'images/online/member.gif', '', '', 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1000, 20, 1, 20, 10, 100000, 4, 0, 1, 0, 0, 1, 0, 3),
+			(4, 'fieldusergroup4_title', 'fieldusergroup4_rank', '', 7, 'images/online/admin.gif', '', '', 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 500, 5, 0, 5, 0, 4, 1, 1, 1, 1, 1, 1, 4),
+			(5, 'fieldusergroup5_title', '', '', 3, '', '', '', 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5, 20, 0, 0, 0, 0, 0, 0, 0, 0, 0, 5),
+			(6, 'fieldusergroup6_title', 'fieldusergroup6_rank', '', 6, 'images/online/smod.gif', '', '', 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 70, 0, 0, 0, 0, 4, 1, 1, 1, 1, 1, 1, 6),
+			(7, 'fieldusergroup7_title', 'fieldusergroup7_rank', '', 5, 'images/online/mod.gif', '', '', 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 5000, 70, 5, 0, 0, 300000, 4, 1, 1, 1, 1, 1, 1, 7)
+		");
+
+		show_update(TABLE_PREFIX.'userolrank');
+		$DB->query_unbuffered("DROP TABLE `".TABLE_PREFIX."userolrank`");
+
+		show_update(TABLE_PREFIX.'userexpand');
+		$DB->query_unbuffered("ALTER TABLE `".TABLE_PREFIX."userexpand`
+			ADD `reputation` float(10,2) NOT NULL default '0.00',
+			ADD `evalreputation` INT(5) NOT NULL default '0'");
+
+		show_update(TABLE_PREFIX.'setting');
+		$a = array();
+		$result = $DB->query("SELECT `varname`, `value`, `defaultvalue` FROM ".TABLE_PREFIX."setting");
+		while ($r = $DB->fetch_array($result))
+		{
+			$a[] = $r;
+		}
+		$DB->query_unbuffered("TRUNCATE TABLE `".TABLE_PREFIX."setting`");
+		$DB->query_unbuffered("INSERT INTO `".TABLE_PREFIX."setting` (`title`, `description`, `groupid`, `type`, `varname`, `value`, `defaultvalue`, `dropextra`, `displayorder`, `addcache`) VALUES
+			('" . $a_lang['mysql']['setting']['uploadurl'] . "','" . $a_lang['mysql']['setting']['uploadurldesc'] . "','1','input','uploadurl','','','','1','1'),
+			('" . $a_lang['mysql']['setting']['uploadfolder'] . "','" . $a_lang['mysql']['setting']['uploadfolderdesc'] . "','1','input','uploadfolder','','','uploadfolder','2','1'),
+			('" . $a_lang['mysql']['setting']['remoteattach'] . "','" . $a_lang['mysql']['setting']['remoteattachdesc'] . "','1','input','remoteattach','','','','3','1'),
+			('" . $a_lang['mysql']['setting']['headerredirect'] . "','" . $a_lang['mysql']['setting']['headerredirectdesc'] . "','1','dropdown','headerredirect','','location','" . $a_lang['mysql']['setting']['headerredirectextra'] . "','4','1'),
+			('" . $a_lang['mysql']['setting']['removeredirect'] . "','" . $a_lang['mysql']['setting']['removeredirectdesc'] . "','1','yes_no','removeredirect','','0','','5','1'),
+			('" . $a_lang['mysql']['setting']['numberformat'] . "','" . $a_lang['mysql']['setting']['numberformatdesc'] . "','1','dropdown','numberformat','',',','" . $a_lang['mysql']['setting']['numberformatextra'] . "','6','1'),
+			('" . $a_lang['mysql']['setting']['showrelatedthread'] . "','" . $a_lang['mysql']['setting']['showrelatedthreaddesc'] . "','11','yes_no','showrelatedthread','','1','','8','1'),
+			('" . $a_lang['mysql']['setting']['default_lang'] . "','" . $a_lang['mysql']['setting']['default_langdesc'] . "','1','dropdown','default_lang','','" . $_POST['lang'] . "','#show_lang#','9','1'),
+			('" . $a_lang['mysql']['setting']['showtoday'] . "','" . $a_lang['mysql']['setting']['showtodaydesc'] . "','1','yes_no','showtoday','','1','','10','1'),
+			('" . $a_lang['mysql']['setting']['miibeian'] . "','" . $a_lang['mysql']['setting']['miibeiandesc'] . "','1','input','miibeian','','','','11','1'),
+			('" . $a_lang['mysql']['setting']['diggexps'] . "','" . $a_lang['mysql']['setting']['diggexpsdesc'] . "','1','input','diggexps','','1 + (grouppower / 10) + (reputation / 100)','','11','1'),
+			('" . $a_lang['mysql']['setting']['diggshowtype'] . "','" . $a_lang['mysql']['setting']['diggshowtypedesc'] . "','1','dropdown','diggshowtype','','lastpost','" . $a_lang['mysql']['setting']['diggshowtypeextra'] . "','11','0'),
+			('" . $a_lang['mysql']['setting']['diggshowcondition'] . "','" . $a_lang['mysql']['setting']['diggshowconditiondesc'] . "','1','input','diggshowcondition','','7','','11','0'),
+			('" . $a_lang['mysql']['setting']['cookietimeout'] . "','','2','input','cookietimeout','','15','','1','1'),
+			('" . $a_lang['mysql']['setting']['loadlimit'] . "','" . $a_lang['mysql']['setting']['loadlimitdesc'] . "','2','input','loadlimit','','','','2','1'),
+			('" . $a_lang['mysql']['setting']['threadviewsdelay'] . "', '" . $a_lang['mysql']['setting']['threadviewsdelaydesc'] . "', 2, 'yes_no', 'threadviewsdelay', '', '0', '', 3, 1),
+			('" . $a_lang['mysql']['setting']['attachmentviewsdelay'] . "', '" . $a_lang['mysql']['setting']['attachmentviewsdelaydesc'] . "', 2, 'yes_no', 'attachmentviewsdelay', '', '0', '', 4, 1),
+			('" . $a_lang['mysql']['setting']['bbtitle'] . "','" . $a_lang['mysql']['setting']['bbtitledesc'] . "','3','input','bbtitle','','MolyX BOARD','','1','1'),
+			('" . $a_lang['mysql']['setting']['bburl'] . "','" . $a_lang['mysql']['setting']['bburldesc'] . "','3','input','bburl','','http://localhost/_1','','2','1'),
+			('" . $a_lang['mysql']['setting']['hometitle'] . "','" . $a_lang['mysql']['setting']['hometitledesc'] . "','3','input','hometitle','','','','3','1'),
+			('" . $a_lang['mysql']['setting']['homeurl'] . "','" . $a_lang['mysql']['setting']['homeurldesc'] . "','3','input','homeurl','','http://localhost','','4','1'),
+			('" . $a_lang['mysql']['setting']['adminurl'] . "','" . $a_lang['mysql']['setting']['adminurldesc'] . "','3','input','adminurl','','admin','','5','1'),
+			('" . $a_lang['mysql']['setting']['cookiedomain'] . "','" . $a_lang['mysql']['setting']['cookiedomaindesc'] . "','4','input','cookiedomain','','','','1','1'),
+			('" . $a_lang['mysql']['setting']['cookieprefix'] . "','" . $a_lang['mysql']['setting']['cookieprefixdesc'] . "','4','input','cookieprefix','','','','2','1'),
+			('" . $a_lang['mysql']['setting']['cookiepath'] . "','" . $a_lang['mysql']['setting']['cookiepathdesc'] . "','4','input','cookiepath','','','','3','1'),
+			('" . $a_lang['mysql']['setting']['gzipoutput'] . "','" . $a_lang['mysql']['setting']['gzipoutputdesc'] . "','4','yes_no','gzipoutput','','1','','4','1'),
+			('" . $a_lang['mysql']['setting']['timezoneoffset'] . "','" . $a_lang['mysql']['setting']['timezoneoffsetdesc'] . "','5','dropdown','timezoneoffset','','8','','1','1'),
+			('" . $a_lang['mysql']['setting']['show_format_time'] . "','" . $a_lang['mysql']['setting']['show_format_timedesc'] . "','5','dropdown','show_format_time','','0','" . $a_lang['mysql']['setting']['show_format_timeextra'] . "','2','1'),
+			('" . $a_lang['mysql']['setting']['timeadjust'] . "','" . $a_lang['mysql']['setting']['timeadjustdesc'] . "','5','input','timeadjust','','0','','3','1'),
+			('" . $a_lang['mysql']['setting']['standardtimeformat'] . "','" . $a_lang['mysql']['setting']['standardtimeformatdesc'] . "','5','input','standardtimeformat','','Y-m-d h:i A','','4','1'),
+			('" . $a_lang['mysql']['setting']['longtimeformat'] . "','" . $a_lang['mysql']['setting']['longtimeformatdesc'] . "','5','input','longtimeformat','','Y-m-d H:i','','5','1'),
+			('" . $a_lang['mysql']['setting']['registereddateformat'] . "','" . $a_lang['mysql']['setting']['registereddateformatdesc'] . "','5','input','registereddateformat','','Y-m-d','','6','1'),
+			('" . $a_lang['mysql']['setting']['allowselectstyles'] . "','','6','yes_no','allowselectstyles','','1','','1','1'),
+			('" . $a_lang['mysql']['setting']['usernameminlength'] . "', '" . $a_lang['mysql']['setting']['usernameminlengthdesc'] . "', 6, 'input', 'usernameminlength', '', '2', '', '2', '1'),
+			('" . $a_lang['mysql']['setting']['usernamemaxlength'] . "', '" . $a_lang['mysql']['setting']['usernamemaxlengthdesc'] . "', 6, 'input', 'usernamemaxlength', '', '10', '', '3', '1'),
+			('" . $a_lang['mysql']['setting']['signaturemaxlength'] . "','','6','input','signaturemaxlength','','500','','6','1'),
+			('" . $a_lang['mysql']['setting']['signatureallowhtml'] . "','" . $a_lang['mysql']['setting']['signatureallowhtmldesc'] . "','6','yes_no','signatureallowhtml','','0','','7','1'),
+			('" . $a_lang['mysql']['setting']['signatureallowbbcode'] . "','','6','yes_no','signatureallowbbcode','','1','','8','1'),
+			('" . $a_lang['mysql']['setting']['allowuploadsigimg'] . "','','6','yes_no','allowuploadsigimg','','1','','9','1'),
+			('" . $a_lang['mysql']['setting']['sigimgdimension'] . "','" . $a_lang['mysql']['setting']['sigimgdimensiondesc'] . "','6','input','sigimgdimension','','300x500','','10','1'),
+			('" . $a_lang['mysql']['setting']['avatarsenabled'] . "','','6','yes_no','avatarsenabled','','1','','12','1'),
+			('" . $a_lang['mysql']['setting']['avatarurl'] . "','','6','yes_no','avatarurl','','1','','12','1'),
+			('" . $a_lang['mysql']['setting']['avatamaxsize'] . "','','6','input','avatamaxsize','','50','','16','1'),
+			('" . $a_lang['mysql']['setting']['avatardimension'] . "','" . $a_lang['mysql']['setting']['avatardimensiondesc'] . "','6','input','avatardimension','','120x120|48x48|18x18','','17','1'),
+			('" . $a_lang['mysql']['setting']['maxpostchars'] . "','','7','input','maxpostchars','','20000','','1','1'),
+			('" . $a_lang['mysql']['setting']['minpostchars'] . "','','7','input','minpostchars','','4','','2','1'),
+			('" . $a_lang['mysql']['setting']['smilenums'] . "','" . $a_lang['mysql']['setting']['smilenumsdesc'] . "','7','input','smilenums','','16','','6','1'),
+			('" . $a_lang['mysql']['setting']['stripquotes'] . "','" . $a_lang['mysql']['setting']['stripquotesdesc'] . "','7','yes_no','stripquotes','','1','','8','1'),
+			('" . $a_lang['mysql']['setting']['imageextension'] . "','" . $a_lang['mysql']['setting']['imageextensiondesc'] . "','7','input','imageextension','','gif,jpeg,jpg,png','','9','1'),
+			('" . $a_lang['mysql']['setting']['guesttag'] . "','" . $a_lang['mysql']['setting']['guesttagdesc'] . "','7','input','guesttag','','[" . $a_lang['mysql']['setting']['guest'] . "]*','','10','1'),
+			('" . $a_lang['mysql']['setting']['enablepolltags'] . "','','7','yes_no','enablepolltags','','1','','11','1'),
+			('" . $a_lang['mysql']['setting']['maxpolloptions'] . "','','7','input','maxpolloptions','','10','','12','1'),
+			('" . $a_lang['mysql']['setting']['disablenoreplypoll'] . "','','7','yes_no','disablenoreplypoll','','0','','14','1'),
+			('" . $a_lang['mysql']['setting']['floodchecktime'] . "','" . $a_lang['mysql']['setting']['floodchecktimedesc'] . "','7','input','floodchecktime','','0','','15','1'),
+			('" . $a_lang['mysql']['setting']['watermark'] . "','" . $a_lang['mysql']['setting']['watermarkdesc'] . "','7','yes_no','watermark','','0','','16','1'),
+			('" . $a_lang['mysql']['setting']['markposition'] . "','" . $a_lang['mysql']['setting']['markpositiondesc'] . "','7','dropdown','markposition','','4','" . $a_lang['mysql']['setting']['watermarkextra'] . "','17','1'),
+			('" . $a_lang['mysql']['setting']['useantispam'] . "','" . $a_lang['mysql']['setting']['useantispamdesc'] . "','7','yes_no','useantispam','','0','','18','1'),
+			('" . $a_lang['mysql']['setting']['mxemode'] . "','" . $a_lang['mysql']['setting']['mxemodedesc'] . "','8','dropdown','mxemode','','1','" . $a_lang['mysql']['setting']['mxemodeextra'] . "','19','1'),
+			('" . $a_lang['mysql']['setting']['matchbrowser'] . "','" . $a_lang['mysql']['setting']['matchbrowserdesc'] . "','8','yes_no','matchbrowser','','0','','1','1'),
+			('" . $a_lang['mysql']['setting']['allowdynimg'] . "','" . $a_lang['mysql']['setting']['allowdynimgdesc'] . "','8','yes_no','allowdynimg','','0','','2','1'),
+			('" . $a_lang['mysql']['setting']['allowimages'] . "','" . $a_lang['mysql']['setting']['allowimagesdesc'] . "','8','yes_no','allowimages','','1','','3','1'),
+			('" . $a_lang['mysql']['setting']['forcelogin'] . "','" . $a_lang['mysql']['setting']['forcelogindesc'] . "','8','yes_no','forcelogin','','0','','5','1'),
+			('" . $a_lang['mysql']['setting']['WOLenable'] . "','','8','yes_no','WOLenable','','1','','6','1'),
+			('" . $a_lang['mysql']['setting']['enablesearches'] . "', '', '9', 'yes_no', 'enablesearches', '', '1', '', 1, 1),
+			('" . $a_lang['mysql']['setting']['minsearchlength'] . "','','9','input','minsearchlength','','4','minsearchlength','2','1'),
+			('" . $a_lang['mysql']['setting']['postsearchlength'] . "','" . $a_lang['mysql']['setting']['postsearchlengthdesc'] . "','9','input','postsearchlength','','500','','3','1'),
+			('" . $a_lang['mysql']['setting']['forumindex'] . "','" . $a_lang['mysql']['setting']['forumindexdesc'] . "','10','input','forumindex','','index.php','','1','1'),
+			('" . $a_lang['mysql']['setting']['showloggedin'] . "','','10','yes_no','showloggedin','','1','','4','1'),
+			('" . $a_lang['mysql']['setting']['showstatus'] . "','','10','yes_no','showstatus','','1','','5','1'),
+			('" . $a_lang['mysql']['setting']['showbirthday'] . "','" . $a_lang['mysql']['setting']['showbirthdaydesc'] . "','10','yes_no','showbirthday','','1','','6','1'),
+			('" . $a_lang['mysql']['setting']['maxonlineusers'] . "','" . $a_lang['mysql']['setting']['maxonlineusersdesc'] . "','10','input','maxonlineusers','','300','','8','1'),
+			('" . $a_lang['mysql']['setting']['top_digg_thread_num'] . "','" . $a_lang['mysql']['setting']['top_digg_thread_numdesc'] . "','10','input','top_digg_thread_num','','20','','4','1'),
+			('" . $a_lang['mysql']['setting']['showguest'] . "','" . $a_lang['mysql']['setting']['showguestdesc'] . "','10','yes_no','showguest','','0','','9','1'),
+			('" . $a_lang['mysql']['setting']['birthday_send'] . "','" . $a_lang['mysql']['setting']['birthday_senddesc'] . "','10','textarea','birthday_send','','0','','10','1'),
+			('" . $a_lang['mysql']['setting']['birthday_send_type'] . "','" . $a_lang['mysql']['setting']['birthday_send_typedesc'] . "','10','dropdown','birthday_send_type','','1','" . $a_lang['mysql']['setting']['birthday_send_typeextra'] . "','11','0'),
+			('" . $a_lang['mysql']['setting']['perpagepost'] . "','" . $a_lang['mysql']['setting']['perpagepostdesc'] . "','11','input','perpagepost','','5,10,15,20,25,30,35,40','','1','1'),
+			('" . $a_lang['mysql']['setting']['maxposts'] . "','','11','input','maxposts','','10','','2','1'),
+			('" . $a_lang['mysql']['setting']['viewattachedimages'] . "','" . $a_lang['mysql']['setting']['viewattachedimagesdesc'] . "','11','yes_no','viewattachedimages','','1','','3','1'),
+			('" . $a_lang['mysql']['setting']['viewattachedthumbs'] . "','" . $a_lang['mysql']['setting']['viewattachedthumbsdesc'] . "','11','yes_no','viewattachedthumbs','','1','viewattachedthumbs','4','1'),
+			('" . $a_lang['mysql']['setting']['thumbswidth'] . "','" . $a_lang['mysql']['setting']['thumbswidthdesc'] . "','11','input','thumbswidth','','200','','5','1'),
+			('" . $a_lang['mysql']['setting']['thumbsheight'] . "','" . $a_lang['mysql']['setting']['thumbsheightdesc'] . "','11','input','thumbsheight','','200','','6','1'),
+			('" . $a_lang['mysql']['setting']['allowviewresults'] . "','" . $a_lang['mysql']['setting']['allowviewresultsdesc'] . "','11','yes_no','allowviewresults','','1','','7','1'),
+			('" . $a_lang['mysql']['setting']['onlyonesignatures'] . "','" . $a_lang['mysql']['setting']['onlyonesignaturesdesc'] . "','11','yes_no','onlyonesignatures','','1','','8','1'),
+			('" . $a_lang['mysql']['setting']['quickeditorloadmode'] . "', '" . $a_lang['mysql']['setting']['quickeditorloadmodedesc'] . "', 11, 'dropdown', 'quickeditorloadmode', '', '2', '" . $a_lang['mysql']['setting']['quickeditorloadmodeextra'] . "', 9, 1),
+			('" . $a_lang['mysql']['setting']['quickeditordisplaymenu'] . "', '" . $a_lang['mysql']['setting']['quickeditordisplaymenudesc'] . "', 11, 'dropdown', 'quickeditordisplaymenu', '', '1', '" . $a_lang['mysql']['setting']['quickeditordisplaymenuextra'] . "', 10, 1),
+			('" . $a_lang['mysql']['setting']['maxthreads'] . "','','12','input','maxthreads','','25','','1','1'),
+			('" . $a_lang['mysql']['setting']['hotnumberposts'] . "','','12','input','hotnumberposts','','15','','6','1'),
+			('" . $a_lang['mysql']['setting']['showforumusers'] . "','" . $a_lang['mysql']['setting']['showforumusersdesc'] . "','12','yes_no','showforumusers','','0','showforumusers','7','1'),
+			('" . $a_lang['mysql']['setting']['perpagethread'] . "','" . $a_lang['mysql']['setting']['perpagethreaddesc'] . "','12','input','perpagethread','','5,10,15,20,25,30,35,40','','8','1'),
+			('" . $a_lang['mysql']['setting']['showsubforums'] . "','" . $a_lang['mysql']['setting']['showsubforumsdesc'] . "','12','yes_no','showsubforums','','1','','9','1'),
+			('" . $a_lang['mysql']['setting']['threadpreview'] . "','" . $a_lang['mysql']['setting']['threadpreviewdesc'] . "','12','dropdown','threadpreview','','0','" . $a_lang['mysql']['setting']['threadpreviewextra'] . "','13','1'),
+			('" . $a_lang['mysql']['setting']['commend_thread_num'] . "','" . $a_lang['mysql']['setting']['commend_thread_numdesc'] . "','12','input','commend_thread_num','','10','','13','1'),
+			('" . $a_lang['mysql']['setting']['forum_active_user'] . "','" . $a_lang['mysql']['setting']['forum_active_userdesc'] . "','12','input','forum_active_user','','10','','13','1'),
+			('" . $a_lang['mysql']['setting']['pmallowbbcode'] . "','','13','yes_no','pmallowbbcode','','1','','1','1'),
+			('" . $a_lang['mysql']['setting']['pmallowhtml'] . "','" . $a_lang['mysql']['setting']['pmallowhtmldesc'] . "','13','yes_no','pmallowhtml','','0','','2','1'),
+			('" . $a_lang['mysql']['setting']['emailreceived'] . "','" . $a_lang['mysql']['setting']['emailreceiveddesc'] . "','13','input','emailreceived','','','','3','1'),
+			('" . $a_lang['mysql']['setting']['emailsend'] . "','" . $a_lang['mysql']['setting']['emailsenddesc'] . "','13','input','emailsend','','','','4','1'),
+			('" . $a_lang['mysql']['setting']['sesureemail'] . "','" . $a_lang['mysql']['setting']['sesureemaildesc'] . "','13','yes_no','sesureemail','','1','','5','1'),
+			('" . $a_lang['mysql']['setting']['emailtype'] . "','" . $a_lang['mysql']['setting']['emailtypedesc'] . "','13','dropdown','emailtype','','mail','mail=PHP Mail()\nsmtp=SMTP','6','1'),
+			('" . $a_lang['mysql']['setting']['smtphost'] . "','" . $a_lang['mysql']['setting']['smtphostdesc'] . "','13','input','smtphost','','localhost','','7','1'),
+			('" . $a_lang['mysql']['setting']['smtpport'] . "','" . $a_lang['mysql']['setting']['smtpportdesc'] . "','13','input','smtpport','','25','','8','1'),
+			('" . $a_lang['mysql']['setting']['smtpuser'] . "','" . $a_lang['mysql']['setting']['smtpuserdesc'] . "','13','input','smtpuser','','','','9','1'),
+			('" . $a_lang['mysql']['setting']['smtppassword'] . "','" . $a_lang['mysql']['setting']['smtppassworddesc'] . "','13','input','smtppassword','','','','10','1'),
+			('" . $a_lang['mysql']['setting']['emailwrapbracket'] . "','" . $a_lang['mysql']['setting']['emailwrapbracketdesc'] . "','13','yes_no','emailwrapbracket','','0','','11','1'),
+			('" . $a_lang['mysql']['setting']['disablereport'] . "','" . $a_lang['mysql']['setting']['disablereportdesc'] . "','13','yes_no','disablereport','','0','','12','1'),
+			('" . $a_lang['mysql']['setting']['reporttype'] . "','','13','dropdown','reporttype','','pm','" . $a_lang['mysql']['setting']['reporttypeextra'] . "','13','1'),
+			('" . $a_lang['mysql']['setting']['enablerecyclebin'] . "','" . $a_lang['mysql']['setting']['enablerecyclebindesc'] . "','14','yes_no','enablerecyclebin','','0','','1','1'),
+			('" . $a_lang['mysql']['setting']['recycleforumid'] . "','" . $a_lang['mysql']['setting']['recycleforumiddesc'] . "','14','dropdown','recycleforumid','','','#show_forums#','2','1'),
+			('" . $a_lang['mysql']['setting']['recycleforadmin'] . "','" . $a_lang['mysql']['setting']['recycleforadmindesc'] . "','14','yes_no','recycleforadmin','','1','','3','1'),
+			('" . $a_lang['mysql']['setting']['recycleforsuper'] . "','" . $a_lang['mysql']['setting']['recycleforsuperdesc'] . "','14','yes_no','recycleforsuper','','1','','4','1'),
+			('" . $a_lang['mysql']['setting']['recycleformod'] . "','" . $a_lang['mysql']['setting']['recycleformoddesc'] . "','14','yes_no','recycleformod','','1','','5','1'),
+			('" . $a_lang['mysql']['setting']['allowregistration'] . "','" . $a_lang['mysql']['setting']['allowregistrationdesc'] . "','15','yes_no','allowregistration','','1','','1','1'),
+			('" . $a_lang['mysql']['setting']['enableantispam'] . "','" . $a_lang['mysql']['setting']['enableantispamdesc'] . "','15','dropdown','enableantispam','','gif','" . $a_lang['mysql']['setting']['enableantispamextra'] . "','2','1'),
+			('" . $a_lang['mysql']['setting']['moderatememberstype'] . "','" . $a_lang['mysql']['setting']['moderatememberstypedesc'] . "','15','dropdown','moderatememberstype','','0','" . $a_lang['mysql']['setting']['moderatememberstypextra'] . "','3','1'),
+			('" . $a_lang['mysql']['setting']['removemoderate'] . "','" . $a_lang['mysql']['setting']['removemoderatedesc'] . "','15','input','removemoderate','','0','','4','1'),
+			('" . $a_lang['mysql']['setting']['registerrule'] . "','','15','textarea','registerrule','','" . $a_lang['mysql']['setting']['registerruledval'] . "','','6','0'),
+			('" . $a_lang['mysql']['setting']['newuser_pm'] . "','" . $a_lang['mysql']['setting']['newuser_pmdesc'] . "','15','textarea','newuser_pm','','','','8','0'),
+			('" . $a_lang['mysql']['setting']['reg_ip_time'] . "','" . $a_lang['mysql']['setting']['reg_ip_timedesc'] . "','15','input','reg_ip_time','','0','','9','1'),
+			('" . $a_lang['mysql']['setting']['showprivacy'] . "','','16','yes_no','showprivacy','','0','','1','1'),
+			('" . $a_lang['mysql']['setting']['privacyurl'] . "','" . $a_lang['mysql']['setting']['privacyurldesc'] . "','16','input','privacyurl','','','','2','1'),
+			('" . $a_lang['mysql']['setting']['privacytitle'] . "','','16','input','privacytitle','','','','3','1'),
+			('" . $a_lang['mysql']['setting']['privacytext'] . "','" . $a_lang['mysql']['setting']['privacytextdesc'] . "','16','textarea','privacytext','','','','4','0'),
+			('" . $a_lang['mysql']['setting']['bbactive'] . "','" . $a_lang['mysql']['setting']['bbactivedesc'] . "','17','yes_no','bbactive','','1','','1','1'),
+			('" . $a_lang['mysql']['setting']['bbclosedreason'] . "','','17','textarea','bbclosedreason','','" . $a_lang['mysql']['setting']['bbclosedreasondval'] . "','','2','0'),
+			('" . $a_lang['mysql']['setting']['version'] . "','','-1','','version','','2.8.0 Beta2','','1','1'),
+			('" . $a_lang['mysql']['setting']['timenotlogin'] . "','" . $a_lang['mysql']['setting']['timenotlogindesc'] . "','20','input','timenotlogin','','30','','10','1'),
+			('" . $a_lang['mysql']['setting']['spider_roup'] . "','" . $a_lang['mysql']['setting']['spider_roupdesc'] . "','21','dropdown','spider_roup','','3','#show_groups#','1','1'),
+			('" . $a_lang['mysql']['setting']['spiderid'] . "','" . $a_lang['mysql']['setting']['spideriddesc'] . "','21','input','spiderid','','baiduspider|googlebot|msnbot|Slurp','','2','1'),
+			('" . $a_lang['mysql']['setting']['spideronline'] . "','" . $a_lang['mysql']['setting']['spideronlinedesc'] . "','21','dropdown','spideronline','','2','" . $a_lang['mysql']['setting']['spideronlineextra'] . "','3','1'),
+			('" . $a_lang['mysql']['setting']['adcolumns'] . "','" . $a_lang['mysql']['setting']['adcolumnsdesc'] . "','22','input','adcolumns','','4','','1','1'),
+			('" . $a_lang['mysql']['setting']['adinpost'] . "','" . $a_lang['mysql']['setting']['adinpostdesc'] . "','22','input','adinpost','','0','','2','1'),
+			('" . $a_lang['mysql']['setting']['rewritestatus'] . "','" . $a_lang['mysql']['setting']['rewritestatusdesc'] . "','21','yes_no','rewritestatus','','0','','4','1'),
+			('" . $a_lang['mysql']['setting']['quoteslengthlimit'] . "','" . $a_lang['mysql']['setting']['quoteslengthlimitdesc'] . "','11','input','quoteslengthlimit','','200','','13','1'),
+			('" . $a_lang['mysql']['setting']['hideattach'] . "','" . $a_lang['mysql']['setting']['hideattachdesc'] . "','1','yes_no','hideattach','','1','','30','1'),
+			('" . $a_lang['mysql']['setting']['userdolenlimit'] . "','','6','input','userdolenlimit','100','100','','24','1')
+		");
+		foreach ($a as $r)
+		{
+			if ($r['value'] !== '')
+			{
+				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "setting SET value=" . $DB->validate($r['value']) . " WHERE varname=" . $DB->validate($r['varname']));
+			}
+
+			if (in_array($r['varname'], array('hometitle', 'homeurl', 'bbtitle', 'bbtitle', 'bburl', 'uploadurl', 'uploadfolder', 'emailreceived', 'emailsend')))
+			{
+				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "setting SET defaultvalue=" . $DB->validate($r['defaultvalue']) . " WHERE varname=" . $DB->validate($r['varname']));
+			}
+		}
+
+		show_update(TABLE_PREFIX.'settinggroup');
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 13 WHERE groupid = 1");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 4 WHERE groupid = 2");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 5 WHERE groupid = 3");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 6 WHERE groupid = 5");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 13 WHERE groupid = 6");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 13 WHERE groupid = 7");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 6 WHERE groupid = 8");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 9 WHERE groupid = 10");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 12 WHERE groupid = 11");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 7 WHERE groupid = 15");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 8 WHERE groupid = 12");
+		$DB->query_unbuffered("UPDATE `".TABLE_PREFIX."settinggroup` SET groupcount = 4 WHERE groupid = 21");
+		$DB->query_unbuffered("DELETE FROM `".TABLE_PREFIX."settinggroup` WHERE groupid IN(18,19,20)");
+
+		$DB->return_die = 0;
+		return 0;
+	}
+
+	function parse_seze($len=0, $text=''){
+		return "s:".strlen($text).":\"".$text."\"";
+	}
+}
+
+?>

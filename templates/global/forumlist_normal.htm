@@ -1,0 +1,69 @@
+<table width="100%" border="0" cellspacing="1" cellpadding="0" class='ttable'>
+<caption class='tcat'><a href="forumdisplay.php{sessionurl}f={$cat_data['id']}">{$cat_data['name']}</a></caption>
+<thead class='thead'>
+	<tr align="center"> 
+		<th class="sort-0"><img src="images/<#IMAGE#>/spacer.gif" alt="" /></th>
+		<th align="left" width="60%" class="sort-0">{$lang['_forum']}</th>
+		<th class="sort-1" width="60">{$lang['threads']}</th>
+		<th class="sort-1" width="80">{$lang['posts']}</th>
+	<if="$bboptions['showtoday']">
+		<th class="sort-1" width="60">{$lang['today']}</th>
+	</if>
+		<!-- 	<th align="left" width="115" class="sort-0">{$lang['moderator']}</th> -->
+	</tr>
+</thead>
+<tbody class="tbody">
+<foreach="$forums->forum->forum_cache[ $cat_data['id'] ] as $id => $forum_data">
+<php>
+	$subforum = $forums->forum->forums_format_lastinfo($forum_data);
+</php>
+	<tr align="center" class="item_list" onmouseover="this.className='item_change';" onmouseout="this.className='item_list';"> 
+	<td>
+		<if="$subforum['img_new_post']=='readonly'">
+		<img class="inline" src='images/<#IMAGE#>/bf_readonly.gif' alt='{$lang['_readonly']}' />
+		<elseif="$subforum['img_new_post']=='brnew'">
+		<img class="inline" src='images/<#IMAGE#>/br_new.gif' alt='{$lang['_newpost']}' />
+		<elseif="$subforum['img_new_post']=='bfnew'">
+		<img class="inline" src='images/<#IMAGE#>/bf_new.gif' alt='{$lang['_newpost']}' />
+		<elseif="$subforum['img_new_post']=='brnonew'">
+		<img class="inline" src='images/<#IMAGE#>/br_nonew.gif' alt='{$lang['_nonewpost']}' />
+		<elseif="$subforum['img_new_post']=='bfnonew'">
+		<img class="inline" src='images/<#IMAGE#>/bf_nonew.gif' alt='{$lang['_nonewpost']}' />
+		</if>
+	</td>
+	<if="$subforum['url']">
+	<td align="left">
+		<h2><a href="{$subforum['url']}" target='_blank'>{$subforum['name']}</a></h2>
+		<div class='desc'>{$subforum['description']}</div>
+	</td>
+	<td>-</td>
+	<td>-</td>
+	<if="$bboptions['showtoday']">
+	<td>-</td>
+	</if>
+	<td align="left" nowrap="nowrap">
+	{$lang['redirect_url']}
+	</td>
+	<td align="left">-</td>
+	<else>
+	<td align="left">
+		<h2><a href="forumdisplay.php{sessionurl}f={$subforum['id']}">{$subforum['name']}</a></h2>{$subforum['moderateinfo']}&nbsp;
+		<if="$subforum['lastthread']">
+		<span class='time'>{$subforum['lastposttime']}</span>
+		</if>
+		<div class='desc'>{$subforum['description']}{$subforum['show_subforums']}</div>
+	</td>
+	<td class="sort-{$subforum['sort_thread']}">{$subforum['thread']}</td>
+	<td class="sort-{$subforum['sort_post']}">{$subforum['post']}</td>		
+	<if="$bboptions['showtoday']">
+	<td class="sort-{$subforum['sort_todaypost']}">{$subforum['todaypost']}</td></if>
+	</if>	
+	<!--
+		<td align="left">
+		{$subforum['moderator']}
+		</td>
+	 -->
+	</tr>
+</foreach>
+</tbody>
+</table>

@@ -1,0 +1,41 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<title> upload </title>
+<script language='JavaScript' type="text/javascript">
+//<![CDATA[
+function $(id)
+{
+	return window.parent.document.getElementById(id);
+}
+
+var is_send_form = $('is_send').value;
+if(is_send_form == 1){
+<if="$errormsg">
+ alert('{$errormsg}');
+<else>
+  $('sub_form').click();
+</if>
+} else {
+<if="$errormsg">
+ alert('{$errormsg}');
+<else>
+ $('showattach').innerHTML = '{$upload['tmp']}';
+</if>
+ $('attach_do').value = 'upload';
+ $('attach_num').value = 0;
+ $('removeattachid').value = 0;
+ $('attachdiv').innerHTML = '<input type="file" size="30" name="attachment0" id="attachment0" class="input_big" onchange="createattach(this);" />';
+ $('attachbutton').innerHTML = '<input type="button" name="uploadbutton" id="uploadbutton" value=" {$lang['_addattach']} " class="input_big" onclick="sendattach();" />';
+ $('submitform').disabled = false;
+ if ($('preview')){
+    $('preview').disabled = false;
+ }
+}
+//]]>
+</script>
+{CACHE_CSS}
+</head>
+<body>
+</body>
+</html>
