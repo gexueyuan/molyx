@@ -1,0 +1,45 @@
+{template:header}
+<div class="page_nav">
+	{$links}
+</div>
+<table width="100%" border="0" cellspacing="1" cellpadding="0" class='ttable'>
+<caption class='tcat'>{$lang['onlinelist']}</caption>
+<thead class='thead'>
+	<tr align='left'>
+		<th width='30%'>{$lang['username']}</th>
+		<th width='55%'>{$lang['location']}</th>
+		<th width='15%'>{$lang['lastactive']}</th>
+	</tr>
+</thead>
+<tbody class="tbody">
+	<foreach="$userlist AS $online">
+	<tr class="item_list" onmouseover="this.className='item_change';" onmouseout="this.className='item_list';">
+		<td>{$online['username']}</td>
+		<td>{$online['location']}</td>
+		<td class="time">{$online['lastactivity']}</td>
+	</tr>
+	</foreach>
+	<tr class="item_change">
+		<td colspan="3">
+		<form method='post' action='online.php'>
+			<input type='hidden' name='s' value='{sessionid}' />
+			{$lang['sortby']}:
+			<select name='sortby' class="select_normal">
+				{$sortby}
+			</select>
+			<select name='usergroup' class="select_normal">
+				{$usergroup}
+			</select>
+			<select name='order' class="select_normal">
+				{$order}
+			</select>
+			<input type='submit' value='{$lang['_ok']}' class='button_normal' />
+		</form>
+		</td>
+	</tr>
+</tbody>
+</table>
+<div class="page_nav">
+	{$links}
+</div>
+{template:footer}

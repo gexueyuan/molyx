@@ -1,0 +1,4 @@
+MolyX 声明事项
+Version 0.9 | Jun 2006
+
+MolyX2 是一个开源的社区论坛软件产品，版权归属厚建软件（HOGE Software Ltd）所有。MolyX2 遵循 MolyX 授权许可协议（http://molyx.com/license）发布，在符合授权许可的条件下，任何个人、组织、商业团体等均可永久免费安装使用，或者进行修改、二次开发后使用，也可以在符合授权许可的条件下复制、保留、分发 MolyX2 的派生版本。

@@ -1,0 +1,68 @@
+<div class="op_title" onmousedown="begindrag('operation_pannel', event);">
+	<cite onclick="hideElement('operation_pannel');"><img src="images/<#IMAGE#>/x.gif" alt="" /></cite>
+	<h3>{$opreate_name}</h3>
+</div>
+<if="$opreate_description">
+<div class="item_list desc">{$opreate_description}</div>
+</if>
+<form action='' method='post' name='confirm_operate_form' id='confirm_operate_form'>
+	<foreach="$input AS $n => $v">
+		<input type='hidden' name='{$n}' value='{$v}' />
+	</foreach>
+	<if="is_array($do_actions)">
+	<div class="item_list">
+		<foreach="$do_actions AS $key => $value">
+			<label for="opinput_{$key}"><input id="opinput_{$key}" type='radio' name='do' value='{$key}'{$action_checked[$key]}{$click_event[$key]} />{$value}</label>
+		</foreach>
+	</div>
+	<else>
+		<input type='hidden' name='do' value='{$action}' />{$value}
+	</if>
+	<if="$action == 'mergethreads'">
+		<div class="item_list">{$lang['newthreadtitle']} <input type='text' size='40' maxlength='50' name='title' value='{$t_title}' class='input_normal' /></div>
+		<if="$show_single">
+		<div class="item_list">{$lang['mergethreadid']} <input type='text' size='50' name='threadurl' value='' class='input_normal' /></div>
+		</if>
+	<elseif="$action == 'moveclearthreads'">
+		<div id="movethread_extra">
+			<div class="item_list">{$lang['movethreadto']} <select name='move_id' class="select_normal">{$forums_info}</select></div>
+			<div class="item_list">{$lang['keeptags']}<select name='leave' class="select_normal"><option value='1'>{$lang['_yes']}</option><option value='0' selected="selected">{$lang['_no']}</option></select></div>
+		</div>
+	<elseif="$action == 'stickorcancel'">
+		<div class="item_list">
+			<select name='stick_to_forumid' class="select_normal">{$forums_info}</select>
+			<label><input type='checkbox' name='cancel_stick' value='1' class='input_normal' />{$lang['cancel_stick']}</label>
+		</div>
+	<elseif="$action == 'deletethreads'">
+		<div class="item_list">{$lang['deletepmusers']}
+			<select name='deletepmusers' class="select_normal">
+				<option value='1' selected="selected">{$lang['_yes']}</option>
+				<option value='0'>{$lang['_no']}</option>
+			</select>
+		</div>
+		<div class="item_list">{$lang['deletepostreason']}:<input type='text' size='50' name='deletereason' value='' class='input_normal' /></div>
+	<elseif="$action == 'dospecialtopic'">
+		<div class="item_list">{$lang['setspecialtopicto']}
+			<select name='st_id' class="select_normal">
+			<foreach="$specialtopic AS $val">
+			<option value="{$val}"{$special_selected[$val]}>{$forumsspecial[$val]['name']}</option>
+			</foreach>
+			</select>
+		</div>
+	<elseif="$action == 'commend_thread'">
+		<div class="item_list">{$lang['commend_thread_exp']} <input type='text' size='10' maxlength='3' name='commend_exp' value='1' class='input_normal' /></div>
+	</if>
+	<div class="item_list" align="center">
+		<input type="button" name="submit_btn" value=" {$lang['doupdate']} " class="button_normal" onclick="ajax_submit_form('confirm_operate_form','', 'tid');" />
+		<input type="button" name="reset_btn" value=" {$lang['_cancel']} " class="button_normal"  onclick="hideElement('operation_pannel');" />
+	</div>
+	<div class="op_list">
+		<ul>
+			<foreach="$thread AS $data">
+			<li class="item_list">
+				<input type='checkbox' name='tid[{$data['tid']}]' value='{$data['tid']}' checked="checked" />&nbsp;<strong>{$data['title']}</strong>
+			</li>
+			</foreach>
+		</ul>
+	</div>
+</form>

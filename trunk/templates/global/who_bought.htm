@@ -1,0 +1,42 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"> 
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml"> 
+<head> 
+<meta http-equiv="content-type" content="text/html; charset=utf-8" /> 
+<meta name="keywords" content="{$bboptions['bbtitle']},MolyX,board,bbs,blog,forum,php,mysql" />
+<meta name="description" content="{$bboptions['bbtitle']} - Powered By MolyX.com" />
+<title> {$pagetitle} - Powered By MolyX.com </title>
+{CACHE_CSS}
+</head>
+<body>
+<div style='padding:6px'>
+<table width='100%' cellpadding='4' cellspacing='1' class='ttable'>
+<tbody>
+<tr> 
+<td class='thead'>{$lang['whobuypost']}</td>
+</tr>
+<if="$errmsg">
+  <tr>
+      <td align='center' class='row1'>
+{$errmsg}
+</td>
+  </tr>
+<elseif="count($buyers)==0">
+    <tr>
+        <td align='center' class='row1'>
+{$lang['nouserbuy']}
+</td>
+    </tr>
+<else>
+    <foreach="$buyers AS $thisman">
+      <tr>
+        <td align='center' class='row1'>{$thisman}</td>
+      </tr>
+    </foreach>
+    <tr>
+      <td align='center' class='row2'>{$lang['allbuyers']}</td>
+    </tr>
+</if>
+</tbody></table>
+</div>
+</body>
+</html>

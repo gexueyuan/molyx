@@ -1,0 +1,44 @@
+{ads:footer,$forum['id']}
+<div id='footer' class="ttable">
+	<div class='copyright' style='float:right;'>
+		<a href="http://www.hogesoft.com" target="_blank"><img class="inline" src="images/<#IMAGE#>/hoge.jpg" border="0" alt="Hoge Soft" /></a>
+		<a href="#"><img class="inline" src="images/<#IMAGE#>/xregion.jpg" border="0" alt="X Region" /></a>
+		<div>{debug}&nbsp;{CRON}</div>
+	</div>
+	<div class="panel">
+	<if="$bboptions['hometitle']">
+	<a href='{$bboptions['homeurl']}'>{$bboptions['hometitle']}</a>&nbsp;|&nbsp;
+	</if>
+	<if="$bboptions['showprivacy']">
+		<if="$bboptions['privacyurl']">
+		<a href="{$bboptions['privacyurl']}">{$bboptions['privacytitle']}</a>&nbsp;|&nbsp;
+		<else>
+		<a href="misc.php{sessionurl}do=privacy">{$bboptions['privacytitle']}</a>&nbsp;|&nbsp;
+		</if>
+	</if>
+	<a href="./wap/index.php">WAP</a>&nbsp;|&nbsp;<a href="./archive/index.php">{$lang['_archive']}</a>
+	<form id="forum_foot_form" action="{scriptpath}" method="post">
+	<select name="lang" onchange='submit()' class="select_normal">
+	{lang_list}
+	</select>
+	<select id="forum_styleid" name="styleid" onchange='submit()' class="select_normal">
+	{style_list}
+	</select>
+	<input type='hidden' name='s' value='{sessionid}' />
+	</form>
+	</div>
+	<div>
+	<div class='desc'>
+		<if="$bboptions['miibeian']">
+		<a href='http://www.miibeian.gov.cn' target='_blank'>{$bboptions['miibeian']}</a>&nbsp;
+		</if>
+		{$lang['_alltimesare']}{$bbuserinfo['timezone']}. {$lang['_timenowis']}: {$bbuserinfo['timenow']}
+		<p>Powered by <strong><a href='http://www.molyx.com' target="_blank">MolyX&nbsp;{$bboptions['version']}</a></strong></p>
+	</div>
+	</div>
+</div>
+</div>
+{dbexplain}
+{echo_foot_elements}
+</body>
+</html>{end_cache_page}{finish}

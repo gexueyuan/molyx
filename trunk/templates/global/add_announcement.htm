@@ -1,0 +1,68 @@
+{template:header}
+<form action="announcement.php" method="post" name="mxbform" onsubmit="mxeGet();">
+<input type="hidden" name="s" value="{sessionid}" />
+<input type="hidden" name="do" value="updateannouncement" />
+<input type="hidden" name="ref" value="{$_INPUT['ref']}" />
+<input type="hidden" name="id" value="{$announce['id']}" />
+<if="$errors">
+<div id='errors'>
+	<h3>{$lang['posterrors']}</h3>
+	<p>{$errors}</p>
+</div>
+</if>
+<div class="separate"><!-- separate block --></div>
+<table width='100%' cellpadding='4' cellspacing='1' class='ttable'>
+<caption class='tcat'>
+	{$button}
+</caption>
+<tbody class="tbody">
+	<tr class='item_list'>
+		<td>{$lang['annoucetitle']}</td>
+		<td><input type="text" size='40' maxlength='50' name="title" value="{$announce['title']}" class='input_normal' /></td>
+	</tr>
+	<tr class='item_change'>
+		<td colspan="2">{$lang['startdate']} / {$lang['enddate']}</td>
+	</tr>
+	<tr class='item_list'>
+		<td class="desc">{$lang['startdatedesc']}</td>
+		<td><input type="text" size="15" name="startdate" id="startdate" value="{$announce['startdate']}" class='input_normal' onfocus="showCalendar('startdate', 'y-mm-dd');" /><span class="desc">({$lang['format']}: YYYY-MM-DD)</span></td>
+	</tr>
+	<tr class='item_list'>
+		<td class="desc">{$lang['enddatedesc']}</td>
+		<td><input type="text" size="15" name="enddate" id="enddate" value="{$announce['enddate']}" class='input_normal' onfocus="showCalendar('enddate', 'y-mm-dd');" /><span class="desc">({$lang['format']}: YYYY-MM-DD)</span></td>
+	</tr>
+	<tr class='item_change'>
+		<td colspan="2">{$lang['announceforum']}</td>
+	</tr>
+	<tr class='item_list' valign='top'>
+		<td class="desc">{$lang['announceforumdesc']}</td>
+		<td><select class="dropdown" multiple="multiple" size="10" name="announceforum[]">{$forum_html}</select></td>
+	</tr>
+	<tr class='item_change'>
+		<td colspan="2">{$lang['announcecontent']}</td>
+	</tr>
+	<tr class='item_list' valign='top'>
+		<td>
+			<fieldset>
+			<legend>{$lang['option']}</legend>
+				<ul>
+					<li><label for='op_active'><input type="checkbox" name="active" id="op_active" value="1" {$announce['active_checked']} />&nbsp;{$lang['enableannounce']}</label></li>
+					<li><label for='op_allowsmile'><input type="checkbox" name="allowsmile" id="op_allowsmile" value="1" checked="checked" />&nbsp;{$lang['allowsmilies']}</label></li>
+					<li><label for='op_allowbbcode'><input type="checkbox" name="allowbbcode" id="op_allowbbcode" value="1" checked="checked" />&nbsp;{$lang['allowbbcode']}</label></li>
+					<li><label for='op_parseurl'><input type="checkbox" name="parseurl" id="op_parseurl" value="1" checked="checked" />&nbsp;{$lang['parseurl']}</label></li>
+					<li><label for='op_allowhtml'><input type="checkbox" name="allowhtml" id="op_allowhtml" value="1" {$announce['allowhtml']} />&nbsp;{$lang['allowhtml']}</label></li>
+				</ul>
+				<input type="hidden" name="checkurl" value="0" />
+			</fieldset>
+		</td>
+		<td><textarea class="textarea" style="height:400px;width:600px;" name="post" tabindex="3" rows="" cols="">{$announce['pagetext']}</textarea></td>
+	</tr>
+	<tr class='item_list'>
+	<td width="180">&nbsp;</td>
+	<td>
+		<input type="submit" accesskey="s" value="{$button}" class='input_big' />
+	</td>
+	</tr>
+</tbody></table>
+</form>
+{template:footer}

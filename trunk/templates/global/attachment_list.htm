@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xml:lang="en" lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="keywords" content="{$bboptions['bbtitle']},MolyX,bbs,board,blog,forum,php,mysql" />
+<meta name="description" content="{$bboptions['bbtitle']} - Powered By MolyX.com" />
+<meta http-equiv="Pragma" content="no-cache" />
+<meta http-equiv="Expires" content="-1" />
+<meta http-equiv="Cache-Control" content="no-cache" />
+<title> {$pagetitle} - Powered By MolyX.com</title>
+{CACHE_CSS}
+<script language="JavaScript" type="text/javascript" src='{lang:global.js}'></script>
+<script type="text/javascript" src='./scripts/global.js'></script>
+</head>
+<body>
+<table width='100%' cellpadding='4' cellspacing='1' class='ttable'>
+<tbody>
+<tr>
+<td colspan='4' class='thead'>
+{$lang['_attachment']}: {$thread[title]}
+<if="$hashidden">
+&nbsp;&nbsp;<span style="color:#ff0021;">({$lang['posthashidden']})</span>
+</if>
+</td>
+</tr>
+<tr class='tcat'>
+  <th width='2%'>&nbsp;</th>
+  <th width='73%' nowrap="nowrap"><strong>{$lang['_attachment']}</strong></th>
+  <th width='5%' nowrap="nowrap"><strong>{$lang['_filesize']}</strong></th>
+  <th width='15%' nowrap="nowrap"><strong>{$lang['_postid']}</strong></th>
+</tr>
+<if="$canviewattach">
+<foreach="$attach AS $data">
+<tr>
+<td align='center' class='row2'><img src='images/{$data['image']}' border='0' alt='{$lang['_attachment']}' /></td>
+<td class='row1'>
+<if="$data['hidden']">
+<a href='attachment.php{sessionurl}id={$data['attachmentid']}&amp;u={$data['userid']}&amp;extension={$data['extension']}&amp;attach={$data['location']}&amp;filename={$data['filename']}&amp;attachpath={$data['attachpath']}&tid={$data['threadid']}' target='_blank'>{$data['shortname']}</a>
+<div class='desc'>( {$lang['_clicknums']}: {$data['counter']} )<br />( {$lang['postat']}: {$data['dateline']} )</div>
+<else>
+{$lang['_uploadabouthidden']}
+</if>
+</td>
+<td align='center' class='row2'>{$data['filesize']}</td>
+<td class='row1' align='center'>
+<a href='redirect.php{sessionurl}t={$data['tid']}&amp;goto=findpost&amp;p={$data['pid']}'>{$data['pid']}</a></td>
+</tr>
+</foreach>
+<else>
+<td colspan="4">{$lang['canntviewath']}</td>
+</if>
+</tbody></table>
+</body>
+</html>

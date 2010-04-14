@@ -1,0 +1,68 @@
+<?php
+class CUpdate
+{
+	var		$UpdaterVer		= 1.0;
+	var		$OldVersion		= '2.1';
+	var		$NewVersion		= '2.1.1';
+	var		$Error			= '';
+	var		$Author			= 'Molyx Development Team';
+	var		$Date			= '2005-01-28';
+	var		$Notes			= '';
+	
+	function AllowUpdate()
+	{
+		global $DB;
+		$version = $DB->query_first("SELECT defaultvalue FROM ".TABLE_PREFIX."setting WHERE varname='version'");
+		
+		if( strtolower($version['defaultvalue']) != strtolower($this->OldVersion) )
+			return 0;
+		else
+			return 1;
+	}
+	
+	function SetError($errmsg)
+	{
+		$this->Error = $errmsg;
+	}
+	
+	function GetError()
+	{
+		return $this->Error;
+	}
+
+	/* the actual update.
+	 *
+	 * RETURN VALUES
+	 *
+	 *	1 - update failed (set error with $this->SetError() )
+	 *	0 - update sucessfull
+	 */
+	function RunUpdate()
+	{
+		global $DB;
+		$DB->return_die = 1;
+		$DB->query_unbuffered("DELETE FROM ".TABLE_PREFIX."templategroup WHERE styleid != 1");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."templategroup DROP templatecache");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."templategroup DROP styleid");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."templategroup ADD noheader TINYINT( 1 ) UNSIGNED DEFAULT '0' NOT NULL");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."forum ADD paypoints VARCHAR(10) NOT NULL DEFAULT ''");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue=2 WHERE groupid=18 AND defaultvalue=1");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue=3 WHERE groupid=18 AND defaultvalue=2");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue=4 WHERE groupid=18 AND defaultvalue=3");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue=5 WHERE groupid=18 AND defaultvalue=4");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue=6 WHERE groupid=18 AND defaultvalue=5");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue=7 WHERE groupid=18 AND defaultvalue=6");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue=8 WHERE groupid=18 AND defaultvalue=7");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue=9 WHERE groupid=18 AND defaultvalue=8");
+		$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '银行开放状态', '是否开放银行', 18, 'yes_no', 'openbank', '', '1', '', 1, 0)");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."templategroup SET noheader=1 WHERE title IN ('header', 'footer', 'redirect', 'attachment', 'showthread_poll', 'misc_icons', 'printthread')");
+		$DB->query("ALTER TABLE ".TABLE_PREFIX."thread DROP INDEX forumid, ADD INDEX forumid ( forumid , sticky, lastpost )");
+		$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, title, templategroup, noheader) VALUES ('', 'misc_rss', '<<<misc_rss>>>', 0)");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue='".$this->NewVersion."' WHERE varname='version'");
+
+		$DB->return_die = 0;
+		return 0;
+	}	
+}
+
+?>

@@ -1,0 +1,25 @@
+{template:wap_header}
+<card title="{$posttitle}" id="main">
+<if="$show['errors']">
+<p align='center'>
+{$message}
+</p>
+</if>
+<if="$isthread">
+    <p>{$lang['title']}:<input name="title" value="{$_POST['title']}" maxlength="60" type="text"  /></p>
+</if>
+    <p>{$lang['content']}:<input name="post" value="{$_POST['post']}" maxlength="200" type="text" /></p>
+    <p><anchor>{$posttitle}
+      <go href="post.php{sessionurl}do=update" method="post">
+        <postfield name="title" value="$(title)" />
+        <postfield name="post" value="$(post)" />
+        <postfield name="posthash" value="{$posthash}" />
+        <postfield name="userhash" value="{$userhash}" />
+        <postfield name="t" value="{$_INPUT['t']}" />
+        <postfield name="f" value="{$_INPUT['f']}" />
+        <postfield name="reffer" value="{$_GET['reffer']}" />
+      </go>
+    </anchor>
+    </p>
+    <p><a href='index.php{sessionurl}' title='{$lang['returnindex']}'>{$lang['returnindex']}</a></p>
+{template:wap_footer}

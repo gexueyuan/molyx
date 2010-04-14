@@ -1,0 +1,243 @@
+<?php
+class CUpdate
+{
+	var		$UpdaterVer		= 1.0;
+	var		$OldVersion		= '2.0';
+	var		$NewVersion		= '2.1';
+	var		$Error			= '';
+	var		$Author			= 'Molyx Development Team';
+	var		$Date			= '2005-01-15';
+	var		$Notes			= '';
+	
+	function AllowUpdate()
+	{
+		global $DB;
+		$version = $DB->query_first("SELECT defaultvalue FROM ".TABLE_PREFIX."setting WHERE varname='version'");
+		
+		if( strtolower($version['defaultvalue']) != strtolower($this->OldVersion) )
+			return 0;
+		else
+			return 1;
+	}
+	
+	function SetError($errmsg)
+	{
+		$this->Error = $errmsg;
+	}
+	
+	function GetError()
+	{
+		return $this->Error;
+	}
+
+	/* the actual update.
+	 *
+	 * RETURN VALUES
+	 *
+	 *	1 - update failed (set error with $this->SetError() )
+	 *	0 - update sucessfull
+	 */
+	function RunUpdate()
+	{
+		global $DB;
+		$DB->return_die = 1;
+		$DB->query("SELECT filename FROM ".TABLE_PREFIX."cron WHERE filename = 'bankloancheck.php'");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."cron VALUES ('', '贷款清查及欠款强制收回', 'bankloancheck.php', '', -1, -1, 4, -1, '', 1, '清查当日贷款到期未还用户，强制收回贷款，有必要的话变卖道具、积分进行偿还，如仍不够，个人破产，封禁用户', 1) ");
+		}
+
+		$DB->query("SELECT filename FROM ".TABLE_PREFIX."cron WHERE filename = 'bankpayinterest.php' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."cron VALUES ('', '支付存款利息', 'bankpayinterest.php', '', -1, -1, 5, -1, '', 1, '按照日利率向所有帐户状态正常的存款用户支付每日存款利息', 1);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankcost' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '开户费用', '在银行中开户所需费用，现金不足者不能创建银行帐户。', 18, 'input', 'bankcost', '', '50', '', 2, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankinterest' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '存款利率', '银行存款的日利率，当用户处于贷款状态时不计算利息。计算单位：‰', 18, 'input', 'bankinterest', '', '12', '', 3, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankexcost' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '转帐手续费', '用户之间转帐收取的手续费。计算单位：‰', 18, 'input', 'bankexcost', '', '20', '', 4, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankexcostskip' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '转帐手续费补充', '当一次性转帐数额小于本设置值时，不收取转帐手续费。', 18, 'input', 'bankexcostskip', '', '100', '', 5, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankloanonoff' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '贷款功能', '是否启用贷款功能？', 18, 'yes_no', 'bankloanonoff', '', '1', '', 12, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankloantimelimit' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '贷款偿还期额', '自贷款当日起，直至偿还贷款的时间限额，可用半角逗号提供用户不同的贷款计划，同时在“贷款利息”中填写不同的贷款利率。计算单位：天', 18, 'input', 'bankloantimelimit', '', '1,5,10,15,30', '', 18, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankloaninterest' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '贷款利息', '偿还贷款时所计算的利息，必须对应贷款期额分别写出偿款利率，否则将以第一个利率计算。计算单位：‰', 18, 'input', 'bankloaninterest', '', '130,150,180,220,300', '', 19, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'banknewthread' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '发表新帖的奖励', '用户发表新帖时奖励的金钱数量。', 18, 'input', 'banknewthread', '', '2', '', 6, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankreplythread' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '回复帖子的奖励', '用户回复一个主题时奖励的金钱数量。', 18, 'input', 'bankreplythread', '', '1', '', 7, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankquint' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '设置为精华的奖励', '当一个用户的帖子被设置为“精华帖”时奖励的金钱数量。', 18, 'input', 'bankquint', '', '20', '', 8, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankloanamount' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '贷款信誉额', '每个用户可以贷款的额度。在下列情况时此设置无效：1、选择了“分组信誉机制”；2、游客和等待验证用户没有信誉额；', 18, 'input', 'bankloanamount', '', '2000', '', 17, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankloanusegroup' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '使用分组信誉机制', '根据不同用户组设置相应信誉额上限。具体设置请到“用户组管理”面板进行操作。', 18, 'yes_no', 'bankloanusegroup', '', '0', '', 16, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankloanreglimit' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '申请贷款的最低注册时间', '会员自注册成功多久后可以申请贷款。计算单位：小时', 18, 'input', 'bankloanreglimit', '', '48', '', 13, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankloanpostlimit' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '申请贷款的最低发贴要求', '会员需达到多少发贴量后方可申请贷款。', 18, 'input', 'bankloanpostlimit', '', '100', '', 14, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankcurrency' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '货币单位', '用于计算货币的单位名称。', 18, 'input', 'bankcurrency', '', '金币', '', 1, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankpbban' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '破产封ID惩罚', '如果用户因为某些原因导致破产，则封禁ID作为惩罚。计算单位：天', 18, 'input', 'bankpbban', '', '1', '', 20, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankpbrerate' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '强制执行固定资产评估水平', '当用户在偿还贷款之日仍未偿还，则由银行进行强制执行。强制执行过程中，如用户的资金总额不足以偿还贷款和利息，则变卖所有固定资产进行偿还。此设置为资产评估水瓶，即物品按市场价格的折价率。计算单位：%', 18, 'input', 'bankpbrerate', '', '80', '', 21, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankrepsellprice' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '积分卖出价', '用户变卖积分为现金的价格。', 18, 'input', 'bankrepsellprice', '', '15000', '', 11, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'reducetmoney' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '删除主题惩罚', '删除一个主题扣除的金钱数量。', 18, 'input', 'reducetmoney', '', '20', '', 24, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'reducepmoney' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '删除帖子惩罚', '删除一个帖子扣除的金钱数量。', 18, 'input', 'reducepmoney', '', '5', '', 25, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankrepprice' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '积分买入价', '用户以现金购买积分的价格。单位：元/1积分', 18, 'input', 'bankrepprice', '', '20000', '', 10, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankpbreppanish' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '强制执行的积分处罚', '如果用户贷款被强制收回或资产被强制执行，扣除多少积分作为惩罚？', 18, 'input', 'bankpbreppanish', '', '10', '', 22, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankloanreplimit' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '申请贷款的最低积分要求', '积分低于此设置的用户不能申请贷款。', 18, 'input', 'bankloanreplimit', '', '-20', '', 15, 0);");
+		}
+
+		$DB->query("SELECT settingid FROM ".TABLE_PREFIX."setting WHERE varname = 'bankpbclean' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."setting (settingid, title, description, groupid, type, varname, value, defaultvalue, dropextra, displayorder, addcache) VALUES ('', '破产后银行清产费用', '用户破产后需要在银行清产才能再次申请帐户的费用。', 18, 'input', 'bankpbclean', '', '1000', '', 23, 0);");
+		}
+
+		$DB->query("SELECT groupid FROM ".TABLE_PREFIX."settinggroup WHERE groupid = '18' LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."settinggroup (groupid, title, description, groupcount) VALUES (18, '', '', 22);");
+		}
+
+		$DB->query("SELECT templategroupid FROM ".TABLE_PREFIX."templategroup WHERE title = 'mod_money' AND styleid=1 LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, styleid, title, templategroup, templatecache) VALUES ('', 1, 'mod_money', '<<<mod_menu>>>\r\n<<<mod_money>>>\r\n<<<mod_end>>>', '');");
+		}
+
+		$DB->query("SELECT templategroupid FROM ".TABLE_PREFIX."templategroup WHERE title = 'bank_main' AND styleid=1 LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, styleid, title, templategroup, templatecache) VALUES ('', 1, 'bank_main', '<<<bank_menu>>>\r\n<<<bank_main>>>\r\n<<<bank_end>>>', '');");
+		}
+
+		$DB->query("SELECT templategroupid FROM ".TABLE_PREFIX."templategroup WHERE title = 'bank_loan' AND styleid=1 LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, styleid, title, templategroup, templatecache) VALUES ('', 1, 'bank_loan', '<<<bank_menu>>>\r\n<<<bank_main>>>\r\n<<<bank_loan>>>\r\n<<<bank_end>>>', '');");
+		}
+
+		$DB->query("SELECT templategroupid FROM ".TABLE_PREFIX."templategroup WHERE title = 'bank_purge' AND styleid=1 LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, styleid, title, templategroup, templatecache) VALUES ('', 1, 'bank_purge', '<<<bank_menu>>>\r\n<<<bank_purge>>>\r\n<<<bank_end>>>', '');");
+		}
+
+		$DB->query("SELECT templategroupid FROM ".TABLE_PREFIX."templategroup WHERE title = 'mod_deletethread' AND styleid=1 LIMIT 1");
+		if(!$DB->num_rows()) {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."templategroup (templategroupid, styleid, title, templategroup, templatecache) VALUES ('', 1, 'mod_deletethread', '<<<mod_menu>>>\r\n<<<mod_deletethread>>>\r\n<<<mod_end>>>', '');");
+		}
+
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."post ADD reppost varchar(100) NOT NULL default '';");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."thread ADD allrep tinyint(5) NOT NULL default '0';");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD cash INT(15) NOT NULL default '0';");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD bank INT(15) NOT NULL default '0';");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD mkaccount INT(10) NOT NULL default '0';");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD reputation SMALLINT(5) NOT NULL default '0';");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD INDEX (bank);");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."user ADD INDEX (mkaccount);");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."usergroup ADD canshow tinyint(1) unsigned NOT NULL default '1';");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."usergroup ADD canshow tinyint(1) unsigned NOT NULL default '1';");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."usergroup ADD bankloanlimit INT(15) NOT NULL default '0';");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."usergroup ADD canmodrep VARCHAR( 255 ) NOT NULL;");
+		$DB->query_unbuffered("ALTER TABLE ".TABLE_PREFIX."usergroup CHANGE canmodrep canmodrep VARCHAR( 255 ) NOT NULL;");
+
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."usergroup SET canmodrep='1,3,4,5,6,7' WHERE usergroupid=4");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."usergroup SET canmodrep='1,3,4,5,6,7' WHERE usergroupid=6");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."usergroup SET canmodrep='1,3,4,5,6' WHERE usergroupid=7");
+		$DB->query_unbuffered("CREATE TABLE ".TABLE_PREFIX."userextra (
+					id MEDIUMINT(8) NOT NULL,
+					exlog MEDIUMTEXT NOT NULL,
+					loanreturn INT(10) NOT NULL,
+					loanamount INT(15) NOT NULL,
+					loaninterest SMALLINT(5) NOT NULL,
+					PRIMARY KEY (id)
+				);");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."bbcode  SET bbcodereplacement='<div align=\'center\'><OBJECT CLASSID=\'CLSID:22D6F312-B0F6-11D0-94AB-0080C74C7E95\' CODEBASE=\'http://activex.microsoft.com/activex/controls/mplayer/en/nsmp2inf.cab#Version=6,0,02,902\' WIDTH=\'500\' HEIGHT=\'400\'><PARAM NAME=\'ShowStatusBar\' value=\'true\'><PARAM NAME=\'FileName\' VALUE=\'{content}\'><PARAM NAME=\'ShowControls\' VALUE=\'true\'><PARAM NAME=\'AutoStart\' VALUE=\'false\'><EMBED SRC=\'{content}\' TYPE=\'application/x-mplayer2\' PLUGINSPAGE=\'http://www.microsoft.com/Windows/MediaPlayer/\' WIDTH=\'500\' HEIGHT=\'400\' AUTOSTART=\'false\'></EMBED></OBJECT><br /><a href={content} target=\'_blank\'>点此下载</a></div>' WHERE bbcodetag='movie'");
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."bbcode  SET bbcodereplacement='<div align=\'center\'><OBJECT CLASSID=\'clsid:CFCDAA03-8BE4-11cf-B84B-0020AFBBCCFA\' WIDTH=\'375\' HEIGHT=\'100\'><PARAM NAME=\'src\' VALUE=\'{content}\'><PARAM NAME=\'loop\' value=\'true\'><PARAM NAME=\'controls\' VALUE=\'All\'><PARAM NAME=\'console\'  VALUE=\'one\'><EMBED SRC=\'{content}\' WIDTH=\'375\' HEIGHT=\'30\' NOJAVA=\'true\' CONTROLS=\'ControlPanel\' CONSOLE=\'one\'></EMBED></OBJECT><br /><a href=\'{content}\' target=\'_blank\'>点此下载</a><br /></div>' WHERE bbcodetag='music'");
+		$DB->query("SELECT bbcodeid FROM ".TABLE_PREFIX."bbcode WHERE bbcodetag= 'real' LIMIT 1");
+		if($DB->num_rows()) {
+			$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."bbcode  SET bbcodereplacement='<div align=\'center\'><OBJECT CLASSID=\'clsid:CFCDAA03-8BE4-11cf-B84B-0020AFBBCCFA\' WIDTH=\'500\' HEIGHT=\'400\'><PARAM NAME=\'src\' VALUE=\'{content}\'><PARAM NAME=\'controls\' VALUE=\'ImageWindow\'><PARAM NAME=\'console\' VALUE=\'one\'><PARAM NAME=\'autostart\' VALUE=\'false\'><EMBED SRC=\'{content}\' WIDTH=\'500\' HEIGHT=\'400\' NOJAVA=\'true\' CONTROLS=\'All\' CONSOLE=\'one\'></EMBED></OBJECT><br /><a href=\'{content}\' target=\'_blank\'>点此下载</a><br /></div>' WHERE bbcodetag='real'");
+		} else {
+			$DB->query_unbuffered("INSERT INTO ".TABLE_PREFIX."bbcode (bbcodeid, title, description, bbcodetag, bbcodereplacement, twoparams, bbcodeexample, imagebutton) VALUES ('', '[REAL]', '[real] 标签允许贴各种RM格式的电影。', 'real', '<div align=\'center\'><OBJECT CLASSID=\'clsid:CFCDAA03-8BE4-11cf-B84B-0020AFBBCCFA\' WIDTH=\'500\' HEIGHT=\'400\'><PARAM NAME=\'src\' VALUE=\'{content}\'><PARAM NAME=\'controls\' VALUE=\'ImageWindow\'><PARAM NAME=\'console\' VALUE=\'one\'><PARAM NAME=\'autostart\' VALUE=\'false\'><EMBED SRC=\'{content}\' WIDTH=\'500\' HEIGHT=\'400\' NOJAVA=\'true\' CONTROLS=\'All\' CONSOLE=\'one\'></EMBED></OBJECT><br /><a href=\'{content}\' target=\'_blank\'>点此下载</a><br /></div>', 0, '[rm]http://website/movie.rm[/rm]', 'images/editor/real.gif');");
+		}
+		$DB->query_unbuffered("UPDATE ".TABLE_PREFIX."setting SET defaultvalue='".$this->NewVersion."' WHERE varname='version'");
+		$DB->return_die = 0;
+		return 0;
+	}	
+}
+
+?>

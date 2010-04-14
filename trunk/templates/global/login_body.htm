@@ -1,0 +1,77 @@
+<script language='JavaScript' type="text/javascript">
+//<![CDATA[
+function validate() {
+	var CheckL = document.login;
+	if (CheckL.username.value && CheckL.password.value)  return true;
+	else {
+		alert("{$lang['requireunp']}");
+		return false;
+	}
+}
+//]]>
+</script>
+<if="$show['errors']">
+<div id='errors'>
+	<h3>{$lang['loginerrors']}</h3>
+	<p>{$message}</p>
+</div>
+</if>
+<form action="login.php" method="post" name='login' onsubmit='return validate()'>
+<input type='hidden' name='s' value="{sessionid}" />
+<input type='hidden' name='do' value="login" />
+<input type='hidden' name='referer' value="{$referer}" />
+<div class="separate"><!-- separate block --></div>
+<table width="100%" border="0" cellspacing="1" cellpadding="0" class='ttable'>
+<caption class='tcat'>
+<span>{$lang['logininfo']}<a href='register.php?do=lostpassword'>{$lang['forgetpassword']}</a></span>
+{$lang['login']}
+</caption>
+<tbody class="tbody">
+	<tr class="item_change">
+		<td align="right" width='300'>
+			<input type="radio" name="logintype" id="type_username" value="1" checked="checked" /><label for="type_username">{$lang['type_username']}</label>
+			<input type="radio" name="logintype" id="type_userid" value="2" /><label for="type_userid">{$lang['type_userid']}</label>
+			<input type="radio" name="logintype" id="type_email" value="3" /><label for="type_email">{$lang['type_email']}</label>
+		</td>
+		<td>
+			<input type='text' size='25' maxlength='64' name='username' class='input_normal' tabindex="1" />
+		</td>
+	</tr>
+	<tr class="item_list">
+		<td align="right">
+			{$lang['password']}
+		</td>
+		<td>
+			<input type='password' size='25' name='password' class='input_normal' tabindex="2" />
+		</td>
+	</tr>
+	<tr class="item_change">
+		<td align="right">
+			{$lang['cookiedate']}
+		</td>
+		<td>
+			<input type="radio" name="cookiedate" id="oneyear" value="31536000" /><label for="oneyear">{$lang['oneyear']}</label>
+			<input type="radio" name="cookiedate" id="onemonth" value="2592000" checked="checked" /><label for="onemonth">{$lang['onemonth']}</label>
+			<input type="radio" name="cookiedate" id="oneday" value="86400" /><label for="oneday">{$lang['oneday']}</label>
+			<input type="radio" name="cookiedate" id="onehour" value="3600" /><label for="onehour">{$lang['onehour']}</label>
+			<input type="radio" name="cookiedate" id="browser" value="0" /><label for="browser">{$lang['browser']}</label>
+		</td>
+	</tr>
+	<tr class="item_list">
+		<td align="right">
+			{$lang['invisiblelogin']}
+		</td>
+		<td>
+			<input type="radio" name="invisible" id="in_yes" value="1" /><label for="in_yes">{$lang['_yes']}</label>
+			<input type="radio" name="invisible" id="in_no" value="0" checked="checked" /><label for="in_no">{$lang['_no']}</label>
+		</td>
+	</tr>
+	<tr class="item_change">
+		<td>&nbsp;</td>
+		<td>
+			<input name='submit' value="{$lang['login']}" type="submit" tabindex="3" class="input_big"/>
+		</td>
+	</tr>
+</tbody>
+</table>
+</form>

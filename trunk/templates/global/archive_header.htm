@@ -1,0 +1,63 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta name="robots" content="index,follow" />
+<title> {$pagetitle} - Powered by MolyX</title>
+<meta name="keywords" content="{$bboptions['bbkeywords']}" />
+<meta name="description" content="{$bboptions['bbdescription']}" />
+<meta name="generator" content="MolyX {$bboptions['version']}" />
+<meta name="author" content="HOGE Software Co., Ltd." />
+<meta name="copyright" content="2004-2007 HOGE Software Co., Ltd." />
+<meta name="MSSmartTagsPreventParsing" content="True" />
+<link rel="shortcut icon" href="favicon.ico" />
+<link rel="archives" title="{$bboptions['bbtitle']}" href="{$bboptions['bburl']}/archive/" />
+<style type="text/css">
+<!--
+	* { margin:0; padding:0; }
+	html { background:#fff; color:#333; font:12px/1.6em 'Microsoft YaHei',tahoma,verdana,arial,sans-serif; cursor:default; }
+	input, textarea, select, button { font:12px/1.6em 'Microsoft YaHei',tahoma,verdana,arial,sans-serif; }
+	body { padding:10px; line-height:1.8; }
+	img { border:none; }
+	hr { visibility:hidden; display:none; }
+	h1, h2, h3, h4, h5, h6 { font-size:1.3em; display:inline; }
+	ul{ list-style-type:none; }
+	.wrapper { width:950px; padding:16px; border:1px solid silver; margin:auto; }
+	.desc { color:#888; font-weight:normal; }
+	.time { font-size:0.8em; color:#ccc; font-weight:normal; }
+	.desc { color:silver; font-size:0.8em; }
+	.largefont { text-align:left; font-size:1.2em; font-weight:bold; }
+	.post { border:1px solid silver; padding:1px; }
+	.postinfo { padding:4px; background:#efefef; }
+		.postinfo .time { float:right; }
+	.posttext { padding:4px; font-size:1.1em; }
+	#title { overflow:hidden; }
+		* html #title { height:1%; }
+		#title a { float:right; }
+	#navbar { overflow:hidden; background:#f8f8f8; border:1px solid silver; padding:4px; }
+		* html #navbar { height:1%; }
+		#navbar li { float:left; padding:1px 0 0 0; }
+		#navbar li a { padding:0 5px; }
+	#content { margin:8px 0; border:1px solid silver; font-size:1.1em; line-height:2; padding:4px 4px 4px 50px; }
+	#pages { text-align:left; font-weight:bold; font-size:1.1em; margin-bottom:4px; }
+	#copyright { color:#888; font-family:verdana,tahoma; text-align:center; font-size:0.8em; }
+-->
+</style>
+<title> {$pagetitle} - Powered by MolyX</title>
+</head>
+<body>
+<div class="wrapper">
+	<div id="title"><a href="{$reallink}">{$lang['fullversion']}</a><h1>{$full_version}</h1></div>
+	<hr />
+	<ul id="navbar">
+		<li><a href='{$bboptions['bburl']}/archive/index.php'>{$bboptions['bbtitle']}</a></li>
+		<if="is_array( $nav )">
+		<foreach="$nav as $n">
+			<if="$n">
+			<li>&raquo;{$n}</li>
+			</if>
+		</foreach>
+		</if>
+	</ul>
+	<hr />
+	<div id="pages">{$pagelink}</div>

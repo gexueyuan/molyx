@@ -1,0 +1,35 @@
+{template:wap_header}
+<card title="{$lang['pmcenter']}" id="pm">
+<if="$errors">
+<p align='center'>
+{$errors}
+</p>
+</if>
+<if="$showuser">
+    <p>{$lang['username']}:<input name="username" value="{$_INPUT['username']}" maxlength="60" type="text" /></p>
+</if>
+    <p>{$lang['title']}:<input name="title" value="{$_POST['title']}" maxlength="60" type="text"  /></p>
+    <p>{$lang['content']}:<input name="post" value="{$_POST['post']}" maxlength="200" type="text" /></p>
+    <p>{$lang['savecopy']}:<select name="savecopy">
+         <option value="0">{$lang['no']}</option>
+         <option value="1">{$lang['yes']}</option>
+       </select>
+    </p>
+    <p><anchor>
+{$lang['sendpm']}
+      <go href="pm.php{sessionurl}do=send" method="post">
+<if="$showuser">
+        <postfield name="username" value="$(username)" />
+<else>
+        <postfield name="u" value="{$user['id']}" />
+</if>
+        <postfield name="title" value="$(title)" />
+        <postfield name="post" value="$(post)" />
+        <postfield name="id" value="{$_INPUT['id']}" />
+       <postfield name="savecopy" value="$(savecopy)" />
+        <postfield name="posthash" value="{$posthash}" />
+      </go>
+    </anchor>
+    </p>
+    <p><a href='index.php{sessionurl}' title='{$lang['returnindex']}'>{$lang['returnindex']}</a></p>
+{template:wap_footer}

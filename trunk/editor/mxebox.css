@@ -1,0 +1,6 @@
+/* $Id$ */
+* { margin:0; padding:0; }
+html { background:#fff; color:#333; font:14px/1.6em tahoma,verdana,arial,sans-serif; }
+input, textarea, select, button { font:12px/1.6em tahoma,verdana,arial,sans-serif; }
+	*+html, *+html input, *+html textarea, *+html select, *+html button { font-family:'Microsoft YaHei',tahoma,verdana,arial,sans-serif; }
+body { margin:3px; border:0; line-height:normal; }

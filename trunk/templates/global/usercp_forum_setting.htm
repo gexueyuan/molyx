@@ -1,0 +1,109 @@
+{template:header}
+{template:usercp_menu}
+<div id="ucp_content">
+	<h3>{$lang['forumsetting']}</h3>
+	<form action="usercp.php" method="post">
+		<input type='hidden' name='s' value='{sessionid}' />
+		<input type='hidden' name='posthash' value='{$posthash}' />
+		<input type='hidden' name='do' value='dosetting' />
+		<if="$show['style']">
+		<em>{$lang['stylesetting']}</em>
+		<p class="desc">{$lang['stylesettingdesc']}</p>
+		<div class='ucp'>
+			{$lang['currentstyle']}:
+			{$select_style}
+		</div>
+		</if>
+		<em>{$lang['timezonesetting']}</em>
+		<p class="desc">{$lang['timezonesettingdesc']}</p>
+		<div class='ucp'>
+			{$lang['currenttimezone']}:
+			{$time_select}
+			<div class='ucp'>
+			<label for="dstonoff">
+				<input type='checkbox' id='dstonoff' name='options[dstonoff]' value='1' {$userinfo['dstonoff']} />
+				{$lang['dstsetting']}<div class="desc">{$lang['dstsettingdesc']}</div>
+			</label>
+			</div>
+		</div>
+		<em>{$lang['showsetting']}</em>
+		<div class='ucp'>
+			{$lang['mxeditor']}
+			<select name='mxeditor' onchange='changeMod(this.value);' class='select_normal' >
+				<option value='2'>{$lang['selectmod']}</option>
+				<option value='0'>{$lang['bbcode']}</option>
+				<option value='1'>{$lang['wysiwyg']}</option>
+			</select>
+			<div id='mxeditorinfo' style='position:absolute'></div>
+		</div>
+		<div class='ucp'>
+			{$lang['perpageshowpost']}
+			<select name='postpage' class='select_normal' >
+				{$post_select}
+			</select>
+		</div>
+		<div class='ucp'>
+			{$lang['perpageshowthread']}
+			<select name='threadpage' class='select_normal' >
+				{$thread_select}
+			</select>
+		</div>
+		<em>{$lang['pmsetting']}</em>
+		<div class='ucp'>
+			<ul>
+				<li>
+					<input type='checkbox' name='options[usepm]' value='1' {$userinfo['usepm']} />
+					{$lang['usepm']}
+					<div class="desc">{$lang['usepmdesc']}</div>
+				</li>
+				<li>
+					<input type='checkbox' name='options[pmpop]' value='1' {$userinfo['pmpop']} />
+					{$lang['pmpop']}
+				</li>
+				<li>
+					<input type='checkbox' name='options[emailonpm]' value='1' {$userinfo['emailonpm']} />
+					{$lang['emailonpm']}
+					<div class="desc">{$lang['emailonpmdesc']}</div>
+				</li>
+				<li>
+					<input type='checkbox' name='options[pmover]' value='1' {$userinfo['pmover']} />
+					{$lang['pmover']}
+					<div class="desc">{$lang['pmoverdesc']}</div>
+				</li>
+				<li>
+					<input type='checkbox' name='options[pmwarn]' value='1' {$userinfo['pmwarn']} />
+					{$lang['pmwarn']}
+					<div class="desc">{$lang['pmwarndesc']}</div>
+				</li>
+				<li>
+					<input type='checkbox' name='options[pmwarnmode]' value='1' {$userinfo['pmwarnmode']} />
+					{$lang['pmwarnmode']}
+					<div class="desc">{$lang['pmwarnmodedesc']}</div>
+				</li>
+			</ul>
+		</div>
+		<em>{$lang['emailsetting']}</em>
+		<div class='ucp'>
+			<ul>
+				<li>
+					<input type='checkbox' name='options[hideemail]' value='1' {$userinfo['hideemail']} />
+					{$lang['hideemail']}
+					<div class="desc">{$lang['hideemaildesc']}</div>
+				</li>
+				<li>
+					<input type='checkbox' name='options[adminemail]' value='1' {$userinfo['adminemail']} />
+					{$lang['adminemail']}
+					<div class="desc">{$lang['adminemaildesc']}</div>
+				</li>
+			</ul>
+		</div>
+		<em>{$lang['postsetting']}</em>
+		<div class='ucp'>
+			<input type='checkbox' name='options[redirecttype]' value='1' {$userinfo['redirecttype']} />
+			{$lang['redirectforum']}
+			<div class="desc">{$lang['redirectforumdesc']}</div>
+		</div>
+		<div class="ucp item_change"><input type='submit' name='submit' value=' {$lang['updateforumsetting']} ' class="input_big" /></div>
+	</form>
+</div>
+{template:footer}
