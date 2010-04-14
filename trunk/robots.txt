@@ -1,0 +1,34 @@
+#
+# robots.txt for molyx2.8
+# Version 6.0.0
+#
+User-agent: *
+
+Disallow: /admin/
+Disallow: /cache/
+Disallow: /data/
+Disallow: /doc/
+Disallow: /editor/
+Disallow: /install/
+Disallow: /importers/
+Disallow: /includes/
+Disallow: /languages/
+Disallow: /scripts/
+Disallow: /templates/
+Disallow: /wap/
+Disallow: /click.php
+Disallow: /cron.php
+Disallow: /editpost.php
+Disallow: /evaluation.php
+Disallow: /findpost.php
+Disallow: /global.php
+Disallow: /misc.php
+Disallow: /moderate.php
+Disallow: /mxajax.php
+Disallow: /private.php
+Disallow: /real_js.php
+Disallow: /rebuild_avatar.php
+Disallow: /redirect.php
+Disallow: /report.php
+Disallow: /sendmessage.php
+Disallow: /usercp.php
