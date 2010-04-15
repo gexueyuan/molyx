@@ -106,7 +106,7 @@ class functions_showthread
 								}
 								else
 								{	
-									$temp['image'] .= "<img src='{$showfile}' alt='" . $forums->lang['_uploadimages'] . "' onload='javascript:if(this.width>screen.width-500)this.style.width=screen.width-500;' onclick='javascript:window.open(this.src);' style='CURSOR: pointer' />  </div>";
+									$temp['image'] .= "<div><img src='{$showfile}' alt='" .$forums->lang['_uploadimages'] . "'onload='javascript:if(this.width>screen.width-500)this.style.width=screen.width-500;'onclick='javascript:window.open(this.src);' style='CURSOR: pointer'/>  </div>";
 								}																
 							}
 						}

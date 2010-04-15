@@ -1,0 +1,53 @@
+{template:header}
+{template:usercp_menu} 
+<div id="ucp_content">
+<form action="usercp.php" name='mutliact' method="post">
+<input type='hidden' name='s' value='<?php echo $forums->sessionid; ?>' />
+<input type='hidden' name='do' value='dounsubscribe' />
+<input type='hidden' name='type' value='thread' />
+<div class='ucpcontentct'>
+<div class='wgborder'>
+<table width='100%' border='0' cellspacing='1' cellpadding='4' class='ttable'>
+<tbody>
+<tr class='tcat'>
+<th align='left' width='5%' nowrap="nowrap">&nbsp;</th>
+<th align='left' width='55%' nowrap="nowrap"><?php echo $forums->lang['threadtitle']; ?></th>
+<th align='center' width='5%' nowrap="nowrap"><?php echo $forums->lang['_replynums']; ?></th>
+<th align='center' width='5%' nowrap="nowrap"><?php echo $forums->lang['_viewnums']; ?></th>
+<th align='left' width='25%' nowrap="nowrap"><?php echo $forums->lang['lastpost']; ?></th>
+<th align='center' width='5%'><?php if ( $show['subscribe'] ) { ?><input name="allbox" type="checkbox" value="<?php echo $forums->lang['_selectall']; ?>" onClick="CheckAll(document.mutliact);" /><?php } ?></th>
+</tr><?php if ( $show['subscribe'] ) { ?><?php foreach ( $subscribe AS $data ) { ?><tr>
+<td class='row2' align='center' width='5%'><img src='images/<?php echo $bbuserinfo['imgurl']; ?>/<?php echo $data['foldericon']['icons']; ?>' border='0' alt='<?php echo $data['foldericon']['title']; ?>' />
+</td>
+<td class='row2' align='left'><a href='showthread.php?<?php echo $forums->sessionurl; ?>f=<?php echo $data['forumid']; ?>&amp;t=<?php echo $data['tid']; ?>'><?php echo $data['title']; ?></a>
+<div class='desc'><?php echo $data['description']; ?><?php echo $forums->lang['subscribetime']; ?>: <?php echo $data['dateline']; ?>
+</div></td>
+<td class='row2' align='center'><?php echo $data['post']; ?></td>
+<td class='row2' align='center'><?php echo $data['views']; ?></td>
+<td class='row2' align='left'><?php echo $data['lastpost']; ?><br />by: <?php echo $data['lastposter']; ?></td>
+<td class='row2' align='center'><input type='checkbox' name='sid[]' value='<?php echo $data['subscribethreadid']; ?>' /></td></tr><?php } ?><?php } else { ?><tr>
+<td class='row2' align='center' colspan='6'><?php echo $forums->lang['nosubscribethread']; ?></td></tr><?php } ?><?php if ( $show['subscribe'] ) { ?><tr>
+<td align='right' class='pformstrip' valign='middle' colspan='6'>
+<input type='submit' class='button' value='<?php echo $forums->lang['unsubscribe']; ?>' />
+</td></tr><?php } ?></tbody></table>
+</div>
+</div>
+</form>
+<div align="right" style="padding:5px"><?php echo $auto_explain; ?></div>
+<div align="right" style="padding:5px">
+<form action='usercp.php' method='post'>
+<input type='hidden' name='s' value='<?php echo $forums->sessionid; ?>' />
+<input type='hidden' name='do' value='subscribethread' />
+<?php echo $forums->lang['subscribeby']; ?>: <select name='datecut'>
+<?php echo $datelist; ?>
+<option value='1000'><?php echo $forums->lang['showallthreads']; ?></option>
+</select> <?php echo $forums->lang['subscribedthread']; ?>
+<input type='submit' value='<?php echo $forums->lang['_ok']; ?>' class="button" />
+</form>
+</div>
+
+</td></tr>
+</tbody></table>
+<br clear="all" />
+</div>
+{template:footer}
