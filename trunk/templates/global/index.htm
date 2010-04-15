@@ -22,6 +22,17 @@
 </div>
 <div class="top_ad">{ads:thread}</div>
 <if="$top_digg_thread">
+<div class="side_index">
+<foreach="$forums->forum->forum_cache['root'] as $id => $cat_data">
+<if="is_array( $forums->forum->forum_cache[ $cat_data['id'] ] )">
+<if="$cat_data['forumcolumns']">
+{template:forumlist_column}
+<else>
+{template:forumlist_normal}
+</if>
+</if>
+</foreach>
+</div>
 <div class="index_area">
 	<h2>{$lang['digg_thread']}</h2>
 	<dl>
@@ -34,17 +45,6 @@
 		{$thread['lastpost']} {$lang['thread_update']}</dd>
 		</foreach>
 	</dl>
-</div>
-<div class="side_index">
-<foreach="$forums->forum->forum_cache['root'] as $id => $cat_data">
-<if="is_array( $forums->forum->forum_cache[ $cat_data['id'] ] )">
-<if="$cat_data['forumcolumns']">
-{template:forumlist_column}
-<else>
-{template:forumlist_normal}
-</if>
-</if>
-</foreach>
 </div>
 <else>
 <foreach="$forums->forum->forum_cache['root'] as $id => $cat_data">
