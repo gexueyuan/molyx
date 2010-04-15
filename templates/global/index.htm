@@ -21,6 +21,20 @@
 	</div>
 </div>
 <div class="top_ad">{ads:thread}</div>
+<if="$top_digg_thread">
+<div class="index_area">
+	<h2>{$lang['digg_thread']}</h2>
+	<dl>
+		<foreach="$top_digg_thread AS $tid => $thread">
+		<dt><a href="showthread.php{sessionurl}t={$tid}">{$thread['title']}</a></dt>
+		<dd class="exp">{$thread['digg_exps']}</dd>
+		<dd class="tdesc">by {$thread['postusername']}, {$thread['digg_users']}
+		{$thread['post']} {$lang['thread_replies']}
+		{$thread['views']} {$lang['thread_hits']}
+		{$thread['lastpost']} {$lang['thread_update']}</dd>
+		</foreach>
+	</dl>
+</div>
 <div class="side_index">
 <foreach="$forums->forum->forum_cache['root'] as $id => $cat_data">
 <if="is_array( $forums->forum->forum_cache[ $cat_data['id'] ] )">
@@ -32,22 +46,19 @@
 </if>
 </foreach>
 </div>
-
-<div class="index_area">
-	<h2>{$lang['digg_thread']}</h2>
-	<dl>
-	<if="$top_digg_thread">
-		<foreach="$top_digg_thread AS $tid => $thread">
-		<dt><a href="showthread.php{sessionurl}t={$tid}">{$thread['title']}</a></dt>
-		<dd class="exp">{$thread['digg_exps']}</dd>
-		<dd class="tdesc">by {$thread['postusername']}, {$thread['digg_users']}
-		{$thread['post']} {$lang['thread_replies']}
-		{$thread['views']} {$lang['thread_hits']}
-		{$thread['lastpost']} {$lang['thread_update']}</dd>
-		</foreach>
-	</dl>
-	</if>
-</div>
+<else>
+<foreach="$forums->forum->forum_cache['root'] as $id => $cat_data">
+<if="is_array( $forums->forum->forum_cache[ $cat_data['id'] ] )">
+<div class="separate"><!-- separate block --></div>
+<if="$cat_data['forumcolumns']">
+{template:forumlist_column}
+<else>
+{template:forumlist_normal}
+</if>
+<div class="separate"><!-- separate block --></div>
+</if>
+</foreach>
+</if>
 <div class="clear"><!-- clear float --></div>
 <if="$show['stats']">
 <div id="onlineusers" class="ttable">
