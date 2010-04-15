@@ -905,7 +905,8 @@ function ifkeyPress(evt)
 			rng.pasteHTML('<br />');
 			rng.collapse(false);
 			rng.select();
-			cancelEvent(e, true);
+			//cancelEvent(e, true);
+			cancelEvent(true);
 			return false;
 		}
 	}
