@@ -633,10 +633,9 @@ CREATE TABLE {$prefix}league (
 
 $mysql_data['INSERT']['league'] = "
 INSERT INTO {$prefix}league (sitename, siteurl, siteimage, siteinfo, displayorder, type) VALUES
-('" . $a_lang['mysql']['league']['hogesoftitle'] . "', 'http://www.hogesoft.com', './images/league/hogesoft.gif', '" . $a_lang['mysql']['league']['hogesofdesc'] . "', 1, 0),
-('" . $a_lang['mysql']['league']['molyxteam'] . "', 'http://www.molyx.com', './images/league/molyx_logo.gif', '" . $a_lang['mysql']['league']['molyxdesc'] . "', 2, 0),
-('W3C DHTML Valid!', 'http://validator.w3.org/check?uri=referer', 'http://www.w3.org/Icons/valid-xhtml10', 'Valid XHTML 1.0 Transitional', 4, 1),
-('W3C CSS Valid!', 'http://jigsaw.w3.org/css-validator/', 'http://www.w3.org/Icons/valid-css', 'Valid CSS!', 5, 1)
+('" . $a_lang['mysql']['league']['molyxteam'] . "', 'http://www.molyx.com', './images/league/molyx_logo.gif', '" . $a_lang['mysql']['league']['molyxdesc'] . "', 1, 0),
+('W3C DHTML Valid!', 'http://validator.w3.org/check?uri=referer', 'http://www.w3.org/Icons/valid-xhtml10', 'Valid XHTML 1.0 Transitional', 2, 1),
+('W3C CSS Valid!', 'http://jigsaw.w3.org/css-validator/', 'http://www.w3.org/Icons/valid-css', 'Valid CSS!', 3, 1)
 ";
 
 $mysql_data['CREATE']['moderator'] = "
@@ -985,7 +984,7 @@ INSERT INTO {$prefix}setting (title, description, groupid, type, varname, value,
 ('" . $a_lang['mysql']['setting']['privacytext'] . "','" . $a_lang['mysql']['setting']['privacytextdesc'] . "','16','textarea','privacytext','','','','4','0'),
 ('" . $a_lang['mysql']['setting']['bbactive'] . "','" . $a_lang['mysql']['setting']['bbactivedesc'] . "','17','yes_no','bbactive','','1','','1','1'),
 ('" . $a_lang['mysql']['setting']['bbclosedreason'] . "','','17','textarea','bbclosedreason','','" . $a_lang['mysql']['setting']['bbclosedreasondval'] . "','','2','0'),
-('" . $a_lang['mysql']['setting']['version'] . "','','-1','','version','','2.8.0 Beta2','','1','1'),
+('" . $a_lang['mysql']['setting']['version'] . "','','-1','','version','','2.8.1 Alpha1.0','','1','1'),
 ('" . $a_lang['mysql']['setting']['timenotlogin'] . "','" . $a_lang['mysql']['setting']['timenotlogindesc'] . "','20','input','timenotlogin','','30','','10','1'),
 ('" . $a_lang['mysql']['setting']['spider_roup'] . "','" . $a_lang['mysql']['setting']['spider_roupdesc'] . "','21','dropdown','spider_roup','','3','#show_groups#','1','1'),
 ('" . $a_lang['mysql']['setting']['spiderid'] . "','" . $a_lang['mysql']['setting']['spideriddesc'] . "','21','input','spiderid','','baiduspider|googlebot|msnbot|Slurp','','2','1'),
