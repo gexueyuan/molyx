@@ -398,7 +398,7 @@ class db_base
 				}
 				else
 				{
-					$values .= ', ' . $this->sql_validate($var);
+					$values .= ', ' . $this->validate($var);
 				}
 			}
 			$fields = substr($fields, 2);
@@ -414,7 +414,7 @@ class db_base
 					$value = '';
 					foreach ($sql_array as $key => $var)
 					{
-						$value .= ', ' . $this->sql_validate($var);
+						$value .= ', ' . $this->validate($var);
 					}
 					$value = substr($value, 2);
 					$values .= ', (' . $value . ')';
@@ -433,7 +433,7 @@ class db_base
 			$sep = ($query == 'UPDATE') ? ',' : ' AND';
 			foreach ($array as $key => $var)
 			{
-				$values .= "$sep `$key` = " . $this->sql_validate($var, $key);
+				$values .= "$sep `$key` = " . $this->validate($var, $key);
 			}
 			$query = substr($values, strlen($sep));
 		}
@@ -450,16 +450,16 @@ class db_base
 	{
 		if (!is_array($value))
 		{
-			return $field . ($negate ? ' <> ' : ' = ') . $this->sql_validate($value);
+			return $field . ($negate ? ' <> ' : ' = ') . $this->validate($value);
 		}
 		else if (count($value) == 1)
 		{
 			$var = @reset($value);
-			return $field . ($negate ? ' <> ' : ' = ') . $this->sql_validate($var);
+			return $field . ($negate ? ' <> ' : ' = ') . $this->validate($var);
 		}
 		else
 		{
-			return $field . ($negate ? ' NOT IN ' : ' IN ') . '(' . implode(', ', array_map(array(&$this, 'sql_validate'), $value)) . ')';
+			return $field . ($negate ? ' NOT IN ' : ' IN ') . '(' . implode(', ', array_map(array(&$this, 'validate'), $value)) . ')';
 		}
 	}
 
@@ -668,8 +668,8 @@ class db_base
 				{
 					if ($k)
 					{
-						$k = $this->sql_validate($k);
-						$v = $this->sql_validate($v, $set_field);
+						$k = $this->validate($k);
+						$v = $this->validate($v, $set_field);
 						$sql .= " WHEN $id_filed = $k THEN $v";
 						if (!@in_array($k, $ids))
 						{
@@ -681,7 +681,7 @@ class db_base
 			}
 			else
 			{
-				$sql .= $this->sql_validate($array[0]);
+				$sql .= $this->validate($array[0]);
 			}
 			$sql .= ', ';
 		}
@@ -708,31 +708,6 @@ class db_base
 			$where = $this->sql_clause('SELECT', $where);
 		}
 		return 'DELETE FROM ' . $table . ($where ? ' WHERE ' . $where : '');
-	}
-
-	/**
-	 * 验证 MySQL 语句中的用到的变量
-	 * $set_field 不为空时特别的 $var 结构
-	 *	 - array('field_name', true) => field = field_name
-	 *   - array('^[0-9]+$', '^[/*+-]$') => filed = set_field [/*+-] [0-9]+
-	 *
-	 * @param mixed $var 将变量转换为 SQL 语句中可以直接使用的字符串
-	 */
-	function sql_validate($var, $set_field = '')
-	{
-		if ($set_field && isset($var[0]) && isset($var[1]))
-		{
-			if ($var[1] === true)
-			{
-				return $var[0];
-			}
-			else if (in_array($var[1], array('+', '-', '*', '/')) && is_numeric($var[0]))
-			{
-				return "`$set_field` {$var[1]} {$var[0]}";
-			}
-		}
-
-		return $this->validate($var);
 	}
 }
 ?>
