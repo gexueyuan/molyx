@@ -247,13 +247,30 @@ class db_base
 	}
 
 	/**
-	 * 验证 MySQL 语句中的用到的变量
+	 * 验证 SQL 语句中的用到的变量
+	 * $set_field 不为空时特别的 $var 结构
+	 *	 - array('field_name', true) => field = field_name
+	 *   - array('^[0-9]+$', '^[/*+-]$') => filed = set_field [/*+-] [0-9]+
+	 *
+	 * @param mixed $var 将变量转换为 SQL 语句中可以直接使用的字符串
 	 */
-	function validate($var)
+	function validate($var, $set_field = '')
 	{
+		if ($set_field && is_array($var) && isset($var[0]) && isset($var[1]))
+		{
+			if ($var[1] === true)
+			{
+				return $var[0];
+			}
+			else if (in_array($var[1], array('+', '-', '*', '/')) && is_numeric($var[0]))
+			{
+				return "`$set_field` {$var[1]} {$var[0]}";
+			}
+		}
+
 		if (is_numeric($var))
 		{
-			if (is_string($var) && $var[0] == '0')
+			if (is_string($var))
 			{
 				return "'$var'";
 			}
