@@ -1280,7 +1280,7 @@ class moderate
 				$recountids[] = $thread['forumid'];
 			}
 			//给删除主题的用户发送消息
-			if ($_INPUT['deletepmusers'] && !empty($delthread))
+			if (isset($_INPUT['deletepmusers']) && !empty($delthread))
 			{
 				foreach ($delthread AS $userid => $delthreadinfo)
 				{

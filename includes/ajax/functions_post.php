@@ -1313,7 +1313,7 @@ function do_deletepost()
 	}
 
 	//给删除帖子的用户发送消息
-	if ($_INPUT['deletepmusers'] && !empty($pm_touser))
+	if (isset($_INPUT['deletepmusers']) && !empty($pm_touser))
 	{
 		require_once(ROOT_PATH . 'includes/functions_private.php');
 		$pm = new functions_private();
