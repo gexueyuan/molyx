@@ -1315,7 +1315,7 @@ function delete_threads()
 	}
 	$recycleforumid = fetch_recycleforum();
 	//给删除主题的用户发送消息
-	if ($_INPUT['deletepmusers'] && !empty($delthread))
+	if (isset($_INPUT['deletepmusers']) && !empty($delthread))
 	{
 		require_once(ROOT_PATH . 'includes/functions_private.php');
 		$pm = new functions_private();
