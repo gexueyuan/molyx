@@ -1808,7 +1808,8 @@ function unclean_value($val)
  */
 function br2nl($text = '')
 {
-	return preg_replace("#(?:\n|\r)?<br.*>(?:\n|\r)?#", "\n", $text);
+	//return preg_replace("#(?:\n|\r)?<br.*>(?:\n|\r)?#", "\n", $text);
+	return preg_replace('/[\n\r]*?<br[^>]*?>[\n\r]*?/i', "\n",  $text);
 }
 
 /**
