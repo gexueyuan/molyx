@@ -164,6 +164,7 @@ class forums
 		{
 			$forumlist[] = array($value[id], depth_mark($value['depth'], '--') . $value[name]);
 		}
+		
 		$post = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE forumid=" . $_INPUT['f'] . "");
 		$children = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "forum WHERE parentid=" . $_INPUT['f'] . "");
 		$pagetitle = $forums->lang['deleteforum'] . " - '$name'";
@@ -235,6 +236,7 @@ class forums
 		$DB->update(TABLE_PREFIX . 'forum', array('parentid' => $_INPUT['new_parentid']), "parentid = $id");
 		$forums->func->recache('forum');
 		$forums->func->recache('moderator');
+		$forums->adminforum->build_forum_child_lists($forums->adminforum->forumcache[$_INPUT['f']]['parentid']);
 		$forums->admin->save_log($forums->lang['manageforum'] . " '{$this->forum['name']}'");
 		$forums->admin->redirect("forums.php", $forums->lang['manageforum'], $forums->lang['forumdeleted']);
 	}
@@ -690,6 +692,7 @@ class forums
 		$forums->admin->save_log($forums->lang['forumedited']);
 		$forums->adminforum->build_forum_parentlists($forumid);
 		$forums->adminforum->build_forum_parentlists($parentid);
+		$forums->adminforum->build_forum_child_lists($forumid);
 		$forums->adminforum->build_forum_child_lists($oldforuminfo['parentid']);
 		$this->update_specialtopic($_INPUT['st'], $_INPUT['f']);
 		$forums->func->recache('forum');

@@ -104,7 +104,7 @@ class adminfunctions_forum
 		{
 			$childlist .= ',' . $child['id'];
 		}
-		$childlist .= ',-1';
+		//$childlist .= ',-1';
 		return $childlist;
 	}
 
