@@ -96,6 +96,7 @@ class functions_forum
 		}
 
 		$this->forumids[] = $v['id'];
+		if(!is_array($this->foruminfo[$v['id']])) $this->foruminfo[$v['id']] = array();
 		$this->foruminfo[$v['id']] = array_merge($this->foruminfo[$v['id']], $v);
 		$this->forum_cache[$v['parentid']][$v['id']] = &$this->foruminfo[$v['id']];
 		return true;
@@ -411,6 +412,7 @@ class functions_forum
 		$forum['todaypost'] = fetch_number_format($forum['todaypost']);
 		$forum['moderator'] = $this->forums_moderator($forum['id']);
 		$forum['show_subforums'] = '';
+		
 		if ($bboptions['showsubforums'] && !$forum['password'])
 		{
 			$childs = explode(',', $forum['childlist']);
@@ -418,7 +420,8 @@ class functions_forum
 			if ($childs)
 			{
 				$forum['show_subforums'] = "<div><strong>{$forums->lang['_subforums']}</strong>: ";
-				for ($i = 0, $n = count($childs); $i < $n; $i++)
+				//子版块显示不全 fixed 1:31 2010/4/28
+				for ($i = 1, $n = count($childs); $i <= $n; $i++)
 				{
 					$forum['show_subforums'] .= "<a href='forumdisplay.php{$forums->sessionurl}f={$childs[$i]}'>{$this->foruminfo[$childs[$i]]['name']}</a> ";
 				}

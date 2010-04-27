@@ -221,7 +221,7 @@ class cache
 				{
 					$fk = "forum";
 				}
-				$size = @filesize(ROOT_PATH . 'cache/cache/' . $fk . '.php');
+				$size = file_exists(ROOT_PATH . 'cache/cache/' . $fk . '.php') ? @filesize(ROOT_PATH . 'cache/cache/' . $fk . '.php') : 0;
 				$size = ceil(intval($size) / 1024);
 				$updatebutton = $forums->admin->print_button($forums->lang['update'], "cache.php?{$forums->sessionurl}do=cacheend&amp;update" . $k . "=1", 'button');
 				$forums->admin->print_cells_row(array("<strong>" . $k . "</strong><div class='description'>{$cache[ $k ]}</div>", $size . ' Kb', "<div align='center'>" . $updatebutton . "<input type='button' onclick=\"pop_win('cache.php?{$forums->sessionurl}do=viewcache&amp;id={$k}','" . $forums->lang['view'] . "', 400,600)\" value='" . $forums->lang['view'] . "' class='button' /></div>",)
