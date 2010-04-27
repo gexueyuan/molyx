@@ -25,10 +25,8 @@
 		<div class="item_list">{$lang['newthreadforum']}<select name='fid' class="select_normal">{$forums_info}</select></div>
 	<elseif="$action == 'deletepost'">
 		<div class="item_list">{$lang['deletepmusers']}
-			<select name='deletepmusers' class="select_normal">
-			<option value='1' selected="selected">{$lang['_yes']}</option>
-			<option value='0'>{$lang['_no']}</option>
-			</select></div>
+			<input type="checkbox" name="deletepmusers" id="deletepmusers" value="1" />
+		</div>
 		<div class="item_list">{$lang['deletepostreason']}:<input type='text' size='50' name='deletereason' value='' class='input_normal' /></div>
 	</if>	
 	<div class="item_list" align="center">

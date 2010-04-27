@@ -35,10 +35,7 @@
 		</div>
 	<elseif="$action == 'deletethreads'">
 		<div class="item_list">{$lang['deletepmusers']}
-			<select name='deletepmusers' class="select_normal">
-				<option value='1' selected="selected">{$lang['_yes']}</option>
-				<option value='0'>{$lang['_no']}</option>
-			</select>
+			<input type="checkbox" name="deletepmusers" id="deletepmusers" value="1" />
 		</div>
 		<div class="item_list">{$lang['deletepostreason']}:<input type='text' size='50' name='deletereason' value='' class='input_normal' /></div>
 	<elseif="$action == 'dospecialtopic'">
