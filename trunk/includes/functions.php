@@ -1318,7 +1318,7 @@ class functions
 		{
 			foreach ($userextrafield['r'] as $k => $v)
 			{
-				if ($_INPUT[$k] && preg_match("/{$v[1]}/", $_INPUT[$k]))
+				if ($_INPUT[$k] && !preg_match("/{$v[1]}/", $_INPUT[$k]))
 				{
 					$forums->lang['error_preg'] = sprintf($forums->lang['error_preg'], $v[0]);
 					return array('err' => 'error_preg');
