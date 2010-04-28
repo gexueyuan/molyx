@@ -1230,9 +1230,9 @@ class usergroup
 			}
 			if (!empty($ugids))
 			{
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread
+				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "usergroup
 					SET displayorder = CASE $orderssql ELSE 0 END
-					WHERE tid IN (0$ugids)");
+					WHERE usergroupid IN (0$ugids)");
 			}
 		}
 		$forums->func->recache('usergroup');
