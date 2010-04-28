@@ -16,7 +16,7 @@ function db_error($message = '', $db)
 		$db->failed = 1;
 		return;
 	}
-var_dump($db->get_error());exit;
+	//var_dump($db->get_error());exit;
 	if ($bbuserinfo['usergroupid'] == 4 || $db->debug)
 	{
 		$db->error = $message . "\n" . $db->get_error();

@@ -113,12 +113,14 @@ class functions_forum
 		$splittable = $forums->cache['splittable']['all'];
 		$deftable = $forums->cache['splittable']['default'];
 
-		$result = $DB->query("SELECT f.id, f.lastthreadid, f.this_thread, f.thread, f.post, f.todaypost, f.parentid, f.unmodthreads, f.unmodposts,
+		$sqlQueryStr = "SELECT f.id, f.lastthreadid, f.this_thread, f.thread, f.post, f.todaypost, f.parentid, f.unmodthreads, f.unmodposts,
 				t.lastposterid, t.lastposter, t.lastpost, t.title AS lastthread
 			FROM " . TABLE_PREFIX . "forum f
 			LEFT JOIN " . TABLE_PREFIX . "thread t
-			ON f.lastthreadid = t.tid
-			WHERE " . $DB->sql_in('f.id', $this->forumids));
+			ON f.lastthreadid = t.tid";
+		if(!empty($this->forumids)) $sqlQueryStr .= " WHERE " . $DB->sql_in('f.id', $this->forumids);
+		$result = $DB->query($sqlQueryStr);
+		
 		while ($row = $DB->fetch_array($result))
 		{
 			if ($row['parentid'] == '-1')
