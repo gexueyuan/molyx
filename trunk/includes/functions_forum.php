@@ -247,6 +247,11 @@ class functions_forum
 		global $forums, $bbuserinfo;
 		if ($in == 'thread' && $bbuserinfo['id'] == $uid)
 		{
+			if ($this->foruminfo[$fid]['showthreadlist'])
+			{
+					$this->forums_custom_error($fid);
+					$forums->func->standard_error('cannotviewthread');
+			}
 			return true;
 		}
 		$deny_access = true;
