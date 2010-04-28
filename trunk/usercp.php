@@ -345,6 +345,7 @@ class usercp
 		$forums->func->check_cache('userextrafield');
 
 		$return = array('must' => array(), 'other' => array());
+		if(!isset($forums->cache['userextrafield']['a'])) $forums->cache['userextrafield']['a'] = array();
 		foreach ($forums->cache['userextrafield']['a'] as $k => $v)
 		{
 			$form = '';
@@ -841,10 +842,21 @@ class usercp
 
 		//开始检测扩展字段
 		$user_data = $forums->func->check_usrext_field();
-		if ($user_data['err'])
+		if (in_array($user_data['err'], array('error_mustfill', 'error_preg', 'error_only', 'error_length')))
 		{
-			$this->start_register($user_data['err']);
+			$forums->func->standard_error($user_data['err']);
 		}
+		
+		
+		/* Don't know if these code can remove safely
+		 * pending for review
+		 * by idg
+		 *
+		 * if ($user_data['err'] == 'error_mustfill')
+		 * {
+		 *     $this->start_register($user_data['err']);
+		 * } */
+
 		//检测结束
 		$userinfo['gender'] = intval($_INPUT['gender']);
 		if (is_array($user_data['user']))
