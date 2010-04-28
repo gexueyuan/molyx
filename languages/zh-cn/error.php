@@ -102,6 +102,7 @@ $lang = array (
   'nonewthread' => '没有比当前主题更晚的主题了。',
   'nooldthread' => '没有比当前主题更早的主题了。',
   'nosubscribe' => '订阅出错，没有找到要订阅的论坛或主题的ID。',
+  'cannotviewthread' => '你没有访问此主题的权限。',
   'cannotviewboard' => '你没有访问此论坛的权限。',
   'alreadysubscribe' => '对不起，你已经订阅了这个论坛或主题了。',
   'newregisterpost' => '对不起，只有在注册 %s 分钟以后才能发表帖子。',
