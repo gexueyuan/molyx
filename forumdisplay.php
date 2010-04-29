@@ -458,7 +458,7 @@ class forum
 					$threads[] = $row;
 				}
 			}
-			$sql = "SELECT {$previewfield}DISTINCT(p.userid), t.*
+			$sql = "SELECT {$previewfield}t.*
 				FROM " . TABLE_PREFIX . "thread t $previewjoin
 				WHERE {$query}
 					AND p.newthread=0
