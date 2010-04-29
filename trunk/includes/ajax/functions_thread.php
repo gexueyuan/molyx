@@ -641,7 +641,7 @@ function process_form($input, $action)
 				}
 				if (check_moderate_prms('cangstickthread', $fid))
 				{
-					$forums_info .= '<option value="0">' . $forums->lang['threadgstick'] . '</option>';
+					$forums_info .= '<option value="-1">' . $forums->lang['threadgstick'] . '</option>';
 				}
 			}
 			elseif ($action == 'dospecialtopic')
