@@ -8,10 +8,10 @@
 #
 # $Id$
 # **************************************************************************#
-define('THIS_SCRIPT', 'cilck');
+define('THIS_SCRIPT', 'click');
 require_once('./global.php');
 
-class cilck
+class click
 {
 	function show()
 	{
@@ -26,7 +26,7 @@ class cilck
 	}
 }
 
-$output = new cilck();
+$output = new click();
 $output->show();
 
 ?>
