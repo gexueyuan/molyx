@@ -17,7 +17,7 @@
 <th align='left' width='25%' nowrap="nowrap"><?php echo $forums->lang['lastpost']; ?></th>
 <th align='center' width='5%'><?php if ( $show['subscribe'] ) { ?><input name="allbox" type="checkbox" value="<?php echo $forums->lang['_selectall']; ?>" onClick="CheckAll(document.mutliact);" /><?php } ?></th>
 </tr><?php if ( $show['subscribe'] ) { ?><?php foreach ( $subscribe AS $data ) { ?><tr>
-<td class='row2' align='center' width='5%'><img src='images/<?php echo $bbuserinfo['imgurl']; ?>/<?php echo $data['foldericon']['icons']; ?>' border='0' alt='<?php echo $data['foldericon']['title']; ?>' />
+<td class='row2' align='center' width='5%'><?php echo $data['foldericon']['icons']; ?>
 </td>
 <td class='row2' align='left'><a href='showthread.php?<?php echo $forums->sessionurl; ?>f=<?php echo $data['forumid']; ?>&amp;t=<?php echo $data['tid']; ?>'><?php echo $data['title']; ?></a>
 <div class='desc'><?php echo $data['description']; ?><?php echo $forums->lang['subscribetime']; ?>: <?php echo $data['dateline']; ?>
