@@ -1665,7 +1665,7 @@ class user
 			$DB->update_case(CACHE_TABLE, 'title', array(
 				'data' => array(
 					'numbermembers' => array(1, '+'),
-					'newusername' => $user['name'],
+					'newusername' => $newuserbit['name'],
 					'newuserid' => intval($user['id'])
 				)
 			));
