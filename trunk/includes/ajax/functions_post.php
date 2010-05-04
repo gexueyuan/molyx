@@ -273,7 +273,6 @@ function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 	$return['poster']['status'] = 1;
 	$return['row']['name_css'] = "normalname";
 	$return['poster']['onlinerankimg'] = array();
-	$return['poster']['grouptitle'] = $forums->lang[$return['poster']['groupranks']];
 	$showpost = array($return);
 	$antispam = $dopost->code->showantispam();
 	$next_pnum = $_INPUT['pnum'] + 1;
