@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -26,7 +26,6 @@ require_once(ROOT_PATH . 'includes/functions.php');
 $forums->func = new functions();
 
 $_INPUT = init_input();
-
 if (USE_SHUTDOWN && THIS_SCRIPT != 'cron')
 {
 	register_shutdown_function(array(&$forums->func, 'do_shutdown'));
@@ -123,7 +122,7 @@ $bboptions['uploadfolder'] = $bboptions['uploadfolder'] ? $bboptions['uploadfold
 
 $forums->lang_list = $forums->func->generate_lang();
 $forums->style_list = $forums->func->generate_style();
-add_head_element('js-c', 'var current_page = "' . $_INPUT['pp'] . '";
+add_head_element('js-c', 'var current_page = "' . input::get('pp', 0) . '";
 var cookie_id = "' . $bboptions['cookieprefix'] . '";
 var cookie_domain = "' . $bboptions['cookiedomain'] . '";
 var cookie_path = "' . $bboptions['cookiepath'] . '";
@@ -134,4 +133,3 @@ add_head_element('js', $forums->func->load_lang_js('global'));
 add_head_element('js', $forums->func->load_lang_js('ajax'));
 add_head_element('js', ROOT_PATH . 'scripts/global.js');
 add_head_element('js', ROOT_PATH . 'scripts/mxajax.js');
-?>

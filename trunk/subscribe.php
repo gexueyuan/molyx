@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -15,11 +15,11 @@ class subscribe
 {
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$forums->func->load_lang('subscribe');
-		$threadid = intval($_INPUT['t']);
-		$forumid = intval($_INPUT['f']);
-		$type = trim($_INPUT['type']);
+		$threadid = input::get('t', 0);
+		$forumid = input::get('f', 0);
+		$type = input::get('type', '');
 		$this->thread = $forums->forum->single_forum($forumid);
 		if ($type != 'forum')
 		{
@@ -69,7 +69,7 @@ class subscribe
 		else
 		{
 			$DB->shutdown_query("INSERT INTO " . TABLE_PREFIX . "subscribethread (userid, threadid, dateline) VALUES ('" . $bbuserinfo['id'] . "', '" . $this->thread['tid'] . "', '" . TIMENOW . "')");
-			$forums->func->redirect_screen($forums->lang['subscribethread'], "showthread.php{$forums->sessionurl}f=" . $this->thread['id'] . "&amp;t=" . $this->thread['tid'] . "&amp;pp=" . $_INPUT['pp'] . "");
+			$forums->func->redirect_screen($forums->lang['subscribethread'], "showthread.php{$forums->sessionurl}f=" . $this->thread['id'] . "&amp;t=" . $this->thread['tid'] . "&amp;pp=" . input::get('pp', 0) . "");
 		}
 	}
 }

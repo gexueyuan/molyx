@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -19,9 +19,9 @@ class faq
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('faq');
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'content':
 				$show['content'] = true;
@@ -52,7 +52,6 @@ class faq
 
 		$referer = SCRIPTPATH;
 		include $forums->func->load_template('help');
-		exit;
 	}
 
 	function show_titles()
@@ -71,12 +70,13 @@ class faq
 
 	function show_content()
 	{
-		global $forums, $DB, $_INPUT;
-		if (! preg_match("/^(\d+)$/" , $_INPUT['id']))
+		global $forums, $DB;
+		$id = input::get('id', 0);
+		if (!$id)
 		{
 			$forums->func->standard_error("cannotfindfaq");
 		}
-		$result = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "faq WHERE id={$_INPUT['id']}");
+		$result = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "faq WHERE id = $id");
 		$result['content'] = true;
 		if (preg_match("/<#show_credit#>/ies", $result['text']))
 		{
@@ -88,8 +88,9 @@ class faq
 
 	function do_search()
 	{
-		global $forums, $DB, $_INPUT;
-		$this->search = utf8_htmlspecialchars(trim($_INPUT['q']));
+		global $forums, $DB;
+		$q = input::get('q', '');
+		$this->search = utf8_htmlspecialchars($q);
 		if (empty($this->search))
 		{
 			$result['content'] = true;
@@ -102,12 +103,12 @@ class faq
 		}
 		$this->search = strtolower(str_replace("*" , "%", $this->search));
 		$this->search = preg_replace("/[<>\!\@$\^&\+\=\=\[\]\{\}\(\)\"':;\.,\/]/", "", $this->search);
-		switch ($_INPUT['q_by'])
+		switch (input::get('q_by', 0))
 		{
-			case '1':
+			case 1:
 				$q_by = "LOWER(title) LIKE '%" . $this->search . "%'";
 				break;
-			case '0':
+			case 0:
 				$q_by = "LOWER(text) LIKE '%" . $this->search . "%'";
 				break;
 			default:
@@ -119,8 +120,8 @@ class faq
 		{
 			while ($result = $DB->fetch_array($results))
 			{
-				$result['text'] = preg_replace("/(.*)(" . preg_quote($_INPUT['q'], '/') . ")(.*)/is", "\\1<span class='highlight'>\\2</span>\\3", $result['text']);
-				$result['title'] = preg_replace("/(.*)(" . preg_quote($_INPUT['q'], '/') . ")(.*)/is", "\\1<span class='highlight'>\\2</span>\\3", $result['title']);
+				$result['text'] = preg_replace("/(.*)(" . preg_quote($q, '/') . ")(.*)/is", "\\1<span class='highlight'>\\2</span>\\3", $result['text']);
+				$result['title'] = preg_replace("/(.*)(" . preg_quote($q, '/') . ")(.*)/is", "\\1<span class='highlight'>\\2</span>\\3", $result['title']);
 				$result['content'] = true;
 				$forums->faqcache['root'][ $result['id'] ] = $result;
 				$forums->faqcache[ $result['id'] ][ $result['id'] ] = $result;
@@ -139,7 +140,7 @@ class faq
 
 	function convert_credit()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "credit");
 		if ($DB->num_rows())
 		{
@@ -213,5 +214,3 @@ class faq
 
 $output = new faq();
 $output->show();
-
-?>

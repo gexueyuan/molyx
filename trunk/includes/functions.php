@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -1405,12 +1405,12 @@ class functions
  */
 function convert_encoding($str, $from = '', $to = '')
 {
-	static $convert = null;
-	if (is_null($convert))
+	static $convert = NULL;
+	if ($convert === NULL)
 	{
-		require_once(ROOT_PATH . 'includes/class_encoding.php');
 		$convert = new encoding();
 	}
+
 	return $convert->convert($str, $from, $to);
 }
 

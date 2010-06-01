@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -18,7 +18,7 @@ class memberlist
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('member');
 		if (!$bbuserinfo['canviewmember'])
 		{
@@ -48,11 +48,11 @@ class memberlist
 			$filter_key[$id] = $data['title'];
 		}
 		$group_string = implode(",", $usergroups);
-		$first = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$maxresults = $_INPUT['max_results'] ? $_INPUT['max_results'] : 10;
-		$sortby = $_INPUT['sortby'] ? $_INPUT['sortby'] : 'id';
-		$order = $_INPUT['order'] ? $_INPUT['order'] : 'desc';
-		$filter = $_INPUT['filter'] ? $_INPUT['filter'] : 'all';
+		$first = input::get('pp', 0);
+		$maxresults = input::get('max_results', 10);
+		$sortby = input::get('sortby', 'id');
+		$order = input::get('order', 'desc');
+		$filter = input::get('filter', 'all');
 		$sort_key = array('name' => $forums->lang['username'], 'posts' => $forums->lang['posts'], 'id' => $forums->lang['joindate']);
 		$results_key = array(10 => '10', 20 => '20', 30 => '30', 40 => '40', 50 => '50',);
 		$order_key = array('desc' => $forums->lang['desc'], 'asc' => $forums->lang['asc']);
@@ -110,14 +110,18 @@ class memberlist
 			);
 		foreach($userinfo AS $in => $tbl)
 		{
-			$inbit = clean_value(trim(rawurldecode($_INPUT[ $in ])));
+			$_in = input::get($in, '');
+			$_in_limit = input::get($in . '_limit', '');
+			$_in_have = input::get('have_' . $in, '');
+
+			$inbit = input::clean_value(trim(rawurldecode($_in)));
 			if ($in != 'name' && $in != 'gender')
 			{
-				$url[] = $in . '=' . $_INPUT[ $in ];
+				$url[] = $in . '=' . $_in;
 			}
 			if ($in == 'name' AND $inbit != "")
 			{
-				if ($_INPUT['name_box'] == 'begins')
+				if (input::get('name_box', '') == 'begins')
 				{
 					$query[] = "LOWER(u.name) LIKE concat('" . strtolower($inbit) . "','%')";
 					$url[] = 'name_box=begins';
@@ -130,9 +134,9 @@ class memberlist
 			}
 			else if ($in == 'posts' AND intval($inbit) > 0)
 			{
-				$ltmt = $_INPUT[ $in . '_ltmt' ] == 'lt' ? '<' : '>';
+				$ltmt = $_in_limit == 'lt' ? '<' : '>';
 				$query[] = $tbl . ' ' . $ltmt . ' ' . intval($inbit);
-				$url[] = $in . '_ltmt=' . $_INPUT[ $in . '_ltmt' ];
+				$url[] = $in . '_ltmt=' . $_in_limit;
 			}
 			else if ($in == 'gender')
 			{
@@ -146,7 +150,7 @@ class memberlist
 				}
 				$url[] = 'gender=' . $inbit;
 			}
-			else if ($_INPUT[ 'have_' . $in ])
+			else if ($_in_have)
 			{
 				$checkbox[$in] = " checked='checked'";
 				$query[] = $inbit != "" ? $tbl . " LIKE '{$inbit}%'" : $tbl . "!=''";
@@ -154,15 +158,15 @@ class memberlist
 			}
 			else if (in_array($in, $dates) AND $inbit)
 			{
-				list($month, $day, $year) = explode('-', $_INPUT[ $in ]);
+				list($month, $day, $year) = explode('-', $_in);
 				if (! checkdate($month, $day, $year))
 				{
 					continue;
 				}
 				$time_int = $forums->func->mk_time(0, 0 , 0, $month, $day, $year);
-				$ltmt = (trim($_INPUT[$in . '_ltmt']) == 'lt') ? '<' : '>';
+				$ltmt = ($_in_limit == 'lt') ? '<' : '>';
 				$query[] = $tbl . ' ' . $ltmt . ' ' . $time_int;
-				$url[] = $in . '_ltmt=' . $_INPUT[ $in . '_ltmt' ];
+				$url[] = $in . '_ltmt=' . $_in_limit;
 			}
 			else if ($inbit != "")
 			{
@@ -216,5 +220,3 @@ class memberlist
 
 $output = new memberlist();
 $output->show();
-
-?>

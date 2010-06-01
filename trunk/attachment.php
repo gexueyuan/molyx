@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -15,38 +15,37 @@ if (isset($_REQUEST['do']) && $_REQUEST['do'] !== 'showthread')
 }
 require_once('./global.php');
 
+$output = new attachment();
+
+$id = input::get('id', 0);
+
+$forums->func->check_cache('attachmenttype');
+switch (input::get('do', ''))
+{
+	case 'showthread':
+		$output->listattachment();
+		break;
+	case 'showthumb':
+		$output->showthumb();
+		break;
+	default:
+		$output->showattachment();
+		break;
+}
+
 class attachment
 {
-	function show()
-	{
-		global $_INPUT, $forums;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		$_INPUT['tid'] = intval($_INPUT['tid']);
-		$forums->func->check_cache('attachmenttype');
-		switch ($_INPUT['do'])
-		{
-			case 'showthread':
-				$this->listattachment();
-				break;
-			case 'showthumb':
-				$this->showthumb();
-				break;
-			default:
-				$this->showattachment();
-				break;
-		}
-	}
-
 	function listattachment()
 	{
-		global $DB, $forums, $_INPUT, $bboptions, $bbuserinfo;
+		global $DB, $forums, $bboptions, $bbuserinfo;
 		$forums->func->load_lang('showthread');
-		$_INPUT['tid'] = intval($_INPUT['tid']);
-		if (!$_INPUT['tid'])
+
+		$tid = input::get('tid', 0);
+		if (!$tid)
 		{
 			$forums->func->standard_error("cannotviewattach");
 		}
-		$thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid={$_INPUT['tid']}");
+		$thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid = $tid");
 		if (!$thread['attach'])
 		{
 			$forums->func->standard_error("cannotviewattach");
@@ -63,7 +62,7 @@ class attachment
 		$attachments = $DB->query("SELECT a.*,t.*, p.threadid, p.pid,p.hidepost,p.userid AS puid FROM " . TABLE_PREFIX . "attachment a
 			LEFT JOIN " . TABLE_PREFIX . $posttable . " p ON ( a.postid=p.pid )
 			LEFT JOIN " . TABLE_PREFIX . "thread t ON ( t.tid=p.threadid )
-			WHERE p.threadid={$_INPUT['tid']}
+			WHERE p.threadid = $tid
 			ORDER BY a.dateline"
 			);
 		$canviewattach = true;
@@ -99,11 +98,13 @@ class attachment
 
 	function showattachment()
 	{
-		global $DB, $forums, $_INPUT, $bbuserinfo, $bboptions,$hidefunc;
+		global $DB, $forums, $bbuserinfo, $bboptions,$hidefunc;
 
 		$forums->noheader = 1;
 
-		if (!$_INPUT['attach'])
+		$tid = input::get('tid', 0);
+		$attack = input::get('attach', '');
+		if (!$attack)
 		{
 			$forums->func->standard_error("cannotviewattach");
 		}
@@ -115,56 +116,62 @@ class attachment
 		require_once(ROOT_PATH . 'includes/xfunctions_hide.php');
 		$hidefunc = new hidefunc();
 
-		$hidetype = $DB->query_first("SELECT hidetype,postid,userid FROM ".TABLE_PREFIX."attachment WHERE attachmentid = '".intval(addslashes($_INPUT['id']))."'");
+		$id = input::get('id', 0);
+		$hidetype = $DB->query_first("SELECT hidetype,postid,userid FROM ".TABLE_PREFIX."attachment WHERE attachmentid = $id");
 
-		if(!$hidefunc->hide_attachment($hidetype['userid'],$hidetype['hidetype'],intval($_INPUT['tid']),$hidetype['postid']))
+		if(!$hidefunc->hide_attachment($hidetype['userid'],$hidetype['hidetype'], $tid,$hidetype['postid']))
 		{
 			$forums->func->standard_error("cannotviewattachabout");
 		}
 
+		$u = input::get('u', 0);
 		require_once(ROOT_PATH . "includes/functions_credit.php");
 		$this->credit = new functions_credit();
 		$this->credit->check_credit('downattach', $bbuserinfo['usergroupid'], $this->forum['id']);
 		$this->credit->update_credit('downattach', $bbuserinfo['id'], $bbuserinfo['usergroupid'], $this->forum['id']);
 		if ($bboptions['remoteattach'])
 		{
-			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', intval($_INPUT['u']), -1, PREG_SPLIT_NO_EMPTY));
+			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
 			$subpath = $bboptions['remoteattach'] . "/" . $subpath;
-			$_INPUT['attach'] = str_replace("\\", "/", $_INPUT['attach']);
-			$_INPUT['attach'] = str_replace("/", "", substr($_INPUT['attach'], strrpos($_INPUT['attach'], '/')));
-			$showfile = $subpath . "/" . $_INPUT['attach'];
+			$attack = str_replace("\\", "/", $attack);
+			$attack = str_replace("/", "", substr($attack, strrpos($attack, '/')));
+			$showfile = $subpath . "/" . $attack;
 			$forums->func->standard_redirect($showfile);
 		}
 		else
 		{
-			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', intval($_INPUT['u']), -1, PREG_SPLIT_NO_EMPTY));
-			$subpath = $_INPUT['attachpath'] ? $_INPUT['attachpath'] : $subpath;
-			$path = $bboptions['uploadfolder'] . '/' . $subpath;
-			$_INPUT['attach'] = str_replace("\\", "/", $_INPUT['attach']);
-			$_INPUT['attach'] = str_replace("/", "", substr($_INPUT['attach'], strrpos($_INPUT['attach'], '/')));
-			$showfile = $path . "/" . $_INPUT['attach'];
-			$_INPUT['extension'] = strtolower($_INPUT['extension']);
 
-			if (is_file($showfile) && ($forums->cache['attachmenttype'][$_INPUT['extension']]['mimetype'] != ""))
+			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
+			$subpath = input::get('attachpath', $subpath);
+
+			$path = $bboptions['uploadfolder'] . '/' . $subpath;
+			$attack = str_replace("\\", "/", $attack);
+			$attack = str_replace("/", "", substr($attack, strrpos($attack, '/')));
+			$showfile = $path . "/" . $attack;
+
+			$extension = strtolower(input::get('extension', ''));
+
+			if (is_file($showfile) && ($forums->cache['attachmenttype'][$extension]['mimetype'] != ""))
 			{
 				if ($bboptions['attachmentviewsdelay'])
 				{
 					if (@$fp = fopen(ROOT_PATH . 'cache/cache/attachmentviews.txt', 'a'))
 					{
-						fwrite($fp, intval($_INPUT['id']) . "\n");
+						fwrite($fp, $id . "\n");
 						fclose($fp);
 					}
 				}
 				else
 				{
-					$DB->shutdown_update(TABLE_PREFIX . 'attachment', array('counter' => array(1, '+')), 'attachmentid = ' . intval($_INPUT['id']));
+					$DB->shutdown_update(TABLE_PREFIX . 'attachment', array('counter' => array(1, '+')), 'attachmentid = ' . $id);
 				}
-				$_INPUT['filename'] = urldecode($_INPUT['filename']);
-				$_INPUT['filename'] = convert_encoding($_INPUT['filename'], 'utf-8', 'gbk');
-				@header('Content-Type: ' . $forums->cache['attachmenttype'][ $_INPUT['extension'] ]['mimetype']);
+				$filename = urldecode(input::get('filename', ''));
+				$filename = convert_encoding($filename, 'utf-8', 'gbk');
+
+				@header('Content-Type: ' . $forums->cache['attachmenttype'][$extension]['mimetype']);
 				@header('Cache-control: max-age=31536000');
 				@header('Expires: ' . gmdate("D, d M Y H:i:s", TIMENOW + 31536000) . ' GMT');
-				@header('Content-Disposition: inline; filename="' . $_INPUT['filename'] . '"');
+				@header('Content-Disposition: inline; filename="' . $filename . '"');
 				@header('Content-Transfer-Encoding: binary');
 				@header('Content-Length: ' . (string)(filesize($showfile)));
 				@readfile($showfile);
@@ -179,10 +186,11 @@ class attachment
 
 	function showthumb()
 	{
-		global $DB, $forums, $_INPUT, $bbuserinfo, $bboptions;
+		global $DB, $forums, $bbuserinfo, $bboptions;
 		$forums->noheader = 1;
 
-		if (!$_INPUT['attach'])
+		$attach = input::get('attach', '');
+		if (!$attach)
 		{
 			$forums->func->standard_error("cannotviewattach");
 		}
@@ -190,30 +198,37 @@ class attachment
 		{
 			$forums->func->standard_error("cannotdownload");
 		}
+
+		$u = input::get('u', 0);
 		if ($bboptions['remoteattach'])
 		{
-			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', intval($_INPUT['u']), -1, PREG_SPLIT_NO_EMPTY));
+			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
 			$subpath = $bboptions['remoteattach'] . "/" . $subpath;
-			$_INPUT['attach'] = str_replace("\\", "/", $_INPUT['attach']);
-			$_INPUT['attach'] = str_replace("/", "", substr($_INPUT['attach'], strrpos($_INPUT['attach'], '/')));
-			$showfile = $subpath . "/" . $_INPUT['attach'];
+			$attach = str_replace("\\", "/", $attach);
+			$attach = str_replace("/", "", substr($attach, strrpos($attach, '/')));
+			$showfile = $subpath . "/" . $attach;
 			$forums->func->standard_redirect($showfile);
 		}
 		else
 		{
-			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', intval($_INPUT['u']), -1, PREG_SPLIT_NO_EMPTY));
-			$subpath = $_INPUT['attachpath'] ? $_INPUT['attachpath'] : $subpath;
+			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
+			$subpath = input::get('attachpath', $subpath);
+
 			$path = $bboptions['uploadfolder'] . '/' . $subpath;
-			$_INPUT['attach'] = str_replace("\\", "/", $_INPUT['attach']);
-			$_INPUT['attach'] = str_replace("/", "", substr($_INPUT['attach'], strrpos($_INPUT['attach'], '/')));
-			$showfile = $path . "/" . $_INPUT['attach'];
-			$_INPUT['extension'] = strtolower($_INPUT['extension']);
-			if (file_exists($showfile) AND ($forums->cache['attachmenttype'][ $_INPUT['extension'] ]['mimetype'] != ""))
+			$attach = str_replace("\\", "/", $attach);
+			$attach = str_replace("/", "", substr($attach, strrpos($attach, '/')));
+			$showfile = $path . "/" . $attach;
+			$extension = strtolower(input::get('extension', ''));
+
+			$filename = urldecode(input::get('filename', ''));
+			$filename = convert_encoding($filename, 'utf-8', 'gbk');
+
+			if (file_exists($showfile) AND ($forums->cache['attachmenttype'][$extension]['mimetype'] != ""))
 			{
 				@header('Cache-control: max-age=31536000');
 				@header('Expires: ' . gmdate("D, d M Y H:i:s", TIMENOW + 31536000) . ' GMT');
-				@header('Content-Type: ' . $forums->cache['attachmenttype'][$_INPUT['extension']]['mimetype']);
-				@header('Content-Disposition: inline; filename="' . urldecode($_INPUT['filename']) . '"');
+				@header('Content-Type: ' . $forums->cache['attachmenttype'][$extension]['mimetype']);
+				@header('Content-Disposition: inline; filename="' . $filename . '"');
 				@header('Content-Transfer-Encoding: binary');
 				@header('Content-Length: ' . (string) (filesize($showfile)));
 				@readfile($showfile);
@@ -226,8 +241,3 @@ class attachment
 		}
 	}
 }
-
-$output = new attachment();
-$output->show();
-
-?>

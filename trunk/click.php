@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -11,22 +11,16 @@
 define('THIS_SCRIPT', 'click');
 require_once('./global.php');
 
-class click
+$id = input::get('id', 0);
+$forums->func->check_cache('ad');
+if ($id && $forums->cache['ad']['content'][$id])
 {
-	function show()
-	{
-		global $forums, $DB, $_INPUT, $bboptions;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		$forums->func->check_cache('ad');
-		if ($_INPUT['id'] AND $forums->cache['ad']['content'][$_INPUT['id']])
-		{
-			$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "ad SET click = click + 1 WHERE id = {$_INPUT['id']}");
-			$forums->func->standard_redirect($_GET['url']);
-		}
-	}
+	$DB->update(TABLE_PREFIX . 'ad', array(
+		'click' => array(1, '+')
+	), "id = $id");
+
+	/**
+	 * @todo 此处需要对url进行域名验证
+	 */
+	$forums->func->standard_redirect($_GET['url']);
 }
-
-$output = new click();
-$output->show();
-
-?>

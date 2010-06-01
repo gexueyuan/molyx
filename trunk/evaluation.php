@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -23,7 +23,7 @@ class evaluation
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$forums->func->load_lang('admin');
 		$forums->func->load_lang('evaluation');
 		if (!$bbuserinfo['id'])
@@ -33,8 +33,8 @@ class evaluation
 		require_once(ROOT_PATH . "includes/functions_credit.php");
 		$this->credit = new functions_credit();
 
-		$this->postid = intval($_INPUT['p']);
-		$this->pp = intval($_INPUT['pp']);
+		$this->postid = input::get('p', 0);
+		$this->pp = input::get('pp', 0);
 		//分表
 		$forums->func->recache('splittable');
 		$splittable = $forums->cache['splittable']['all'];
@@ -57,7 +57,7 @@ class evaluation
 		$this->post = $DB->query_first("SELECT p.*, u.usergroupid FROM " . TABLE_PREFIX . "$this->posttable p
 			LEFT JOIN  " . TABLE_PREFIX . "user u ON u.id = p.userid
 			WHERE p.pid= $this->postid");
-		$this->threadid = intval($_INPUT['t']);
+		$this->threadid = input::get('t', 0);
 		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid= $this->threadid");
 		$this->forum = $forums->forum->single_forum($this->thread['forumid']);
 		$this->forumid = $this->forum['id'];
@@ -79,7 +79,7 @@ class evaluation
 				$forums->func->standard_error('cannotevalpower');
 			}
 		}
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'doeval':
 				$this->doeval();
@@ -92,7 +92,7 @@ class evaluation
 
 	function eval_form()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 
 		$creditlists = '';
 		$title = $this->thread['title'];
@@ -125,11 +125,11 @@ class evaluation
 
 	function doeval()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 
-		$actcredit = $_INPUT['actcredit'];
-		$amount = intval($_INPUT['amount']);
-		$evalmessage = trim($_INPUT['evalmessage']);
+		$actcredit = input::get('actcredit', '');
+		$amount = input::get('amount', 0);
+		$evalmessage = input::get('evalmessage', '');
 		$allrep = unserialize($this->thread['allrep']);
 		$thiscredit = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "credit WHERE tag='$actcredit'");
 		//判断用户用该积分进行的评价活动是否超出评价默认值
@@ -195,9 +195,9 @@ class evaluation
 		$DB->shutdown_update(TABLE_PREFIX . "thread", array('allrep' => serialize($allrep)), "tid = $this->threadid");
 
 		//发送短消息
-		if ($_INPUT['sendpm']=='yes')
+		if (input::get('sendpm', '') =='yes')
 		{
-			$_INPUT['title'] = sprintf($forums->lang['evalpmtitle'], $bbuserinfo['name']);
+			input::set('title', sprintf($forums->lang['evalpmtitle'], $bbuserinfo['name']));
 			if ($this->thread['firstpostid'] != $this->postid)
 			{
 				$evaluationinfo = sprintf($forums->lang['evalpmcontentposter'], $bbuserinfo['name'], $this->thread['title'], $this->creditinfos[$actcredit]['name'], $amount, $evalmessage);
@@ -206,11 +206,11 @@ class evaluation
 			{
 				$evaluationinfo = sprintf($forums->lang['evalpmcontentauthor'], $bbuserinfo['name'], $this->thread['title'], $this->creditinfos[$actcredit]['name'], $amount, $evalmessage);
 			}
-			$_POST['post'] = $evaluationinfo;
-			$_INPUT['username'] = $this->post['username'];
+			input::set('post', $evaluationinfo);
+			input::set('username', $this->post['username']);
 			require_once(ROOT_PATH . 'includes/functions_private.php');
 			$pm = new functions_private();
-			$_INPUT['noredirect'] = 1;
+			input::set('noredirect', 1);
 			$bboptions['usewysiwyg'] = 1;
 			$bboptions['pmallowhtml'] = 1;
 			$pm->sendpm();
@@ -222,7 +222,7 @@ class evaluation
 	//取得评价的积分范围
 	function getrange($id=0)
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$range = array();
 		if (!$id)
 		{
@@ -275,4 +275,3 @@ class evaluation
 
 $output = new evaluation();
 $output->show();
-?>

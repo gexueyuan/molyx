@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -15,7 +15,7 @@ class sendmessage
 {
 	function show()
 	{
-		global $_INPUT, $bbuserinfo, $forums;
+		global $bbuserinfo, $forums;
 		if (! $bbuserinfo['id'])
 		{
 			$forums->func->standard_error("notlogin");
@@ -23,7 +23,9 @@ class sendmessage
 		$forums->func->load_lang('sendmessage');
 		require_once(ROOT_PATH . "includes/functions_email.php");
 		$this->email = new functions_email();
-		switch ($_INPUT['do'])
+
+		$do = input::get('do', '');
+		switch ($do)
 		{
 			case 'mailmember':
 				$this->mailmember();
@@ -42,17 +44,19 @@ class sendmessage
 
 	function mailmember($errors = '')
 	{
-		global $forums, $DB, $bbuserinfo, $_INPUT, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		if (! $bbuserinfo['canemail'])
 		{
 			$forums->func->standard_error("noperms");
 		}
-		$_INPUT['u'] = intval($_INPUT['u']);
-		if (!$_INPUT['u'])
+		$u = input::get('u', 0);
+		if (!$u)
 		{
 			$forums->func->standard_error("cannotfindmailer");
 		}
-		if (!$user = $DB->query_first("SELECT id, name, email, emailcharset, options FROM " . TABLE_PREFIX . "user WHERE id=" . $_INPUT['u'] . ""))
+		if (!$user = $DB->query_first("SELECT id, name, email, emailcharset, options
+			FROM " . TABLE_PREFIX . "user
+			WHERE id = $u"))
 		{
 			$forums->func->standard_error("cannotfindmailer");
 		}
@@ -62,7 +66,7 @@ class sendmessage
 			$forums->func->standard_error("cannotmailuser", false, $user['name']);
 		}
 		$forums->lang['sendmailto'] = sprintf($forums->lang['sendmailto'], $user['name']);
-		if (! $_INPUT['send'] OR $errors)
+		if (!input::get('send', 0) OR $errors)
 		{
 			$pagetitle = $forums->lang['sendmail'] . " - " . $bboptions['bbtitle'];
 			$nav = array($forums->lang['sendmailto']);
@@ -77,34 +81,38 @@ class sendmessage
 
 	function domailmember($user)
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
-		if (! $_INPUT['subject'] OR ! $_INPUT['message'])
+		global $forums, $DB, $bbuserinfo;
+		$subject = input::get('subject', '');
+		$message = input::get('message', '', false);
+		if (!$subject || !$message)
 		{
 			$forums->func->standard_error("plzinputallform");
 		}
 		$message = $this->email->fetch_email_mailmember(array(
-			'message' => preg_replace("#<br.*>#siU", "\n", str_replace("\r", '', $_POST['message'])),
+			'message' => preg_replace("#<br.*>#siU", "\n", str_replace("\r", '', $message)),
 			'username' => $user['name'],
 			'from' => $bbuserinfo['name']
 		));
 		$this->email->char_set = $user['emailcharset']?$user['emailcharset']:'GBK';
 		$this->email->build_message($message);
-		$this->email->subject = $_INPUT['subject'];
+		$this->email->subject = $subject;
 		$this->email->to = $user['email'];
 		$this->email->from = $bbuserinfo['email'];
 		$this->email->send_mail();
-		$forums->func->redirect_screen($forums->lang['sendmail'], $_INPUT['url']);
+		$forums->func->redirect_screen($forums->lang['sendmail'], input::get('url', ''));
 	}
 
 	function sendtofriend()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$_INPUT['t'] = intval($_INPUT['t']);
-		if (!$_INPUT['t'])
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$t = input::get('t', 0);
+		if (!$t)
 		{
 			$forums->func->standard_error("erroraddress");
 		}
-		if (!$thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . $_INPUT['t'] . ""))
+		if (!$thread = $DB->query_first("SELECT *
+			FROM " . TABLE_PREFIX . "thread
+			WHERE tid = $t"))
 		{
 			$forums->func->standard_error("erroraddress");
 		}
@@ -125,36 +133,37 @@ class sendmessage
 
 	function dosend()
 	{
-		global $_INPUT, $forums, $DB, $bbuserinfo;
-		if (!$_INPUT['to_name'] OR !$_INPUT['to_email'] OR !$_INPUT['message'] OR !$_INPUT['subject'])
+		global $forums, $DB, $bbuserinfo;
+		$to_name = input::get('to_name', '');
+		$to_email = input::get('to_email', '');
+		$subject = input::get('subject', '');
+		$message = input::get('message', '', false);
+
+		if (!$to_name || !$to_email || !$subject || !$message)
 		{
 			$forums->func->standard_error("plzinputallform");
 		}
-		$to_email = clean_email($_INPUT['to_email']);
+
+		$to_email = clean_email($to_email);
 		if (!$to_email)
 		{
 			$forums->func->standard_error("erroremail");
 		}
+
 		$message = $this->email->fetch_email_sendtofriend(array(
-			'message' => preg_replace("#<br.*>#siU", "\n", str_replace("\r", "", $_POST['message'])),
-			'username' => $_INPUT['to_name'],
+			'message' => preg_replace("#<br.*>#siU", "\n", str_replace("\r", "", $message)),
+			'username' => $to_name,
 			'from' => $bbuserinfo['name'],
 		));
 		$this->email->char_set = 'GBK';
 		$this->email->build_message($message);
-		$this->email->subject = $_INPUT['subject'];
-		$this->email->to = $_INPUT['to_email'];
+		$this->email->subject = $subject;
+		$this->email->to = $to_email;
 		$this->email->from = $bbuserinfo['email'];
 		$this->email->send_mail();
-		$forums->func->redirect_screen($forums->lang['sendmail'], "showthread.php{$forums->sessionurl}t=" . $_INPUT['t'] . "&amp;pp=" . $_INPUT['pp']);
+		$forums->func->redirect_screen($forums->lang['sendmail'], "showthread.php{$forums->sessionurl}t=" . input::get('t', 0) . "&amp;pp=" . input::get('pp', 0));
 	}
 }
 
 $output = new sendmessage();
 $output->show();
-
-?>
-
-
-
-

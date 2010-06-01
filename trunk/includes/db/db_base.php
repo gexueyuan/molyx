@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -280,10 +280,15 @@ class db_base
 		{
 			return intval($var);
 		}
-		else if (is_array($var))
+		else if (is_string($var))
 		{
 			$var = serialize($var);
 		}
+		else
+		{
+			$var = serialize($var);
+		}
+
 		return "'" . $this->escape_string($var) . "'";
 	}
 

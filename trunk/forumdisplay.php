@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -25,13 +25,13 @@ class forum
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$forums->func->load_lang('forumdisplay');
-		$forumid = intval($_INPUT['f']);
+		$forumid = input::get('f', 0);
 
-		if ($_INPUT['f'] !== $forumid)
+		if ($forumid == 0)
 		{
-			switch ($_INPUT['f'])
+			switch (input::get('f', ''))
 			{
 				case 'search':
 					$goto = 'search.php';
@@ -68,7 +68,7 @@ class forum
 		}
 		$forums->forum->load_forum_style($this->forum['style']);
 		$this->forum['forum_jump'] = $forums->func->construct_forum_jump();
-		if ($_INPUT['pwd'])
+		if (input::get('pwd', ''))
 		{
 			$this->check_permissions();
 		}
@@ -104,22 +104,23 @@ class forum
 
 	function check_permissions()
 	{
-		global $forums, $_INPUT;
-		if ($_INPUT['password'] == '')
+		global $forums;
+		$password = input::get('password', '');
+		if ($password == '')
 		{
 			$forums->func->standard_error("requiredpassword");
 		}
-		if ($_INPUT['password'] != $this->forum['password'])
+		if ($password != $this->forum['password'])
 		{
 			$forums->func->standard_error("errorforumpassword");
 		}
-		$forums->func->set_cookie('forum_' . $this->forum['id'], md5($_INPUT['password']));
+		$forums->func->set_cookie('forum_' . $this->forum['id'], md5($password));
 		$forums->func->standard_redirect("forumdisplay.php{$forums->sessionurl}f={$this->forum['id']}");
 	}
 
 	function render_forum($fid)
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->recycleforum = $bboptions['recycleforumid'];
 		$posthash = $this->posthash;
 		$forum = $this->forum;
@@ -146,58 +147,66 @@ class forum
 				}
 			}
 		}
-		if ($_INPUT['pp'])
+
+		$firstpost = input::get('pp', 0);
+		if ($firstpost == 0)
 		{
-			$firstpost = intval($_INPUT['pp']);
-		}
-		else
-		{
-			$firstpost = 0;
 			if ($this->forum['allowposting'] && $this->forum['forumrule'])
 			{
 				$forumrule_content = $this->load_forum_rule();
 			}
 		}
 
-		$_INPUT['lastvisit'] = max($forums->forum_read[$_INPUT['f']], $_INPUT['lastvisit']);
+		$f = input::get('f', 0);
+		input::set('lastvisit', max($forums->forum_read[$f], input::get('lastvisit', 0)));
 
-		$daysprune = 100;
-
-		if (isset($_INPUT['daysprune']) && $_INPUT['daysprune'])
+		$daysprune = input::get('daysprune', 0);
+		if ($daysprune > 0)
 		{
-			$daysprune = $_INPUT['daysprune'];
 			$this->extra .= "&amp;daysprune=$daysprune";
 		}
 		else if (isset($this->forum['prune']) && $this->forum['prune'])
 		{
 			$daysprune = $this->forum['prune'];
 		}
-
-		$sortby = 'lastpost';
-		if (isset($_INPUT['sortby']) && $_INPUT['sortby'])
+		else
 		{
-			$this->extra .= "&amp;sortby={$_INPUT['sortby']}";
-			$sortby = $_INPUT['sortby'];
+			$daysprune = 100;
+		}
+
+		$sortby = input::get('sortby', '');
+		if ($sortby)
+		{
+			$this->extra .= "&amp;sortby=$sortby";
 		}
 		else if (isset($this->forum['sortby']) && $this->forum['sortby'])
 		{
 			$sortby = $this->forum['sortby'];
 		}
+		else
+		{
+			$sortby = 'lastpost';
+		}
 
-		$threadfilter = isset($_INPUT['filter']) ? $_INPUT['filter'] : 'all';
+		$threadfilter = input::get('filter', 'all');
+		if ($threadfilter)
+		{
+			$this->extra .= "&amp;filter=$threadfilter";
+		}
 		$threadprune = ($daysprune != 100) ? TIMENOW - ($daysprune * 86400) : 0;
 		$bboptions['maxthreads'] = $bboptions['maxthreads'] ? $bboptions['maxthreads'] : 20;
 
+		$st = input::get('st', 0);
 		if ($this->forum['specialtopic'])
 		{
 			$forums->func->check_cache('st');
 			$forums->cache['st'][0]['name'] = $forums->lang['st_all'];
 			$this->forum['specialtopic'] = '0,' . $this->forum['specialtopic'];
-			$st = explode(',', $this->forum['specialtopic']);
+			$sts = explode(',', $this->forum['specialtopic']);
 			$specialtopic = '<ul class="forum_st">';
-			foreach ($st AS $st_id)
+			foreach ($sts AS $st_id)
 			{
-				if($st_id == intval($_INPUT['st']))
+				if($st_id == $st)
 				{
 					$st_class = ' class="cur"';
 				}
@@ -262,7 +271,9 @@ class forum
 			$forums->func->standard_error("errororderlist");
 		}
 
-		$r_sort_by = (strtolower($sort_by) == 'asc') ? 'ASC' : 'DESC';
+		//$r_sort_by = (strtolower($sort_by) == 'asc') ? 'ASC' : 'DESC';
+		$r_sort_by = 'DESC';
+
 		$queryarray = array();
 		$addquery = '';
 		switch ($threadfilter)
@@ -303,7 +314,7 @@ class forum
 			$queryarray[] = 'visible = 0';
 		}
 
-		if (! $bbuserinfo['canviewothers'] || $threadfilter == 'started')
+		if (!$bbuserinfo['canviewothers'] || $threadfilter == 'started')
 		{
 			$queryarray[] = "postuserid = '{$bbuserinfo['id']}'";
 		}
@@ -346,10 +357,10 @@ class forum
 				}
 			}
 		}
-		if ($_INPUT['st'])
+		if ($st)
 		{
-			$queryarray[] = 'stopic = ' . intval($_INPUT['st']);
-			$this->extra .= "&amp;st={$_INPUT['st']}";
+			$queryarray[] = 'stopic = ' . $st;
+			$this->extra .= "&amp;st=$st";
 		}
 
 		if (!empty($queryarray))
@@ -391,10 +402,6 @@ class forum
 			$threadprune = 0;
 		}
 
-		if ($_INPUT['filter'])
-		{
-			$this->extra .= "&amp;filter=$threadfilter";
-		}
 		$forum['pagenav'] = $forums->func->build_pagelinks(array(
 			'totalpages' => $threadscount['threads'],
 			'perpage' => $bboptions['maxthreads'],
@@ -427,9 +434,9 @@ class forum
 
 		$shownormal = false;
 		$threadlist = array();
-		if ($this->extra || $_INPUT['pp'])
+		if ($this->extra || $firstpost)
 		{
-			$this->extra .= "&amp;pp={$_INPUT['pp']}";
+			$this->extra .= "&amp;pp=$firstpost";
 			$this->extra = urlencode(str_replace('&amp;', '&', $this->extra));
 		}
 		$forums->func->check_cache('icon');
@@ -445,7 +452,7 @@ class forum
 			$previewjoin .= 'LEFT JOIN ' . TABLE_PREFIX . "user u ON t.postuserid = u.id";
 			$previewfield = 'u.avatar, ';
 			//回收站不显示总置顶
-			if ((!$bboptions['enablerecyclebin'] || $bboptions['recycleforumid'] != $this->forum['id']) && !$_INPUT['pp'])
+			if ((!$bboptions['enablerecyclebin'] || $bboptions['recycleforumid'] != $this->forum['id']) && !$firstpost)
 			{
 				$sql =  "SELECT $previewfield t.*
 				FROM " . TABLE_PREFIX . "thread t $previewjoin
@@ -471,7 +478,7 @@ class forum
 			$previewjoin .= 'LEFT JOIN ' . TABLE_PREFIX . "user u ON t.postuserid = u.id";
 			$previewfield .= 'u.avatar, ';
 			//回收站不显示总置顶
-			if ((!$bboptions['enablerecyclebin'] || $bboptions['recycleforumid'] != $this->forum['id']) && !$_INPUT['pp'])
+			if ((!$bboptions['enablerecyclebin'] || $bboptions['recycleforumid'] != $this->forum['id']) && !$firstpost)
 			{
 				$sql =  "SELECT $previewfield t.*
 				FROM " . TABLE_PREFIX . "thread t $previewjoin
@@ -627,8 +634,10 @@ class forum
 
 	function parse_data($thread)
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$last_time = ($this->threadread[$thread['tid']] > $_INPUT['lastvisit']) ? $this->threadread[$thread['tid']] : $_INPUT['lastvisit'];
+		global $forums, $DB, $bbuserinfo, $bboptions;
+
+		$lastvisit = input::get('lastvisit', 0);
+		$last_time = ($this->threadread[$thread['tid']] > $lastvisit) ? $this->threadread[$thread['tid']] : $lastvisit;
 		$maxposts = $bboptions['maxposts'] ? $bboptions['maxposts'] : '10';
 		if ($thread['attach'])
 		{
@@ -854,4 +863,3 @@ class forum
 
 $output = new forum();
 $output->show();
-?>

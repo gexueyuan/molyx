@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -11,36 +11,33 @@
 define('THIS_SCRIPT', 'announcement');
 require_once('./global.php');
 
+$output = new announce();
+$forums->func->load_lang('moderate');
+switch (input::get('do', ''))
+{
+	case 'doannouncement':
+		$output->announcementform();
+		break;
+	case 'updateannouncement':
+		$output->updateannouncement();
+		break;
+	case 'deleteannouncement':
+		$output->deleteannouncement();
+		break;
+	case 'showall':
+		$output->all_announcement();
+		break;
+	default:
+		$output->announcement();
+		break;
+}
+
 class announce
 {
 	var $ids = array();
-	function show()
-	{
-		global $_INPUT, $forums;
-		$forums->func->load_lang('moderate');
-		switch ($_INPUT['do'])
-		{
-			case 'doannouncement':
-				$this->announcementform();
-				break;
-			case 'updateannouncement':
-				$this->updateannouncement();
-				break;
-			case 'deleteannouncement':
-				$this->deleteannouncement();
-				break;
-			case 'showall':
-				$this->all_announcement();
-				break;
-			default:
-				$this->announcement();
-				break;
-		}
-	}
-
 	function all_announcement()
 	{
-		global $_INPUT, $DB, $bbuserinfo, $bboptions, $forums;
+		global $DB, $bbuserinfo, $bboptions, $forums;
 		$forums->func->load_lang('showthread');
 		if (! $bbuserinfo['is_mod'])
 		{
@@ -51,8 +48,7 @@ class announce
 		require_once(ROOT_PATH . 'includes/functions_codeparse.php');
 		$codeparse = new functions_codeparse();
 		require_once(ROOT_PATH . 'includes/class_textparse.php');
-		$_INPUT['id'] = intval($_INPUT['id']);
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
+		$start = input::get('pp', 0);
 		$where = '';
 		$perpage = 5;
 		$pages = '';
@@ -149,21 +145,21 @@ class announce
 
 	function announcement()
 	{
-		global $_INPUT, $DB, $bbuserinfo, $bboptions, $forums;
+		global $DB, $bbuserinfo, $bboptions, $forums;
 		$forums->func->load_lang('showthread');
 		require ROOT_PATH . 'includes/functions_showthread.php';
 		require_once(ROOT_PATH . 'includes/functions_codeparse.php');
 		require_once(ROOT_PATH . 'includes/class_textparse.php');
 		$codeparse = new functions_codeparse();
 		$show = new functions_showthread();
-		$_INPUT['id'] = intval($_INPUT['id']);
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
+		$id = input::get('id', 0);
+		$start = input::get('pp', 0);
 		$where = '';
 		$perpage = 5;
 		$pages = '';
-		if ($_INPUT['id'])
+		if ($id)
 		{
-			$where = ' AND a.id = ' . intval($_INPUT['id']);
+			$where = ' AND a.id = ' . $id;
 		}
 		else
 		{
@@ -282,17 +278,17 @@ class announce
 
 	function announcementform($errors = '')
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		if (! $bbuserinfo['is_mod'])
 		{
 			$forums->func->standard_error("erroroperation");
 		}
-		$_INPUT['id'] = intval($_INPUT['id']);
+		$id = input::get('id', 0);
 		$forum_html = '';
-		if ($_INPUT['id'])
+		if ($id)
 		{
 			$button = $forums->lang['editannouncement'];
-			if (!$announce = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "announcement WHERE id=" . $_INPUT['id'] . ""))
+			if (!$announce = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "announcement WHERE id = $id"))
 			{
 				$forums->func->standard_error("cannotfindannounce");
 			}
@@ -350,19 +346,23 @@ class announce
 
 	function updateannouncement()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		if (! $bbuserinfo['is_mod'])
 		{
 			$forums->func->standard_error("erroroperation");
 		}
-		if (! $_INPUT['title'] OR ! $_INPUT['post'])
+
+		$title = input::get('title', '', false);
+		$post = input::get('post', '', false);
+		if (!$title OR !$post)
 		{
 			return $this->announcementform($forums->lang['requireannouncement']);
 		}
 		$forumids = '';
-		if (is_array($_INPUT['announceforum']) AND count($_INPUT['announceforum']))
+		$_announceforum = input::get('announceforum', array(0));
+		if (count($_announceforum))
 		{
-			if (in_array('-1', $_INPUT['announceforum']) AND $bbuserinfo['supermod'])
+			if (in_array('-1', $_announceforum) AND $bbuserinfo['supermod'])
 			{
 				$forumids = '-1';
 			}
@@ -370,13 +370,13 @@ class announce
 			{
 				if ($bbuserinfo['supermod'])
 				{
-					$forumids = implode(",", $_INPUT['announceforum']);
+					$forumids = implode(",", $_announceforum);
 				}
 				else
 				{
 					foreach ($bbuserinfo['_moderator'] AS $id => $value)
 					{
-						if (in_array($id, $_INPUT['announceforum']))
+						if (in_array($id, $_announceforum))
 						{
 							$ids[] = $id;
 						}
@@ -391,9 +391,11 @@ class announce
 		}
 		$startdate = 0;
 		$enddate = 0;
-		if (strstr($_INPUT['startdate'], '-'))
+
+		$_startdate = input::get('startdate', '');
+		if (strstr($_startdate, '-'))
 		{
-			$start_array = explode('-', $_INPUT['startdate']);
+			$start_array = explode('-', $_startdate);
 			if ($start_array[0] AND $start_array[1] AND $start_array[2])
 			{
 				if (!checkdate($start_array[1], $start_array[2], $start_array[0]))
@@ -407,9 +409,11 @@ class announce
 			}
 			$startdate = $forums->func->mk_time(0, 0, 1, $start_array[1], $start_array[2], $start_array[0]);
 		}
-		if (strstr($_INPUT['enddate'], '-'))
+
+		$_enddate = input::get('enddate', '');
+		if (strstr($_enddate, '-'))
 		{
-			$end_array = explode('-', $_INPUT['enddate']);
+			$end_array = explode('-', $_enddate);
 			if ($end_array[0] AND $end_array[1] AND $end_array[2])
 			{
 				if (!checkdate($end_array[1], $end_array[2], $end_array[0]))
@@ -440,32 +444,33 @@ class announce
 		}
 		$save_array = array(
 			'title' => $parser->convert(array(
-				'text' => utf8_htmlspecialchars($_POST['title']),
+				'text' => utf8_htmlspecialchars($title),
 				'allowsmilies' => 0,
 				'allowcode' => 1
 			)),
 			'pagetext' => $parser->convert(array(
-				'text' => $bbuserinfo['usewysiwyg'] ? $_POST['post'] : utf8_htmlspecialchars($_POST['post']),
-				'allowsmilies' => $_INPUT['allowsmile'],
-				'allowcode' => $_INPUT['allowbbcode'],
+				'text' => $bbuserinfo['usewysiwyg'] ? $post : utf8_htmlspecialchars($post),
+				'allowsmilies' => input::get('allowsmile', 0),
+				'allowcode' => input::get('allowbbcode', 0),
 			)),
-			'active' => $_INPUT['active'],
+			'active' => input::get('active', 0),
 			'forumid' => $forumids,
-			'allowhtml' => intval($_INPUT['allowhtml']),
+			'allowhtml' => input::get('allowhtml', 0),
 			'startdate' => $startdate,
 			'enddate' => $enddate
 		);
-		if (!$_INPUT['id'])
+		$id = input::get('id', 0);
+		if (!$id)
 		{
 			$save_array['userid'] = $bbuserinfo['id'];
 			$DB->insert(TABLE_PREFIX . 'announcement', $save_array);
 		}
 		else
 		{
-			$DB->update(TABLE_PREFIX . 'announcement', $save_array, 'id=' . intval($_INPUT['id']));
+			$DB->update(TABLE_PREFIX . 'announcement', $save_array, 'id = ' . $id);
 		}
 		$forums->func->recache('announcement');
-		if ($_INPUT['ref'] == 'showall')
+		if (input::get('ref', '') == 'showall')
 		{
 			$this->all_announcement();
 		}
@@ -477,12 +482,12 @@ class announce
 
 	function deleteannouncement()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		if (! $bbuserinfo['is_mod'])
 		{
 			$forums->func->standard_error("erroroperation");
 		}
-		$id = intval($_INPUT['id']);
+		$id = input::get('id', 0);
 		if (!$announce = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . ""))
 		{
 			$forums->func->standard_error("cannotfindannounce");
@@ -493,7 +498,7 @@ class announce
 		}
 		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . "");
 		$forums->func->recache('announcement');
-		if ($_INPUT['ref'] == 'showall')
+		if (input::get('ref', '') == 'showall')
 		{
 			$this->all_announcement();
 		}
@@ -503,7 +508,3 @@ class announce
 		}
 	}
 }
-
-$output = new announce();
-$output->show();
-?>

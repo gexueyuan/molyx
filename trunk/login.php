@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -15,13 +15,14 @@ class login
 {
 	function show($message = '')
 	{
-		global $_INPUT, $forums, $bboptions;
+		global $forums, $bboptions;
 		$forums->func->load_lang('login');
 		if ($bboptions['forcelogin'] == 1)
 		{
 			$this->message = $forums->lang['forcelogin'];
 		}
-		switch ($_INPUT['do'])
+
+		switch (input::get('do', ''))
 		{
 			case 'login':
 				$this->dologin();
@@ -40,7 +41,7 @@ class login
 
 	function loginpage()
 	{
-		global $forums, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $bboptions, $bbuserinfo;
 		if ($bbuserinfo['id'])
 		{
 			$forums->func->standard_redirect();
@@ -70,19 +71,20 @@ class login
 
 	function dologin()
 	{
-		global $DB, $_INPUT, $forums, $bboptions;
-		$username = trim($_INPUT['username']);
-		$password = trim($_INPUT['password']);
+		global $DB, $forums, $bboptions;
+		$username = input::get('username', '');
+		$password = input::get('password', '');
 		if ($username == '' || $password == '')
 		{
 			$forums->func->standard_error('plzinputallform');
 		}
 
-		if ($_INPUT['logintype'] == 2)
+		$type = input::get('logintype', 0);
+		if ($type == 2)
 		{
 			$where = 'id = ' . intval($username);
 		}
-		else if ($_INPUT['logintype'] == 3)
+		else if ($type == 3)
 		{
 			if (strlen($username) < 6)
 			{
@@ -97,15 +99,14 @@ class login
 		}
 		else
 		{
-			if ($_INPUT['charset'] == 'gb')
+			$charset = input::get('charset', '');
+			if ($charset == 'gb' || $charset == 'big5')
 			{
-				$username = convert_encoding($username, 'gbk', 'utf-8');
+				$username = convert_encoding($username, $charset, 'utf-8');
 			}
-			else if ($_INPUT['charset'] == 'big5')
-			{
-				$username = convert_encoding($username, 'big5', 'utf-8');
-			}
-			if (strlen($check_name) > 32)
+
+			$check_name = input::for_textarea($username);
+			if (utf8_strlen($check_name) > 32)
 			{
 				$forums->func->standard_error('nametoolong');
 			}
@@ -151,16 +152,12 @@ class login
 			$DB->update(TABLE_PREFIX . 'user', array('host' => IPADDRESS), 'id = ' . $user['id']);
 		}
 		$forums->func->convert_bits_to_array($user, $user['options']);
-		$sessionid = '';
+		$sessionid = input::get('s', '');
 		if ($forums->func->get_cookie('sessionid'))
 		{
 			$sessionid = $forums->func->get_cookie('sessionid');
 		}
-		else if ($_INPUT['s'])
-		{
-			$sessionid = $_INPUT['s'];
-		}
-		$invisible = $_INPUT['invisible'] ? 1 : 0;
+		$invisible = input::get('invisible', 0);
 
 		$sql_array = array(
 			'username' => $user['name'],
@@ -185,34 +182,44 @@ class login
 		$bbuserinfo = $user;
 		$forums->sessionid = $sessionid;
 		$url = '';
-		if ($_INPUT['referer'] && THIS_SCRIPT != 'register' && strpos($_INPUT['referer'], 'logout') === false)
+
+		$referer = input::get('referer', '');
+		if ($referer && THIS_SCRIPT != 'register' && strpos($referer, 'logout') === false)
 		{
-			$url = preg_replace("!s=(\w){32}!", '', $_INPUT['referer']);
+			$url = preg_replace("!s=(\w){32}!", '', $referer);
 		}
 
 		$style = '';
 		if ($bboptions['allowselectstyles'])
 		{
-			$styleid = intval($_INPUT['style']);
+			$styleid = input::get('style', 0);
 			$style = $forums->cache['style'][$styleid]['userselect'] ? 'style=' . $styleid . ', ' : '';
 		}
-		$bbuserinfo['options'] = $forums->func->convert_array_to_bits(array_merge($bbuserinfo , array('invisible' => $_INPUT['invisible'], 'loggedin' => 1)));
+
+		$bbuserinfo['options'] = $forums->func->convert_array_to_bits(array_merge($bbuserinfo , array(
+			'invisible' => input::get('invisible', 0),
+			'loggedin' => 1
+		)));
+
 		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET " . $style . "options=" . $bbuserinfo['options'] . " WHERE id='" . $bbuserinfo['id'] . "'");
 		$DB->shutdown_query("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid='" . $bbuserinfo['id'] . "' AND type=1");
 		$DB->shutdown_delete(TABLE_PREFIX . 'strikes', 'strikeip = ' . $DB->validate(IPADDRESS) . ' AND username = ' . $DB->validate($username));
-		if ($_INPUT['cookiedate'])
+
+		$cookie_date = input::get('cookiedate', 0);
+		if ($cookie_date)
 		{
-			$forums->func->set_cookie("userid", $user['id'], $_INPUT['cookiedate']);
-			$forums->func->set_cookie("password", $user['password'], $_INPUT['cookiedate']);
-			$forums->func->set_cookie("sessionid", $forums->sessionid, $_INPUT['cookiedate']);
+			$forums->func->set_cookie("userid", $user['id'], $cookie_date);
+			$forums->func->set_cookie("password", $user['password'], $cookie_date);
+			$forums->func->set_cookie("sessionid", $forums->sessionid, $cookie_date);
 		}
 
-		if ($_POST['return'] != '')
+		$return = input::get('return', '', false);
+		if ($return)
 		{
-			$doreturn = rawurldecode($_POST['return']);
-			if (preg_match("#^http://#", $doreturn))
+			$return = rawurldecode($return);
+			if (preg_match("#^http://#", $return))
 			{
-				$forums->func->standard_redirect($doreturn);
+				$forums->func->standard_redirect($return);
 			}
 		}
 		$text = $forums->lang['welcomeback'] . ': ' . $bbuserinfo['name'];
@@ -221,7 +228,7 @@ class login
 
 	function dologout()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$bbuserinfo['options'] = $forums->func->convert_array_to_bits(array_merge($bbuserinfo , array('invisible' => $bbuserinfo['invisible'], 'loggedin' => 0)));
 		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "session SET username='', userid='0', invisible='0', avatar=0 WHERE sessionhash='" . $forums->sessionid . "'");
 		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET options=" . $bbuserinfo['options'] . ", lastvisit=" . TIMENOW . ", lastactivity=" . TIMENOW . " WHERE id=" . $bbuserinfo['id']);
@@ -241,12 +248,14 @@ class login
 				}
 			}
 		}
-		if ($_INPUT['return'] != "")
+
+		$return = input::get('return', '', false);
+		if ($return)
 		{
-			$doreturn = rawurldecode($_INPUT['return']);
-			if (preg_match("#^http://#", $doreturn))
+			$return = rawurldecode($return);
+			if (preg_match("#^http://#", $return))
 			{
-				$forums->func->standard_redirect($doreturn);
+				$forums->func->standard_redirect($return);
 			}
 		}
 		$text = $forums->lang['alreadylogout'];
@@ -255,7 +264,7 @@ class login
 
 	function autologin()
 	{
-		global $forums, $DB, $bboptions, $bbuserinfo, $_INPUT;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		if (! $bbuserinfo['id'])
 		{
 			$userid = intval($forums->func->get_cookie('userid'));
@@ -275,7 +284,8 @@ class login
 		$login_success = $forums->lang['loginsuccess'];
 		$login_failed = $forums->lang['loginfailed'];
 		$show = false;
-		switch ($_INPUT['logintype'])
+		$type = input::get('logintype', '');
+		switch ($type)
 		{
 			case 'fromreg':
 				$login_success = $forums->lang['regsuccess'];
@@ -319,7 +329,7 @@ class login
 
 	function verify_strike_status($username = '')
 	{
-		global $DB, $_INPUT, $forums;
+		global $DB, $forums;
 		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "strikes WHERE striketime < " . (TIMENOW - 3600));
 		$strikes = $DB->query_first("SELECT COUNT(*) AS strikes, MAX(striketime) AS lasttime
 			FROM " . TABLE_PREFIX . "strikes
@@ -359,4 +369,3 @@ class login
 
 $output = new login();
 $output->show();
-?>

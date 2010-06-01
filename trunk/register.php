@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -19,7 +19,7 @@ class register
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bboptions;
+		global $forums, $bboptions;
 		$forums->func->load_lang('register');
 		$forums->lang['errorusername'] = sprintf($forums->lang['errorusername'], $bboptions['usernameminlength'], $bboptions['usernamemaxlength']);
 
@@ -32,7 +32,7 @@ class register
 		require_once(ROOT_PATH . "includes/functions_showcode.php");
 		$this->showcode = new functions_showcode();
 
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'create':
 				$this->create();
@@ -56,7 +56,7 @@ class register
 				$this->sendlostpassword();
 				break;
 			case 'showimage':
-				$simg = isset($_INPUT['simg']) ? intval($_INPUT['simg']) : 0;
+				$simg = input::get('simg', 0);
 				$this->showcode->showimage($simg);
 				break;
 			case 'resend':
@@ -72,7 +72,7 @@ class register
 				$this->checkeusermail();
 				break;
 			case 'safechange':
-				$userid = intval($_INPUT['id']);
+				$userid = input::get('id', 0);
 				$this->safechange($userid);
 				break;
 			default:
@@ -83,7 +83,7 @@ class register
 
 	function start_register($errors = "")
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		if (!$bboptions['allowregistration'] OR !$bboptions['bbactive'])
 		{
 			$forums->func->standard_error("notallowregistration");
@@ -107,7 +107,7 @@ class register
 			}
 		}
 		$pagetitle = $forums->lang['register'] . " - " . $bboptions['bbtitle'];
-		if (!$_INPUT['step'])
+		if (!input::get('step', 0))
 		{
 			$nav = array($forums->lang['register'] . ' - ' . $forums->lang['step1']);
 			$cache = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE varname='registerrule'");
@@ -119,7 +119,7 @@ class register
 		}
 		else
 		{
-			if (! $_INPUT['agree_to_terms'])
+			if (!input::get('agree_to_terms', 0))
 			{
 				$forums->func->standard_error("notagreeterms", false, $bboptions['forumindex']);
 			}
@@ -150,7 +150,7 @@ class register
 				$image = $this->showcode->showimage();
 				$show['gif'] = true;
 			}
-			$offset = ($_INPUT['timezoneoffset'] != "") ? $_INPUT['timezoneoffset'] : 8;
+			$offset = input::get('timezoneoffset', 8);
 			$time_select = "<select name='timezoneoffset'>";
 			require_once(ROOT_PATH . "includes/functions_user.php");
 			$this->fu = new functions_user();
@@ -164,19 +164,19 @@ class register
 			$allowadmin = 'checked="checked"';
 			$pmover = 'checked="checked"';
 			$pmwarn = 'checked="checked"';
-			if ($_INPUT['do'] == 'creat')
+			if (input::get('do', '') == 'creat')
 			{
-				$usepm = $_INPUT['usepm'] ? 'checked="checked"' : '';
-				$pmpop = $_INPUT['pmpop'] ? 'checked="checked"' : '';
-				$allowadmin = $_INPUT['allowadmin'] ? 'checked="checked"' : '';
-				$pmover = $_INPUT['pmover'] ? 'checked="checked"' : '';
-				$pmwarn = $_INPUT['pmwarn'] ? 'checked="checked"' : '';
-				$pmwarnmode = $_INPUT['pmwarnmode'] ? 'checked="checked"' : '';
+				$usepm = input::get('usepm', 0) ? 'checked="checked"' : '';
+				$pmpop = input::get('pmpop', 0) ? 'checked="checked"' : '';
+				$allowadmin = input::get('allowadmin', 0) ? 'checked="checked"' : '';
+				$pmover = input::get('pmover', 0) ? 'checked="checked"' : '';
+				$pmwarn = input::get('pmwarn', 0) ? 'checked="checked"' : '';
+				$pmwarnmode = input::get('pmwarnmode', 0) ? 'checked="checked"' : '';
 			}
-			$usewysiwyg = $_INPUT['usewysiwyg'] ? 'checked="checked"' : '';
-			$emailonpm = $_INPUT['emailonpm'] ? 'checked="checked"' : '';
-			$hideemail = $_INPUT['hideemail'] ? 'checked="checked"' : '';
-			$dst_checked = $_INPUT['dst'] ? 'checked="checked"' : '';
+			$usewysiwyg = input::get('usewysiwyg', 0) ? 'checked="checked"' : '';
+			$emailonpm = input::get('emailonpm', 0) ? 'checked="checked"' : '';
+			$hideemail = input::get('hideemail', 0) ? 'checked="checked"' : '';
+			$dst_checked = input::get('dst', 0) ? 'checked="checked"' : '';
 			$forums->lang['namefaq'] = sprintf($forums->lang['namefaq'], $bboptions['usernameminlength'], $bboptions['usernamemaxlength']);
 
 			// 自定义字段
@@ -192,18 +192,19 @@ class register
 
 	function get_usrext_form()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$forums->func->check_cache('userextrafield');
 
 		$return = array('must' => array(), 'other' => array());
 		foreach ($forums->cache['userextrafield']['a'] as $k => $v)
 		{
+			$_k = input::get($k, '');
 			$form = '';
 			$type = isset($forums->cache['userextrafield']['f'][$k]) ? 'must' : 'other';
 			switch ($v['showtype'])
 			{
 				case 'text':
-					$form = '<input type="text" size="25" value="' . $_INPUT[$k] . '" name="' . $k . '" class="input_normal"';
+					$form = '<input type="text" size="25" value="' . $_k . '" name="' . $k . '" class="input_normal"';
 					$form .= ($type == 'must') ? ' tabindex="%s"' : '';
 					$form .= ' />';
 				break;
@@ -215,7 +216,7 @@ class register
 					foreach ($v['listcontent'] as $list)
 					{
 						$form .= '<option value="' . $list[0] . '"';
-						$form .= ($_INPUT[$k] == $list[0]) ? ' selected="selected"' : '';
+						$form .= ($_k == $list[0]) ? ' selected="selected"' : '';
 						$form .= '>' . $list[1] . '</option>';
 					}
 					$form .= '</select>';
@@ -224,7 +225,7 @@ class register
 				case 'textarea':
 					$form = '<textarea cols="40" rows="5" name="' . $k . '"';
 					$form .= ($type == 'must') ? ' tabindex="%s"' : '';
-					$form .= '>' . $_INPUT[$k] . '</textarea>';
+					$form .= '>' . $_k . '</textarea>';
 				break;
 			}
 			$return[$type][] = array(
@@ -238,13 +239,13 @@ class register
 
 	function create()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		if (!$bboptions['allowregistration'] OR !$bboptions['bbactive'])
 		{
 			$forums->func->standard_error("notallowregistration");
 		}
 
-		$username = $_INPUT['username'];
+		$username = input::get('username', '');
 		$check = unclean_value($username);
 		$len_u = utf8_strlen($check);
 		if ($bboptions['namenoallowenus'])
@@ -285,10 +286,9 @@ class register
 			return $this->start_register('hasnoallowchars');
 		}
 
-		$password = trim($_INPUT['password']);
-		$email = strtolower(trim($_INPUT['email']));
-//		$_INPUT['emailconfirm'] = strtolower(trim($_INPUT['emailconfirm']));
-//		if ($_INPUT['emailconfirm'] != $email)
+		$password = input::get('password', '');
+		$email = strtolower(input::get('email', ''));
+//		if (strtolower(input::get('emailconfirm', '')) != $email)
 //		{
 //			return $this->start_register('erroremailconfirm');
 //		}
@@ -300,7 +300,7 @@ class register
 		{
 			return $this->start_register('passwordfaq');
 		}
-		if ($_INPUT['passwordconfirm'] != $password)
+		if (input::get('passwordconfirm', '') != $password)
 		{
 			return $this->start_register('errorpassword');
 		}
@@ -350,7 +350,7 @@ class register
 		{
 			foreach ($banfilter['email'] AS $banemail)
 			{
-				$banemail = preg_replace("/\*/", '.*' , $banemail);
+				$banemail = str_replace('*', '.*' , $banemail);
 				if (preg_match("/$banemail/", $email))
 				{
 					$this->start_register("bademail");
@@ -366,20 +366,21 @@ class register
 		//检测结束
 		if ($bboptions['enableantispam'])
 		{
-			if ($_INPUT['regimagehash'] == "")
+			$regimghash = input::get('regimagehash', '');
+			if ($regimghash == "")
 			{
 				$this->start_register('badimagehash');
 				return;
 			}
-			if (!$row = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes(trim($_INPUT['regimagehash'])) . "'"))
+			if (!$row = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes($regimghash) . "'"))
 			{
 				return $this->start_register('badimagehash');
 			}
-			if (trim(intval($_INPUT['imagestamp'])) != $row['imagestamp'])
+			if (input::get('imagestamp', 0) != $row['imagestamp'])
 			{
 				return $this->start_register('badimagehash');
 			}
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes(trim($_INPUT['regimagehash'])) . "'");
+			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes($regimghash) . "'");
 		}
 
 		$usergroupid = 3;
@@ -402,18 +403,18 @@ class register
 
 		$salt = generate_user_salt(5);
 		$saltpassword = md5(md5($password) . $salt);
-		$options['adminemail'] = $_INPUT['allowadmin'] ? 1 : 0;
-		$options['dstonoff'] = $_INPUT['dst'] ? 1 : 0;
-		$options['hideemail'] = $_INPUT['hideemail'] ? 1 : 0;
-		$options['usepm'] = $_INPUT['usepm'] ? 1 : 0;
-		$options['pmpop'] = $_INPUT['pmpop'] ? 1 : 0;
-		$options['pmover'] = $_INPUT['pmover'] ? 1 : 0;
-		$options['pmwarn'] = $_INPUT['pmwarn'] ? 1 : 0;
-		$options['pmwarnmode'] = $_INPUT['pmwarnmode'] ? 1 : 0;
-		$options['emailonpm'] = $_INPUT['emailonpm'] ? 1 : 0;
-		$options['usewysiwyg'] = $_INPUT['usewysiwyg'] ? 1 : 0;
+		$options['adminemail'] =input::get('allowadmin', 0) ? 1 : 0;
+		$options['dstonoff'] = input::get('dst', 0) ? 1 : 0;
+		$options['hideemail'] = input::get('hideemail', 0) ? 1 : 0;
+		$options['usepm'] = input::get('usepm', 0) ? 1 : 0;
+		$options['pmpop'] = input::get('pmpop', 0) ? 1 : 0;
+		$options['pmover'] = input::get('pmover', 0) ? 1 : 0;
+		$options['pmwarn'] = input::get('pmwarn', 0) ? 1 : 0;
+		$options['pmwarnmode'] = input::get('pmwarnmode', 0) ? 1 : 0;
+		$options['emailonpm'] = input::get('emailonpm', 0) ? 1 : 0;
+		$options['usewysiwyg'] = input::get('usewysiwyg', 0) ? 1 : 0;
 		$options = $forums->func->convert_array_to_bits($options);
-		$emailcharset = $_INPUT['emailcharset']?$_INPUT['emailcharset']:'GBK';
+		$emailcharset = input::get('emailcharset', 'GBK');
 		$user= array('name' => $username,
 			'salt' => $salt,
 			'password' => $saltpassword,
@@ -423,8 +424,8 @@ class register
 			'posts' => 0,
 			'joindate' => TIMENOW,
 			'host' => IPADDRESS,
-			'timezoneoffset' => $_INPUT['timezoneoffset'],
-			'gender' => intval($_INPUT['gender']),
+			'timezoneoffset' => input::get('timezoneoffset', 0),
+			'gender' => input::get('gender', 0),
 			'forbidpost' => 0,
 			'options' => $options,
 			'pmtotal' => 0,
@@ -457,12 +458,12 @@ class register
 		$this->credit->update_credit('register', $user['id'], $user['usergroupid']);
 		if ($do_send_pm)
 		{
-			$_INPUT['title'] = $forums->lang['welcome_register'] . $user['name'];
+			input::set('title', $forums->lang['welcome_register'] . $user['name']);
 			$_POST['post'] = $pm_contents;
-			$_INPUT['username'] = $user['name'];
+			input::set('username', $user['name']);
 			require_once(ROOT_PATH . 'includes/functions_private.php');
 			$pm = new functions_private();
-			$_INPUT['noredirect'] = 1;
+			input::set('noredirect', 1);
 			$pm->cookie_mxeditor = "wysiwyg";
 			$pm->sendpm();
 		}
@@ -522,8 +523,8 @@ class register
 
 	function do_reactivation()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
-		$username = trim($_INPUT['username']);
+		global $forums, $DB, $bboptions;
+		$username = input::get('username', '');
 		if (!$username)
 		{
 			$this->reactivationform('errorusername');
@@ -628,23 +629,24 @@ class register
 
 	function sendlostpassword()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		if ($bboptions['enableantispam'])
 		{
-			if ($_INPUT['regimagehash'] == "")
+			$regimagehash = input::get('regimagehash', '');
+			if ($regimagehash == "")
 			{
 				return $this->lostpassword('badimagehash');
 			}
-			if (! $row = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . trim(addslashes($_INPUT['regimagehash'])) . "'"))
+			if (! $row = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes($regimagehash) . "'"))
 			{
 				return $this->lostpassword('badimagehash');
 			}
-			if (trim(intval($_INPUT['imagestamp'])) != $row['imagestamp'])
+			if (input::get('imagestamp', 0) != $row['imagestamp'])
 			{
 				return $this->lostpassword('badimagehash');
 			}
 		}
-		$username = trim($_INPUT['username']);
+		$username = input::get('username', '');
 		if ($username == "")
 		{
 			return $this->lostpassword('errorusername');
@@ -655,7 +657,7 @@ class register
 		}
 		else
 		{
-			if ($_INPUT['safechange'])
+			if (input::get('safechange', 0))
 			{
 				$this->safechange($user['id']);
 			}
@@ -692,24 +694,24 @@ class register
 
 	function safechange($userid = 0)
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		$safe = $DB->query_first("SELECT answer, question FROM " . TABLE_PREFIX . "userextra WHERE id = {$userid}");
 		if (!$safe['question'] OR !$safe['answer'])
 		{
 			$forums->func->standard_error("cannotusesafe");
 		}
-		if ($_INPUT['update'])
+		if (input::get('update', 0))
 		{
-			if ($safe['answer'] != $_INPUT['answer'])
+			if ($safe['answer'] != input::get('answer', ''))
 			{
 				$forums->func->standard_error("answererror");
 			}
-			$password = trim($_INPUT['password']);
+			$password = input::get('password', '');
 			if (empty($password) OR (strlen($password) < 3) OR (strlen($password) > 32))
 			{
 				$errors = $forums->lang['passwordfaq'];
 			}
-			if ($_INPUT['passwordconfirm'] != $password)
+			if (input::get('passwordconfirm', '') != $password)
 			{
 				$errors = $forums->lang['errorpassword'];
 			}
@@ -729,16 +731,16 @@ class register
 
 	function validate()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
-		$userid = intval(trim(rawurldecode($_INPUT['u'])));
-		$activationkey = trim(rawurldecode($_INPUT['a']));
-		$type = trim($_INPUT['type']);
-		$username = trim($_INPUT['name']);
+		global $forums, $DB, $bboptions;
+		$userid = input::get('u', 0);
+		$activationkey = trim(rawurldecode(input::get('a', '')));
+		$type = input::get('type', '');
+		$username = input::get('name', '');
 		if ($type == "")
 		{
 			$type = 'reg';
 		}
-		if (! preg_match("/^(?:[\d\w]){32}$/", $activationkey) OR ! preg_match("/^(?:\d){1,}$/", $userid))
+		if (!preg_match('/^(?:[\d\w]){32}$/', $activationkey) || !preg_match('/^(?:\d){1,}$/', $userid))
 		{
 			$forums->func->standard_error("cannotvalidate");
 		}
@@ -794,12 +796,13 @@ class register
 				{
 					$forums->func->standard_error("notfindpassword");
 				}
-				if ($_INPUT['pass1'] == "" OR $_INPUT['pass2'] == "")
+				$pass1 = input::get('pass1', '');
+				$pass2 = input::get('pass2', '');
+				if ($pass1 == '' OR $pass2 == '')
 				{
 					$forums->func->standard_error("plzinputallform");
 				}
-				$pass1 = trim($_INPUT['pass1']);
-				$pass2 = trim($_INPUT['pass2']);
+
 				if (strlen($pass1) < 3)
 				{
 					$forums->func->standard_error("passwordtooshort");
@@ -843,16 +846,17 @@ class register
 
 	function do_form($type = 'reg')
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$pagetitle = $forums->lang['activationform'] . " - " . $bboptions['bbtitle'];
 		$nav = array($forums->lang['activationform']);
 		if ($type == 'lostpass')
 		{
-			if ($_INPUT['u'] AND $_INPUT['a'])
+			$userid = input::get('u', 0);
+			$activationkey = trim(rawurldecode(input::get('a', '')));
+			if ($userid && $activationkey)
 			{
-				$userid = intval(trim(rawurldecode($_INPUT['u'])));
-				$activationkey = trim(rawurldecode($_INPUT['a']));
-				if (! preg_match("/^(?:[\d\w]){32}$/", $activationkey) OR ! preg_match("/^(?:\d){1,}$/", $userid))
+
+				if (! preg_match('/^(?:[\d\w]){32}$/', $activationkey) OR ! preg_match('/^(?:\d){1,}$/', $userid))
 				{
 					$forums->func->standard_error("cannotvalidate");
 				}
@@ -926,5 +930,3 @@ class register
 
 $output = new register();
 $output->show();
-
-?>

@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -12,9 +12,10 @@ if (!defined('IN_MXB') || isset($_REQUEST['GLOBALS']) || isset($_FILES['GLOBALS'
 {
 	exit();
 }
-define('STARTTIME', microtime());
-define('IS_WIN', DIRECTORY_SEPARATOR == '\\');
+define('STARTTIME', microtime()); // 统计PHP执行时间开始
+define('IS_WIN', DIRECTORY_SEPARATOR == '\\'); // 服务器是否 Windows
 
+// 获得基础路径的绝对路径
 $dir = @realpath(ROOT_PATH);
 if ($dir)
 {
@@ -33,6 +34,7 @@ else
 }
 define('ROOT_DIR', $dir);
 
+// 判断是否已安装
 if (!@include(ROOT_PATH . 'includes/config.php'))
 {
 	echo 'The file "includes/config.php" does not exist. ';
@@ -43,17 +45,23 @@ if (!@include(ROOT_PATH . 'includes/config.php'))
 	exit();
 }
 
+require_once(ROOT_DIR . 'includes/functions_init.php');
+
 if (!defined('IN_ACP'))
 {
 	define('IN_ACP', false);
 }
 
+// 判断开发模式
 if (!defined('DEVELOPER_MODE'))
 {
 	define('DEVELOPER_MODE', false);
 }
 else if (DEVELOPER_MODE)
 {
+	/**
+	 * 获得两次执行之间代码的运行时间
+	 */
 	function runtime()
 	{
 		static $starttime = 0;
@@ -66,6 +74,12 @@ else if (DEVELOPER_MODE)
 		printf('%6fs', $mtime[1] + $mtime[0] - $starttime);
 		$starttime = 0;
 	}
+
+	$base_memory_usage = 0;
+	if (function_exists('memory_get_usage'))
+	{
+		$base_memory_usage = memory_get_usage();
+	}
 }
 
 if (defined('DISPLAY_ERRORS') && DISPLAY_ERRORS)
@@ -76,7 +90,11 @@ if (defined('DISPLAY_ERRORS') && DISPLAY_ERRORS)
 	//{
 	//	@ini_set('display_errors', 1);
 	//}
-	error_reporting(E_ALL ^ E_NOTICE);
+	if (!defined('E_DEPRECATED'))
+	{
+		define('E_DEPRECATED', 8192);
+	}
+	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
 
 	require_once(ROOT_PATH . 'includes/error/error_handler.php');
 	$error_handler = new error_handler();
@@ -93,29 +111,31 @@ if (function_exists('date_default_timezone_set'))
     date_default_timezone_set(date_default_timezone_get());
 }
 define('TIMENOW', isset($_SERVER['REQUEST_TIME']) ? (int) $_SERVER['REQUEST_TIME'] : time());
+define('TODAY', strtotime(date('Y-m-d 00:00:00', TIMENOW)));
 
 // PHP 6 以后不需要再执行下面的操作
 if (PHP_VERSION < '6.0.0')
 {
-	@set_magic_quotes_runtime(0);
+	if (version_compare(PHP_VERSION, '5.3.0', '<'))
+	{
+		@set_magic_quotes_runtime(0);
+	}
 
+	// 删除全局注册的变量
+	$register_globals = @ini_get('register_globals');
+	if ($register_globals == '1' || strtolower($register_globals) == 'on' || !function_exists('ini_get'))
+	{
+		deregister_globals();
+	}
+
+	// 去掉所有输入变量的魔法引号
 	define('MAGIC_QUOTES_GPC', @get_magic_quotes_gpc() ? true : false);
 	if (MAGIC_QUOTES_GPC)
 	{
-		function stripslashes_vars(&$vars)
-		{
-			if (is_array($vars))
-			{
-				foreach ($vars as $k => $v)
-				{
-					stripslashes_vars($vars[$k]);
-				}
-			}
-			else if (is_string($vars))
-			{
-				$vars = stripslashes($vars);
-			}
-		}
+		stripslashes_deep($_REQUEST);
+		stripslashes_deep($_GET);
+		stripslashes_deep($_POST);
+		stripslashes_deep($_COOKIE);
 
 		if (is_array($_FILES))
 		{
@@ -123,11 +143,7 @@ if (PHP_VERSION < '6.0.0')
 			{
 				$_FILES[$key]['tmp_name'] = str_replace('\\', '\\\\', $val['tmp_name']);
 			}
-		}
-
-		foreach (array('_REQUEST', '_GET', '_POST', '_COOKIE', '_FILES') as $v)
-		{
-			stripslashes_vars($$v);
+			stripslashes_deep($_FILES);
 		}
 	}
 
@@ -138,8 +154,6 @@ else
 	define('MAGIC_QUOTES_GPC', false);
 	define('SAFE_MODE', false);
 }
-
-require_once(ROOT_PATH . 'includes/functions_init.php');
 
 $ip = $_SERVER['REMOTE_ADDR'];
 define('IPADDRESS', $ip);
@@ -210,8 +224,7 @@ else
 		$scriptpath .= $_ENV['QUERY_STRING'];
 	}
 }
-$scriptpath = preg_replace('/(s|sessionhash)=[a-z0-9]{32}?&?/', '', $scriptpath);
-$scriptpath = xss_clean($scriptpath);
+$scriptpath = xss_clean(remove_sid($scriptpath));
 if (false !== ($quest_pos = strpos($scriptpath, '?')))
 {
 	$script = urldecode(substr($scriptpath, 0, $quest_pos));
@@ -251,4 +264,3 @@ if (!defined('USE_SHUTDOWN'))
 {
 	define('USE_SHUTDOWN', true);
 }
-?>

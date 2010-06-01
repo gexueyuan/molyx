@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -198,17 +198,19 @@ class functions_post
 
 	function check_multi_quote($split = true)
 	{
-		global $DB, $forums, $_INPUT, $bboptions, $bbuserinfo;
+		global $DB, $forums, $bboptions, $bbuserinfo;
 		$add_tags = 0;
-		if ($_INPUT['qpid'])
+		$qpid = input::get('qpid', '');
+		if ($qpid)
 		{
-			$_INPUT['qpid'] = $_INPUT['t'] . '|' . $_INPUT['qpid'] . ',';
+			$qpid = input::get('t', 0) . '|' . $qpid . ',';
 		}
-		$_INPUT['qpid'] = preg_replace("/[^,\d|]/", '', trim($_INPUT['qpid'] . $forums->func->get_cookie('mqtids')));
-		if ($_INPUT['qpid'])
+		$qpid = preg_replace("/[^,\d|]/", '', trim($qpid . $forums->func->get_cookie('mqtids')));
+		$content = '';
+		if ($qpid)
 		{
 			$forums->func->set_cookie('mqtids', ',', 0);
-			$this->qpids = preg_split('/,/', $_INPUT['qpid'], -1, PREG_SPLIT_NO_EMPTY);
+			$this->qpids = preg_split('/,/', $qpid, -1, PREG_SPLIT_NO_EMPTY);
 			if (count($this->qpids))
 			{
 				$tidspid = $tablename = $qposts = array();
@@ -315,32 +317,31 @@ class functions_post
 				$content = str_replace("\n", "<br />", $content);
 			}
 		}
-		if (isset($_POST['post']))
-		{
-			$content .= $_POST['post'];
-		}
-		if (isset($content))
+		$content .= input::get('post', '', false);
+		if (!empty($content))
 		{
 			$content = $this->init_post($content);
 		}
 		return $content;
 	}
 
-	function compile_title()
+	function compile_title($title)
 	{
-		global $forums, $_INPUT, $bbuserinfo, $bboptions;
+		global $bbuserinfo;
 		if ($this->moderator['caneditthreads'] OR $bbuserinfo['supermod'])
 		{
-			if ($_INPUT['titlecolor'])
+			$titlecolor = input::get('titlecolor', '');
+			if ($titlecolor)
 			{
-				$_INPUT['title'] = '<font color="' . $_INPUT['titlecolor'] . '">' . $_INPUT['title'] . '</font>';
+				$title = '<font color="' . $titlecolor . '">' . $title . '</font>';
 			}
-			if ($_INPUT['titlebold'])
+
+			if (input::get('titlebold', 0))
 			{
-				$_INPUT['title'] = '<strong>' . $_INPUT['title'] . '</strong>';
+				$title = '<strong>' . $title . '</strong>';
 			}
 		}
-		return $_INPUT['title'];
+		return $title;
 	}
 
 	function compile_post()
@@ -981,5 +982,3 @@ class functions_post
 		return preg_replace("/\\\(&amp;#|\?#)/", '&#092;', $text);
 	}
 }
-
-?>

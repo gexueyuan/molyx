@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -27,21 +27,22 @@ class redirect
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('showthread');
 		$forums->func->load_lang('post');
-		$_INPUT['t'] = intval($_INPUT['t']);
-		if ($_INPUT['t'] < 1)
+		$t = input::get('t', 0);
+		$goto = input::get('goto', '');
+		$pid = input::get('p', 0);
+		if ($t < 1)
 		{
-			if ($_INPUT['goto'] == 'findpost')
+			if ($goto == 'findpost')
 			{
-				$pid = intval($_INPUT['p']);
 				if ($pid > 0)
 				{
-					$thread = $DB->query_first("SELECT threadid FROM " . TABLE_PREFIX . "post WHERE pid = " . intval($_INPUT['p']));
+					$thread = $DB->query_first("SELECT threadid FROM " . TABLE_PREFIX . "post WHERE pid = " . $pid);
 					if ($thread)
 					{
-						$_INPUT['t'] = $thread['threadid'];
+						$t = $thread['threadid'];
 					}
 					else
 					{
@@ -58,7 +59,7 @@ class redirect
 				$forums->func->standard_error("errorthreadlink");
 			}
 		}
-		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid='" . $_INPUT['t'] . "'");
+		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid='" . $t . "'");
 		$this->forum = $forums->forum->single_forum($this->thread['forumid']);
 		if (!$this->forum['id'] OR !$this->thread['tid'])
 		{
@@ -69,48 +70,53 @@ class redirect
 
 		$forums->forum->check_permissions($this->forum['id'], 1, 'thread');
 
-		if (isset($_INPUT['goto']))
+		switch ($goto)
 		{
-			if ($_INPUT['goto'] == 'new')
-			{
+			case 'new':
 				if ($this->thread = $DB->query_first("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost > '" . $this->thread['lastpost'] . "' ORDER BY lastpost LIMIT 0, 1"))
 				{
-					$_INPUT['t'] = $this->thread['tid'];
-					require (ROOT_PATH . 'showthread.php');
-					exit;
+					$t = $this->thread['tid'];
 				}
 				else
 				{
 					$forums->func->standard_error("nonewthread");
 				}
-			}
-			else if ($_INPUT['goto'] == 'old')
-			{
+			break;
+
+			case 'old':
 				if ($this->thread = $DB->query_first("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost < '" . $this->thread['lastpost'] . "' ORDER BY lastpost DESC LIMIT 0, 1"))
 				{
-					$_INPUT['t'] = $this->thread['tid'];
-					require (ROOT_PATH . 'showthread.php');
-					exit;
+					$t = $this->thread['tid'];
 				}
 				else
 				{
 					$forums->func->standard_error("nooldthread");
 				}
-			}
-			else if ($_INPUT['goto'] == 'lastpost')
-			{
+			break;
+
+			case 'lastpost':
 				$this->return_lastpost();
-			}
-			else if ($_INPUT['goto'] == 'newpost')
-			{
+			break;
+
+			case 'newpost':
 				$page = 0;
 				$pid = "";
 				$last_time = $threadread[$this->thread['tid']];
-				$last_time = $last_time ? $last_time : $_INPUT['lastvisit'];
-				if ($post = $DB->query_first("SELECT pid, dateline FROM " . TABLE_PREFIX . "post WHERE  threadid='" . $this->thread['tid'] . "' AND moderate != 1 AND dateline > '" . $last_time . "' ORDER BY pid LIMIT 0, 1"))
+				$last_time = $last_time ? $last_time : input::get('lastvisit', 0);
+				$post = $DB->query_first("SELECT pid, dateline
+					FROM " . TABLE_PREFIX . "post
+					WHERE threadid='" . $this->thread['tid'] . "'
+						AND moderate != 1
+						AND dateline > '" . $last_time . "'
+					ORDER BY pid");
+				if (!empty($post))
 				{
 					$pid = "#pid" . $post['pid'];
-					$cpost = $DB->query_first("SELECT COUNT(*) as post FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND moderate != 1 AND pid <= '" . $post['pid'] . "' LIMIT 0, 1");
+					$cpost = $DB->query_first("SELECT COUNT(*) as post
+						FROM " . TABLE_PREFIX . "post
+						WHERE threadid='" . $this->thread['tid'] . "'
+							AND moderate != 1
+							AND pid <= '" . $post['pid'] . "'");
 					if ((($cpost['post']) % $this->maxposts) == 0)
 					{
 						$pages = ($cpost['post']) / $this->maxposts;
@@ -120,16 +126,22 @@ class redirect
 						$pages = ceil(($cpost['post']) / $this->maxposts);
 					}
 					$page = ($pages - 1) * $this->maxposts;
-					$bboptions['rewritestatus'] ? $forums->func->standard_redirect("thread-" . $this->thread['tid'] . "-" . $page . ".html" . $pid) : $forums->func->standard_redirect("showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . "&amp;pp=$page" . $pid);
+					if ($bboptions['rewritestatus'])
+					{
+						$forums->func->standard_redirect("thread-" . $this->thread['tid'] . "-" . $page . ".html" . $pid);
+					}
+					else
+					{
+						$forums->func->standard_redirect("showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . "&amp;pp=$page" . $pid);
+					}
 				}
 				else
 				{
 					$this->return_lastpost();
 				}
-			}
-			else if ($_INPUT['goto'] == 'findpost')
-			{
-				$pid = intval($_INPUT['p']);
+			break;
+
+			case 'findpost':
 				if ($pid > 0)
 				{
 					$cpost = $DB->query_first("SELECT COUNT(*) as post FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND pid <= '" . $pid . "' LIMIT 0, 1");
@@ -143,14 +155,23 @@ class redirect
 						$pages = ceil($number);
 					}
 					$page = ($pages - 1) * $this->maxposts;
-					$bboptions['rewritestatus'] ? $forums->func->standard_redirect("thread-" . $this->thread['tid'] . "-" . $page . ".html" . "?p=" . $pid . "#pid" . $pid) : $forums->func->standard_redirect("showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . "&amp;p=$pid&amp;pp=" . $page . "#pid" . $pid);
+					if ($bboptions['rewritestatus'])
+					{
+						$forums->func->standard_redirect("thread-" . $this->thread['tid'] . "-" . $page . ".html" . "?p=" . $pid . "#pid" . $pid);
+					}
+					else
+					{
+						$forums->func->standard_redirect("showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . "&amp;p=$pid&amp;pp=" . $page . "#pid" . $pid);
+					}
 				}
 				else
 				{
 					$this->return_lastpost();
 				}
-			}
+			break;
 		}
+
+		input::set('t', $t);
 		require (ROOT_PATH . 'showthread.php');
 		exit;
 	}
@@ -179,5 +200,3 @@ class redirect
 
 $output = new redirect();
 $output->show();
-
-?>

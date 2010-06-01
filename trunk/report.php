@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -21,14 +21,14 @@ class report
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$forums->func->load_lang('report');
 		if (!$bbuserinfo['id'])
 		{
 			$forums->func->standard_error("noperms");
 		}
-		$this->postid = intval($_INPUT['p']);
-		$this->threadid = intval($_INPUT['t']);
+		$this->postid = input::get('p', 0);
+		$this->threadid = input::get('t', 0);
 		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . $this->threadid . "");
 		$this->forum = $forums->forum->single_forum($this->thread['forumid']);
 		$this->forumid = $this->forum['id'];
@@ -36,7 +36,7 @@ class report
 		{
 			$forums->func->standard_error("cannotfindreport");
 		}
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'report':
 				$this->report_form();
@@ -74,7 +74,7 @@ class report
 
 	function report_form()
 	{
-		global $forums, $bbuserinfo, $_INPUT, $bboptions;
+		global $forums, $bbuserinfo, $bboptions;
 		$this->check_permissions();
 		$title = $this->thread['title'];
 		$pagetitle = $this->thread['title'] . " - " . $forums->lang['reportbadpost'] . " - " . $bboptions['bbtitle'];
@@ -85,8 +85,10 @@ class report
 
 	function send()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
-		if ($_INPUT['message'] == "")
+		global $forums, $DB, $bboptions, $bbuserinfo;
+
+		$report = input::get('message', '');
+		if ($report == '')
 		{
 			$forums->func->standard_error("plzinputallform");
 		}
@@ -121,16 +123,17 @@ class report
 		}
 		require_once(ROOT_PATH . "includes/functions_email.php");
 		$this->email = new functions_email();
-		$report = trim($_INPUT['message']);
+
+		$pp = input::get('pp', 0);
 		foreach($mods as $ids => $data)
 		{
-			$message = $this->email->fetch_email_reportpost(array('moderator' => $data['name'],
-					'username' => $bbuserinfo['name'],
-					'thread' => $this->thread['title'],
-					'link' => $bboptions[bburl] . "/showthread.php?f=" . $this->forumid . "&amp;t=" . $this->threadid . "&amp;pp=" . $_INPUT['pp'] . "#pid" . $this->postid,
-					'report' => $report,
-					)
-				);
+			$message = $this->email->fetch_email_reportpost(array(
+				'moderator' => $data['name'],
+				'username' => $bbuserinfo['name'],
+				'thread' => $this->thread['title'],
+				'link' => $bboptions[bburl] . "/showthread.php?f=" . $this->forumid . "&amp;t=" . $this->threadid . "&amp;pp=" . $pp . "#pid" . $this->postid,
+				'report' => $report,
+			));
 			$this->email->build_message($message);
 			if ($bboptions['reporttype'] == 'email')
 			{
@@ -141,9 +144,9 @@ class report
 			}
 			else
 			{
-				$_INPUT['title'] = $forums->lang['reportthread'] . ': ' . $this->thread['title'];
+				input::set('title', $forums->lang['reportthread'] . ': ' . $this->thread['title']);
 				$_POST['post'] = $message;
-				$_INPUT['username'] = $data['name'];
+				input::set('username', $data['name']);
 				require_once(ROOT_PATH . 'includes/functions_private.php');
 				$pm = new functions_private();
 				$bbuserinfo['pmfolders'] = unserialize($bbuserinfo['pmfolders']);
@@ -151,16 +154,14 @@ class report
 				{
 					$bbuserinfo['pmfolders'] = array(-1 => array('pmcount' => 0, 'foldername' => $forums->lang['_outbox']), 0 => array('pmcount' => 0, 'foldername' => $forums->lang['_inbox']));
 				}
-				$_INPUT['noredirect'] = 1;
+				input::set('noredirect', 1);
 				$pm->sendpm();
 			}
 		}
 		$forums->lang['hasreport'] = sprintf($forums->lang['hasreport'], $bbuserinfo['name']);
-		$forums->func->redirect_screen($forums->lang['hasreport'], "showthread.php{$forums->sessionurl}f=" . $this->forumid . "&amp;t=" . $this->threadid . "&amp;pp=" . $_INPUT['pp'] . "#pid" . $this->postid);
+		$forums->func->redirect_screen($forums->lang['hasreport'], "showthread.php{$forums->sessionurl}f=" . $this->forumid . "&amp;t=" . $this->threadid . "&amp;pp=" . $pp . "#pid" . $this->postid);
 	}
 }
 
 $output = new report();
 $output->show();
-
-?>

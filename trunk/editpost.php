@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -25,15 +25,17 @@ class editpost
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$forums->func->load_lang('post');
 		require_once(ROOT_PATH . 'includes/xfunctions_hide.php');
 		$this->hidefunc = new hidefunc();
 
-		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . intval($_INPUT['t']));
+		$tid = input::get('t', 0);
+		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid = $tid");
 		$this->posttable = $this->thread['posttable'] ? $this->thread['posttable'] : 'post';
 
-		$this->getpost = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . $this->posttable . " WHERE pid=" . intval($_INPUT['p']) . "");
+		$pid = input::get('p', 0);
+		$this->getpost = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . $this->posttable . " WHERE pid = $pid");
 		if (! $this->getpost)
 		{
 			$forums->func->standard_error("cannoteditpost");
@@ -54,7 +56,7 @@ class editpost
 		{
 			$this->posthash = $this->getpost['posthash'];
 		}
-		if ($this->thread['firstpostid'] == intval($_INPUT['p']))
+		if ($this->thread['firstpostid'] == $pid)
 		{
 			$this->edittype = 'editthread';
 		}
@@ -71,7 +73,7 @@ class editpost
 
 	function showform()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->fetch_permission();
 		$forums->func->check_cache('usergroup');
 		$usergrp = $forums->cache['usergroup'];
@@ -138,18 +140,19 @@ class editpost
 		if ($this->edittitle)
 		{
 			$show['title'] = true;
-			$title = isset($_INPUT['title']) ? $_INPUT['title'] : $this->thread['title'];
-			$description = isset($_INPUT['description']) ? $forums->func->fetch_trimmed_title(trim($_INPUT['description']), 80) : $this->thread['description'];
+			$title = input::get('title', $this->thread['title']);
+
 			$title = utf8_unhtmlspecialchars($title);
 			if (preg_match('#<strong>(.*)</strong>#siU', $title))
 			{
 				$title = preg_replace('#<strong>(.*)</strong>#siU', '\\1', $title);
-				$_INPUT['titlebold'] = 'checked="checked"';
+				input::set('titlebold', 'checked="checked"');
 			}
 			if (preg_match('#<font[^>]+color=(\'|")(.*)(\\1)>(.*)</font>#esiU', $title))
 			{
-				$_INPUT['titlecolor'] = preg_replace('#<font[^>]+color=(\'|")(.*)(\\1)>(.*)</font>#siU', '\\2', $title);
+				input::set('titlecolor', preg_replace('#<font[^>]+color=(\'|")(.*)(\\1)>(.*)</font>#siU', '\\2', $title));
 			}
+
 			$title = strip_tags($title);
 			if ($this->lib->forum['threadprefix'])
 			{
@@ -180,8 +183,8 @@ class editpost
 		}
 		$form_start = $this->lib->fetch_post_form(array(1 => array('do', 'update'),
 				2 => array('t', $this->thread['tid']),
-				3 => array('p', $_INPUT['p']),
-				4 => array('pp', $_INPUT['pp']),
+				3 => array('p', input::get('p', 0)),
+				4 => array('pp', input::get('pp', 0)),
 				5 => array('posthash', $this->posthash))
 			);
 		$postdesc = $forums->lang['editpost'];
@@ -195,12 +198,14 @@ class editpost
 		{
 			$show['appendedit'] = true;
 		}
-		$credit_list = $this->credit->show_credit($this->edittype, $this->poster['usergroupid'], $_INPUT['f']);
+		$credit_list = $this->credit->show_credit($this->edittype, $this->poster['usergroupid'], input::get('f', 0));
 		$smiles = $this->lib->construct_smiles();
 		$smile_count = $smiles['count'];
 		$all_smiles = $smiles['all'];
 		$smiles = $smiles['smiles'];
-		$_INPUT['iconid'] = isset($_INPUT['iconid']) ? $_INPUT['iconid'] : $this->getpost['iconid'];
+		$iconid = input::get('iconid', $this->getpost['iconid']);
+		input::set('iconid', $iconid);
+
 		$forums->func->check_cache('icon');
 		if (!$this->getpost['iconid'])
 		{
@@ -234,25 +239,29 @@ class editpost
 
 	function process()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$this->fetch_permission();
+
+		$f = input::get('f', 0);
 		if (!$bbuserinfo['supermod'] && !$this->moderator['caneditposts'])
 		{
-			$this->credit->check_credit($this->edittype, $this->poster['usergroupid'], $_INPUT['f']);
+			$this->credit->check_credit($this->edittype, $this->poster['usergroupid'], $f);
 		}
 		$this->post = $this->lib->compile_post();//这里加入修改人和时间
+
+		$title = input::get('title', '');
 		if ($this->edittitle)
 		{
-			$_INPUT['title'] = trim($_INPUT['title']);
-			if ((utf8_strlen($_INPUT['title']) < 2) || !$_INPUT['title'])
+			if ((utf8_strlen($title) < 2) || !$title)
 			{
 				$this->lib->obj['errors'] = $forums->lang['musttitle'];
 			}
-			if (strlen($_INPUT['title']) > 250)
+			if (strlen($title) > 250)
 			{
 				$this->lib->obj['errors'] = $forums->lang['titletoolong'];
 			}
 		}
+
 		$hidepostinfo = $this->hidefunc->check_hide_condition();
 		if (is_string($hidepostinfo) && strlen($hidepostinfo) > 0)
 		{
@@ -294,46 +303,48 @@ class editpost
 		$this->post['dateline'] = $this->getpost['dateline'];
 		$this->post['username'] = $this->getpost['username'];
 		$this->post['moderate'] = $this->getpost['moderate'];
+
+		$uptitle = array();
 		if ($this->getpost['newthread'] == 1)
 		{
 			if ($this->post['iconid'] != $this->getpost['iconid'] AND $this->post['iconid'] != '')
 			{
-				$uptitle[] = "iconid=" . intval($this->post['iconid']) . "";
+				$uptitle['iconid'] = intval($this->post['iconid']);
 			}
 		}
-		
+
 		if ($this->edittitle)
 		{
-			if ($this->lib->forum['forcespecial'] AND isset($_INPUT['specialtopic']) AND $_INPUT['specialtopic'] == '')
+			$specialtopic = input::get('specialtopic', 0);
+			if ($this->lib->forum['forcespecial'])
 			{
-				$_INPUT['specialtopic'] = $this->thread['stopic'];
+				$specialtopic = $this->thread['stopic'];
 			}
-			$_INPUT['title'] = $this->lib->parser->censoredwords($_INPUT['title']);
-			$_INPUT['description'] = (trim($_INPUT['description'])) ? $forums->func->fetch_trimmed_title(trim($_INPUT['description']), 80) : '';
-			$_INPUT['description'] = $this->lib->parser->censoredwords($_INPUT['description']);
+
+			$title = $this->lib->parser->censoredwords($title);
 			$this->lib->moderator = $this->moderator;
-			$_INPUT['title'] = $this->lib->compile_title();
-			if (($_INPUT['title'] != $this->thread['title']) OR ($_INPUT['specialtopic'] != $this->thread['stopic']))
+
+			$title = $this->lib->compile_title($title);
+			if (($title != $this->thread['title']) OR ($title != $this->thread['stopic']))
 			{
-				if ($_INPUT['title'] != $this->thread['title'])
+				if ($title != $this->thread['title'])
 				{
-					$uptitle[] = "title='" . addslashes($_INPUT['title']) . "'";
-					$titletext = strip_tags($_INPUT['title']);
-					$uptitle[] = "titletext='" .  implode(' ', duality_word($titletext)) . "'";
+					$uptitle['title'] = $title;
+					$uptitle['titletext'] = implode(' ', duality_word(strip_tags($title)));
 				}
-				if ($_INPUT['description'] != $this->thread['description'])
+
+				if ($specialtopic != $this->thread['stopic'])
 				{
-					$uptitle[] = "description='" . addslashes($_INPUT['description']) . "'";
-				}
-				if ($_INPUT['specialtopic'] != $this->thread['stopic'])
-				{
-					$uptitle[] = "stopic='" . intval($_INPUT['specialtopic']) . "'";
+					$uptitle['stopic'] = $specialtopic;
 				}
 
 				if ($this->thread['tid'] == $this->lib->forum['lastthreadid'] && $this->lib->forum['id'] > 0)
 				{
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET lastthread='" . addslashes(strip_tags($_INPUT['title'])) . "' WHERE id='" . $this->lib->forum['id'] . "'");
+					$DB->update(TABLE_PREFIX . 'forum', array(
+						'lastthread' => strip_tags($title)
+					). "id='" . $this->lib->forum['id'] . "'");
 				}
+
 				if (($this->moderator['caneditthreads'] == 1) OR ($bbuserinfo['supermod'] == 1))
 				{
 					$sql_array = array(
@@ -346,22 +357,23 @@ class editpost
 						'referer' => REFERRER,
 						'dateline' => TIMENOW,
 						'title' => $this->thread['title'],
-						'action' => $forums->lang['changetitle'] . '"' . $this->thread['title'] . '"' . $forums->lang['changetitleto'] . '"' . $_INPUT['title'] . '"',
+						'action' => $forums->lang['changetitle'] . '"' . $this->thread['title'] . '"' . $forums->lang['changetitleto'] . '"' . $title . '"',
 					);
 					$DB->insert(TABLE_PREFIX . 'moderatorlog', $sql_array);
 				}
 			}
 		}
-		
-		if (is_array($uptitle))
+
+		if (!empty($uptitle))
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET " . implode(", ", $uptitle) . " WHERE tid=" . $this->thread['tid'] . "");
+			$DB->update(TABLE_PREFIX . 'thread', $uptitle. "tid=" . $this->thread['tid']);
 		}
+
 		//记录最后更新人
 		$this->post['updateuid'] = $bbuserinfo['id'];
 		$this->post['updateuname'] = $bbuserinfo['name'];
 		$this->post['updatetime'] = TIMENOW;
-		if ((($bbuserinfo['canappendedit'] && $_INPUT['appendedit']) || !$bbuserinfo['canappendedit']) && (THIS_SCRIPT == 'editpost' || THIS_SCRIPT == 'editor'))
+		if ((($bbuserinfo['canappendedit'] && input::get('appendedit', 0)) || !$bbuserinfo['canappendedit']) && (THIS_SCRIPT == 'editpost' || THIS_SCRIPT == 'editor'))
 		{
 			$this->post['displayuptlog'] = 1;
 		}
@@ -370,15 +382,16 @@ class editpost
 			$this->post['displayuptlog'] = 0;
 		}
 		$DB->update(TABLE_PREFIX . $this->posttable, $this->post, "pid = " . $this->post['pid']);
-		$this->credit->update_credit($this->edittype, $this->poster['id'], $this->poster['usergroupid'], $_INPUT['f']);
+		$this->credit->update_credit($this->edittype, $this->poster['id'], $this->poster['usergroupid'], $f);
 		$this->lib->attachment_complete(array($this->posthash), $this->thread['tid'], $this->post['pid'], $this->posttable);
-		if ($_INPUT['redirect'])
+		if (input::get('redirect', 0))
 		{
 			$forums->func->standard_redirect("forumdisplay.php{$forums->sessionurl}f={$this->lib->forum['id']}");
 		}
 		else
 		{
-			$forums->func->standard_redirect("showthread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;pp={$_INPUT['pp']}#pid{$this->post['pid']}");
+			$pp = input::get('pp', 0);
+			$forums->func->standard_redirect("showthread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;pp={$pp}#pid{$this->post['pid']}");
 		}
 	}
 
@@ -447,4 +460,3 @@ class editpost
 
 $output = new editpost();
 $output->show();
-?>

@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -20,18 +20,21 @@ class newreply
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		$forums->func->load_lang('post');
 		require_once(ROOT_PATH . 'includes/xfunctions_hide.php');
 		$this->hidefunc = new hidefunc();
-		$this->posthash = $_INPUT['posthash'] ? $_INPUT['posthash'] : md5(microtime());
+		$this->posthash = input::get('posthash', md5(microtime()));
 
-
-		$this->thread = $DB->query_first("SELECT t.*, u.usergroupid FROM " . TABLE_PREFIX . "thread t
-										 	  LEFT JOIN " . TABLE_PREFIX . "user u
-												   ON u.id = t.postuserid
-		                                  WHERE t.tid='" . intval($_INPUT['t']) . "' AND t.forumid='" . intval($_INPUT['f']) . "'");
-		if (! $this->thread['tid'])
+		$t = input::get('t', 0);
+		$f = input::get('f', 0);
+		$this->thread = $DB->query_first("SELECT t.*, u.usergroupid
+			FROM " . TABLE_PREFIX . "thread t
+			LEFT JOIN " . TABLE_PREFIX . "user u
+				ON u.id = t.postuserid
+			WHERE t.tid = $t
+				AND t.forumid = $f");
+		if (!$this->thread['tid'])
 		{
 			$forums->func->standard_error("erroraddress");
 		}
@@ -45,9 +48,15 @@ class newreply
 
 	function showform()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$this->check_permission($this->thread);
-		$_POST['post'] = isset($_POST['post']) ? $_POST['post'] : $this->lib->check_multi_quote(1);
+
+		$content = input::get($content, '', false);
+		if (empty($content))
+		{
+			$content = $this->lib->check_multi_quote(1);
+		}
+
 		$this->cookie_mxeditor = $forums->func->get_cookie('mxeditor');
 		if ($this->cookie_mxeditor)
 		{
@@ -63,14 +72,14 @@ class newreply
 		}
 		if ($bbuserinfo['usewysiwyg'])
 		{
-			$_POST['post'] = $this->lib->parser->convert(array(
-				'text' => $_POST['post'],
+			$content = $this->lib->parser->convert(array(
+				'text' => $content,
 				'allowsmilies' => 1,
 				'allowcode' => $this->lib->forum['allowbbcode'],
 				'change_editor' => 1
 			));
 		}
-		$content = utf8_htmlspecialchars($_POST['post']);
+		$content = utf8_htmlspecialchars($content);
 		$content = preg_replace("#\[code\](.+?)\[/code\]#ies" , "utf8_unhtmlspecialchars('[code]\\1[/code]')", $content);
 		$forums->func->check_cache('usergroup');
 		$usergrp = $forums->cache['usergroup'];
@@ -95,9 +104,11 @@ class newreply
 			require_once(ROOT_PATH . 'includes/class_textparse.php');
 			$preview = textparse::convert_text($this->post['pagetext']);
 		}
+
+		$parentid = input::get('parentid', 0);
 		$form_start = $this->lib->fetch_post_form(array(1 => array('do', 'update'),
 				2 => array('t', $this->thread['tid']),
-				3 => array('parentid', $_INPUT['parentid']),
+				3 => array('parentid', $parentid),
 				4 => array('posthash', $this->posthash),)
 			);
 		$postdesc = $forums->lang['replythread'] . ": " . $this->thread['title'];
@@ -108,7 +119,7 @@ class newreply
 			$upload = $this->lib->fetch_upload_form($this->posthash, 'new');
 		}
 		$upload['maxnum'] = intval($bbuserinfo['attachnum']);
-		$credit_list = $this->credit->show_credit('newreply', $bbuserinfo['usergroupid'], $_INPUT['f']);
+		$credit_list = $this->credit->show_credit('newreply', $bbuserinfo['usergroupid'], $this->thread['forumid']);
 		$smiles = $this->lib->construct_smiles();
 		$smile_count = $smiles['count'];
 		$all_smiles = $smiles['all'];
@@ -135,12 +146,12 @@ class newreply
 
 	function process()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->check_permission($this->thread);
-		$this->credit->check_credit('newreply', $bbuserinfo['usergroupid'], $_INPUT['f']);
-		if ($_INPUT['qreply'] && $_INPUT['quotepost'])
+		$this->credit->check_credit('newreply', $bbuserinfo['usergroupid'], $this->thread['forumid']);
+		if (input::get('qreply', 0) && input::get('quotepost', 0))
 		{
-			$_POST['post'] = $this->lib->check_multi_quote(1);
+			input::set('post', $this->lib->check_multi_quote(1));
 		}
 
 		$this->post = $this->lib->compile_post();
@@ -173,53 +184,58 @@ class newreply
 		$this->post['threadid'] = $this->thread['tid'];
 		$this->lastpost = $this->thread['lastpost'];
 		$movepost = false;
-		if (isset($_INPUT['modoptions']))
+		$modoptions = input::get('modoptions', '');
+		$title = input::get('title', '');
+		switch ($modoptions)
 		{
-			switch ($_INPUT['modoptions'])
-			{
-				case 'gstick':
+			case 'gstick':
+				$this->thread['sticky'] = 99;
+				$this->thread['stickforumid'] = -1;
+				$this->lib->moderate_log($forums->lang['gstickthread'] . ' - ', $title);
+			break;
+
+			case 'stick':
+				$this->thread['sticky'] = 1;
+				$this->thread['stickforumid'] = $this->thread['forumid'];
+				$this->lib->moderate_log($forums->lang['stickthread'] . ' - ', $title);
+			break;
+
+			case 'close':
+				if ($bbuserinfo['supermod'] OR $this->lib->moderator['canopenclose'])
+				{
+					$this->thread['open'] = 0;
+					$this->lib->moderate_log($forums->lang['closethread'] . ' - ', $title);
+				}
+			break;
+
+			case 'gstickclose':
+				if ($bbuserinfo['supermod'])
+				{
 					$this->thread['sticky'] = 99;
 					$this->thread['stickforumid'] = -1;
-					$this->lib->moderate_log($forums->lang['gstickthread'] . ' - ', $_INPUT['title']);
-					break;
-				case 'stick':
+					$this->thread['open'] = 0;
+					$this->lib->moderate_log($forums->lang['gstickclose'] . ' - ', $title);
+				}
+			break;
+
+			case 'stickclose':
+				if ($bbuserinfo['supermod'] OR ($this->lib->moderator['canstickthread'] AND $this->lib->moderator['canopenclose']))
+				{
 					$this->thread['sticky'] = 1;
-					$this->thread['stickforumid'] = $_INPUT['f'];
-					$this->lib->moderate_log($forums->lang['stickthread'] . ' - ', $_INPUT['title']);
-					break;
-				case 'close':
-					if ($bbuserinfo['supermod'] OR $this->lib->moderator['canopenclose'])
-					{
-						$this->thread['open'] = 0;
-						$this->lib->moderate_log($forums->lang['closethread'] . ' - ', $_INPUT['title']);
-					}
-					break;
-				case 'gstickclose':
-					if ($bbuserinfo['supermod'])
-					{
-						$this->thread['sticky'] = 99;
-						$this->thread['stickforumid'] = -1;
-						$this->thread['open'] = 0;
-						$this->lib->moderate_log($forums->lang['gstickclose'] . ' - ', $_INPUT['title']);
-					}
-					break;
-				case 'stickclose':
-					if ($bbuserinfo['supermod'] OR ($this->lib->moderator['canstickthread'] AND $this->lib->moderator['canopenclose']))
-					{
-						$this->thread['sticky'] = 1;
-						$this->thread['stickforumid'] = $_INPUT['f'];
-						$this->thread['open'] = 0;
-						$this->lib->moderate_log($forums->lang['stickclose'] . ' - ', $_INPUT['title']);
-					}
-					break;
-				case 'move':
-					if ($bbuserinfo['supermod'] OR $this->lib->moderator['canremoveposts'])
-					{
-						$movepost = true;
-					}
-					break;
-			}
+					$this->thread['stickforumid'] = $this->thread['forumid'];
+					$this->thread['open'] = 0;
+					$this->lib->moderate_log($forums->lang['stickclose'] . ' - ', $title);
+				}
+			break;
+
+			case 'move':
+				if ($bbuserinfo['supermod'] OR $this->lib->moderator['canremoveposts'])
+				{
+					$movepost = true;
+				}
+			break;
 		}
+
 		$this->post['posthash'] = $this->posthash;
 		$posttable = $this->thread['posttable']?$this->thread['posttable']:'post';
 		$DB->insert(TABLE_PREFIX . $posttable, $this->post);
@@ -229,7 +245,7 @@ class newreply
 		$postcount = intval($post['posts'] - 1);
 		$modpost = $DB->query_first("SELECT COUNT(*) as posts FROM " . TABLE_PREFIX . "$posttable WHERE threadid='" . $this->thread['tid'] . "' AND moderate = 1");
 		$modpostcount = intval($modpost['posts']);
-		$poster_name = $bbuserinfo['id'] ? $bbuserinfo['name'] : $_INPUT['username'];
+		$poster_name = $bbuserinfo['id'] ? $bbuserinfo['name'] : input::get('username', '');
 		$update_array = array(
 			'post' => $postcount,
 			'modposts' => $modpostcount
@@ -244,7 +260,7 @@ class newreply
 			$update_array['open'] = $this->thread['open'];
 			$update_array['lastpostid'] = $this->post['pid'];
 		}
-		if ($bbuserinfo['cananonymous'] && $_INPUT['anonymous'])
+		if ($bbuserinfo['cananonymous'] && input::get('anonymous', 0))
 		{
 			$update_array['lastposterid'] = 0;
 			$update_array['lastposter'] = 'anonymous*';
@@ -277,8 +293,8 @@ class newreply
 				}
 			}
 		}
-		$this->credit->update_credit('newreply', $bbuserinfo['id'], $bbuserinfo['usergroupid'], $_INPUT['f']);
-		$this->credit->update_credit('replythread', $this->thread['postuserid'], $this->thread['usergroupid'], $_INPUT['f']);
+		$this->credit->update_credit('newreply', $bbuserinfo['id'], $bbuserinfo['usergroupid'], $this->thread['forumid']);
+		$this->credit->update_credit('replythread', $this->thread['postuserid'], $this->thread['usergroupid'], $this->thread['forumid']);
 		if ($movepost)
 		{
 			$forums->func->standard_redirect("moderate.php{$forums->sessionurl}do=move&amp;f=" . $this->lib->forum['id'] . "&amp;t=" . $this->thread['tid'] . "");
@@ -286,9 +302,9 @@ class newreply
 		else
 		{
 			$page = floor(($this->thread['post'] + 1) / $this->maxposts) * $this->maxposts;
-			if ($_INPUT['redirect'])
+			if (input::get('redirect', 0))
 			{
-				$forums->func->standard_redirect("forumdisplay.php{$forums->sessionurl}f=" . $this->lib->forum['id'] . "");
+				$forums->func->standard_redirect("forumdisplay.php{$forums->sessionurl}f=" . $this->lib->forum['id']);
 			}
 			else
 			{
@@ -333,5 +349,3 @@ class newreply
 
 $output = new newreply();
 $output->show();
-
-?>

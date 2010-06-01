@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -15,17 +15,17 @@ class printthread
 {
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('printthread');
 		require_once(ROOT_PATH . 'includes/class_textparse.php');
-		$_INPUT['t'] = intval($_INPUT['t']);
-		if (!$_INPUT['t'])
+		$t = input::get('t', 0);
+		if (!$t)
 		{
 			$forums->func->standard_error("erroraddress");
 		}
 		$thread = $DB->query_first('SELECT tid, title, forumid, postusername, postuserid, sticky,posttable
 			FROM ' . TABLE_PREFIX . 'thread
-			WHERE tid = ' . $_INPUT['t']);
+			WHERE tid = ' . $t);
 		$forum = $forums->forum->single_forum($thread['forumid']);
 		if (!$forum['id'] || !$thread['tid'])
 		{
@@ -44,7 +44,7 @@ class printthread
 			if ($this->can_moderate($this->thread['forumid']))
 			{
 				$moderate = '';
-				if ($_INPUT['modfilter'] == 'invisiblepost')
+				if (input::get('modfilter', '') == 'invisiblepost')
 				{
 					$moderate = ' AND moderate=1';
 				}

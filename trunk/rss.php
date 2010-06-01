@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -15,21 +15,25 @@ class rss
 {
 	function show()
 	{
-		global $_INPUT, $forums, $bboptions, $DB;
+		global $forums, $bboptions, $DB;
 		$forums->func->load_lang('rss');
-		if ($_INPUT['fid'] != '')
+
+		$fid = input::get('fid', '');
+		$forumids = array();
+		if (!empty($fid))
 		{
-			$rssforum = explode(',', $_INPUT['fid']);
-			foreach($rssforum as $fid)
+			$rssforum = explode(',', $fid);
+			foreach($rssforum as $f)
 			{
-				if ($forums->forum->foruminfo[$fid])
+				if ($forums->forum->foruminfo[$f])
 				{
-					$forum_title = $forums->forum->foruminfo[$fid]['name'];
-					$forumids[] = intval($fid);
+					$forum_title = $forums->forum->foruminfo[$f]['name'];
+					$forumids[] = intval($f);
 				}
 			}
 		}
-		if ($_INPUT['fid'] == '' || count($forumids) == 0)
+
+		if (count($forumids) == 0)
 		{
 			$forumids = array_keys($forums->forum->foruminfo);
 		}
@@ -47,13 +51,14 @@ class rss
 		$t_forumlist = "AND t.forumid IN (-1" . $final . ")";
 
 		$title = $forum_title ? $bboptions['bbtitle'] . " - " . $forum_title : $bboptions['bbtitle'];
-		$limit = intval($_INPUT['limit']);
-		if (!$limit OR $limit > 100)
+		$limit = input::get('limit', 0);
+		if (!$limit || $limit > 100)
 		{
 			$limit = 20;
 		}
 		header("Content-Type: text/xml; charset=UTF-8");
-		switch ($_INPUT['version'])
+		$version = input::get('version', '');
+		switch ($version)
 		{
 			case "rss2.0":
 				echo "<?xml version=\"1.0\" encoding=\"" . $forums->lang['charset'] . "\"?>\n";
@@ -107,7 +112,7 @@ class rss
 			}
 			$thread['title'] = str_replace(array('&amp;amp;', '&amp;'), array('&#38;', '&'), $thread['title']);
 			$pagetext = str_replace(array('&amp;amp;', '&amp;'), array('&#38;', '&'), $pagetext);
-			switch ($_INPUT['version'])
+			switch ($version)
 			{
 				case "rss2.0";
 					echo ($i > 0) ? '' : "\t\t<pubDate>$pubdate</pubDate>\n";
@@ -135,7 +140,7 @@ class rss
 			}
 			$i++;
 		}
-		switch ($_INPUT['version'])
+		switch ($version)
 		{
 			case "rss2.0":
 				echo "\t</channel>\n";
@@ -212,9 +217,3 @@ class rss
 
 $output = new rss();
 $output->show();
-
-?>
-
-
-
-

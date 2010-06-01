@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -16,16 +16,16 @@ class profile
 	var $showdelclew = false;
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('profile');
 		$forums->func->load_lang('post');//需要整理
-		if ($_INPUT['do'] == 'delete')
+		if (input::get('do', '') == 'delete')
 		{
 			$this->delete_mestatus();
 			$showdelclew = $this->showdelclew;
 			$clewinfo = $forums->lang['deldoingsuc'];
 		}
-		$id = intval($_INPUT['u']);
+		$id = input::get('u', 0);
 		if ($bbuserinfo['canviewmember'] != 1 AND $id != $bbuserinfo['id'])
 		{
 			$forums->func->standard_error("cannotviewthispage");
@@ -167,11 +167,13 @@ class profile
 		/*结束*/
 
 		/*状态历程*/
-		$firstpost = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
+		$firstpost = input::get('pp', 0);
 		$showcondition = array();
-		if ($_INPUT['ufriendsdo'])
+
+		$ufriendsdo = input::get('ufriendsdo', '');
+		if ($ufriendsdo)
 		{
-			$this->extra = '&amp;ufriendsdo=' . $_INPUT['ufriendsdo'];
+			$this->extra = '&amp;ufriendsdo=' . $ufriendsdo;
 			$showufriendsdo = true;
 			if ($userfriends)
 			{
@@ -232,8 +234,8 @@ class profile
 
 	function delete_mestatus()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$doid = intval($_INPUT['doid']);
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$doid = input::get('doid', 0);
 		$sql = 'SELECT userid FROM ' . TABLE_PREFIX . 'userdo WHERE did=' . $doid;
 		$ret = $DB->query_first($sql);
 		if (!$bbuserinfo['supermod'] && $ret['userid'] != $bbuserinfo['id'])
@@ -257,5 +259,3 @@ class profile
 
 $output = new profile();
 $output->show();
-
-?>
