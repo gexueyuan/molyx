@@ -1,6 +1,6 @@
 <?php
 require('./global.php');
-$do = (isset($_INPUT['xajaxdo'])) ? trim($_INPUT['xajaxdo']) : 'process';
+$do = input::get('xajaxdo', 'process');
 if (!in_array($do, array('process', 'post', 'thread', 'user')))
 {
 	$forums->func->finish();

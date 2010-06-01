@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -427,7 +427,7 @@ class functions_forum
 			if ($childs)
 			{
 				$forum['show_subforums'] = "<div><strong>{$forums->lang['_subforums']}</strong>: ";
-				//×Ó°æ¿éÏÔÊ¾²»È« fixed 1:31 2010/4/28
+				//ï¿½Ó°ï¿½ï¿½ï¿½ï¿½Ê¾ï¿½ï¿½È« fixed 1:31 2010/4/28
 				for ($i = 1, $n = count($childs); $i <= $n; $i++)
 				{
 					$forum['show_subforums'] .= "<a href='forumdisplay.php{$forums->sessionurl}f={$childs[$i]}'>{$this->foruminfo[$childs[$i]]['name']}</a> ";

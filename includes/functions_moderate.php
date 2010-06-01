@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -454,7 +454,7 @@ class modfunctions
 		//移动主题，添加一条记录
 		if ($leavelink != 0)
 		{
-			$result = $DB->query("SELECT title, forumid, description, postuserid, dateline, postusername, lastpost, tid, lastposterid, lastposter
+			$result = $DB->query("SELECT title, forumid, postuserid, dateline, postusername, lastpost, tid, lastposterid, lastposter
 				FROM " . TABLE_PREFIX . "thread
 				WHERE " . $DB->sql_in('tid', $thread));
 			while ($row = $DB->fetch_array($result))

@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -235,7 +235,7 @@ class newthread
 				break;
 			}
 		}
-		$_INPUT['title'] = $this->lib->compile_title();
+		$_INPUT['title'] = $this->lib->compile_title($_INPUT['title']);
 		if ($bbuserinfo['cananonymous'] && $_INPUT['anonymous'])
 		{
 			$useanonymous = array('postuserid' => 0, 'postusername' => 'anonymous*');

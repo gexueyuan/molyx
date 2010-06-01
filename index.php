@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -80,24 +80,22 @@ if ($bboptions['showloggedin'])
 	}
 
 	// 检查隐藏和显示在线列表的设置
-	if (isset($_INPUT['online']))
+	$online = input::get('online', '');
+	switch ($online)
 	{
-		switch ($_INPUT['online'])
-		{
-			case 'hide':
-				$forums->func->set_cookie('online', '1');
-				$hideonline = 1;
-			break;
+		case 'hide':
+			$forums->func->set_cookie('online', '1');
+			$hideonline = 1;
+		break;
 
-			case 'show':
-				$forums->func->set_cookie('online', '0', -1);
-				$hideonline = 0;
-			break;
-		}
-	}
-	else
-	{
-		$hideonline = $forums->func->get_cookie('online');
+		case 'show':
+			$forums->func->set_cookie('online', '0', -1);
+			$hideonline = 0;
+		break;
+
+		default:
+			$hideonline = $forums->func->get_cookie('online');
+		break;
 	}
 
 	$totalonline = 0;
@@ -116,7 +114,7 @@ if ($bboptions['showloggedin'])
 			$bboptions['maxonlineusers'] = MAX_ONLINE_USERS;
 		}
 
-		if ($totalonline > $bboptions['maxonlineusers'] && !isset($_INPUT['online']))
+		if ($totalonline > $bboptions['maxonlineusers'] && !$online)
 		{
 			$hideonline = 1;
 			$forums->func->set_cookie('online', '1');

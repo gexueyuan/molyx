@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -27,17 +27,17 @@ class findposts
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('search');
 		require_once(ROOT_PATH . "includes/functions_search.php");
 		$this->search = new functions_search();
-		$this->search->highlight =  urlencode($_INPUT['highlight']);
-		$this->search->uniqueid = $_INPUT['searchid'];
+		$this->search->highlight =  urlencode(input::get('highlight', ''));
+		$this->search->uniqueid = input::get('searchid', '');
 		$this->search->pagelink = "findposts.php{$forums->sessionurl}&amp;do=show&amp;searchid=" . $this->search->uniqueid;
 
-		$this->search->page = intval($_INPUT['pp']);
+		$this->search->page = input::get('pp', 0);
 
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'show':
 				$this->show_results();
@@ -65,14 +65,14 @@ class findposts
 
 	function find_user_thread()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->search->flood_contol();
 		$forumlist = $this->search->get_forums();
 		if ($forumlist == "")
 		{
 			$forums->func->standard_error("selectsearchforum");
 		}
-		$userid = intval($_INPUT['u']);
+		$userid = input::get('u', 0);
 		if (!$userid)
 		{
 			$forums->func->standard_error("cannotsearchuser");
@@ -107,7 +107,7 @@ class findposts
 	//查找用户自己的帖子
 	function find_user_post()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->search->flood_contol();
 
 		$forumlist = $this->search->get_forums();
@@ -115,7 +115,7 @@ class findposts
 		{
 			$forums->func->standard_error("selectsearchforum");
 		}
-		$userid = intval($_INPUT['u']);
+		$userid = input::get('u', 0);
 		if ($userid == "")
 		{
 			$forums->func->standard_error("cannotsearchuser");
@@ -168,7 +168,7 @@ class findposts
 
 	function get_new_quintessence()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		if (!$bbuserinfo['id'])
 		{
 			$forums->func->standard_error("notlogin");
@@ -180,9 +180,11 @@ class findposts
 		{
 			$forums->func->standard_error("selectsearchforum");
 		}
-		if ($_INPUT['userid'])
+
+		$userid = input::get('userid', 0);
+		if ($userid)
 		{
-			$query_condition = ' AND postuserid=' . intval($_INPUT['userid']);
+			$query_condition = ' AND postuserid=' . $userid;
 		}
 		$results = $DB->query_first("SELECT count(*) as count
 			FROM " . TABLE_PREFIX . "thread
@@ -215,12 +217,13 @@ class findposts
 
 	function get_new_posts()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$this->search->flood_contol();
 
-		if ($_INPUT['lastdate'])
+		$lastdate = input::get('lastdate', 0);
+		if ($lastdate)
 		{
-			$last_time = TIMENOW - intval($_INPUT['lastdate']);
+			$last_time = TIMENOW - $lastdate;
 		}
 		elseif($bbuserinfo['lastvisit'])
 		{
@@ -272,7 +275,7 @@ class findposts
 
 	function find_mod_post()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$this->search->flood_contol();
 		$forumlist = $this->search->get_forums();
 		if ($forumlist == "" OR !$bbuserinfo['is_mod'])
@@ -326,8 +329,8 @@ class findposts
 
 	function show_results()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
-		if (!$_INPUT['showposts'])
+		global $forums, $DB, $bboptions, $bbuserinfo;
+		if (!input::get('showposts', 0))
 		{
 			$this->search->query_results();
 			$allthread = $this->search->threads;
@@ -360,7 +363,7 @@ class findposts
 		$referer = SCRIPTPATH;
 		$pagetitle = $forums->lang[$this->search->searchtype] . " - " . $bboptions['bbtitle'];
 		$nav = array($forums->lang[$this->search->searchtype]);
-		$searchid = $_INPUT['searchid'];
+		$searchid = $this->search->uniqueid;
 		$search_type = 'findposts';
 		include $forums->func->load_template('find_posts');
 		exit;
@@ -369,5 +372,3 @@ class findposts
 
 $output = new findposts();
 $output->show();
-
-?>

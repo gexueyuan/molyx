@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -16,12 +16,29 @@
  */
 class encoding
 {
-	var $table_path = '';
-	var $from_encoding = '';
-	var $to_encoding = '';
-	var $type = 'table';
-	var $ncr = false;
-	var $pinyin = true;
+	private $table_path = '';
+	private $from_encoding = '';
+	private $to_encoding = '';
+	private $type = 'table';
+	private $ncr = false;
+	private $pinyin = true;
+
+	private static $support = array(
+		'utf-8',
+		'gbk',
+		'big5',
+		'gb',
+		'gb2312',
+		'big-5',
+		'utf-16be',
+		'utf-16le',
+		'html-entities',
+		'ncr',
+		'utf8',
+		'pinyin',
+		'traditional',
+		'simplified'
+	);
 
 	/**
 	 * 构造函数
@@ -32,10 +49,14 @@ class encoding
 	 * @param string $from 初始化源编码, 可以为空
 	 * @param string $to 初始化目的编码, 可以为空
 	 */
-	function encoding($from = '', $to = '')
+	function __construct($from = '', $to = '')
 	{
-		$this->set($from, $to);
-		$this->table_path = ROOT_PATH . 'includes/encoding/';
+		if (!empty($from) || !empty($to))
+		{
+			$this->set($from, $to);
+		}
+		$this->table_path = format_path(dirname(__FILE__) . '/encoding/');
+
 		switch (true)
 		{
 			case function_exists('mb_convert_encoding'):
@@ -568,13 +589,14 @@ class encoding
 		{
 			return false;
 		}
-		else if (in_array($encoding, array('utf-8', 'gbk', 'big5', 'gb2312', 'big-5', 'utf-16be', 'utf-16le', 'html-entities', 'ncr', 'utf8', 'pinyin', 'traditional', 'simplified')))
+		else if (in_array($encoding, self::$support))
 		{
 			switch ($encoding)
 			{
 				case 'utf8':
 					return 'utf-8';
 
+				case 'gb':
 				case 'gb2312':
 					return 'gbk';
 
@@ -588,6 +610,7 @@ class encoding
 					return $encoding;
 			}
 		}
+
 		if ($this->from_encoding && $type == 'from')
 		{
 			return $this->from_encoding;
@@ -711,16 +734,3 @@ function utf8_simplified_zh($str)
 	}
 	return strtr($str, $table);
 }
-
-/**
- * 检查字符串是否兼容 UTF-8, 并不是严格的 UTF-8 编码检查, 会忽略 5/6 字节的字符
- */
-function utf8_check($str)
-{
-    if (empty($str))
-    {
-        return true;
-    }
-    return (preg_match('/^.{1}/us', $str, $ar) == 1);
-}
-?>

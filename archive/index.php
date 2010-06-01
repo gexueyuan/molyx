@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -19,7 +19,6 @@ $forums->func = new functions();
 require_once(ROOT_PATH . 'includes/sessions.php');
 require_once(ROOT_PATH . 'includes/functions_forum.php');
 $forums->forum = new functions_forum();
-$_INPUT = init_input();
 $forums->url = REFERRER;
 $forums->func->check_cache('settings');
 $bboptions = $forums->cache['settings'];
@@ -40,7 +39,7 @@ class archive
 {
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions, $script;
+		global $forums, $DB, $bbuserinfo, $bboptions, $script;
 		if (!$bbuserinfo['canview'])
 		{
 			$forums->func->standard_redirect($bboptions['bburl']);
@@ -129,7 +128,7 @@ class archive
 
 	function get_index_page()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		foreach($forums->forum->forum_cache['root'] as $id => $forum_data)
 		{
 			if (is_array($forums->forum->forum_cache[ $forum_data['id'] ]) and count($forums->forum->forum_cache[ $forum_data['id'] ]))
@@ -156,7 +155,7 @@ class archive
 
 	function get_forums_internal($root_id, $forumlist = "", $depth_guide = "")
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		if (is_array($forums->forum->forum_cache[ $root_id ]))
 		{
 			$forumlist .= "{$depth_guide}<ul>\n";
@@ -172,7 +171,7 @@ class archive
 
 	function get_forum_page($id, $pp)
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->forum = $forums->forum->single_forum($id);
 		if ((($forums->func->fetch_permissions($this->forum['canread'], 'canread') != true) and (! $this->forum['showthreadlist'])) OR ($this->forum['password'] != ''))
 		{
@@ -235,7 +234,7 @@ class archive
 
 	function get_thread_page($id, $pp)
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('showthread');
 		require_once(ROOT_PATH . "includes/class_textparse.php");
 		require_once (ROOT_PATH . "includes/functions_showthread.php");
@@ -252,7 +251,7 @@ class archive
 			if ($this->can_moderate($this->thread['forumid']))
 			{
 				$moderate = '';
-				if ($_INPUT['modfilter'] == 'invisiblepost')
+				if (input::get('modfilter', '') == 'invisiblepost')
 				{
 					$moderate = ' AND moderate=1';
 				}
@@ -333,7 +332,7 @@ class archive
 
 	function forums_nav($id)
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$ids = explode(',', $forums->forum->foruminfo[$id]['parentlist']);
 		if (is_array($ids) and count($ids))
 		{
@@ -410,5 +409,3 @@ class archive
 }
 $output = new archive();
 $output->show();
-
-?>

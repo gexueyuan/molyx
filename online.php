@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -15,22 +15,22 @@ class online
 {
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		if (!$bboptions['WOLenable'] && $bbuserinfo['usergroupid'] != 4)
 		{
 			$forums->func->standard_error("cannotviewonline");
 		}
 		$forums->func->load_lang('member');
 		$forums->func->load_lang('online');
-		$pp = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
+		$pp = input::get('pp', 0);
 		$cutoff = ($bboptions['cookietimeout'] > 0) ? $bboptions['cookietimeout'] * 60 : 900;
 		$t_time = TIMENOW - $cutoff;
 		$usergroup_array = array('reg' => $forums->lang['regmember'], 'guest' => $forums->lang['guest'], 'all' => $forums->lang['allmember']);
 		$order_array = array('desc' => $forums->lang['desc'], 'asc' => $forums->lang['asc']);
 		$sortby_array = array('click' => $forums->lang['click'], 'name' => $forums->lang['username']);
-		$group_value = $_INPUT['usergroup'] ? $_INPUT['usergroup'] : 'all';
-		$order_value = $_INPUT['order'] ? $_INPUT['order'] : 'desc';
-		$sortby_value = $_INPUT['sortby'] ? $_INPUT['sortby'] : 'click';
+		$group_value = input::get('usergroup', 'all');
+		$order_value = input::get('order', 'desc');
+		$sortby_value = input::get('sortby', 'click');
 		$usergroup = '';
 		$sortby = '';
 		$order = '';
@@ -283,5 +283,3 @@ class online
 
 $output = new online();
 $output->show();
-
-?>

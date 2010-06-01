@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -30,11 +30,12 @@ class showthread
 	var $parser;
 	var $usecode = array();
 	var $bankcredit = array();
+	var $highlight = '';
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions,$ip;
-		$tid = intval($_INPUT['t']);
+		global $forums, $DB, $bbuserinfo, $bboptions,$ip;
+		$tid = input::get('t', 0);
 		if ($tid < 1)
 		{
 			$forums->func->standard_error('errorthreadlink');
@@ -54,15 +55,18 @@ class showthread
 		$this->thread = $DB->query_first('SELECT *
 			FROM ' . TABLE_PREFIX . "thread
 			WHERE tid = '$tid'");
-		if($_INPUT['r_forumid'])
+
+		$r_forumdid = input::get('r_forumid', 0);
+		if ($r_forumdid)
 		{
-			$this->forum = $forums->forum->single_forum($_INPUT['r_forumid']);
-			$this->thread['forumid'] = intval($_INPUT['r_forumid']);
+			$this->forum = $forums->forum->single_forum($r_forumdid);
+			$this->thread['forumid'] = $r_forumdid;
 		}
 		else
 		{
 			$this->forum = $forums->forum->single_forum($this->thread['forumid']);
 		}
+
 		if (!$this->forum['id'] || !$this->thread['tid'])
 		{
 			$forums->func->standard_error("erroraddress");
@@ -102,7 +106,7 @@ class showthread
 			}
 		}
 		$this->forum['jump'] = $forums->func->construct_forum_jump();
-		$this->pp = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
+		$this->pp = input::get('pp', 0);
 		if (!$bbuserinfo['canviewothers'] && $this->thread['postuserid'] != $bbuserinfo['id'])
 		{
 			$forums->func->standard_error("cannotviewthread");
@@ -130,23 +134,25 @@ class showthread
 			$this->moderator = $bbuserinfo['_moderator'][ $this->forum['id'] ];
 		}
 		$this->thread['replybutton'] = $this->reply_button();
-		$_INPUT['highlight'] = isset($_INPUT['highlight']) ? $_INPUT['highlight'] : '';
-		if ($_INPUT['highlight'])
+		$this->highlight = input::get('highlight', '');
+		if ($this->highlight)
 		{
-			$highlight = '&amp;highlight=' . $_INPUT['highlight'];
+			$highlight = '&amp;highlight=' . $this->highlight;
 		}
 		if ($this->can_moderate($this->forum['id']))
 		{
 			$this->thread['post'] += intval($this->thread['modposts']);
 		}
-		if ($_INPUT['extra'])
+
+		$extra = input::get('extra', '');
+		if ($extra)
 		{
-			$extra = '&amp;extra=' . urlencode(str_replace("&amp;", "&", $_INPUT['extra']));
+			$extra = '&amp;extra=' . urlencode(str_replace("&amp;", "&", $extra));
 		}
 		$this->thread['pagenav'] = $forums->func->build_pagelinks(array(
 			'totalpages' => ($this->thread['post'] + 1),
 			'perpage' => $this->maxposts,
-			'curpage' => $_INPUT['pp'],
+			'curpage' => $this->pp,
 			'pagelink' => "showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . $highlight . $extra,
 		));
 		if (($this->thread['post'] + 1) > $this->maxposts)
@@ -221,7 +227,7 @@ class showthread
 				}
 				if ($bboptions['allowviewresults'])
 				{
-					if ($_INPUT['mode'] == 'showpoll')
+					if (input::get('mode', '') == 'showpoll')
 					{
 						$show['results'] = true;
 						$poll_footer = "";
@@ -263,7 +269,7 @@ class showthread
 			{
 				if ($bboptions['allowviewresults'])
 				{
-					if ($_INPUT['mode'] == 'showpoll')
+					if (input::get('mode', '') == 'showpoll')
 					{
 						$showresult = "<input type='button' class='button' name='viewresult' value='" . $forums->lang['showoptions'] . "'  title='" . $forums->lang['returnandshow'] . "' onclick='show_votes()' />";
 					}
@@ -294,7 +300,7 @@ class showthread
 			if ($this->can_moderate($this->thread['forumid']))
 			{
 				$moderate = '';
-				if ($_INPUT['modfilter'] == 'invisiblepost')
+				if (input::get('modfilter', '') == 'invisiblepost')
 				{
 					$moderate = ' AND p.moderate=1';
 				}
@@ -423,7 +429,7 @@ class showthread
 		$title_no_tags = strip_tags($this->thread['title']);
 		//处理相关主题
 		$relatethread = array();
-		if ($bboptions['showrelatedthread'] && !$_INPUT['pp']) //是否显示相关主题
+		if ($bboptions['showrelatedthread'] && !$this->pp) //是否显示相关主题
 		{
 			$hignlight_key = duality_word($title_no_tags, 1);
 			$tokey = array();
@@ -458,7 +464,7 @@ class showthread
 			}
 		}
 		$pagetitle = $title_no_tags . " - " . $bboptions['bbtitle'];
-		$nav = array_merge($forums->forum->forums_nav($this->forum['id'], $_INPUT['extra']), array("<a href='showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . "' title='" . $title_no_tags . "'>" . $forums->func->fetch_trimmed_title($this->thread['title'], 25) . "</a>"));
+		$nav = array_merge($forums->forum->forums_nav($this->forum['id'], input::get('extra', '')), array("<a href='showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . "' title='" . $title_no_tags . "'>" . $forums->func->fetch_trimmed_title($this->thread['title'], 25) . "</a>"));
 
 		//处理快速回复框
 		$postajaxrep = count($showpost) + 1;
@@ -495,7 +501,7 @@ class showthread
 
 	function parse_row($row = array())
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		static $cached_users;
 		$poster = array();
 		if ($row['userid'])
@@ -542,9 +548,9 @@ class showthread
 			$row['altrow'] = 'item_list';
 		}
 		$keywords = array();
-		if ($_INPUT['highlight'])
+		if ($this->highlight)
 		{
-			$highlights = str_replace('+', ',', $_INPUT['highlight']);
+			$highlights = str_replace('+', ',', $this->highlight);
 			if (preg_match('/,(and|or),/i', $highlights))
 			{
 				while (preg_match('/,(and|or),/i', $highlights, $match))
@@ -648,7 +654,7 @@ class showthread
 			$row = $this->hidefunc->parse_hide_code($row, $this->forum['id']);
 		}
 		$this->postcount++;
-		$row['postcount'] = intval($_INPUT['pp']) + $this->postcount;
+		$row['postcount'] = $this->pp + $this->postcount;
 
 
 		return array('row' => $row, 'poster' => $poster);
@@ -656,7 +662,7 @@ class showthread
 
 	function edit_delete_button($row)
 	{
-		global $forums, $bbuserinfo, $_INPUT;
+		global $forums, $bbuserinfo;
 		if (!$bbuserinfo['id'])
 		{
 			return array();
@@ -928,4 +934,3 @@ class showthread
 
 $output = new showthread();
 $output->show();
-?>

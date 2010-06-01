@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -10,7 +10,8 @@
 # **************************************************************************#
 @set_time_limit(0);
 require('global.php');
-if (!intval($_INPUT['offset']))
+$offset = input::get('offset', 0);
+if (!$offset)
 {
 	?>
 	<div align="center">
@@ -25,15 +26,15 @@ if (!intval($_INPUT['offset']))
 	<br />
 	<form method="post" action="">
 	每次更新的记录数：&nbsp;
-	<input type="text" name="offset" size="25" value="200" />	
+	<input type="text" name="offset" size="25" value="200" />
 	<input type="submit" name="s" value="确定" />
 	</form>
 	</div>
 	<?php
 	exit;
 }
-$offset = intval($_INPUT['offset']);
-$pp = intval($_INPUT['pp']);
+
+$pp = input::get('pp', 0);
 $sql = "SELECT id, avatarlocation, name FROM " . TABLE_PREFIX . "user
 		WHERE avatarlocation <> ''
 	 LIMIT $pp,$offset
@@ -45,20 +46,20 @@ $old_avatar_dir = $bboptions['uploadfolder'] . '/avatar';
 $default_avatar_dir = ROOT_PATH . 'images/avatars';
 while ($r = $DB->fetch_array($q))
 {
-	$path = split_todir($r['id'], $bboptions['uploadfolder'] . '/user');	
+	$path = split_todir($r['id'], $bboptions['uploadfolder'] . '/user');
 	checkdir($path[0], $path[1] + 1);
 	$new_avatar_dir = $path[0];
 	$avatar = '';
 	$avatar = strrchr($r['avatarlocation'], '/');
 	$avatar = substr($avatar, 1);
-	if (strstr($r['avatarlocation'], 'http://')) 
+	if (strstr($r['avatarlocation'], 'http://'))
 	{
 		$content = @file_get_contents($r['avatarlocation']);
-		if ($content) 
+		if ($content)
 		{
-			file_write($new_avatar_dir . '/' . $avatar, $content, 'wb');	
+			file_write($new_avatar_dir . '/' . $avatar, $content, 'wb');
 		}
-		else 
+		else
 		{
 			$avatar = '';
 		}
@@ -69,29 +70,26 @@ while ($r = $DB->fetch_array($q))
 		{
 			@copy($old_avatar_dir . '/' . $r['avatarlocation'], $new_avatar_dir . '/' . $avatar);
 		}
-		else 
+		else
 		{
-			$avatar = '';				
+			$avatar = '';
 		}
 	}
-	
+
 	if ($avatar)
-	{	
+	{
 		$DB->update(TABLE_PREFIX . 'user', array('avatar' => 1), 'id=' . $r['id']);
 		$forums->func->bulid_avatars($avatar, $r['id']);
 	}
-	else 
-	{	
-		$DB->update(TABLE_PREFIX . 'user', array('avatar' => 0), 'id=' . $r['id']);	
+	else
+	{
+		$DB->update(TABLE_PREFIX . 'user', array('avatar' => 0), 'id=' . $r['id']);
 	}
 	@unlink($path[0] . '/' . $avatar);
 	echo $r['name'] . '头像更新完毕<br />';
 }
 $end = $pp + $offset;
 if($DB->num_rows($q))
-echo "<meta http-equiv=\"refresh\" content=\"0;URL=?pp=".intval($end)."&amp;offset={$offset}\">";
-?>
-
-
-
-
+{
+	echo "<meta http-equiv=\"refresh\" content=\"0;URL=?pp=".intval($end)."&amp;offset={$offset}\">";
+}

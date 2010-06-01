@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -113,7 +113,7 @@ class newthread
 		if ($this->type == 'new')
 		{
 			$_INPUT['title'] = $this->lib->parser->censoredwords($_INPUT['title']);
-			$_INPUT['title'] = $this->lib->compile_title();
+			$_INPUT['title'] = $this->lib->compile_title($_INPUT['title']);
 			$_INPUT['title'] = convert($_INPUT['title']);
 			$this->thread = array(
 				'title' => $_INPUT['title'],

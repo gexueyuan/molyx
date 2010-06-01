@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group..
+# @copyright (c) 2009-2010 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -15,7 +15,6 @@ header("Content-Type:text/html; charset=UTF-8");
 
 require_once(ROOT_PATH . 'includes/functions.php');
 $forums->func = new functions();
-$_INPUT = init_input();
 $bboptions['language'] = 'en-us';
 $forums->func->check_cache('settings');
 $bboptions = $forums->cache['settings'];
