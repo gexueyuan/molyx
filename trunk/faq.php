@@ -51,6 +51,7 @@ class faq
 		require_once(ROOT_PATH . 'includes/ajax/ajax.php');
 
 		$referer = SCRIPTPATH;
+		$q = input::str('q');
 		include $forums->func->load_template('help');
 	}
 

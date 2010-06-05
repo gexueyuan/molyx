@@ -140,6 +140,11 @@ class newreply
 		$referer = SCRIPTPATH;
 		//加载编辑器js
 		load_editor_js($extrabuttons);
+
+		if (!$bbuserinfo['id'])
+		{
+			$username = input::str('username');
+		}
 		include $forums->func->load_template('add_post');
 		exit;
 	}

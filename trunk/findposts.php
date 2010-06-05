@@ -351,12 +351,13 @@ class findposts
 
 		//加载ajax
 		$mxajax_register_functions = array(
-						'open_close_thread',
-						'change_thread_attr',
-						'returnpagetext',
-						'do_edit_post',
-						'process_post_form',
-						'change_thread_title',); //注册ajax函数
+			'open_close_thread',
+			'change_thread_attr',
+			'returnpagetext',
+			'do_edit_post',
+			'process_post_form',
+			'change_thread_title'
+		); //注册ajax函数
 		require_once(ROOT_PATH . 'includes/ajax/ajax.php');
 		add_head_element('js', ROOT_PATH . 'scripts/mxajax_thread.js');
 
@@ -365,6 +366,17 @@ class findposts
 		$nav = array($forums->lang[$this->search->searchtype]);
 		$searchid = $this->search->uniqueid;
 		$search_type = 'findposts';
+
+		if ($bbuserinfo['supermod'] || $bbuserinfo['candobatch'])
+		{
+			$input = array(
+				'showposts' => input::str('showposts'),
+				'searchid' => input::str('searchid'),
+				'searchin' => input::str('searchin'),
+				'highlight' => input::str('highlight')
+			);
+		}
+
 		include $forums->func->load_template('find_posts');
 		exit;
 	}

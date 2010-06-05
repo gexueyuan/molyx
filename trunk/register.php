@@ -107,15 +107,14 @@ class register
 			}
 		}
 		$pagetitle = $forums->lang['register'] . " - " . $bboptions['bbtitle'];
-		if (!input::get('step', 0))
+		$step = input::int('step');
+		if (!$step)
 		{
 			$nav = array($forums->lang['register'] . ' - ' . $forums->lang['step1']);
 			$cache = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE varname='registerrule'");
 			$text = $cache['value'] ? $cache['value'] : $cache['defaultvalue'];
 			$text = str_replace("\n", "<br />", $text);
 			$text = str_replace("{bbtitle}", $bboptions['bbtitle'], $text);
-			require $forums->func->load_template('register');
-			exit;
 		}
 		else
 		{
@@ -185,9 +184,11 @@ class register
 			$mxajax_register_functions = array('check_user_account', 'check_user_email'); //注册ajax函数
 			require_once(ROOT_PATH . 'includes/ajax/ajax.php');
 			add_head_element('js', ROOT_PATH . 'scripts/register.js');
-			include $forums->func->load_template('register');
-			exit;
+			$username = input::str('username');
 		}
+
+		require $forums->func->load_template('register');
+		exit;
 	}
 
 	function get_usrext_form()

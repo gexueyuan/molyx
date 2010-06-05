@@ -25,7 +25,7 @@ class search
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('search');
 
 		if (! $bboptions['enablesearches'])
@@ -39,14 +39,15 @@ class search
 
 		require_once(ROOT_PATH . "includes/functions_search.php");
 		$this->search = new functions_search();
-		$this->search->highlight =  urlencode($_INPUT['highlight']);
-		$this->search->uniqueid = $_INPUT['searchid'];
+		$this->search->highlight =  urlencode(input::get('highlight', ''));
+		$this->search->uniqueid = input::get('searchid', '');
 		$this->search->pagelink = "search.php{$forums->sessionurl}&amp;do=show&amp;searchid=" . $this->search->uniqueid . "&amp;highlight=" . $this->search->highlight;
 
-		$this->search->page = intval($_INPUT['pp']);
+		$this->search->page = input::get('pp');
 		require_once(ROOT_PATH . "includes/functions_credit.php");
 		$this->credit = new functions_credit();
-		switch ($_INPUT['do'])
+		$do = input::get('do', '');
+		switch ($do)
 		{
 			case 'search':
 				$this->do_search();
@@ -68,9 +69,9 @@ class search
 
 	function showform()
 	{
-		global $forums, $_INPUT, $bboptions, $bbuserinfo, $DB;
+		global $forums, $bboptions, $bbuserinfo, $DB;
 		$showforum = $this->search_forum_jump(1, 1);
-		if (! $_INPUT['f'])
+		if (!input::get('f'))
 		{
 			$selected = ' selected="selected"';
 		}
@@ -100,7 +101,7 @@ class search
 	}
 	function search_forum_jump($html = 0, $override = 0)
 	{
-		global $forums, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $bboptions, $bbuserinfo;
 		$this->foruminfo = $forums->cache['forum'];
 		if($bboptions['recycleforumid'])
 		{
@@ -108,6 +109,7 @@ class search
 			$key2 = $key1 - 1;
 			unset($this->foruminfo["$key1"],$this->foruminfo["$key2"]);
 		}
+		$f = input::get('f');
 		foreach((array) $this->foruminfo as $id => $forum)
 		{
 			if (($forum['canshow'] != '*' && $forums->func->fetch_permissions($forum['canshow'], 'canshow') != true) || $forum['url'])
@@ -117,7 +119,7 @@ class search
 
 			if ($html == 1 || $override == 1)
 			{
-				$selected = ($_INPUT['f'] && $_INPUT['f'] == $forum['id']) ? " selected='selected'" : '';
+				$selected = ($f && $f == $forum['id']) ? " selected='selected'" : '';
 			}
 			$forum_jump .= '<option value="' . $forum['id'] . '"' . $selected . '>' . depth_mark($forum['depth'], '--') . ' ' . $forum['name'] . '</option>' . "\n";
 		}
@@ -126,30 +128,35 @@ class search
 
 	function detail_search()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		//搜索行为影响的分值增减
 		$this->search->flood_contol();
 		//搜索行为影响的分值增减
 		$this->credit->check_credit('search', $bbuserinfo['usergroupid']);
         //搜索区域|关键字过滤
-		if ($_INPUT['namesearch'] != "")
+        $name_filter = input::get('namesearch', '');
+		if ($name_filter != '')
 		{
-			$name_filter = $this->search->filter_keywords($_INPUT['namesearch'], 1);
+			$name_filter = $this->search->filter_keywords($name_filter, 1);
 		}
-		$keywords = $this->search->filter_keywords($_INPUT['keywords']);
+
+		$keywords = input::get('keywords', '');
 		//按照关键词搜索
-		if ($name_filter == "" AND $_INPUT['keywords'] != "")
+		if ($name_filter == '' AND $keywords != '')
 		{
 			$type = 'postonly';
 		}
 		//按照用户名搜索
-		else if ($name_filter != "" AND $_INPUT['keywords'] == "")
+		else if ($name_filter != "" AND $keywords == '')
 		{
 			$type = 'nameonly';
 		}
 
+		$keywords = $this->search->filter_keywords($keywords);
+
+
 		//选择搜索帖子表
-		$this->posttable = $_INPUT['posttable']?$_INPUT['posttable']:$this->posttable;
+		$this->posttable = input::get('posttable', $this->posttable);
 
 		$checkwords = str_replace("%", "", trim($keywords));
 		//NULL
@@ -168,9 +175,8 @@ class search
 		搜索标题和内容 <earch_in_post>
 		仅搜索精华主题 <search_in_quintessence>
 		仅搜索积分帖 <search_in_reputation>
-
 		*/
-		$this->searchin = $_INPUT['searchin'];
+		$this->searchin = input::get('searchin', '');
 
 		//搜索论坛
 		$forumlist = $this->search->get_forums();
@@ -189,38 +195,36 @@ class search
 		排序方式
 
 		*/
-		foreach(array('lastpost', 'post', 'postusername', 'forumid') AS $v)
+		$this->sortby = input::get('sortby', '');
+		if (!in_array($this->sortby, array('lastpost', 'post', 'postusername', 'forumid')))
 		{
-			if ($_INPUT['sortby'] == $v)
-			{
-				$this->sortby = $v;
-			}
+			$this->sortby = 'lastpost';
 		}
+
 		//发帖时间 <%d天>
-		foreach (array(1, 7, 30, 60, 90, 180, 365, 0) AS $v)
+		$this->prune = input::get('prune');
+		if (!in_array($this->sortby, array(1, 7, 30, 60, 90, 180, 365, 0)))
 		{
-			if ($_INPUT['prune'] == $v)
-			{
-				$this->prune = $v;
-			}
+			$this->sortby = 0;
 		}
+
 		//排序
-		if (in_array($_INPUT['order'], array('asc', 'desc')))
-		{
-			$this->order = $_INPUT['order'];
-		}
-		else
+		$this->order = input::get('order', '');
+		if (!in_array($this->order, array('asc', 'desc')))
 		{
 			$this->order = 'DESC';
 		}
+
 		$bboptions['minsearchlength'] = $bboptions['minsearchlength'] ? $bboptions['minsearchlength'] : 4;
 
 		if ($this->prune > 0)
 		{
 			//相对与发帖时间的 %d天前 <older> 或者 %d天后 <newer>的帖子
-			$gt_lt = $_INPUT['prune_type'] == 'older' ? "<" : ">";
+			$gt_lt = input::get('prune_type', '') == 'older' ? '<' : '>';
+
 			//计算时间差
-			$time = TIMENOW - ($_INPUT['prune'] * 86400);
+			$time = TIMENOW - (input::get('prune') * 86400);
+
 			//建立sql语句条件关系
 			//主题
 			$threads_datecut = "t.lastpost $gt_lt $time AND";
@@ -236,7 +240,7 @@ class search
 			//转义 | <OR> 防止sql查询错误
 			$name_filter = str_replace('|', "&#124;", $name_filter);
 			//精确匹配用户名
-			if ($_INPUT['exactmatch'] == 1)
+			if (input::get('exactmatch') == 1)
 			{
 				$sql_query = "SELECT id from " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($name_filter) . "' OR name='" . $name_filter . "'";
 			}
@@ -415,12 +419,12 @@ class search
 
 	function do_search()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->search->flood_contol();
 		//搜索行为影响的分值增减
 		$this->credit->check_credit('search', $bbuserinfo['usergroupid']);
 
-		$keywords = $this->search->filter_keywords($_INPUT['keywords']);
+		$keywords = $this->search->filter_keywords(input::get('keywords', ''));
 		//搜索论坛
 		$forumlist = $this->search->get_forums();
 		if ($forumlist == "")
@@ -477,12 +481,12 @@ class search
 
 	function searchinresults()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 
 		//搜索行为影响的分值增减
 		$this->credit->check_credit('search', $bbuserinfo['usergroupid']);
 
-		$keywords = $this->search->filter_keywords($_INPUT['keywords']);
+		$keywords = $this->search->filter_keywords(input::get('keywords', ''));
 
 		$bboptions['minsearchlength'] = $bboptions['minsearchlength'] ? $bboptions['minsearchlength'] : 4;
 
@@ -536,7 +540,7 @@ class search
 
 	function show_results()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$hignlight = '&amp;hignlight=' . $this->search->highlight;
 		$this->search->query_results();
 		$pagelinks = $this->search->pagenavlink;
@@ -557,6 +561,16 @@ class search
 		$thread['cansee'] = true;
 		$searchid = $this->search->uniqueid;
 		$search_type = 'search';
+
+		if ($bbuserinfo['supermod'] || $bbuserinfo['candobatch'])
+		{
+			$input = array(
+				'showposts' => input::str('showposts'),
+				'searchid' => input::str('searchid'),
+				'searchin' => input::str('searchin'),
+				'highlight' => input::str('highlight')
+			);
+		}
 		include $forums->func->load_template('find_posts');
 		exit;
 	}
@@ -564,5 +578,3 @@ class search
 
 $output = new search();
 $output->show();
-
-?>

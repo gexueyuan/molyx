@@ -1,5 +1,5 @@
 {template:header}
-<if="!$_INPUT['step']">
+<if="!$step">
 	<div class="separate"><!-- separate block --></div>
 	<form action='register.php' name='terms' method='post' onsubmit='return agree_terms()'>
 		<input type='hidden' name='step' value='2' />
@@ -91,7 +91,7 @@
 						<em id="name_ver"></em>
 					</dd>
 					<dd>
-						<input type='text' size='25' maxlength='64' value='{$_INPUT['username']}' name='username' id='user_name' class='input_normal' tabindex="1" onblur="check_user_account();" />
+						<input type='text' size='25' maxlength='64' value='{$username}' name='username' id='user_name' class='input_normal' tabindex="1" onblur="check_user_account();" />
 					</dd>
 				</dl>
 				<dl>

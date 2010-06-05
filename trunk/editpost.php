@@ -115,6 +115,7 @@ class editpost
 		{
 			$bbuserinfo['usewysiwyg'] = 0;
 		}
+
 		if (!isset($_POST['post']))
 		{
 			$_POST['post'] = $this->lib->parser->unconvert($this->getpost['pagetext'], $this->lib->forum['allowbbcode'], $this->lib->forum['allowhtml'], $bbuserinfo['usewysiwyg']);
@@ -137,8 +138,15 @@ class editpost
 		{
 			$show['docredit'] = true;
 		}
+
 		if ($this->edittitle)
 		{
+			if ($this->moderator['caneditthreads'] || $bbuserinfo['supermod'])
+			{
+				$show['colorpicker'] = true;
+				$titlecolor = input::str('titlecolor');
+			}
+
 			$show['title'] = true;
 			$title = input::get('title', $this->thread['title']);
 
@@ -150,7 +158,7 @@ class editpost
 			}
 			if (preg_match('#<font[^>]+color=(\'|")(.*)(\\1)>(.*)</font>#esiU', $title))
 			{
-				input::set('titlecolor', preg_replace('#<font[^>]+color=(\'|")(.*)(\\1)>(.*)</font>#siU', '\\2', $title));
+				$titlecolor = preg_replace('#<font[^>]+color=(\'|")(.*)(\\1)>(.*)</font>#siU', '\\2', $title);
 			}
 
 			$title = strip_tags($title);
@@ -164,10 +172,6 @@ class editpost
 				$special_selected[$this->thread['stopic']] = ' selected="selected"';
 				$specialtopic = explode(',', $this->lib->forum['specialtopic']);
 				$forumsspecial = $forums->cache['st'];
-			}
-			if ($this->moderator['caneditthreads'] || $bbuserinfo['supermod'])
-			{
-				$show['colorpicker'] = true;
 			}
 		}
 		if ($this->lib->obj['errors'])
@@ -233,6 +237,11 @@ class editpost
 		$referer = SCRIPTPATH;
 		//加载编辑器js
 		load_editor_js($extrabuttons);
+
+		if (!$bbuserinfo['id'])
+		{
+			$username = input::str('username');
+		}
 		include $forums->func->load_template('add_post');
 		exit;
 	}

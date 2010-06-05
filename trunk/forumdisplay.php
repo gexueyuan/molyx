@@ -98,6 +98,7 @@ class forum
 		$pagetitle = $this->forum['name'] . ' - ' . $bboptions['bbtitle'];
 		$nav = $forums->forum->forums_nav($this->forum['id']);
 		$rsslink = true;
+		$pp = input::int('pp');
 		include $forums->func->load_template('forumdisplay');
 		exit;
 	}
@@ -148,8 +149,8 @@ class forum
 			}
 		}
 
-		$firstpost = input::get('pp', 0);
-		if ($firstpost == 0)
+		$pp = input::get('pp', 0);
+		if ($pp == 0)
 		{
 			if ($this->forum['allowposting'] && $this->forum['forumrule'])
 			{
@@ -405,7 +406,7 @@ class forum
 		$forum['pagenav'] = $forums->func->build_pagelinks(array(
 			'totalpages' => $threadscount['threads'],
 			'perpage' => $bboptions['maxthreads'],
-			'curpage' => $firstpost,
+			'curpage' => $pp,
 			'pagelink' => "forumdisplay.php{$forums->sessionurl}f={$this->forum['id']}{$this->extra}",
 		));
 
@@ -434,9 +435,9 @@ class forum
 
 		$shownormal = false;
 		$threadlist = array();
-		if ($this->extra || $firstpost)
+		if ($this->extra || $pp)
 		{
-			$this->extra .= "&amp;pp=$firstpost";
+			$this->extra .= "&amp;pp=$pp";
 			$this->extra = urlencode(str_replace('&amp;', '&', $this->extra));
 		}
 		$forums->func->check_cache('icon');
@@ -452,7 +453,7 @@ class forum
 			$previewjoin .= 'LEFT JOIN ' . TABLE_PREFIX . "user u ON t.postuserid = u.id";
 			$previewfield = 'u.avatar, ';
 			//回收站不显示总置顶
-			if ((!$bboptions['enablerecyclebin'] || $bboptions['recycleforumid'] != $this->forum['id']) && !$firstpost)
+			if ((!$bboptions['enablerecyclebin'] || $bboptions['recycleforumid'] != $this->forum['id']) && !$pp)
 			{
 				$sql =  "SELECT $previewfield t.*
 				FROM " . TABLE_PREFIX . "thread t $previewjoin
@@ -470,7 +471,7 @@ class forum
 				WHERE {$query}
 					AND p.newthread=0
 				ORDER BY sticky DESC, $sortby $r_sort_by
-				LIMIT $firstpost, {$bboptions['maxthreads']}"
+				LIMIT $pp, {$bboptions['maxthreads']}"
 			;
 		}
 		else
@@ -478,7 +479,7 @@ class forum
 			$previewjoin .= 'LEFT JOIN ' . TABLE_PREFIX . "user u ON t.postuserid = u.id";
 			$previewfield .= 'u.avatar, ';
 			//回收站不显示总置顶
-			if ((!$bboptions['enablerecyclebin'] || $bboptions['recycleforumid'] != $this->forum['id']) && !$firstpost)
+			if ((!$bboptions['enablerecyclebin'] || $bboptions['recycleforumid'] != $this->forum['id']) && !$pp)
 			{
 				$sql =  "SELECT $previewfield t.*
 				FROM " . TABLE_PREFIX . "thread t $previewjoin
@@ -494,7 +495,7 @@ class forum
 				FROM " . TABLE_PREFIX . "thread t $previewjoin
 				WHERE $query $addquery
 				ORDER BY sticky DESC, t.$sortby $r_sort_by
-				LIMIT $firstpost, {$bboptions['maxthreads']}";
+				LIMIT $pp, {$bboptions['maxthreads']}";
 
 		}
 

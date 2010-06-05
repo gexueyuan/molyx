@@ -20,15 +20,23 @@ class newpoll
 
 	function show()
 	{
-		global $forums, $_INPUT, $bboptions;
+		global $forums, $bboptions;
 		$forums->func->load_lang('post');
 		require_once(ROOT_PATH . 'includes/xfunctions_hide.php');
 		$this->hidefunc = new hidefunc();
-		$this->posthash = $_INPUT['posthash'] ? $_INPUT['posthash'] : md5(microtime());
+
+		$this->posthash = input::get('posthash', '');
+		if (empty($this->posthash))
+		{
+			$this->posthash = md5(microtime());
+		}
+
 		$bboptions['maxpolloptions'] = $bboptions['maxpolloptions'] ? $bboptions['maxpolloptions'] : 10;
 		require_once(ROOT_PATH . "includes/functions_credit.php");
 		$this->credit = new functions_credit();
-		switch ($_INPUT['do'])
+
+		$do = input::get('do', '');
+		switch ($do)
 		{
 			case 'add':
 				$this->addpoll();
@@ -43,7 +51,7 @@ class newpoll
 
 	function showform()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		if (! $this->lib->forum['allowpoll'] OR ! $bbuserinfo['canpostpoll'])
 		{
 			$forums->func->standard_error("cannotpostpoll");
@@ -64,8 +72,10 @@ class newpoll
 			}
 		}
 		$hidetypes = $this->hidefunc->generate_hidetype_list();
-		$title = isset($_INPUT['title']) ? $_INPUT['title'] : "";
-		$description = isset($_INPUT['description']) ? $_INPUT['description'] : "";
+
+		$title = input::get('title', '');
+		$description = input::get('description', '');
+
 		$this->cookie_mxeditor = $forums->func->get_cookie('mxeditor');
 		if ($this->cookie_mxeditor)
 		{
@@ -97,6 +107,7 @@ class newpoll
 		if ($this->lib->moderator['caneditthreads'] OR $bbuserinfo['supermod'])
 		{
 			$show['colorpicker'] = true;
+			$titlecolor = input::str('titlecolor');
 		}
 		if ($this->lib->obj['preview'])
 		{
@@ -133,7 +144,7 @@ class newpoll
 		}
 		$forums->lang['optionsdesc'] = sprintf($forums->lang['optionsdesc'], $bboptions['maxpolloptions']);
 
-		$credit_list = $this->credit->show_credit('newpoll', $bbuserinfo['usergroupid'], $_INPUT['f']);
+		$credit_list = $this->credit->show_credit('newpoll', $bbuserinfo['usergroupid'], input::get('f'));
 		$smiles = $this->lib->construct_smiles();
 		$smile_count = $smiles['count'];
 		$all_smiles = $smiles['all'];
@@ -154,14 +165,22 @@ class newpoll
 		$referer = SCRIPTPATH;
 		//加载编辑器js
 		load_editor_js($extrabuttons);
+
+		if (!$bbuserinfo['id'])
+		{
+			$username = input::str('username');
+		}
+		$question = input::str('question');
 		include $forums->func->load_template('add_post');
 		exit;
 	}
 
 	function process()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$this->credit->check_credit('newpoll', $bbuserinfo['usergroupid'], $_INPUT['f']);
+		global $forums, $DB, $bbuserinfo, $bboptions;
+
+		$f = input::get('f');
+		$this->credit->check_credit('newpoll', $bbuserinfo['usergroupid'], $f);
 		if (! $this->lib->forum['allowpoll'])
 		{
 			$forums->func->standard_error("cannotpostpoll");
@@ -189,18 +208,19 @@ class newpoll
 		{
 			return $this->showform();
 		}
-		$_INPUT['title'] = trim($_INPUT['title']);
-		if (utf8_strlen($_INPUT['title']) < 2 OR !$_INPUT['title'])
+
+		$title = input::get('title', '');
+		if (utf8_strlen($title) < 2 OR !$title)
 		{
 			$this->lib->obj['errors'] = $forums->lang['musttitle'];
 		}
-		if (strlen(preg_replace("/&#([0-9]+);/", "-", $_INPUT['title'])) > 80)
+		if (strlen(preg_replace("/&#([0-9]+);/", "-", $title)) > 80)
 		{
 			$this->lib->obj['errors'] = $forums->lang['titletoolong'];
 		}
 		$polloptions = array();
 		$count = 0;
-		$polls = explode('<br />', $_INPUT['polloptions']);
+		$polls = explode('<br />', input::get('polloptions', ''));
 		foreach ($polls as $options)
 		{
 			if (trim($options) == '')
@@ -235,57 +255,57 @@ class newpoll
 			return $this->showform();
 		}
 
-		$_INPUT['title'] = $this->lib->parser->censoredwords($_INPUT['title']);
-		$_INPUT['description'] = $this->lib->parser->censoredwords($_INPUT['description']);
+		$title = $this->lib->parser->censoredwords($title);
+		$description = input::get('description', '');
+		$description = $this->lib->parser->censoredwords($description);
+
 		if ($bboptions['disablenoreplypoll'] != 1)
 		{
-			$pollstate = $_INPUT['allow_disc'] == 0 ? 1 : 2;
+			$pollstate = input::get('allow_disc') == 0 ? 1 : 2;
 		}
 		else
 		{
 			$pollstate = 1;
 		}
-		$multipoll = $_INPUT['allowmultipoll'] ? 1 : 0;
+		$multipoll = input::get('allowmultipoll') ? 1 : 0;
 		$sticky = 0;
 		$open = 1;
-		if (isset($_INPUT['modoptions']))
+
+		switch (input::get('modoptions', ''))
 		{
-			switch ($_INPUT['modoptions'])
-			{
-				case 'gstick':
+			case 'gstick':
+				$sticky = 99;
+				$this->lib->moderate_log($forums->lang['gstickthread'] . ' - ', $title);
+				break;
+			case 'stick':
+				$sticky = 1;
+				$this->lib->moderate_log($forums->lang['stickthread'] . ' - ', $title);
+				break;
+			case 'close':
+				if ($bbuserinfo['supermod'] OR $this->lib->moderator['canopenclose'])
+				{
+					$open = 0;
+					$this->lib->moderate_log($forums->lang['closethread'] . ' - ', $title);
+				}
+				break;
+			case 'gstickclose':
+				if ($bbuserinfo['supermod'])
+				{
 					$sticky = 99;
-					$this->lib->moderate_log($forums->lang['gstickthread'] . ' - ', $_INPUT['title']);
-					break;
-				case 'stick':
+					$open = 0;
+					$this->lib->moderate_log($forums->lang['gstickclose'] . ' - ', $title);
+				}
+				break;
+			case 'stickclose':
+				if ($bbuserinfo['supermod'] OR ($this->lib->moderator['canstickthread'] AND $this->lib->moderator['canopenclose']))
+				{
 					$sticky = 1;
-					$this->lib->moderate_log($forums->lang['stickthread'] . ' - ', $_INPUT['title']);
-					break;
-				case 'close':
-					if ($bbuserinfo['supermod'] OR $this->lib->moderator['canopenclose'])
-					{
-						$open = 0;
-						$this->lib->moderate_log($forums->lang['closethread'] . ' - ', $_INPUT['title']);
-					}
-					break;
-				case 'gstickclose':
-					if ($bbuserinfo['supermod'])
-					{
-						$sticky = 99;
-						$open = 0;
-						$this->lib->moderate_log($forums->lang['gstickclose'] . ' - ', $_INPUT['title']);
-					}
-					break;
-				case 'stickclose':
-					if ($bbuserinfo['supermod'] OR ($this->lib->moderator['canstickthread'] AND $this->lib->moderator['canopenclose']))
-					{
-						$sticky = 1;
-						$open = 0;
-						$this->lib->moderate_log($forums->lang['stickclose'] . ' - ', $_INPUT['title']);
-					}
-					break;
-			}
+					$open = 0;
+					$this->lib->moderate_log($forums->lang['stickclose'] . ' - ', $title);
+				}
+				break;
 		}
-		if ($bbuserinfo['cananonymous'] AND $_INPUT['anonymous'])
+		if ($bbuserinfo['cananonymous'] AND input::get('anonymous'))
 		{
 			$sql_array = array(
 				'postuserid' => 0,
@@ -293,26 +313,28 @@ class newpoll
 			);
 			$newpuserid = $bbuserinfo['id'];
 			$bbuserinfo['id'] = 0;
-			$bbuserinfo['name'] = 'anonymous*';
+			$username = 'anonymous*';
 		}
 		else
 		{
 			$newpuserid = $bbuserinfo['id'];
+			$username = input::get('username', '');
 		}
+
 		$splittable = $forums->func->getposttable();
 		$posttable = $splittable['name'] ? $splittable['name'] : 'post';
 		$this->thread = array(
-			'title' => $_INPUT['title'],
-			'description' => $_INPUT['description'] ,
+			'title' => $title,
+			'description' => $description,
 			'open' => $open,
 			'post' => 0,
 			'postuserid' => $bbuserinfo['id'],
-			'postusername' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $_INPUT['username'],
+			'postusername' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $username,
 			'dateline' => TIMENOW,
 			'lastposterid' => $bbuserinfo['id'],
-			'lastposter' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $_INPUT['username'],
+			'lastposter' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $username,
 			'lastpost' => TIMENOW,
-			'iconid' => $_INPUT['iconid'],
+			'iconid' => input::get('iconid'),
 			'pollstate' => $pollstate,
 			'lastvote' => 0,
 			'views' => 0,
@@ -343,20 +365,20 @@ class newpoll
 			'dateline' => TIMENOW,
 			'options' => serialize($polloptions),
 			'votes' => 0,
-			'question' => $this->lib->parser->censoredwords($_INPUT['question']),
+			'question' => $this->lib->parser->censoredwords(input::get('question', '')),
 			'multipoll' => $multipoll,
 		);
 		$DB->insert(TABLE_PREFIX . 'poll', $sql_array);
 		$this->lib->stats_recount($this->thread, 'new');
 		$this->lib->attachment_complete(array($this->posthash), $this->thread['tid'], $this->post['pid'], $posttable);
 		$this->lib->posts_recount();
-		$this->credit->update_credit('newpoll', $newpuserid, $bbuserinfo['usergroupid'], $_INPUT['f']);
+		$this->credit->update_credit('newpoll', $newpuserid, $bbuserinfo['usergroupid'], $f);
 		if ($this->lib->obj['moderate'] == 1 OR $this->lib->obj['moderate'] == 2)
 		{
 			$forums->lang['haspost'] = sprintf($forums->lang['haspost'], $forums->lang['poll']);
 			$forums->func->redirect_screen($forums->lang['haspost'], "forumdisplay.php{$forums->sessionurl}&f=" . $this->lib->forum['id'] . "");
 		}
-		if ($_INPUT['redirect'])
+		if (input::get('redirect'))
 		{
 			$forums->func->standard_redirect("forumdisplay.php{$forums->sessionurl}f={$this->lib->forum['id']}");
 		}
@@ -368,20 +390,20 @@ class newpoll
 
 	function addpoll()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		if (!$bbuserinfo['canvote'])
 		{
 			$forums->func->standard_error("cannotvotepoll");
 		}
-		if (!$_INPUT['nullvote'])
+		if (!input::get('nullvote'))
 		{
-			if (! isset($_INPUT['poll_vote']))
+			if (!input::is_set('poll_vote'))
 			{
 				$forums->func->standard_error("notselectpoll");
 			}
 		}
-		$_INPUT['t'] = intval($_INPUT['t']);
-		if (!$_INPUT['t'])
+		$t = input::get('t');
+		if (!$t)
 		{
 			$forums->func->standard_error("erroraddress");
 		}
@@ -390,7 +412,7 @@ class newpoll
 				" . TABLE_PREFIX . "thread t,
 				" . TABLE_PREFIX . "user u,
 				" . TABLE_PREFIX . "forum f
-			WHERE t.tid = '{$_INPUT['t']}'
+			WHERE t.tid = $t
 				AND p.tid = t.tid
 				AND t.postuserid = u.id
 				AND t.forumid = f.id");
@@ -410,27 +432,25 @@ class newpoll
 		$polloptions = unserialize($this->thread['options']);
 		reset($polloptions);
 		$newpolloptions = array();
+
+		$poll_vote = input::get('poll_vote', array(0));
 		foreach ($polloptions as $entry)
 		{
 			$id = $entry[0];
 			$choice = $entry[1];
 			$votes = $entry[2];
-			if (is_array($_INPUT['poll_vote']))
+
+			if (in_array($id, $poll_vote))
 			{
-				if (in_array($id, $_INPUT['poll_vote']))
-				{
-					$votes++;
-				}
+				$votes++;
 			}
+
 			$newpolloptions[] = array($id, $choice, $votes);
 		}
 		$this->thread['options'] = serialize($newpolloptions);
 		$this->thread['voters'] = $this->thread['voters'] . $bbuserinfo['id'] . ',';
-		$pollcount = 1 ;
-		if (is_array($_INPUT['poll_vote']))
-		{
-			$pollcount = count($_INPUT['poll_vote']);
-		}
+		$pollcount = count($poll_vote);
+
 		$DB->shutdown_update(TABLE_PREFIX . 'poll', array(
 			'votes' => array($pollcount,'+'),
 			'options' => $this->thread['options'],
@@ -446,11 +466,9 @@ class newpoll
 		$DB->shutdown_update(TABLE_PREFIX . 'thread', $sql_array, "tid={$this->thread['tid']}");
 		$this->credit->update_credit('replypoll', $bbuserinfo['id'], $bbuserinfo['usergroupid'], $this->thread['forumid']);
 		$this->credit->update_credit('threadpoll', $this->thread['postuserid'], $this->thread['usergroupid'], $this->thread['forumid']);
-		$forums->func->standard_redirect("showthread.php{$forums->sessionurl}f={$this->thread['forumid']}&amp;t={$this->thread['tid']}&amp;pp={$_INPUT['pp']}");
+		$forums->func->standard_redirect("showthread.php{$forums->sessionurl}f={$this->thread['forumid']}&amp;t={$this->thread['tid']}&amp;pp=" . input::get('pp'));
 	}
 }
 
 $output = new newpoll();
 $output->show();
-
-?>

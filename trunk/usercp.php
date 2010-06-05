@@ -20,7 +20,7 @@ class usercp
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$this->posthash = $forums->func->md5_check();
 		if (! $bbuserinfo['id'])
 		{
@@ -40,7 +40,9 @@ class usercp
 				$this->pmselect .= "<option value='" . $id . "'>" . $data['foldername'] . "</option>\n";
 			}
 		}
-		switch ($_INPUT['do'])
+
+		$do = input::get('do', '');
+		switch ($do)
 		{
 			case 'editprofile':
 				$this->edit_profile();
@@ -183,8 +185,8 @@ class usercp
 
 	function subscribe_thread()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$datecut = intval($_INPUT['datecut']) != "" ? intval($_INPUT['datecut']) : 1000;
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$datecut = input::get('datecut', 1000);
 		$date_query = $datecut != 1000 ? " AND s.dateline > '" . (TIMENOW - ($datecut * 86400)) . "' " : "";
 		$DB->query("SELECT s.subscribethreadid, s.userid, s.threadid, s.dateline as track_started, t.*
 									FROM " . TABLE_PREFIX . "subscribethread s
@@ -502,16 +504,18 @@ class usercp
 
 	function attachment()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		if ($bbuserinfo['attachlimit'] == -1)
 		{
 			$forums->func->standard_error("noperms");
 		}
 		$info = array();
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
+		$start = input::int('pp');
 		$perpage = 15;
-		$sortby = "";
-		switch ($_INPUT['sort'])
+		$sortby = '';
+
+		$sort = input::str('sort');
+		switch ($sort)
 		{
 			case 'date':
 				$sortby = 'a.dateline ASC';
@@ -539,15 +543,14 @@ class usercp
 				$info['size_order'] = 'size';
 				break;
 		}
-		if (is_array($_INPUT['attachid']))
+
+		foreach (input::arr('attachid') AS $k)
 		{
-			foreach ($_INPUT['attachid'] AS $k)
-			{
-				$k = intval($k);
-				if (empty($k)) continue;
-				$ids[] = $k;
-			}
+			$k = intval($k);
+			if (empty($k)) continue;
+			$ids[] = $k;
 		}
+
 		$affected_ids = count($ids);
 		if ($affected_ids > 0)
 		{
@@ -590,7 +593,7 @@ class usercp
 		$pages = $forums->func->build_pagelinks(array('totalpages' => $stats['count'],
 				'perpage' => $perpage,
 				'curpage' => $start,
-				'pagelink' => "usercp.php{$forums->sessionurl}do=attach&amp;sort={$_INPUT['sort']}",
+				'pagelink' => "usercp.php{$forums->sessionurl}do=attach&amp;sort=$sort",
 				));
 		$forums->func->check_cache('attachmenttype');
 		$posts = $DB->query("SELECT a.*, t.*, p.pid
@@ -753,25 +756,24 @@ class usercp
 
 	function do_unsubscribe()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$ids = array();
-		if (is_array($_INPUT['sid']))
+		foreach (input::arr('sid') AS $id)
 		{
-			foreach ($_INPUT['sid'] AS $id)
-			{
-				$id = intval($id);
-				if (!$id) continue;
-				$ids[] = $id;
-			}
+			$id = intval($id);
+			if (!$id) continue;
+			$ids[] = $id;
 		}
+
 		if (count($ids) > 0)
 		{
-			if ($_INPUT['type'] == 'thread')
+			$type = input::str('type');
+			if ($type == 'thread')
 			{
 				$DB->shutdown_query("DELETE FROM " . TABLE_PREFIX . "subscribethread WHERE userid='" . $bbuserinfo['id'] . "' AND subscribethreadid IN (" . implode(",", $ids) . ")");
 				$forums->func->standard_redirect("usercp.php{$forums->sessionurl}do=subscribethread");
 			}
-			if ($_INPUT['type'] == 'forum')
+			if ($type == 'forum')
 			{
 				$DB->shutdown_query("DELETE FROM " . TABLE_PREFIX . "subscribeforum WHERE userid='" . $bbuserinfo['id'] . "' AND forumid IN (" . implode(",", $ids) . ")");
 				$forums->func->standard_redirect("usercp.php{$forums->sessionurl}do=subscribeforum");
@@ -786,15 +788,15 @@ class usercp
 
 	function do_profile()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		if ($_INPUT['posthash'] != $this->posthash)
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		if (input::str('posthash') != $this->posthash)
 		{
 			$forums->func->standard_error("badposthash");
 		}
 		$banfilter = array();
-		$day = intval($_INPUT['day']);
-		$month = intval($_INPUT['month']);
-		$year = intval($_INPUT['year']);
+		$day = input::int('day');
+		$month = input::int('month');
+		$year = input::int('year');
 
 		require (ROOT_PATH . "includes/functions_codeparse.php");
 		$this->parser = new functions_codeparse();
@@ -846,8 +848,8 @@ class usercp
 		{
 			$forums->func->standard_error($user_data['err']);
 		}
-		
-		
+
+
 		/* Don't know if these code can remove safely
 		 * pending for review
 		 * by idg
@@ -858,7 +860,7 @@ class usercp
 		 * } */
 
 		//检测结束
-		$userinfo['gender'] = intval($_INPUT['gender']);
+		$userinfo['gender'] = input::int('gender');
 		if (is_array($user_data['user']))
 		{
 			$userinfo = $userinfo + $user_data['user'];
@@ -878,12 +880,12 @@ class usercp
 			$bbuserinfo = array_merge($safe, $bbuserinfo);
 		}
 
-		$userinfo['question'] = trim($_INPUT['question']);
-		$userinfo['answer'] = trim($_INPUT['answer']);
+		$userinfo['question'] = input::str('question');
+		$userinfo['answer'] = input::str('answer');
 		if ($bbuserinfo['question'] AND $bbuserinfo['answer'])
 		{
-			$userinfo['newquestion'] = trim($_INPUT['newquestion']);
-			$userinfo['newanswer'] = trim($_INPUT['newanswer']);
+			$userinfo['newquestion'] = input::str('newquestion');
+			$userinfo['newanswer'] = input::str('newanswer');
 
 			if ($userinfo['answer'] OR $userinfo['newquestion'] OR $userinfo['newanswer'])
 			{
@@ -938,7 +940,7 @@ class usercp
 
 	function do_signature()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		if (!$bbuserinfo['cansignature'])
 		{
 			$forums->func->standard_error("noperms");
@@ -949,7 +951,7 @@ class usercp
 		{
 			$forums->func->standard_error("errorsignature");
 		}
-		if ($_INPUT['posthash'] != $this->posthash)
+		if (input::str('posthash') != $this->posthash)
 		{
 			$forums->func->standard_error("badposthash");
 		}
@@ -977,7 +979,7 @@ class usercp
 		{
 			$forums->func->standard_error($this->parser->error);
 		}
-		if ($_INPUT['delete'])
+		if (input::int('delete'))
 		{
 			$this->clean_signature($bbuserinfo['id']);
 			$has_cleaned = true;
@@ -1065,7 +1067,7 @@ class usercp
 					$signature .= "<!--sig_img--><div><img src='{\$signature_path}" . $real_choice . "' width='" . $im['img_width'] . "' height='" . $im['img_height'] . "' /></div><!--sig_img1-->";
 				}
 			}
-			if (preg_match("#<!--sig_img-->(.+?)<!--sig_img1-->#", $bbuserinfo['signature'], $match) AND !$_INPUT['delete'])
+			if (preg_match("#<!--sig_img-->(.+?)<!--sig_img1-->#", $bbuserinfo['signature'], $match) AND !input::int('delete'))
 			{
 				$signature .= $match[0];
 			}
@@ -1077,9 +1079,9 @@ class usercp
 
 	function avatar_gallery()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$avatar_gallery = array();
-		$selectedavatar = preg_replace("/[^\w\s_\-]/", "", $_INPUT['av_cat']);
+		$selectedavatar = preg_replace("/[^\w\s_\-]/", "", input::str('av_cat'));
 		$thiscategories = false;
 		$currentcategories = "";
 		$dh = opendir(ROOT_PATH . 'images/avatars');
@@ -1155,8 +1157,8 @@ class usercp
 
 	function set_internal_avatar()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		if ($_INPUT['posthash'] != $this->posthash)
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		if (input::str('posthash') != $this->posthash)
 		{
 			$forums->func->standard_error("badposthash");
 		}
@@ -1164,8 +1166,8 @@ class usercp
 		$real_dims = '';
 		$real_dir = "";
 		$save_dir = "";
-		$current_folder = preg_replace("/[^\s\w_-]/", "", rawurldecode($_INPUT['current_folder']));
-		$selected_avatar = preg_replace("/[^\s\w\._\-\[\]\(\)]/" , "", rawurldecode($_INPUT['avatar']));
+		$current_folder = preg_replace("/[^\s\w_-]/", "", rawurldecode(input::str('current_folder')));
+		$selected_avatar = preg_replace("/[^\s\w\._\-\[\]\(\)]/" , "", rawurldecode(input::str('avatar')));
 		if ($current_folder != "")
 		{
 			$real_dir = "/" . $current_folder;
@@ -1199,9 +1201,9 @@ class usercp
 	}
 	function do_avatar()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$real_type = "";
-		if ($_INPUT['remove'])
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$real_type = '';
+		if (input::int('remove'))
 		{
 			$this->clean_avatars($bbuserinfo['id']);
 			$DB->update(TABLE_PREFIX . 'user', array('avatar' => 0), 'id=' . $bbuserinfo['id']);
@@ -1211,7 +1213,7 @@ class usercp
 			}
 			$forums->func->standard_redirect("usercp.php?{$forums->sessionurl}do=editavatar");
 		}
-		if ($_INPUT['posthash'] != $this->posthash)
+		if (input::str('posthash') != $this->posthash)
 		{
 			$forums->func->standard_error("badposthash");
 		}
@@ -1233,15 +1235,17 @@ class usercp
 		{
 			$forums->func->standard_error("cannotupavatar");
 		}
-		if (preg_match("/^http:\/\/$/i", $_INPUT['avatarurl']))
+
+		$avatar = input::str('avatarurl');
+		if (preg_match("/^http:\/\/$/i", $avatar))
 		{
-			$_INPUT['avatarurl'] = "";
+			$avatar = '';
 		}
 		$path = split_todir($bbuserinfo['id'], $bboptions['uploadfolder'] . '/user');
 		checkdir($path[0], $path[1] + 1);
 		$path = $path[0];
 		$thumb_suffix = array(1 => 'gif', 2 => 'jpg', 3 => 'png');
-		if (empty($_INPUT['avatarurl']))
+		if (empty($avatar))
 		{
 			if ($_FILES['upload_avatar']['name'] != "" && ($_FILES['upload_avatar']['name'] != "none"))
 			{
@@ -1301,13 +1305,12 @@ class usercp
 		}
 		else
 		{
-			$_INPUT['avatarurl'] = trim($_INPUT['avatarurl']);
-			if (preg_match("/[?&;]/", $_INPUT['avatarurl']))
+			if (preg_match("/[?&;]/", $avatar))
 			{
 				$forums->func->standard_error("errorurl");
 			}
 			$ext = explode (',', $bboptions['avatarextension']);
-			$av_ext = preg_replace("/^.*\.(\S+)$/", "\\1", $_INPUT['avatarurl']);
+			$av_ext = preg_replace("/^.*\.(\S+)$/", "\\1", $avatar);
 			$av_ext = strtolower($av_ext);
 			if (!in_array($av_ext, $allow_extension))
 			{
@@ -1316,7 +1319,7 @@ class usercp
 
 			$real_name = 'a-' . $bbuserinfo['id'] . '-0.jpg';
 
-			$content = @file_get_contents($_INPUT['avatarurl']);
+			$content = @file_get_contents($avatar);
 
 			if ($content)
 			{
@@ -1345,20 +1348,21 @@ class usercp
 
 	function do_forum_setting()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		if ($_INPUT['posthash'] != $this->posthash)
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		if (input::str('posthash') != $this->posthash)
 		{
 			$forums->func->standard_error("badposthash");
 		}
-		$upstyle = '';
-		$timezone = intval($_INPUT['u_timezone']);
+
+		$sql_array = array();
+		$timezone = input::int('u_timezone');
 		if ($bboptions['allowselectstyles'])
 		{
-			$styleid = intval($_INPUT['style']);
+			$styleid = input::int('style');
 			$style = $forums->cache['style'][$styleid]['userselect'] ? $styleid : $bbuserinfo['style'];
-			$upstyle = "style='" . $style . "', ";
+			$sql_array['style'] = $style;
 		}
-		$bbuserinfo['options'] = $forums->func->convert_array_to_bits($_INPUT['options']);
+		$bbuserinfo['options'] = $forums->func->convert_array_to_bits(input::arr('options'));
 		if ($bboptions['perpagepost'] == "")
 		{
 			$bboptions['perpagepost'] = '5,10,15,20,25,30,35,40';
@@ -1369,28 +1373,38 @@ class usercp
 		}
 		$bboptions['perpagepost'] .= ",-1,";
 		$bboptions['perpagethread'] .= ",-1,";
-		if (! preg_match("/(^|,)" . $_INPUT['postpage'] . ",/", $bboptions['perpagepost']))
+
+		$postpage = input::str('postpage');
+		if (! preg_match("/(^|,)" . $postpage . ",/", $bboptions['perpagepost']))
 		{
-			$_INPUT['postpage'] = '-1';
+			$postpage = '-1';
 		}
-		if (! preg_match("/(^|,)" . $_INPUT['threadpage'] . ",/", $bboptions['perpagethread']))
+
+		$threadpage = input::str('threadpage');
+		if (! preg_match("/(^|,)" . $threadpage . ",/", $bboptions['perpagethread']))
 		{
-			$_INPUT['threadpage'] = '-1';
+			$threadpage = '-1';
 		}
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET {$upstyle}timezoneoffset=" . $_INPUT['u_timezone'] . ", options=" . $bbuserinfo['options'] . ", viewprefs='" . $_INPUT['threadpage'] . "&" . $_INPUT['postpage'] . "' WHERE id=" . $bbuserinfo['id'] . "");
+
+		$sql_array['timezoneoffset'] = $timezone;
+		$sql_array['options'] = $bbuserinfo['options'];
+		$sql_array['viewprefs'] = $threadpage . '&' . $postpage;
+
+		$DB->update(TABLE_PREFIX . 'user', $sql_array, 'id = ' . $bbuserinfo['id']);
 		$forums->func->standard_redirect("usercp.php{$forums->sessionurl}do=setting");
 	}
 
 	function do_change()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$currentpassword = trim($_INPUT['currentpassword']);
-		$newpassword = trim($_INPUT['newpassword']);
-		$newpasswordconfirm = trim($_INPUT['newpasswordconfirm']);
-		$email = strtolower(trim($_INPUT['email']));
-		$emailcharset = strtolower(trim($_INPUT['emailcharset']));
-		$emailconfirm = strtolower(trim($_INPUT['emailconfirm']));
-		if ($_INPUT['currentpassword'] == "" OR (empty($newpassword) AND empty($email)))
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$currentpassword = input::str('currentpassword');
+		$newpassword = input::str('newpassword');
+		$newpasswordconfirm = input::str('newpasswordconfirm');
+		$email = strtolower(input::str('email'));
+		$emailcharset = strtolower(input::str('emailcharset'));
+		$emailconfirm = strtolower(input::str('emailconfirm'));
+
+		if ($currentpassword == '' OR (empty($newpassword) AND empty($email)))
 		{
 			$forums->func->standard_error("plzinputallform");
 		}
@@ -1509,8 +1523,10 @@ class usercp
 
 	function parse_data($thread)
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$last_time = $this->threadread[$thread['tid']] > $_INPUT['lastvisit'] ? $this->read_array[$thread['tid']] : $_INPUT['lastvisit'];
+		global $forums, $DB, $bbuserinfo, $bboptions;
+
+		$lastvisit = input::int('lastvisit');
+		$last_time = $this->threadread[$thread['tid']] > $lastvisit ? $this->read_array[$thread['tid']] : $lastvisit;
 		$maxposts = $bboptions['maxposts'] ? $bboptions['maxposts'] : '10';
 		if ($thread['attach'])
 		{
@@ -1577,5 +1593,3 @@ class usercp
 
 $output = new usercp();
 $output->show();
-
-?>

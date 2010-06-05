@@ -255,7 +255,7 @@ function reinit()
 		</span>
 	<else>
 		<span>
-		{$lang['unregisteruser']}:{$lang['inputusername']}<input type='text' size='40' maxlength='40' name='username' value='{$_INPUT['username']}' class='input_normal' />
+		{$lang['unregisteruser']}:{$lang['inputusername']}<input type='text' size='40' maxlength='40' name='username' value='{$username}' class='input_normal' />
 		</span>
 	</if>
 	{$postdesc}
@@ -275,8 +275,8 @@ function reinit()
 		</if>
 		<input type='text' size='40' maxlength='50' name='title' value='{$title}' tabindex='1' class='input_normal' />
 		<if="$show['colorpicker']">
-		<input type='hidden' name='titlecolor' id='titlecolor' value="{$_INPUT['titlecolor']}"  />
-		<span><button id='title_color' onclick="editcolor(); return false;" style="background-color:{$_INPUT['titlecolor']};" /></button></span>
+		<input type='hidden' name='titlecolor' id='titlecolor' value="{$titlecolor}"  />
+		<span><button id='title_color' onclick="editcolor(); return false;" style="background-color:{$titlecolor};" /></button></span>
 		<label for="titlebold">
 			<input type='checkbox' name='titlebold' id="titlebold" value='1' {$checked['titlebold']} />
 			{$lang['titlebold']}
@@ -314,7 +314,7 @@ function reinit()
 <if="$show['poll']">
 <tr class='item_list'>
 	<td>{$lang['_poll']}{$lang['question']}</td>
-	<td><input type='text' tabindex='3' size='40' maxlength='250' name='question' value='{$_INPUT['question']}' class='input_normal' /></td>
+	<td><input type='text' tabindex='3' size='40' maxlength='250' name='question' value='{$question}' class='input_normal' /></td>
 </tr>
 <tr class='item_list'>
 	<td>

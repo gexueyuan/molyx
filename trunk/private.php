@@ -23,14 +23,14 @@ class newprivate
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('usercp');
 		$forums->func->load_lang('private');
 		if (! $bbuserinfo['id'])
 		{
 			$forums->func->standard_error("notlogin");
 		}
-		$this->folderid = intval($_INPUT['folderid']);
+		$this->folderid = input::get('folderid');
 		if (! $bbuserinfo['pmquota'])
 		{
 			$forums->func->standard_error("cannotusepm");
@@ -51,7 +51,9 @@ class newprivate
 		{
 			$this->pmselect .= "<option value='" . $id . "'>" . $data['foldername'] . "</option>";
 		}
-		switch ($_INPUT['do'])
+
+		$do = input::get('do', '');
+		switch ($do)
 		{
 			case 'list':
 				$this->pmlist();
@@ -118,9 +120,9 @@ class newprivate
 
 	function pmlist()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$sortby = "";
-		switch ($_INPUT['sort'])
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$sortby = input::get('sort', '');
+		switch ($sortby)
 		{
 			case 'rdate':
 				$sortby = 'dateline ASC';
@@ -141,7 +143,7 @@ class newprivate
 		{
 			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmtotal=" . $total['pmtotal'] . " WHERE id=" . $bbuserinfo['id'] . "");
 		}
-		$currenttotal = $DB->query_first("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . " AND folderid=" . intval($_INPUT['folderid']) . "");
+		$currenttotal = $DB->query_first("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . " AND folderid=" . input::get('folderid') . "");
 		if ($currenttotal['pmtotal'] != intval($bbuserinfo['pmfolders'][$curfolderid]['pmcount']))
 		{
 			$this->lib->rebuild_foldercount($bbuserinfo['id'], $bbuserinfo['pmfolders'], $this->folderid, intval($currenttotal['pmtotal']));
@@ -165,11 +167,11 @@ class newprivate
 			$forums->lang['pmused'] = sprintf($forums->lang['pmused'], $info['totalpercent'], $total['pmtotal'], $bbuserinfo['pmquota']);
 			$info['pmfull'] = $forums->lang['pmused'];
 		}
-		$pp = $_INPUT['pp'] > 0 ? intval($_INPUT['pp']) : 0;
+		$pp = input::get('pp');
 		$pages = $forums->func->build_pagelinks(array('totalpages' => $currenttotal['pmtotal'],
 				'perpage' => 30,
 				'curpage' => $pp,
-				'pagelink' => "private.php{$forums->sessionurl}do=list&amp;folderid=" . $this->folderid . "&amp;sort=" . $_INPUT['sort'])
+				'pagelink' => "private.php{$forums->sessionurl}do=list&amp;folderid=" . $this->folderid . "&amp;sort=" . $sortby)
 			);
 		$foldername = $bbuserinfo['pmfolders'][$this->folderid]['foldername'];
 		$pmselect = $this->pmselect;
@@ -263,7 +265,7 @@ class newprivate
 
 	function doempty()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$folders = array();
 		foreach($bbuserinfo['pmfolders'] AS $folderid => $data)
 		{
@@ -322,12 +324,13 @@ class newprivate
 
 	function savefolders()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		if ($_POST['folder'][-1] == "" OR $_POST['folder'][0] == "")
 		{
 			$forums->func->standard_error("cannotdeldefault");
 		}
-		foreach ($_INPUT['folder'] AS $folderid => $foldername)
+		$folder = input::get('folder', array(''));
+		foreach ($folder AS $folderid => $foldername)
 		{
 			$folderid = intval($folderid);
 			$foldername = utf8_htmlspecialchars(trim($foldername));
@@ -351,7 +354,7 @@ class newprivate
 
 	function buddylist()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " ORDER BY contactname ASC");
 		$contacts = array();
 		if ($DB->num_rows())
@@ -364,15 +367,13 @@ class newprivate
 			}
 		}
 		$username = "";
-		if (isset($_INPUT['u']))
+		$u = input::get('u');
+		if ($u > 0)
 		{
-			if (preg_match("/^(\d+)$/", $_INPUT['u']))
+			$user = $DB->query_first("SELECT name,id FROM " . TABLE_PREFIX . "user WHERE id=" . $u . "");
+			if ($user['id'])
 			{
-				$user = $DB->query_first("SELECT name,id FROM " . TABLE_PREFIX . "user WHERE id=" . $_INPUT['u'] . "");
-				if ($user['id'])
-				{
-					$username = $user['name'];
-				}
+				$username = $user['name'];
 			}
 		}
 
@@ -389,8 +390,8 @@ class newprivate
 
 	function adduser()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
-		$username = trim($_INPUT['username']);
+		global $forums, $DB, $bbuserinfo;
+		$username = input::get('username', '');
 		if (!$username)
 		{
 			$forums->func->standard_error("plzinputallform");
@@ -405,24 +406,24 @@ class newprivate
 		{
 			$forums->func->standard_error("alreadyadd");
 		}
-		$_INPUT['allowpm'] = $_INPUT['allowpm'] ? $_INPUT['allowpm'] : 0;
+		$allowpm = input::get('allowpm');
 		$DB->shutdown_query("INSERT INTO " . TABLE_PREFIX . "pmuserlist
 								(userid, contactname, allowpm, description, contactid)
 							VALUES
-								(" . $bbuserinfo['id'] . ", '" . $user['name'] . "', " . $_INPUT['allowpm'] . ", '" . $_INPUT['description'] . "', " . $user['id'] . ")"
+								(" . $bbuserinfo['id'] . ", '" . $user['name'] . "', " . $allowpm . ", '" . input::get('description', '') . "', " . $user['id'] . ")"
 			);
 		$forums->func->standard_redirect("private.php{$forums->sessionurl}do=buddy");
 	}
 
 	function edituser()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$_INPUT['u'] = intval($_INPUT['u']);
-		if (! $_INPUT['u'])
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$u = input::get('u');
+		if (!$u)
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
-		if (!$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=" . $_INPUT['u'] . ""))
+		if (!$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=$u"))
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
@@ -443,30 +444,30 @@ class newprivate
 
 	function douseredit()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
-		$_INPUT['u'] = intval($_INPUT['u']);
-		if (! $_INPUT['u'])
+		global $forums, $DB, $bbuserinfo;
+		$u = input::get('u');
+		if (!$u)
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
-		$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=" . $_INPUT['u'] . "");
+		$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=$u");
 		if (!$user['contactid'])
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "pmuserlist SET description='" . $_INPUT['description'] . "', allowpm=" . intval($_INPUT['allowpm']) . " WHERE id=" . $user['id'] . "");
+		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "pmuserlist SET description='" . input::get('description', '') . "', allowpm=" . input::get('allowpm') . " WHERE id=" . $user['id'] . "");
 		$forums->func->standard_redirect("private.php{$forums->sessionurl}do=buddy");
 	}
 
 	function deleteuser()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
-		$_INPUT['u'] = intval($_INPUT['u']);
-		if (! $_INPUT['u'])
+		global $forums, $DB, $bbuserinfo;
+		$u = input::get('u');
+		if (!$u)
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
-		$DB->shutdown_query("DELETE FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=" . $_INPUT['u'] . "");
+		$DB->shutdown_query("DELETE FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=" . $u . "");
 		$forums->func->standard_redirect("private.php{$forums->sessionurl}do=buddy");
 	}
 
@@ -509,9 +510,9 @@ class newprivate
 
 	function showpm()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$_INPUT['pmid'] = intval($_INPUT['pmid']);
-		if (! $_INPUT['pmid'])
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$pmid = input::get('pmid');
+		if (!$pmid)
 		{
 			$forums->func->standard_error("cannotfindpm");
 		}
@@ -521,7 +522,7 @@ class newprivate
 				LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid)
 				LEFT JOIN " . TABLE_PREFIX . "user u ON (p.$whatuserid=u.id)
 				LEFT JOIN " . TABLE_PREFIX . "usergroup g ON (g.usergroupid=u.usergroupid)
-				WHERE p.pmid='" . $_INPUT['pmid'] . "'");
+				WHERE p.pmid= $pmid");
 		if ($pm = $DB->fetch_array())
 		{
 			if ($pm['userid'] != $bbuserinfo['id'] && $pm['usergroupid'] != -1 && !preg_match("/," . $bbuserinfo['usergroupid'] . ",/i", "," . $pm['usergroupid'] . ","))
@@ -533,14 +534,20 @@ class newprivate
 		{
 			$forums->func->standard_error("cannotfindpm");
 		}
+
 		if ($bbuserinfo['pmunread'] > 0)
 		{
 			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
 		}
+
 		if ($pm['pmread'] < 1)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pm SET pmread=1, pmreadtime=" . TIMENOW . " WHERE pmid=" . intval($_INPUT['pmid']) . "");
+			$DB->update(TABLE_PREFIX . 'pm', array(
+				'pmread' => 1,
+				'pmreadtime' => TIMENOW
+			), "pmid = $pmid");
 		}
+
 		$pm['dateline'] = $forums->func->get_date($pm['dateline'], 2);
 		$user = $forums->func->fetch_user($pm);
 		$user['grouptitle'] = $forums->lang[$pm['grouptitle']];
@@ -570,27 +577,28 @@ class newprivate
 
 		$referer = SCRIPTPATH;
 		$pagetitle = $forums->lang['view'] . $forums->lang['pm'] . ": " . $pm['title'] . " - " . $forums->lang['usercp'];
-		$nav = array("<a href='usercp.php{$forums->sessionurl}'>" . $forums->lang['usercp'] . "</a>", "<a href='private.php{$forums->sessionurl}do=list&amp;folderid=" . $this->folderid . "'>" . $bbuserinfo['pmfolders'][$_INPUT['folderid']]['foldername'] . "</a>", $forums->lang['view'] . $forums->lang['pm'] . ": " . $pm['title']);
+
+		$folderid = input::get('folderid');
+		$nav = array("<a href='usercp.php{$forums->sessionurl}'>" . $forums->lang['usercp'] . "</a>", "<a href='private.php{$forums->sessionurl}do=list&amp;folderid=" . $this->folderid . "'>" . $bbuserinfo['pmfolders'][$folderid]['foldername'] . "</a>", $forums->lang['view'] . $forums->lang['pm'] . ": " . $pm['title']);
 		include $forums->func->load_template('pm_showpm');
 		exit;
 	}
 
 	function deltracked()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$ids = array();
-		if (is_array($_INPUT['pmid']))
+		$pmid = input::get('pmid', array(0));
+		foreach ($pmid AS $key)
 		{
-			foreach ($_INPUT['pmid'] AS $key)
+			$key = intval($key);
+			if (!$key)
 			{
-				$key = intval($key);
-				if (!$key)
-				{
-					continue;
-				}
-				$ids[] = $key;
+				continue;
 			}
+			$ids[] = $key;
 		}
+
 		if (count($ids) > 0)
 		{
 			$this->delete_messages($ids, $bbuserinfo['id'], "pmread=0 AND tracking=1 AND fromuserid=" . $bbuserinfo['id']);
@@ -688,41 +696,39 @@ class newprivate
 
 	function managepm()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$ids = array();
-		if (is_array($_INPUT['pmid']))
+		$pmid = input::get('pmid', array(0));
+		foreach ($pmid AS $value)
 		{
-			foreach ($_INPUT['pmid'] AS $value)
+			if (!$value)
 			{
-				$value = intval($value);
-				if (!$value)
-				{
-					continue;
-				}
-				$ids[] = $value;
+				continue;
 			}
+			$ids[] = $value;
 		}
+
 		$affected_ids = count($ids);
 		if ($affected_ids > 0)
 		{
 			$id_string = implode(",", $ids);
-			if ($_INPUT['delete'])
+			$curfolderid = input::get('curfolderid');
+			if (input::get('delete'))
 			{
-				$_INPUT['curfolderid'] = intval($_INPUT['curfolderid']);
 				$this->delete_messages($ids, $bbuserinfo['id']);
-				$forums->func->standard_redirect("private.php{$forums->sessionurl}do=list&amp;folderid=" . intval($_INPUT['curfolderid']) . "");
+				$forums->func->standard_redirect("private.php{$forums->sessionurl}do=list&amp;folderid=$curfolderid");
 			}
-			else if ($_INPUT['move'])
+			else if (input::get('move'))
 			{
-				if (intval($_INPUT['curfolderid'] != $this->folderid))
+				if ($curfolderid != $this->folderid)
 				{
 					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pm SET folderid='" . $this->folderid . "' WHERE folderid != '" . $this->folderid . "' AND userid=" . $bbuserinfo['id'] . " AND pmid IN (" . $id_string . ")");
 					if ($DB->affected_rows())
 					{
 						$returnpmfolders = $this->lib->rebuild_foldercount($bbuserinfo['id'],
 							$bbuserinfo['pmfolders'],
-							$_INPUT['curfolderid'],
-							$bbuserinfo['pmfolders'][ $_INPUT['curfolderid'] ]['pmcount'] - $affected_ids,
+							$curfolderid,
+							$bbuserinfo['pmfolders'][$curfolderid]['pmcount'] - $affected_ids,
 							'nosave'
 							);
 						$returnpmfolders = unserialize($returnpmfolders);
@@ -749,25 +755,28 @@ class newprivate
 
 	function endtracking()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$ids = array();
-		if (is_array($_INPUT['pmid']))
+		$pmid = input::get('pmid', array(0));
+		foreach ($pmid AS $value)
 		{
-			foreach ($_INPUT['pmid'] AS $value)
+			$value = intval($value);
+			if (!$value)
 			{
-				$value = intval($value);
-				if (!$value)
-				{
-					continue;
-				}
-				$ids[] = $value;
+				continue;
 			}
+			$ids[] = $value;
 		}
 		$affected_ids = count($ids);
 		if ($affected_ids > 0)
 		{
 			$id_string = implode(",", $ids);
-			$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "pm SET tracking=0 WHERE tracking=1 AND pmread=1 AND fromuserid=" . $bbuserinfo['id'] . " AND pmid IN (" . $id_string . ")");
+			$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "pm
+				SET tracking=0
+				WHERE tracking=1
+					AND pmread=1
+					AND fromuserid=" . $bbuserinfo['id'] . "
+					AND pmid IN (" . $id_string . ")");
 			$forums->func->standard_redirect("private.php{$forums->sessionurl}do=showtrack");
 		}
 		else
@@ -778,18 +787,16 @@ class newprivate
 
 	function pmdelete()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
-		$_INPUT['pmid'] = intval($_INPUT['pmid']);
-		if (! $_INPUT['pmid'])
+		global $forums, $DB, $bbuserinfo;
+		$pmid = input::get('pmid');
+		if (!$pmid)
 		{
 			$forums->func->standard_error("nodelpms");
 		}
-		$this->delete_messages($_INPUT['pmid'], $bbuserinfo['id']);
+		$this->delete_messages($pmid, $bbuserinfo['id']);
 		$forums->func->standard_redirect("private.php{$forums->sessionurl}do=list&amp;folderid=" . $this->folderid . "");
 	}
 }
 
 $output = new newprivate();
 $output->show();
-
-?>

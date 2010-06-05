@@ -13,7 +13,8 @@ require_once('./global.php');
 
 $output = new announce();
 $forums->func->load_lang('moderate');
-switch (input::get('do', ''))
+$do = input::str('do');
+switch ($do)
 {
 	case 'doannouncement':
 		$output->announcementform();
@@ -139,6 +140,7 @@ class announce
 		$nav = array($forums->lang['announcement']);
 		unset($show);
 		$show['announce'] = false;
+		$do = 'showall';
 		include $forums->func->load_template('announcement');
 		exit;
 	}
@@ -271,6 +273,7 @@ class announce
 		$nav = array($forums->lang['announcement']);
 		unset($show);
 		$show['announce'] = false;
+		$do = 'announcement';
 		include $forums->func->load_template('announcement');
 		exit;
 	}
@@ -340,6 +343,7 @@ class announce
 		$announce['pagetext'] = br2nl($announce['pagetext']);
 
 		require_once(ROOT_PATH . 'includes/ajax/ajax.php');
+		$ref = input::str('ref');
 		include $forums->func->load_template('add_announcement');
 		exit;
 	}

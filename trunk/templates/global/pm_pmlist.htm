@@ -25,13 +25,13 @@
 			<tr class="thead" align="left">
 				<th>&nbsp;</th>
 				<th width='60%'>
-					<a href='private.php{sessionurl}do=list&amp;folderid={$info['folderid']}&amp;sort=title&amp;pp={$_INPUT['pp']}'>{$lang['pmtitle']}</a>
+					<a href='private.php{sessionurl}do=list&amp;folderid={$info['folderid']}&amp;sort=title&amp;pp={$pp}'>{$lang['pmtitle']}</a>
 				</th>
 				<th width='15%'>
-					<a href='private.php{sessionurl}do=list&amp;folderid={$info['folderid']}&amp;sort=name&amp;pp={$_INPUT['pp']}'>{$sender}</a>
+					<a href='private.php{sessionurl}do=list&amp;folderid={$info['folderid']}&amp;sort=name&amp;pp={$pp}'>{$sender}</a>
 				</th>
 				<th width='20%'>
-					<a href='private.php{sessionurl}do=list&amp;folderid={$info['folderid']}&amp;sort={$info['date_order']}&amp;pp={$_INPUT['p']}'>{$lang['_pmsendtime']}</a>
+					<a href='private.php{sessionurl}do=list&amp;folderid={$info['folderid']}&amp;sort={$info['date_order']}&amp;pp={$pp}'>{$lang['_pmsendtime']}</a>
 				</th>
 				<th width='5%' align="center">
 					<input name="allbox" type="checkbox" value="{$lang['_selectall']}" onclick="CheckAll(document.mutliact);" />

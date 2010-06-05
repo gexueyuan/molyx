@@ -2,7 +2,7 @@
 <form action="announcement.php" method="post" name="mxbform" onsubmit="mxeGet();">
 <input type="hidden" name="s" value="{sessionid}" />
 <input type="hidden" name="do" value="updateannouncement" />
-<input type="hidden" name="ref" value="{$_INPUT['ref']}" />
+<input type="hidden" name="ref" value="{$ref}" />
 <input type="hidden" name="id" value="{$announce['id']}" />
 <if="$errors">
 <div id='errors'>
