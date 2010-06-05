@@ -54,7 +54,7 @@
 			{$forum_navigation}
 		</div>
 	</div>
-	<if="!$_INPUT['pp'] && $forum['forumrule']">
+	<if="!$pp && $forum['forumrule']">
 	<div class="side ttable">
 		<h4>{$lang['forumrule']}</h4>
 		<div class="side_inn">
@@ -224,7 +224,7 @@
 			<input type='hidden' name='s' value='{sessionid}' />
 			<input type='hidden' name='posthash' value='{$posthash}' />
 			<input type='hidden' value='' name='t' />
-			<input type='hidden' value='{$_INPUT['pp']}' name='pp' />
+			<input type='hidden' value='{$pp}' name='pp' />
 			<input type="checkbox" id="selectall" onclick="SelectTag();"  />
 			{$mod}
 			<script language='JavaScript' type="text/javascript">
@@ -289,7 +289,7 @@
 	<div style="float:right;">
 		{$forum[forum_jump]}
 	</div>
-	<form action='forumdisplay.php{sessionurl}f={$forum['id']}&amp;pp={$_INPUT['pp']}' method='post'>
+	<form action='forumdisplay.php{sessionurl}f={$forum['id']}&amp;pp={$pp}' method='post'>
 		{$lang['threadby']}
 		<select name='sortby' class="select_normal">
 			{$show['sort_by']}

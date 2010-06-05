@@ -263,18 +263,17 @@ class functions_search
 		return $thread;
 	}
 
-	function filter_keywords($words = "", $name = 0)
+	function filter_keywords($words = '', $name = 0)
 	{
-		global $forums;
-		$words = trim(strtolower(str_replace("%", "\\%", $words)));
-		$words = preg_replace("/\s+(and|or|&|\|)$/" , "" , $words);
-		$words = str_replace("_", "\\_", $words);
+		$words = trim(strtolower(str_replace('%', '\\%', $words)));
+		$words = preg_replace('/\s+(and|or|&|\|)$/' , "" , $words);
+		$words = str_replace('_', '\\_', $words);
 		if ($name == 0)
 		{
-			$words = preg_replace("/[\[\]\{\}\(\)\,\\\\\"']|&quot;/", "", $words);
+			$words = preg_replace("/[\[\]\{\}\(\)\,\\\\\"']|&quot;/", '', $words);
 		}
-		$words = preg_replace("/^(?:img|quote|code|html|javascript|a href|color|span|div)$/", "", $words);
-		return " " . preg_quote($words) . " ";
+		$words = preg_replace('/^(?:img|quote|code|html|javascript|a href|color|span|div)$/', '', $words);
+		return ' ' . preg_quote($words) . ' ';
 	}
 
 	function convert_highlight($words = "")

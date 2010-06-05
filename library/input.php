@@ -31,6 +31,34 @@ class input
 	}
 
 	/**
+	 * 获得整数
+	 * @param string $name
+	 */
+	static public function int($name)
+	{
+		return self::get($name, 0);
+	}
+
+	/**
+	 * 获得字符串
+	 * @param string $name
+	 * @param boolean $clear
+	 */
+	static public function str($name, $clear = true)
+	{
+		return self::get($name, '', $clear);
+	}
+
+	/**
+	 * 获得数组
+	 * @param string $name
+	 */
+	static public function arr($name)
+	{
+		return self::get($name, array(0));
+	}
+
+	/**
 	 * 获得某个 input 的值
 	 *
 	 * @param string $name input key
@@ -143,7 +171,9 @@ class input
 			return '';
 		}
 
-		if (self::$clear)
+		$val = trim($val);
+
+		if (!is_numeric($val) && self::$clear)
 		{
 			$val = str_replace(self::$empty, '', $val);
 			$val = preg_replace(self::$preg_find, self::$preg_replace, $val);
@@ -151,7 +181,7 @@ class input
 			$val = preg_replace('/\\\(&amp;#|\?#)/', '&#092;', $val);
 		}
 
-		return trim($val);
+		return $val;
 	}
 
 	/**

@@ -37,11 +37,11 @@
 		<div id='post_op' class="ttable">
 			<input type='hidden' name='s' value='{sessionid}' />
 			<input type='hidden' name='posthash' value='{$posthash}' />
-			<input type='hidden' value='{$_INPUT['showposts']}' name='showposts' />
-			<input type='hidden' value='{$_INPUT['searchid']}' name='searchid' />
+			<input type='hidden' value='{$input['showposts']}' name='showposts' />
+			<input type='hidden' value='{$input['searchid']}' name='searchid' />
 			<input type='hidden' name='search_type' value='{$search_type}' />
-			<input type='hidden' value='{$_INPUT['searchin']}' name='searchin' />
-			<input type='hidden' value='{$_INPUT['highlight']}' name='highlight' />
+			<input type='hidden' value='{$input['searchin']}' name='searchin' />
+			<input type='hidden' value='{$input['highlight']}' name='highlight' />
 			<input type="checkbox" id="selectall" onclick="SelectTag('dt');"  />
 			<ul>
 				<li onclick="ajax_submit_form('modform','openclose', 'tid');">{$lang['openclose']}</li>

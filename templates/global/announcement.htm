@@ -37,8 +37,8 @@
 			<div class="post_info">
 				<ul>
 					<if="$bbuserinfo['supermod'] OR $bbuserinfo['id']==$data['userid']">
-					<li><a href="announcement.php{sessionurl}do=doannouncement&amp;id={$data['announceid']}&amp;ref={$_INPUT['do']}"><em>{$lang['editannounce']}</em></a></li>
-					<li><a href="javascript:delete_post('announcement.php{sessionurl}do=deleteannouncement&amp;id={$data['announceid']}&amp;ref={$_INPUT['do']}')"><em>{$lang['deleteannounce']}</em></a> </li>
+					<li><a href="announcement.php{sessionurl}do=doannouncement&amp;id={$data['announceid']}&amp;ref={$do}"><em>{$lang['editannounce']}</em></a></li>
+					<li><a href="javascript:delete_post('announcement.php{sessionurl}do=deleteannouncement&amp;id={$data['announceid']}&amp;ref={$do}')"><em>{$lang['deleteannounce']}</em></a> </li>
 					</if>
 					<if="$data['user']['pmicon']">
 					<li><a href='private.php{sessionurl}do=newpm&amp;u={$data['user']['pmicon']}'><em>{$lang['_pm']}</em></a></li>

@@ -19,22 +19,26 @@ class newthread
 
 	function show()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$forums->func->load_lang('post');
 		require_once(ROOT_PATH . 'includes/xfunctions_hide.php');
 		$this->hidefunc = new hidefunc();
-		$this->posthash = $_INPUT['posthash'] ? $_INPUT['posthash'] : md5(microtime());
+		$this->posthash = input::get('posthash', '');
+		if (empty($this->posthash))
+		{
+			$this->posthash = md5(microtime());
+		}
+
 		require_once(ROOT_PATH . 'includes/functions_credit.php');
 		$this->credit = new functions_credit();
 		require_once(ROOT_PATH . 'includes/functions_post.php');
 		$this->lib = new functions_post();
 		$this->lib->dopost($this);
-		$_INPUT['f'] = isset($_INPUT['f']) ? intval($_INPUT['f']) : 0;
 	}
 
 	function showform()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$this->check_permission();
 		$forums->func->check_cache('usergroup');
 		$usergrp = $forums->cache['usergroup'];
@@ -53,8 +57,10 @@ class newthread
 			}
 		}
 		$hidetypes = $this->hidefunc->generate_hidetype_list(1);
-		$title = isset($_INPUT['title']) ? trim($_INPUT['title']) : '';
-		$description = (isset($_INPUT['description']) && trim($_INPUT['description'])) ? $forums->func->fetch_trimmed_title(trim($_INPUT['description']), 80) : '';
+		$title = input::get('title', '');
+		$description = input::get('description', '');
+		$description = $description ? $forums->func->fetch_trimmed_title($description, 80) : '';
+
 		$this->cookie_mxeditor = $forums->func->get_cookie('mxeditor');
 		if ($this->cookie_mxeditor)
 		{
@@ -68,10 +74,13 @@ class newthread
 		{
 			$bbuserinfo['usewysiwyg'] = 0;
 		}
-		if ($_POST['post'])
+
+		$post = input::get('post', '', false);
+		if ($post)
 		{
-			$content = utf8_htmlspecialchars($_POST['post']);
+			$content = utf8_htmlspecialchars($post);
 		}
+
 		$show['title'] = true;
 		if ($this->lib->obj['errors'])
 		{
@@ -81,6 +90,7 @@ class newthread
 		if ($this->lib->moderator['caneditthreads'] OR $bbuserinfo['supermod'])
 		{
 			$show['colorpicker'] = true;
+			$titlecolor = input::str('titlecolor');
 		}
 		if ($this->lib->obj['preview'])
 		{
@@ -112,7 +122,7 @@ class newthread
 			$specialtopic = explode(',', $this->lib->forum['specialtopic']);
 			$forumsspecial = $forums->cache['st'];
 		}
-		$credit_list = $this->credit->show_credit('newthread', $bbuserinfo['usergroupid'], $_INPUT['f']);
+		$credit_list = $this->credit->show_credit('newthread', $bbuserinfo['usergroupid'], input::get('f'));
 		$smiles = $this->lib->construct_smiles();
 		$smile_count = $smiles['count'];
 		$all_smiles = $smiles['all'];
@@ -134,27 +144,37 @@ class newthread
 		$referer = SCRIPTPATH;
 		//加载编辑器js
 		load_editor_js($extrabuttons);
+
+		if (!$bbuserinfo['id'])
+		{
+			$username = input::str('username');
+		}
 		include $forums->func->load_template('add_post');
 		exit;
 	}
 
 	function process()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
+
+		$f = input::get('f');
 
 		$this->check_permission();
-		$this->credit->check_credit('newthread', $bbuserinfo['usergroupid'], $_INPUT['f']);
+		$this->credit->check_credit('newthread', $bbuserinfo['usergroupid'], $f);
 		$this->post = $this->lib->compile_post();
-		if ($this->lib->forum['forcespecial'] && isset($_INPUT['specialtopic']) && $_INPUT['specialtopic'] == '')
+
+		$special = input::get('specialtopic', 0);
+		if ($this->lib->forum['forcespecial'] && !$special)
 		{
 			$this->lib->obj['errors'] = $forums->lang['forcespecial'];
 		}
-		$_INPUT['title'] = trim($_INPUT['title']);
-		if ((utf8_strlen($_INPUT['title']) < 2) || (!$_INPUT['title']))
+
+		$title = input::get('title', '');
+		if ((utf8_strlen($title) < 2) || (!$title))
 		{
 			$this->lib->obj['errors'] = $forums->lang['musttitle'];
 		}
-		if (strlen($_INPUT['title']) > 250)
+		if (strlen($title) > 250)
 		{
 			$this->lib->obj['errors'] = $forums->lang['titletoolong'];
 		}
@@ -184,84 +204,89 @@ class newthread
 		{
 			return $this->showform();
 		}
-		$_INPUT['title'] = $this->lib->parser->censoredwords($_INPUT['title']);
-		$_INPUT['description'] = $forums->func->fetch_trimmed_title(trim($_INPUT['description']), 80);
-		$_INPUT['description'] = $this->lib->parser->censoredwords($_INPUT['description']);
+		$title = $this->lib->parser->censoredwords($title);
+
+		$description = input::get('description', '');
+		$description = $forums->func->fetch_trimmed_title($description, 80);
+		$description = $this->lib->parser->censoredwords($description);
+
 		$sticky = 0;
 		$stickforumid = 0;
 		$open = 1;
-		if (isset($_INPUT['modoptions']))
+
+		switch (input::get('modoptions', ''))
 		{
-			switch ($_INPUT['modoptions'])
-			{
-				case 'gstick':
+			case 'gstick':
+				$sticky = 99;
+				$stickforumid = 0;
+				$this->lib->moderate_log($forums->lang['gstickthread'] . ' - ', $title);
+			break;
+
+			case 'stick':
+				$sticky = 1;
+				$stickforumid = $f;
+				$this->lib->moderate_log($forums->lang['stickthread'] . ' - ', $title);
+			break;
+
+			case 'close':
+				if ($bbuserinfo['supermod'] OR $this->lib->moderator['canopenclose'])
+				{
+					$open = 0;
+					$this->lib->moderate_log($forums->lang['closethread'] . ' - ', $title);
+				}
+			break;
+
+			case 'gstickclose':
+				if ($bbuserinfo['supermod'])
+				{
 					$sticky = 99;
 					$stickforumid = 0;
-					$this->lib->moderate_log($forums->lang['gstickthread'] . ' - ', $_INPUT['title']);
-				break;
+					$open = 0;
+					$this->lib->moderate_log($forums->lang['gstickclose'] . ' - ', $title);
+				}
+			break;
 
-				case 'stick':
+			case 'stickclose':
+				if ($bbuserinfo['supermod'] OR ($this->lib->moderator['canstickthread'] AND $this->lib->moderator['canopenclose']))
+				{
 					$sticky = 1;
-					$stickforumid = $_INPUT['f'];
-					$this->lib->moderate_log($forums->lang['stickthread'] . ' - ', $_INPUT['title']);
-				break;
-
-				case 'close':
-					if ($bbuserinfo['supermod'] OR $this->lib->moderator['canopenclose'])
-					{
-						$open = 0;
-						$this->lib->moderate_log($forums->lang['closethread'] . ' - ', $_INPUT['title']);
-					}
-				break;
-
-				case 'gstickclose':
-					if ($bbuserinfo['supermod'])
-					{
-						$sticky = 99;
-						$stickforumid = 0;
-						$open = 0;
-						$this->lib->moderate_log($forums->lang['gstickclose'] . ' - ', $_INPUT['title']);
-					}
-				break;
-
-				case 'stickclose':
-					if ($bbuserinfo['supermod'] OR ($this->lib->moderator['canstickthread'] AND $this->lib->moderator['canopenclose']))
-					{
-						$sticky = 1;
-						$stickforumid = $_INPUT['f'];
-						$open = 0;
-						$this->lib->moderate_log($forums->lang['stickclose'] . ' - ', $_INPUT['title']);
-					}
-				break;
-			}
+					$stickforumid = $f;
+					$open = 0;
+					$this->lib->moderate_log($forums->lang['stickclose'] . ' - ', $title);
+				}
+			break;
 		}
-		$_INPUT['title'] = $this->lib->compile_title($_INPUT['title']);
-		if ($bbuserinfo['cananonymous'] && $_INPUT['anonymous'])
+		$title = $this->lib->compile_title($title);
+		if ($bbuserinfo['cananonymous'] && input::get('anonymous'))
 		{
-			$useanonymous = array('postuserid' => 0, 'postusername' => 'anonymous*');
+			$useanonymous = array(
+				'postuserid' => 0,
+				'postusername' => 'anonymous*'
+			);
 			$newtuserid = $bbuserinfo['id'];
 			$bbuserinfo['id'] = 0;
-			$_INPUT['username'] = "anonymous*";
+			$username = 'anonymous*';
 		}
 		else
 		{
+			$username = input::get('username', '');
 			$newtuserid = $bbuserinfo['id'];
 		}
 
-		$titletext = strip_tags($_INPUT['title']);
+		$titletext = strip_tags($title);
 		$this->thread = array(
-			'title' => $_INPUT['title'],
+			'title' => $title,
 			'titletext' =>  implode(' ', duality_word($titletext)),
-			'description' => $_INPUT['description'] ,
+			'description' => $description ,
 			'open' => $open,
 			'post' => 0,
 			'postuserid' => $bbuserinfo['id'],
-			'postusername' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $_INPUT['username'],
+			'postusername' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $username,
 			'dateline' => TIMENOW,
 			'lastposterid' => $bbuserinfo['id'],
-			'lastposter' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $_INPUT['username'],
+			'lastposter' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $username,
 			'lastpost' => TIMENOW,
-			'iconid' => intval($_INPUT['iconid']),
+			'iconid' => input::get('iconid'),
 			'pollstate' => 0,
 			'lastvote' => 0,
 			'views' => 0,
@@ -269,7 +294,7 @@ class newthread
 			'visible' => ($this->lib->obj['moderate'] == 1 || $this->lib->obj['moderate'] == 2) ? 0 : 1,
 			'sticky' => $sticky,
 			'stickforumid' => $stickforumid,
-			'stopic' => intval($_INPUT['specialtopic']),
+			'stopic' => $special,
 			'logtext' => '',
 		);
 		$DB->insert(TABLE_PREFIX . 'thread', $this->thread);
@@ -299,13 +324,13 @@ class newthread
 		$this->lib->stats_recount($this->post['threadid'], 'new');
 		$no_attachment = $this->lib->attachment_complete(array($this->posthash), $this->thread['tid'], $this->post['pid'], $posttable);
 		$this->lib->posts_recount();
-		$this->credit->update_credit('newthread', $newtuserid, $bbuserinfo['usergroupid'], $_INPUT['f']);
+		$this->credit->update_credit('newthread', $newtuserid, $bbuserinfo['usergroupid'], $f);
 		if ($this->lib->obj['moderate'] == 1 OR $this->lib->obj['moderate'] == 2)
 		{
 			$forums->lang['haspost'] = sprintf($forums->lang['haspost'], $forums->lang['thread']);
 			$forums->func->redirect_screen($forums->lang['haspost'], "forumdisplay.php{$forums->sessionurl}&f=" . $this->lib->forum['id'] . "");
 		}
-		if ($_INPUT['redirect'])
+		if (input::get('redirect'))
 		{
 			$forums->func->standard_redirect("forumdisplay.php{$forums->sessionurl}f=" . $this->lib->forum['id'] . "");
 		}
@@ -328,4 +353,3 @@ class newthread
 
 $output = new newthread();
 $output->show();
-?>

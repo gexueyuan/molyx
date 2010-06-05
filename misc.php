@@ -15,13 +15,15 @@ class misc
 {
 	function show()
 	{
-		global $_INPUT, $forums;
+		global $forums;
 		$forums->func->load_lang('misc');
 		require_once(ROOT_PATH . "includes/xfunctions_hide.php");
 		$this->hidefunc = new hidefunc();
 		require_once(ROOT_PATH . "includes/xfunctions_bank.php");
 		$this->bankfunc = new bankfunc();
-		switch ($_INPUT['do'])
+
+		$do = input::get('do', '');
+		switch ($do)
 		{
 			case 'show_voters':
 				$this->show_voters();
@@ -61,13 +63,15 @@ class misc
 
 	function show_voters()
 	{
-		global $forums, $DB, $bbuserinfo, $bboptions, $_INPUT;
-		$pollid = intval($_INPUT['pollid']);
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$pollid = input::get('pollid');
 		if (!$pollid)
 		{
 			$errmsg = $forums->lang['cannotfindpost'];
 		}
-		$data = $DB->query_first("SELECT pollid, voters FROM " . TABLE_PREFIX . "poll WHERE pollid = " . $pollid . " LIMIT 0, 1");
+		$data = $DB->query_first("SELECT pollid, voters
+			FROM " . TABLE_PREFIX . "poll
+			WHERE pollid = " . $pollid);
 		if (!$data['pollid'])
 		{
 			$errmsg = $forums->lang['cannotfindpost'];
@@ -87,7 +91,9 @@ class misc
 					$userid = intval($userid);
 					$all_voters[] = $userid;
 				}
-				$DB->query("SELECT id, name FROM " . TABLE_PREFIX . "user WHERE id IN (" . implode(", ", $all_voters) . ")");
+				$DB->query("SELECT id, name
+					FROM " . TABLE_PREFIX . "user
+					WHERE " . $DB->sql_in('id', $all_voters));
 				if ($DB->num_rows())
 				{
 					$all_polls = 0;
@@ -111,8 +117,8 @@ class misc
 
 	function whobought()
 	{
-		global $forums, $DB, $bbuserinfo, $bboptions, $_INPUT;
-		$pid = intval($_INPUT['pid']);
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$pid = input::get('pid');
 		if (!$pid)
 		{
 			$errmsg = $forums->lang['cannotfindpost'];
@@ -136,9 +142,9 @@ class misc
 
 	function banuserpost()
 	{
-		global $forums, $DB, $bbuserinfo, $bboptions, $_INPUT;
-		$uid = intval($_INPUT['uid']);
-		$fid = intval($_INPUT['fid']);
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$uid = input::get('uid');
+		$fid = input::get('fid');
 		$user = $DB->query_first("SELECT id, name, liftban, usergroupid
 			FROM " . TABLE_PREFIX . "user WHERE id=$uid");
 		if (!$user['id'])
@@ -150,9 +156,9 @@ class misc
 			$moderator = $bbuserinfo['_moderator'][$fid];
 		}
 		$ban = banned_detect($user['liftban']);
-		if ($_INPUT['update'])
+		if (input::get('update', ''))
 		{
-			$permanent = intval($_INPUT['permanent']);
+			$permanent = input::get('permanent');
 			if (!$permanent)
 			{
 				echo "<script language='javascript'>
@@ -174,8 +180,8 @@ class misc
 				$limitunit = substr($moderator['bantimelimit'], -1);
 				$limitfactor = ($limitunit == 'd') ? 86400 : 3600;
 				$limitspan = TIMENOW + ($timelimit * $limitfactor);
-				$timespan = intval($_INPUT['posttimespan']);
-				$spanfactor = ($_INPUT['banpostunit'] == 'd') ? 86400 : 3600;
+				$timespan = input::get('posttimespan');
+				$spanfactor = (input::get('banpostunit', '') == 'd') ? 86400 : 3600;
 				$posttimespan = TIMENOW + ($timespan * $spanfactor);
 				if ($limitspan < $posttimespan)
 				{
@@ -198,7 +204,7 @@ class misc
 			{
 				$msg = $forums->lang['banusersuccess'];
 				$usergroupid = 5;
-				$banposts = $_INPUT['banbbspost']?-1:-2;
+				$banposts = input::get('banbbspost') ? -1 : -2;
 				$opera = $forums->lang['optionlog1'].$bbuserinfo['name'].$forums->lang['optionlog2'].$time.$forums->lang['optionlog3'];
 				if ($banposts == -1)
 				{
@@ -213,17 +219,29 @@ class misc
 			{
 				//永久封禁
 				case -1:
-					$liftban = banned_detect(array('timespan' => -1, 'unit' => '', 'groupid' => $user['usergroupid'], 'banuser' => $bbuserinfo['name'], 'banposts' => $banposts));
+					$liftban = banned_detect(array(
+						'timespan' => -1,
+						'unit' => '',
+						'groupid' => $user['usergroupid'],
+						'banuser' => $bbuserinfo['name'],
+						'banposts' => $banposts
+					));
 					break;
 				//按时封禁用户在所有版面内
 				case 1:
-					$liftban = banned_detect(array('timespan' => intval($_INPUT['usertimespan']), 'unit' => $_INPUT['banuserunit'], 'groupid' => $user['usergroupid'], 'banuser' => $bbuserinfo['name'], 'banposts' => $banposts));
+					$liftban = banned_detect(array(
+						'timespan' => input::get('usertimespan'),
+						'unit' => input::get('banuserunit', ''),
+						'groupid' => $user['usergroupid'],
+						'banuser' => $bbuserinfo['name'],
+						'banposts' => $banposts
+					));
 					break;
 				//按时封禁用户在此版面内
 				case 2:
 					$msg = $forums->lang['banpostsuccess'];
 					$usergroupid = $user['usergroupid'];
-					$banposts = $_INPUT['banbbspost']?$fid:-2;
+					$banposts = input::get('banbbspost') ? $fid : -2;
 					if ($banposts > 0)
 					{
 						$opera = $forums->lang['optionlog1'].$bbuserinfo['name'].$forums->lang['optionlog2'].$time.$forums->lang['optionlog3'];
@@ -246,7 +264,14 @@ class misc
 							}
 						}
 					}
-					$liftban = banned_detect(array('timespan' => intval($_INPUT['posttimespan']), 'unit' => $_INPUT['banpostunit'], 'groupid' => $user['usergroupid'], 'banuser' => $bbuserinfo['name'], 'banposts' => $banposts, 'forumid' => $fid));
+					$liftban = banned_detect(array(
+						'timespan' => input::get('posttimespan'),
+						'unit' => input::get('banpostunit', ''),
+						'groupid' => $user['usergroupid'],
+						'banuser' => $bbuserinfo['name'],
+						'banposts' => $banposts,
+						'forumid' => $fid
+					));
 					break;
 				default:
 					$msg = $forums->lang['unbanusersuccess'];
@@ -273,7 +298,10 @@ class misc
 						{
 							foreach ($tidarrs as $tblname => $tids)
 							{
-								$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "$tblname SET state=0, logtext = '' WHERE " . $DB->sql_in('threadid', $tids));
+								$DB->update(TABLE_PREFIX . $tblname, array(
+									'state' => 0,
+									'logtext' => ''
+								), $DB->sql_in('threadid', $tids));
 							}
 						}
 					}
@@ -288,26 +316,30 @@ class misc
 						</script>";
 				exit();
 			}
-			$DB->update(TABLE_PREFIX . 'user', array('liftban' => $liftban, 'usergroupid' => $usergroupid), 'id=' . $user['id']);
+			$DB->update(TABLE_PREFIX . 'user', array(
+				'liftban' => $liftban,
+				'usergroupid' => $usergroupid
+			), 'id =' . $user['id']);
+
 			if ($moderator['sendbanmsg'])
 			{
 				if ($permanent == -2)
 				{
-					$_INPUT['title'] = $forums->lang['unliftban'];
-					$_POST['post'] = $forums->lang['unliftbandesc'];
-					$_INPUT['username'] = $user['name'];
+					input::set('title', $forums->lang['unliftban']);
+					input::set('post', $forums->lang['unliftbandesc']);
+					input::set('username', $user['name']);
 				}
 				elseif ($permanent == 2)
 				{
 					$forum = $forums->forum->single_forum($fid);
-					$_INPUT['title'] = $forums->lang['banpost'];
+					input::set('title', $forums->lang['banpost']);
 					$forums->lang['banpostdesc'] = sprintf($forums->lang['banpostdesc'], $forum['name'], $forums->func->get_date($posttimespan, 2));
-					$_POST['post'] = $forums->lang['banpostdesc'];
-					$_INPUT['username'] = $user['name'];
+					input::set('post', $forums->lang['banpostdesc']);
+					input::set('username', $user['name']);
 				}
 				require_once(ROOT_PATH . 'includes/functions_private.php');
 				$pm = new functions_private();
-				$_INPUT['noredirect'] = 1;
+				input::set('noredirect', 1);
 				$bboptions['usewysiwyg'] = 1;
 				$bboptions['pmallowhtml'] = 1;
 				$pm->sendpm();
@@ -350,9 +382,9 @@ class misc
 
 	function buyhidden()
 	{
-		global $forums, $DB, $bbuserinfo, $_INPUT;
-		$pid = intval($_INPUT['pid']);
-		$tid = intval($_INPUT['tid']);
+		global $forums, $DB, $bbuserinfo;
+		$pid = input::get('pid');
+		$tid = input::get('tid');
 		if (!$pid OR !$tid)
 		{
 			$forums->func->standard_error("cannotfindpost");
@@ -434,20 +466,34 @@ class misc
 
 	function rss()
 	{
-		global $forums, $DB, $bboptions, $bbuserinfo, $_INPUT;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$showforum = $forums->forum->forum_jump(1, 1);
-		if ($_INPUT['update'])
+		if (input::get('update'))
 		{
 			$extra = array();
 			$forumlist = $this->get_forums();
-			if ($forumlist) $extra[] = "fid=" . $forumlist;
-			if ($_INPUT['version'] != 'rss') $extra[] = "version=" . $_INPUT['version'];
-			if (intval($_INPUT['limit'])) $extra[] = "limit=" . intval($_INPUT['limit']);
-			$message = intval($_INPUT['limit']) > 100 ? $forums->lang['rsslimit'] : $bboptions['bburl'] . "/rss.php?" . implode("&amp;", $extra);
+			if ($forumlist)
+			{
+				$extra[] = "fid=" . $forumlist;
+			}
+
+			$version = input::get('version', '');
+			if ($version != 'rss')
+			{
+				$extra[] = "version=" . $version;
+			}
+
+			$limit = input::get('limit');
+			if ($limit)
+			{
+				$extra[] = "limit=" . $limit;
+			}
+
+			$message = $limit > 100 ? $forums->lang['rsslimit'] : $bboptions['bburl'] . "/rss.php?" . implode("&amp;", $extra);
 		}
 		else
 		{
-			if (! $_INPUT['f'])
+			if (!input::get('f'))
 			{
 				$selected = " selected='selected'";
 			}
@@ -460,13 +506,14 @@ class misc
 
 	function get_forums()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$forumids = array();
-		if ($_INPUT['forumlist'] != '')
+		$forumlist = input::get('forumlist', '');
+		if ($forumlist != '')
 		{
 			foreach($forums->forum->foruminfo as $id => $data)
 			{
-				if (in_array($data['id'], $_INPUT['forumlist']))
+				if (in_array($data['id'], $forumlist))
 				{
 					$forumids[] = $data['id'];
 				}
@@ -477,7 +524,7 @@ class misc
 
 	function privacy()
 	{
-		global $forums, $DB, $bboptions, $bbuserinfo, $_INPUT;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		if (! $bboptions['showprivacy'])
 		{
 			$forums->func->standard_redirect();
@@ -499,7 +546,7 @@ class misc
 
 	function show_icon()
 	{
-		global $forums, $DB, $bboptions, $bbuserinfo, $_INPUT;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$forums->func->check_cache('smile');
 		$emoticons = $forums->cache['smile'];
 		$pagetitle = $forums->lang['smiles'] . " - " . $bboptions['bbtitle'];
@@ -567,8 +614,8 @@ class misc
 
 	function forumread()
 	{
-		global $forums, $_INPUT, $bboptions;
-		$fid = intval($_INPUT['f']);
+		global $forums, $bboptions;
+		$fid = input::get('f');
 		if (!$fid)
 		{
 			$forums->func->standard_error("cannotfindforum");
@@ -594,5 +641,3 @@ class misc
 
 $output = new misc();
 $output->show();
-
-?>
