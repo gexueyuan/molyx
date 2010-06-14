@@ -54,7 +54,7 @@ class functions_search
 
 	function query_results()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		if ($this->uniqueid == "")
 		{
 			$forums->func->standard_error("nosearchuserresult");
@@ -99,7 +99,7 @@ class functions_search
 
 	function show_post_results()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		require_once(ROOT_PATH . "includes/class_textparse.php");
 
 		if ($this->uniqueid == "")
@@ -201,8 +201,9 @@ class functions_search
 
 	function parse_data($thread)
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$last_time = $this->threadread[$thread['tid']] > $_INPUT['lastvisit'] ? $this->threadread[$thread['tid']] : $_INPUT['lastvisit'];
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$lastvisit = input::int('lastvisit');
+		$last_time = $this->threadread[$thread['tid']] > $lastvisit ? $this->threadread[$thread['tid']] : $lastvisit;
 		$maxposts = $bboptions['maxposts'] ? $bboptions['maxposts'] : '10';
 		$thread['lastposter'] = $thread['lastposterid'] ? $forums->func->fetch_user_link($thread['lastposter'], $thread['lastposterid']) : "-" . $thread['lastposter'] . "-";
 		$thread['postusername'] = $thread['postuserid'] ? $forums->func->fetch_user_link($thread['postusername'], $thread['postuserid']) : $thread['postusername'] . "*";
@@ -282,27 +283,25 @@ class functions_search
 
 	function get_forums()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		$forumids = array();
-		if (is_array($_INPUT['forumlist']))
+		$forumlist = input::arr('forumlist');
+		if (in_array('0', $forumlist))
 		{
-			if (in_array('0', $_INPUT['forumlist']))
+			$forumids = array_keys($forums->forum->foruminfo);
+		}
+		else
+		{
+			foreach($forumlist AS $l)
 			{
-				foreach($forums->forum->foruminfo AS $id => $data)
+				if ($forums->forum->foruminfo[ $l ])
 				{
-					$forumids[] = $data['id'];
+					$forumids[] = intval($l);
 				}
 			}
-			else
+			if (count($forumids))
 			{
-				foreach($_INPUT['forumlist'] AS $l)
-				{
-					if ($forums->forum->foruminfo[ $l ])
-					{
-						$forumids[] = intval($l);
-					}
-				}
-				if (count($forumids))
+				if (input::int('includesubforum'))
 				{
 					foreach($forumids AS $f)
 					{
@@ -313,35 +312,13 @@ class functions_search
 						}
 					}
 				}
-				else
-				{
-					return;
-				}
-			}
-		}
-		else
-		{
-			if ($_INPUT['forumlist'] == '')
-			{
-				$forumids = array_keys($forums->forum->foruminfo);
 			}
 			else
 			{
-				$l = intval($_INPUT['forumlist']);
-				if ($forums->forum->foruminfo[$l])
-				{
-					$forumids[] = intval($l);
-				}
-				if ($_INPUT['includesubforum'] == 1)
-				{
-					$children = $forums->forum->forums_get_children($f);
-					if (is_array($children) AND count($children))
-					{
-						$forumids = array_merge($forumids , $children);
-					}
-				}
+				return;
 			}
 		}
+
 		$final = array();
 		foreach ($forumids AS $f)
 		{

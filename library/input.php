@@ -207,9 +207,19 @@ class input
 	 * @param string $key
 	 * @param mixed $value
 	 */
-	static public function set($key, $value)
+	static public function set($key, $value = NULL)
 	{
-		$_REQUEST[$key] = $_POST[$key] = $value;
+		if ($value !== NULL)
+		{
+			$_REQUEST[$key] = $_POST[$key] = $value;
+		}
+		else if (is_array($key))
+		{
+			foreach ($key as $k => $v)
+			{
+				self::set($k, $v);
+			}
+		}
 	}
 
 	static public function is_set($name)

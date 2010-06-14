@@ -28,8 +28,8 @@ class functions_upload
 
 	function upload_process()
 	{
-		global $bbuserinfo, $_INPUT;
-		$attach_num = intval($_INPUT['attach_num']);
+		global $bbuserinfo;
+		$attach_num = input::int('attach_num');
 		$this->filepath = preg_replace('#/$#', '', $this->filepath);
 		if ($bbuserinfo['attachnum'] && $attach_num > $bbuserinfo['attachnum'])
 		{

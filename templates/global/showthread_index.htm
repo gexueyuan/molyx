@@ -31,7 +31,7 @@ function doZoom(obj, size)
 <a name='top'></a>
 <div id="title_show">
 	<ul class="maincolor">
-		<li><a href='subscribe.php{sessionurl}f={$forum['id']}&amp;t={$thread['tid']}&amp;pp={$_INPUT['pp']}'>{$lang['subscribethread']}</a></li>
+		<li><a href='subscribe.php{sessionurl}f={$forum['id']}&amp;t={$thread['tid']}&amp;pp={$pp}'>{$lang['subscribethread']}</a></li>
 		<li><a href='###' onclick="send_mailto_friend({$thread['tid']});">{$lang['sendtofriend']}</a></li>
 		<li><a href='printthread.php{sessionurl}t={$thread['tid']}'>{$lang['showprintable']}</a></li>
 	</ul>
@@ -115,7 +115,7 @@ function doZoom(obj, size)
 		<input type='hidden' name='s' value="{sessionid}" />
 		<input type='hidden' name='do' value="add" />
 		<input type='hidden' name='t' value="{$thread['tid']}" />
-		<input type='hidden' name='pp' value="{$_INPUT['pp']}" />
+		<input type='hidden' name='pp' value="{$pp}" />
 		<table width='100%' cellpadding='4' cellspacing='1' class='ttable'>
 		<tbody>
 		<tr>
@@ -170,8 +170,8 @@ function doZoom(obj, size)
 <input type='hidden' name='f' id='forum_id' value='{$thread['forumid']}' />
 <input type='hidden' name='t' value='{$thread['tid']}' />
 <input type='hidden' name='posthash' value='{$posthash}' />
-<input type='hidden' name='pp' value='{$_INPUT['pp']}' />
-<input type='hidden' name='p' value='{$_INPUT['p']}' />
+<input type='hidden' name='pp' value='{$pp}' />
+<input type='hidden' name='p' value='{$p}' />
 {template:showthread_post}
 <if="$bbuserinfo['is_mod'] && !empty($mod)">
 <div id='post_op' class="ttable">

@@ -19,11 +19,10 @@ if (array_key_exists(THIS_SCRIPT, $config))
 	$prefix = $bboptions['language'];
 	if (THIS_SCRIPT == 'showthread')
 	{
-		$prefix .= '_' . floor($_INPUT['t'] / 200);
+		$prefix .= '_' . floor(input::int('t') / 200);
 	}
 
 	require_once(ROOT_PATH . 'includes/class_cache_page.php');
 	$forums->page_cache = new cache_page($ttl, $prefix);
 	$forums->page_cache->start();
 }
-?>

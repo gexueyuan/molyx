@@ -110,7 +110,7 @@ class adminfunctions_forum
 
 	function forums_list_forums($forumlist = array())
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		if (!is_array($forumlist) || count($forumlist) == 0)
 		{
 			$forumlist = $this->forumcache;

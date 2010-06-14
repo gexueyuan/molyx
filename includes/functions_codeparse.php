@@ -58,7 +58,7 @@ class functions_codeparse
 
 	function convert($in = array('text' => '', 'allowsmilies' => 0, 'allowcode' => 0, 'change_editor' => 1))
 	{
-		global $forums, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $bboptions, $bbuserinfo;
 		$text = $in['text'];
 		if (empty($text))
 		{
@@ -73,7 +73,12 @@ class functions_codeparse
 			$text = $this->safe_text($text);
 		}
 
-		$_INPUT['parseurl'] = isset($_INPUT['parseurl']) ? $_INPUT['parseurl'] : (isset($_INPUT['checkurl']) ? $_INPUT['checkurl'] : 222);
+		$parseurl = input::int('parseurl');
+		if (empty($parseurl))
+		{
+			$parseurl = input::int('checkurl');
+		}
+
 		$text = preg_replace(array(
 			'#<img[^>]+smilietext=(\'|")(.+?)\\1[^>]*>#si',
 			'#<img[^>]+src=(\'|")(.+?)\\1[^>]+ onload=(\'|").*>.*\\3[^>]*>#si',
@@ -84,7 +89,7 @@ class functions_codeparse
 			'[img]\2[/img]',
 		), $text);
 
-		if ($_INPUT['parseurl'])
+		if ($parseurl)
 		{
 			$text = preg_replace(array(
 				'#<a href="([^"]*)\[([^"]+)"(.*)>(.*)\[\\2</a>#siU',

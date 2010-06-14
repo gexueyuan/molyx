@@ -6,10 +6,10 @@
 </p>
 </if>
 <if="$showuser">
-    <p>{$lang['username']}:<input name="username" value="{$_INPUT['username']}" maxlength="60" type="text" /></p>
+    <p>{$lang['username']}:<input name="username" value="{$input_username}" maxlength="60" type="text" /></p>
 </if>
-    <p>{$lang['title']}:<input name="title" value="{$_POST['title']}" maxlength="60" type="text"  /></p>
-    <p>{$lang['content']}:<input name="post" value="{$_POST['post']}" maxlength="200" type="text" /></p>
+    <p>{$lang['title']}:<input name="title" value="{$title}" maxlength="60" type="text"  /></p>
+    <p>{$lang['content']}:<input name="post" value="{$post}" maxlength="200" type="text" /></p>
     <p>{$lang['savecopy']}:<select name="savecopy">
          <option value="0">{$lang['no']}</option>
          <option value="1">{$lang['yes']}</option>
@@ -25,7 +25,7 @@
 </if>
         <postfield name="title" value="$(title)" />
         <postfield name="post" value="$(post)" />
-        <postfield name="id" value="{$_INPUT['id']}" />
+        <postfield name="id" value="{$getpmid}" />
        <postfield name="savecopy" value="$(savecopy)" />
         <postfield name="posthash" value="{$posthash}" />
       </go>

@@ -9,12 +9,12 @@
 	<input type='hidden' name='url' value='{url}' />
 	<div class="item_list"><p class="highlight">{$lang['notice']}</p></div>
 	<div class="item_list">
-		{$lang['subject']}&nbsp;:&nbsp;<input type='text' name='subject' value='{$_INPUT['subject']}' size='50' maxlength='50' class='input_normal' />
+		{$lang['subject']}&nbsp;:&nbsp;<input type='text' name='subject' value='{$subject}' size='50' maxlength='50' class='input_normal' />
 	</div>
 	<div class="item_list">
 		{$lang['mailcontent']}
 		<div class="desc">{$lang['mailcontentdesc']}</div>
-		<textarea cols='90' rows='5'  name='message'>{$_INPUT['message']}</textarea>
+		<textarea cols='90' rows='5'  name='message'>{$message}</textarea>
 	</div>
 	<div class="item_list" align="center">
 		<input type="button" class="button_normal" accesskey="s" value="{$lang['dosend']}" onclick="send_mailto_user({$user['id']}, 'send_mailform');" />

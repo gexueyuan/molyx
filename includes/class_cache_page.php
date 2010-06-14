@@ -44,9 +44,17 @@ class cache_page
 	 */
 	function start()
 	{
-		global $_INPUT;
-		ksort($_INPUT);
-		$this->name .= md5(SCRIPT . implode('&', $_INPUT)) . '.php';
+		if (!empty($_GET))
+		{
+			$input = $_GET;
+		}
+
+		if (!empty($_POST))
+		{
+			$input = array_merge($input, $_POST);
+		}
+		ksort($input);
+		$this->name .= md5(SCRIPT . implode('&', $input)) . '.php';
 		$cache_time = @filemtime($this->name);
 		if ($cache_time && TIMENOW < ($cache_time + $this->ttl))
 		{

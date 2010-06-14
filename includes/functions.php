@@ -296,12 +296,13 @@ class functions
 
 	function load_style()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$update = false;
-		if (isset($_INPUT['styleid']) && $_INPUT['styleid'])
+		$styleid = input::int('styleid');
+		if (isset($styleid) && $styleid)
 		{
-			$this->set_cookie('styleid', $_INPUT['styleid']);
-			$bbuserinfo['style'] = $_INPUT['styleid'];
+			$this->set_cookie('styleid', $styleid);
+			$bbuserinfo['style'] = $styleid;
 			$update = true;
 		}
 		else
@@ -1126,16 +1127,17 @@ class functions
 	 */
 	function check_lang()
 	{
-		global $bboptions, $_INPUT;
+		global $bboptions;
 		if (empty($this->lang_list))
 		{
 			require(ROOT_PATH . 'languages/list.php');
 			$this->lang_list = $lang_list;
 		}
-		if (isset($_INPUT['lang']) && isset($this->lang_list[$_INPUT['lang']]))
+		$lang = input::str('lang');
+		if ($lang && isset($this->lang_list[$lang]))
 		{
-			$this->set_cookie('language', $_INPUT['lang']);
-			$bboptions['language'] = $_INPUT['lang'];
+			$this->set_cookie('language', $lang);
+			$bboptions['language'] = $lang;
 		}
 		else
 		{
@@ -1295,7 +1297,7 @@ class functions
 
 	function check_usrext_field($id = 0)
 	{
-		global $forums, $_INPUT, $DB;
+		global $forums, $DB;
 		$forums->func->load_lang('error');
 		$this->check_cache('userextrafield');
 		$userextrafield = $forums->cache['userextrafield'];
@@ -1307,7 +1309,7 @@ class functions
 		{
 			foreach ($userextrafield['f'] as $k => $v)
 			{
-				if (!isset($_INPUT[$k]) || $_INPUT[$k] === '')
+				if (input::str($k) === '')
 				{
 					$forums->lang['error_mustfill'] = sprintf($forums->lang['error_mustfill'], $v);
 					return array('err' => 'error_mustfill');
@@ -1318,7 +1320,7 @@ class functions
 		{
 			foreach ($userextrafield['r'] as $k => $v)
 			{
-				if ($_INPUT[$k] && !preg_match("/{$v[1]}/", $_INPUT[$k]))
+				if (input::str($k) && !preg_match("/{$v[1]}/", input::str($k)))
 				{
 					$forums->lang['error_preg'] = sprintf($forums->lang['error_preg'], $v[0]);
 					return array('err' => 'error_preg');
@@ -1334,7 +1336,7 @@ class functions
 			foreach ($userextrafield['o'] as $k => $v)
 			{
 				$checkonly = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . $userextrafield['a'][$k]['tablename'] . "
-						WHERE {$k}='" . addslashes($_INPUT[$k]) . "'" . $extra_cond);
+						WHERE {$k}='" . addslashes(input::str($k)) . "'" . $extra_cond);
 				if ($checkonly)
 				{
 					$forums->lang['error_only'] = sprintf($forums->lang['error_only'], $v);
@@ -1345,13 +1347,13 @@ class functions
 		$ret = array();
 		foreach ($userextrafield['a'] as $k => $v)
 		{
-			$len = utf8_strlen($_INPUT[$k]);
+			$len = utf8_strlen(input::str($k));
 			if (($v['minlength'] && $len < $v['minlength']) || ($v['maxlength'] && $len > $v['maxlength']))
 			{
 				$forums->lang['error_length'] = sprintf($forums->lang['error_length'], $v['fieldname'], $v['minlength'], $v['maxlength']);
 				return array('err' => 'error_length');
 			}
-			$ret[$v['tablename']][$k] = $_INPUT[$k];
+			$ret[$v['tablename']][$k] = input::str($k);
 		}
 		return $ret;
 	}

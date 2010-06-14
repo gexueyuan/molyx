@@ -70,6 +70,8 @@ class sendmessage
 		{
 			$pagetitle = $forums->lang['sendmail'] . " - " . $bboptions['bbtitle'];
 			$nav = array($forums->lang['sendmailto']);
+			$subject = input::str('subject');
+			$message = input::str('message');
 			include $forums->func->load_template('sendmail_mailmember');
 			exit;
 		}
@@ -105,14 +107,14 @@ class sendmessage
 	function sendtofriend()
 	{
 		global $forums, $DB, $bbuserinfo, $bboptions;
-		$t = input::get('t', 0);
-		if (!$t)
+		$tid = input::get('t', 0);
+		if (!$tid)
 		{
 			$forums->func->standard_error("erroraddress");
 		}
 		if (!$thread = $DB->query_first("SELECT *
 			FROM " . TABLE_PREFIX . "thread
-			WHERE tid = $t"))
+			WHERE tid = $tid"))
 		{
 			$forums->func->standard_error("erroraddress");
 		}
