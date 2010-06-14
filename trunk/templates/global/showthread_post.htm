@@ -39,7 +39,7 @@
 			<div id="pinfo_{$post['row']['pid']}" class="post_info">
 				<ul>
 					<if="$post['row']['edit_button']">
-					<li><a href='editpost.php{sessionurl}f={$forum['id']}&amp;t={$thread['tid']}&amp;p={$post['row']['pid']}&amp;pp={$_INPUT['pp']}' title="{$lang['editpost']}" >{$lang['edit']}</a></li>
+					<li><a href='editpost.php{sessionurl}f={$forum['id']}&amp;t={$thread['tid']}&amp;p={$post['row']['pid']}&amp;pp={$pp}' title="{$lang['editpost']}" >{$lang['edit']}</a></li>
 					</if>
 					<if="$post['row']['delete_button']">
 					<li><a href="###" onclick="ajax_submit_form('modform','deletepost', 'pid', {$post['row']['pid']});" title="{$lang['deletepost']}" >{$lang['delete']}</a></li>

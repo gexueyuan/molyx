@@ -42,7 +42,7 @@ class functions_showcode
 
 	function construct_extrabuttons()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$forums->func->check_cache('bbcode');
 		if ($bbuserinfo['canuseflash'])
 		{
@@ -99,8 +99,13 @@ class functions_showcode
 
 	function showimage($simg = 0)
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
-		$rc = (isset($_INPUT['rc']) && $_INPUT['rc']) ? trim($_INPUT['rc']) : trim($this->rc);
+		global $forums, $DB, $bboptions;
+		$rc = input::str('rc');
+		if (!$rc)
+		{
+			$rc = trim($this->rc);
+		}
+
 		if ($rc == '')
 		{
 			return false;
@@ -129,4 +134,3 @@ class functions_showcode
 		}
 	}
 }
-?>

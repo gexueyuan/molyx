@@ -45,6 +45,8 @@ function send_mailto_user($input, $uid)
 		$sessionid = $forums->sessionid;
 		ob_end_clean();
 		ob_start();
+		$subject = input::str('subject');
+		$message = input::str('message');
 		include $forums->func->load_template('sendmail_mailmember');
 		$content = ob_get_contents();
 		ob_end_clean();

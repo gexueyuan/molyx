@@ -47,7 +47,7 @@ class newthread
 
 	function showform()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$this->check_permission();
 
 		$posttitle = ($this->type == 'new') ? $forums->lang['newthread'] : $forums->lang['newreply'];
@@ -70,6 +70,12 @@ class newthread
 
 		$pagetitle = $forums->lang['newthread'] . " - " . $bboptions['bbtitle'];
 		$nav = $this->lib->nav;
+
+		$t = input::int('t');
+		$f = input::int('f');
+		$title = input::str('title', false);
+		$post = input::str('post', false);
+		$reffer = input::str('reffer', false);
 		include $forums->func->load_template('wap_post');
 		exit;
 	}

@@ -26,14 +26,10 @@ class functions_forum
 
 	function forums_init($forumid = null)
 	{
-		global $forums, $bboptions, $_INPUT;
+		global $forums, $bboptions;
 		if (is_null($forumid))
 		{
-			$forumid = 0;
-			if ($_INPUT['f'])
-			{
-				$forumid = intval($_INPUT['f']);
-			}
+			$forumid = input::int('f');
 		}
 		$name = 'forum_' . $forumid;
 
@@ -120,7 +116,7 @@ class functions_forum
 			ON f.lastthreadid = t.tid";
 		if(!empty($this->forumids)) $sqlQueryStr .= " WHERE " . $DB->sql_in('f.id', $this->forumids);
 		$result = $DB->query($sqlQueryStr);
-		
+
 		while ($row = $DB->fetch_array($result))
 		{
 			if ($row['parentid'] == '-1')
@@ -392,7 +388,7 @@ class functions_forum
 
 	function forum_jump($html = 0, $override = 0)
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		foreach((array) $this->foruminfo as $id => $forum)
 		{
 			if (($forum['canshow'] != '*' && $forums->func->fetch_permissions($forum['canshow'], 'canshow') != true) || $forum['url'])
@@ -402,7 +398,7 @@ class functions_forum
 
 			if ($html == 1 || $override == 1)
 			{
-				$selected = ($_INPUT['f'] && $_INPUT['f'] == $forum['id']) ? " selected='selected'" : '';
+				$selected = (input::int('f') == $forum['id']) ? " selected='selected'" : '';
 			}
 			$forum_jump .= '<option value="' . $forum['id'] . '"' . $selected . '>' . depth_mark($forum['depth'], '--') . ' ' . $forum['name'] . '</option>' . "\n";
 		}
@@ -419,7 +415,7 @@ class functions_forum
 		$forum['todaypost'] = fetch_number_format($forum['todaypost']);
 		$forum['moderator'] = $this->forums_moderator($forum['id']);
 		$forum['show_subforums'] = '';
-		
+
 		if ($bboptions['showsubforums'] && !$forum['password'])
 		{
 			$childs = explode(',', $forum['childlist']);
@@ -444,8 +440,8 @@ class functions_forum
 
 	function forums_new_post($forum)
 	{
-		global $forums, $_INPUT;
-		$lastvisit = isset($_INPUT['lastvisit']) ? $_INPUT['lastvisit'] : 0;
+		global $forums;
+		$lastvisit = input::int('lastvisit');
 		$fid = (!isset($forum['fid']) || !$forum['fid']) ? $forum['id'] : $forum['fid'];
 		$readtime = isset($forums->forum_read[$fid]) ? $forums->forum_read[$fid] : 0;
 		$lastvisit = $readtime > $lastvisit ? $readtime : $lastvisit;
@@ -497,18 +493,19 @@ class functions_forum
 
 	function fetch_forum_guide()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$forum_data = '<ul>';
 		$tmp_depth = -1;
 		$ul = 0;
-		$this_parentid = $this->foruminfo[$_INPUT['f']]['parentid'];
+		$f = input::int('f');
+		$this_parentid = $this->foruminfo[$f]['parentid'];
 		foreach((array) $this->foruminfo as $id => $forum)
 		{
 			if (($forum['canshow'] != '*' && $forums->func->fetch_permissions($forum['canshow'], 'canshow') != true) || $forum['url'])
 			{
 				continue;
 			}
-			$class = ($_INPUT['f'] && $_INPUT['f'] == $forum['id']) ? ' class="cur"' : '';
+			$class = ($f == $forum['id']) ? ' class="cur"' : '';
 			if ($forum['depth'] == 0)
 			{
 				if ($tmp_depth > $forum['depth'])

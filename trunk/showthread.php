@@ -495,6 +495,8 @@ class showthread
 		add_head_element('js', ROOT_PATH . 'scripts/mxajax_user.js');
 
 		$referer = SCRIPTPATH;
+		$pp = $this->pp;
+		$p = input::str('p');
 		include $forums->func->load_template('showthread_index');
 		exit;
 	}

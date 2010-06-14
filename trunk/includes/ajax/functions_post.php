@@ -29,8 +29,9 @@ $mxajax_register_functions = array(
  */
 function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 {
-	global $forums, $DB, $bbuserinfo, $bboptions, $response, $_INPUT;
-	$_INPUT = init_input($submit_data); //将提交的表单数据赋给全局数组，以便其他调用文件可直接使用
+	global $forums, $DB, $bbuserinfo, $bboptions, $response;
+	input::set($submit_data);
+
 	//灌水时间检测
 	if ($bboptions['floodchecktime'] > 0)
 	{
@@ -279,6 +280,7 @@ function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 	$bboptions['gzipoutput'] = 0;
 	ob_end_clean();
 	ob_start();
+	$pp = input::int('pp');
 	include $forums->func->load_template('showthread_post');
 	$post_content = ob_get_contents();
 	ob_end_clean();
@@ -1415,20 +1417,20 @@ function do_revertpost()
 
 function send_mailto_friend($tid, $input = array())
 {
-	global $forums, $DB, $bbuserinfo, $bboptions, $_INPUT, $response;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response;
 	if (!$bbuserinfo['id'])
 	{
 		show_processinfo($forums->lang['noperms']);
 		return $response;
 	}
-	$_INPUT['t'] = intval($tid);
-	if (!$_INPUT['t'])
+	$tid = (int) $tid;
+	if (!$tid)
 	{
 		$forums->func->load_lang('error');
 		show_processinfo($forums->lang['erroraddress']);
 		return $response;
 	}
-	if (!$thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . $_INPUT['t']))
+	if (!$thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . $tid))
 	{
 		$forums->func->load_lang('error');
 		show_processinfo($forums->lang['erroraddress']);
@@ -1446,15 +1448,13 @@ function send_mailto_friend($tid, $input = array())
 
 	if (is_array($input) && $input)
 	{
-		$_POST['message'] = $input['message'];
-		$_INPUT = init_input($input);
-		if (!$_INPUT['to_name'] OR !$_INPUT['to_email'] OR !$_INPUT['message'] OR !$_INPUT['subject'])
+		if (!$input['to_name'] OR !$input['to_email'] OR !$input['message'] OR !$input['subject'])
 		{
 			$forums->func->load_lang('error');
 			show_processinfo($forums->lang['plzinputallform']);
 			return $response;
 		}
-		$to_email = clean_email($_INPUT['to_email']);
+		$to_email = clean_email($input['to_email']);
 		if (!$to_email)
 		{
 			$forums->func->load_lang('error');
@@ -1464,14 +1464,14 @@ function send_mailto_friend($tid, $input = array())
 		require_once(ROOT_PATH . "includes/functions_email.php");
 		$send_email = new functions_email();
 		$message = $send_email->fetch_email_sendtofriend(array(
-			'message' => preg_replace("#<br.*>#siU", "\n", str_replace("\r", "", $_POST['message'])),
-			'username' => $_INPUT['to_name'],
+			'message' => preg_replace("#<br.*>#siU", "\n", str_replace("\r", "", $input['message'])),
+			'username' => $input['to_name'],
 			'from' => $bbuserinfo['name'],
 		));
 		$send_email->char_set = 'GBK';
 		$send_email->build_message($message);
-		$send_email->subject = $_INPUT['subject'];
-		$send_email->to = $_INPUT['to_email'];
+		$send_email->subject = $input['subject'];
+		$send_email->to = $input['to_email'];
 		$send_email->from = $bbuserinfo['email'];
 		$send_email->send_mail();
 		show_processinfo($forums->lang['sendmail']);

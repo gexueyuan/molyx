@@ -417,15 +417,18 @@ class newprivate
 
 	function newpm($errors = '')
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('post');
 		$posthash = $this->posthash;
-		$userid = intval($_INPUT['u']);
-		$getpmid = intval($_INPUT['id']);
+		$userid = input::int('u');
+		$getpmid = input::int('id');
 		if ($errors)
 		{
 			$errors = convert($errors);
 		}
+
+		$input_username = input::str('username');
+
 		if ($userid)
 		{
 			$user = $DB->query_first("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'");
@@ -436,8 +439,9 @@ class newprivate
 		}
 		else
 		{
-			$username = $_INPUT['username'];
+			$username = $input_username;
 		}
+
 		$showuser = true;
 		if ($getpmid)
 		{
@@ -450,9 +454,16 @@ class newprivate
 			{
 				$title = $forums->lang['re'] . ":" . $pm['title'];
 				$title = preg_replace("/^(?:" . $forums->lang['re'] . "\:){1,}/i", $forums->lang['re'] . ":", $title);
-				$_POST['title'] = convert($title);
+				$title = convert($title);
 			}
 		}
+
+		if (!isset($title))
+		{
+			$title = input::str('title', false);
+		}
+		$post = input::str('post', false);
+
 		$forums->lang['username'] = convert($forums->lang['username']);
 		$forums->lang['title'] = convert($forums->lang['title']);
 		$forums->lang['content'] = convert($forums->lang['content']);
