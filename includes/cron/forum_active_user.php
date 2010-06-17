@@ -15,13 +15,13 @@ class cron_forum_active_user
 
 	function docron()
 	{
-		global $DB, $forums, $bboptions, $_INPUT;
+		global $DB, $forums, $bboptions;
 		if ($bboptions['forum_active_user'])
 		{
 			$forums->func->check_cache('forum');
 			foreach ($forums->cache['forum'] AS $fid => $v)
 			{
-				$_INPUT['f'] = $fid;
+				input::set('f', $fid);
 				$forums->func->recache('forum_active_user');
 			}
 		}

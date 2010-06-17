@@ -38,37 +38,39 @@ class functions_post
 
 	function dopost($class)
 	{
-		global $forums, $_INPUT, $DB, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->class = $class;
-		if ($_INPUT['t'])
+		$t = input::int('t');
+		if ($t)
 		{
-			$_INPUT['t'] = intval($_INPUT['t']);
-			if (!$_INPUT['t'])
+			if (!$t)
 			{
 				$forums->func->standard_error("erroraddress");
 			}
 		}
-		if ($_INPUT['p'])
+
+		$p = input::int('p');
+		if ($p)
 		{
-			$_INPUT['p'] = intval($_INPUT['p']);
-			if (!$_INPUT['p'])
+			if (!$p)
 			{
 				$forums->func->standard_error("erroraddress");
 			}
 		}
-		$_INPUT['f'] = intval($_INPUT['f']);
-		if (!$_INPUT['f'])
+
+		$f = input::int('f');
+		if (!$f)
 		{
 			$forums->func->standard_error("erroraddress");
 		}
-		$this->forum = $forums->forum->single_forum($_INPUT['f']);
+		$this->forum = $forums->forum->single_forum($f);
 		$forums->forum->load_forum_style($this->forum['style']);
 		if (!$this->forum['allowposting'])
 		{
 			$forums->func->standard_error("postnewthreaderror");
 		}
-		$_INPUT['pp'] = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$this->obj['preview'] = $_INPUT['preview'];
+		$pp = input::int('pp');
+		$this->obj['preview'] = input::int('preview');
 		if ($forums->func->fetch_permissions($this->forum['canupload'], 'canupload') == true)
 		{
 			if ($bbuserinfo['attachlimit'] != -1)
@@ -155,9 +157,9 @@ class functions_post
 					OR (usergroupid = '{$bbuserinfo['usergroupid']}'
 						AND isgroup = 1))");
 		}
-		if ($_INPUT['do'] == 'update')
+		if (input::str('do') == 'update')
 		{
-			if ($_INPUT['userhash'] != $this->userhash)
+			if (input::str('userhash') != $this->userhash)
 			{
 				$forums->func->standard_error("erroruserhash");
 			}
@@ -173,18 +175,18 @@ class functions_post
 			}
 			if (!$bbuserinfo['id'])
 			{
-				$_INPUT['username'] = str_replace('|', '&#124;', trim($_INPUT['username']));
-				$_INPUT['username'] = $_INPUT['username'] ? $_INPUT['username'] : $forums->lang['_guest'];
-				if ($_INPUT['username'] != $forums->lang['_guest'])
+				$username = input::str('username');
+				$username = str_replace('|', '&#124;', $username);
+				$username = $username ? $username : $forums->lang['_guest'];
+				if ($username != $forums->lang['_guest'])
 				{
 					$DB->query('SELECT id, name, email, usergroupid, password, host, options, salt
 						FROM ' . TABLE_PREFIX . 'user
-						WHERE LOWER(name) = ' . $DB->validate(strtolower($_INPUT['username'])) . '
-							OR name = ' . $DB->validate($_INPUT['username']));
+						WHERE name = ' . $DB->validate($username));
 					if ($DB->num_rows())
 					{
 						$bboptions['guesttag'] = $bboptions['guesttag'] ? $bboptions['guesttag'] : '*';
-						$_INPUT['username'] = $_INPUT['username'] . $bboptions['guesttag'];
+						input::set('username', $username . $bboptions['guesttag']);
 					}
 				}
 			}
@@ -260,7 +262,7 @@ class functions_post
 				{
 					foreach ($qposts as $pid => $qpost)
 					{
-						if ($_INPUT['t'] != $qpost['threadid']) continue;
+						if (input::int('t') != $qpost['threadid']) continue;
 						if ($forums->func->fetch_permissions($forums->forum->foruminfo[ $qpost['forumid'] ]['canread'], 'canread') == true)
 						{
 							$pagetext = $qpost['pagetext'];
@@ -346,12 +348,11 @@ class functions_post
 
 	function compile_post()
 	{
-		global $forums, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $bbuserinfo, $bboptions;
 		$bboptions['maxpostchars'] = $bboptions['maxpostchars'] ? $bboptions['maxpostchars'] : 0;
-		$_INPUT['showsignature'] = $_INPUT['showsignature'] ? 1 : 0;
-		$_INPUT['allowsmile'] = $_INPUT['allowsmile'] ? 1 : 0;
+
 		$useanonymous = 0;
-		if ($bbuserinfo['cananonymous'] AND $_INPUT['anonymous'])
+		if ($bbuserinfo['cananonymous'] AND input::int('anonymous'))
 		{
 			$useanonymous = 1;
 		}
@@ -364,24 +365,22 @@ class functions_post
 		{
 			$bbuserinfo['usewysiwyg'] = ($bboptions['mxemode']) ? 1 : 0;
 		}
-		if (!$_INPUT['iconid'])
-		{
-			$_INPUT['iconid'] = 0;
-		}
+
+		$allowsmile = input::int('allowsmile');
 		$pagetext = $bbuserinfo['usewysiwyg'] ? $_POST['post'] : utf8_htmlspecialchars($_POST['post']);
 		$post = array(
 			'userid' => $bbuserinfo['id'] ? $bbuserinfo['id'] : 0,
-			'showsignature' => $_INPUT['showsignature'],
-			'allowsmile' => $_INPUT['allowsmile'],
+			'showsignature' => input::int('showsignature'),
+			'allowsmile' => $allowsmile,
 			'host' => IPADDRESS,
 			'dateline' => TIMENOW,
-			'iconid' => intval($_INPUT['iconid']),
+			'iconid' => input::int('iconid'),
 			'pagetext' => $this->parser->convert(array(
 				'text' => $pagetext,
-				'allowsmilies' => $_INPUT['allowsmile'],
+				'allowsmilies' => $allowsmile,
 				'allowcode' => $this->forum['allowbbcode'],
 			)),
-			'username' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $_INPUT['username'],
+			'username' => $bbuserinfo['id'] ? $bbuserinfo['name'] : input::str('username'),
 			'threadid' => '',
 			'anonymous' => $useanonymous,
 			'moderate' => ($this->obj['moderate'] == 1 || $this->obj['moderate'] == 3) ? 1 : 0,
@@ -394,7 +393,7 @@ class functions_post
 		{
 			$this->obj['errors'] = $forums->lang['_posterror1'];
 		}
-		if ($bboptions['minpostchars'] && utf8_strlen($check) < $bboptions['minpostchars'] && !$_INPUT['preview'])
+		if ($bboptions['minpostchars'] && utf8_strlen($check) < $bboptions['minpostchars'] && !input::int('preview'))
 		{
 			$forums->func->standard_error("posttooshort", false, $bboptions['minpostchars']);
 		}
@@ -425,28 +424,26 @@ class functions_post
 
 	function construct_checkboxes()
 	{
-		global $_INPUT, $bbuserinfo;
-		$checked = array('signature' => 'checked="checked"', 'smiles' => 'checked="checked"', 'parseurl' => 'checked="checked"', 'titlebold' => 'checked="checked"', 'redirect' => 'checked="checked"');
-		if (isset($_INPUT['showsignature']) AND (! $_INPUT['showsignature']))
+		$checked = array(
+			'signature' => 'showsignature',
+			'smiles' => 'allowsmile',
+			'parseurl' => 'parseurl',
+			'titlebold' => 'titlebold',
+			'redirect' => 'redirecttype'
+		);
+
+		foreach ($checked as $k => $v)
 		{
-			$checked['signature'] = "";
+			if (input::is_set($v) && !input::int($v))
+			{
+				$checked[$k] = '';
+			}
+			else
+			{
+				$checked[$k] = 'checked="checked"';;
+			}
 		}
-		if (! $bbuserinfo['redirecttype'])
-		{
-			$checked['redirect'] = "";
-		}
-		if (isset($_INPUT['allowsmile']) AND (! $_INPUT['allowsmile']))
-		{
-			$checked['smiles'] = "";
-		}
-		if (isset($_INPUT['parseurl']) AND (! $_INPUT['parseurl']))
-		{
-			$checked['parseurl'] = "";
-		}
-		if (! $_INPUT['titlebold'])
-		{
-			$checked['titlebold'] = "";
-		}
+
 		return $checked;
 	}
 
@@ -473,7 +470,7 @@ class functions_post
 
 	function construct_icons()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums;
 		$forums->func->check_cache('icon');
 		foreach($forums->cache['icon'] AS $icon)
 		{
@@ -632,12 +629,12 @@ class functions_post
 		global $forums, $bbuserinfo;
 		require_once(ROOT_PATH . 'includes/functions_moderate.php');
 		$this->modfunc = new modfunctions();
-		$this->modfunc->add_moderate_log($_INPUT['f'], $_INPUT['t'], $_INPUT['p'], $title, $action . $title);
+		$this->modfunc->add_moderate_log(input::int('f'), input::int('t'), input::int('p'), $title, $action . $title);
 	}
 
 	function process_upload($userid = '')
 	{
-		global $forums, $DB, $bbuserinfo, $bboptions, $_INPUT;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->check_cache('attachmenttype');
 
 		$attach_data = array(
@@ -649,7 +646,7 @@ class functions_post
 			'dateline' => TIMENOW,
 			'temp' => 0,
 			'postid' => 0,
-			'posthash' => $_INPUT['posthash'],
+			'posthash' => input::str('posthash'),
 			'userid' => $userid ? $userid : $bbuserinfo['id'],
 			'filesize' => 0,
 			'attachpath' => '',
@@ -762,7 +759,7 @@ class functions_post
 
 	function stats_recount($tid = 0, $type = 'new')
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$moderated = false;
 		if ($this->obj['moderate'])
 		{
@@ -954,23 +951,25 @@ class functions_post
 
 	function validate_antispam()
 	{
-		global $forums, $DB, $bboptions, $_INPUT;
+		global $DB, $bboptions;
 
 		if ($bboptions['useantispam'])
 		{
-			if ($_INPUT['imagehash'] == "" OR $_INPUT['antispam'] == "")
+			$antispam = input::str('antispam');
+			$imagehash = input::str('imagehash');
+			if ($imagehash == "" OR $antispam == "")
 			{
 				return false;
 			}
-			if (!$row = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes(trim($_INPUT['imagehash'])) . "'"))
+			if (!$row = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash = " . $DB->validate($imagehash)))
 			{
 				return false;
 			}
-			if (intval($_INPUT['antispam']) != $row['imagestamp'])
+			if ($antispam != $row['imagestamp'])
 			{
 				return false;
 			}
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes(trim($_INPUT['imagehash'])) . "'");
+			$DB->delete(TABLE_PREFIX . 'antispam', 'regimagehash = ' . $DB->validate($antispam));
 			return true;
 		}
 		return true;

@@ -113,9 +113,9 @@ class hidefunc
 		$forums->func->check_cache('usergroup');
 		$forums->func->check_cache('creditlist');
 		$hidecredit = array();
-		if ($forums->cache['creditlist']) 
+		if ($forums->cache['creditlist'])
 		{
-			foreach ($forums->cache['creditlist'] as $k => $v) 
+			foreach ($forums->cache['creditlist'] as $k => $v)
 			{
 				$hidecredit[$v['tag']] = $v['name'];
 			}
@@ -221,67 +221,70 @@ class hidefunc
 			$row['buyernum'] = count($hideinfo['buyers']);
 			$row['onlyattach'] = 1;
 		}
-		
+
 		return $row;
 	}
 
 	function check_hide_condition($tid='')
 	{
-		global $_INPUT, $forums, $bbuserinfo;
+		global $forums, $bbuserinfo;
 
-		if (!$_INPUT['hidetype'])
+		$hidetype = input::int('hidetype');
+		if (!$hidetype)
 		{
 			return '';
 		}
-		switch ($_INPUT['hidetype'])
+
+		$hidecond = input::int('hidecond');
+		switch ($hidetype)
 		{
 			case 1 :
 			case 2 :
 			case 3 :
 			case 4 :
-				$_INPUT['hidecond'] = intval($_INPUT['hidecond']);
-				if ($_INPUT['hidecond'] < 1)
+				if ($hidecond < 1)
 				{
 					$errmsg = $forums->lang['notzero'];
 				}
 				$forums->func->check_cache('banksettings');
-				if (($_INPUT['hidetype'] == 1 OR $_INPUT['hidetype'] == 2) AND $_INPUT['hidecond'] * 2 > $bbuserinfo['cash'])
+				if (($hidetype == 1 OR $hidetype == 2) AND $hidecond * 2 > $bbuserinfo['cash'])
 				{
 					$errmsg = $forums->lang['exceedlimit'];
 				}
-				$cond = $_INPUT['hidecond'];
+				$cond = $hidecond;
 				break;
 			case 5 :
-				if (!$_INPUT['hidecond'])
+				if (!$hidecond)
 				{
 					$errmsg = $forums->lang['requirereply'];
 				}
-				$cond = $_INPUT['hidecond'];
+				$cond = $hidecond;
 				break;
 			case 11 :
 				$forums->func->check_cache('usergroup');
 				$usergrp = $forums->cache['usergroup'];
-				if (!count($usergrp[$_INPUT['hidegrpid']]))
+				$hidegrpid = input::int('hidegrpid');
+				if (!count($usergrp[$hidegrpid]))
 				{
 					$errmsg = $forums->lang['mustusergroup'];
 				}
-				$cond = $_INPUT['hidegrpid'];
+				$cond = $hidegrpid;
 				break;
 			case 111:
 				$requirereply = sprintf($forums->lang['requirereply'], $condition);
 				$hidestatus .= ' ' . $requirereply;
 				break;
 			case 999:
-				$_INPUT['hidecreditcond'] = intval($_INPUT['hidecreditcond']);
-				if ($_INPUT['hidecreditcond'] < 1)
+				$hidecreditcond = input::int('hidecreditcond');
+				if ($hidecreditcond < 1)
 				{
 					$errmsg = $forums->lang['notzero'];
 				}
 				$forums->func->check_cache('creditlist');
 				$hidecredit = array();
-				if ($forums->cache['creditlist']) 
+				if ($forums->cache['creditlist'])
 				{
-					foreach ($forums->cache['creditlist'] as $k => $v) 
+					foreach ($forums->cache['creditlist'] as $k => $v)
 					{
 						$hidecredit[$v['tag']] = $v['name'];
 					}
@@ -290,25 +293,25 @@ class hidefunc
 				{
 					$errmsg = $forums->lang['credittypewrong'];
 				}
-				$cond = $_INPUT['hidecreditcond'];
-				$hideinfo['credit_type'] = $_INPUT['hidecredit'];
+				$cond = $hidecreditcond;
+				$hideinfo['credit_type'] = input::str('hidecredit');
 				break;
 			default :
 				$errmsg = $forums->lang['conditionerror'];
 				$cond = 0;
 				break;
 		}
-		/*if ( ($_INPUT['hidetype'] == 1 OR $_INPUT['hidetype'] == 2) AND $bbuserinfo['mkaccount'] < 1 ) {
+		/*if ( ($hidetype == 1 OR $hidetype == 2) AND $bbuserinfo['mkaccount'] < 1 ) {
 			$errmsg = $forums->lang['nousefunction'];
 		}*/
 
 		if (!$errmsg)
 		{
-			$hideinfo['type'] = $_INPUT['hidetype'];
+			$hideinfo['type'] = $hidetype;
 			$hideinfo['cond'] = $cond;
-			$hideinfo['attach'] = ($_INPUT['hidetype'] != 2) ? 0 : 1;
+			$hideinfo['attach'] = ($hidetype != 2) ? 0 : 1;
 			$hideinfo['buyers'] = array();
-		
+
 			return $hideinfo;
 		}
 		else
@@ -338,11 +341,11 @@ class hidefunc
 
 		return $hide_list;
 	}
-	
+
 	function hide_attachment($uid,$hidetype,$threadid,$postid='',$forumid='',$returntype = 1)
 	{
 		global $forums,$DB,$bbuserinfo,$bboptions;
-		
+
 		static $sforumid ,$i = 0;
 		static $extracreditc =array();
 		static $sendposttimesc = array();
@@ -355,7 +358,7 @@ class hidefunc
 
 		if (empty($hidetype)||!intval($threadid)||!$bboptions['hideattach'])
 		{
-			return true; 
+			return true;
 		}
 
 		if(!$bbuserinfo['id'])
@@ -382,41 +385,41 @@ class hidefunc
 		{
 			return true;
 		}
-	
+
 		$extracredits = $sendposttimes = $ingroups = $replyeds = true;
 
 
 		$hidetype = unclean_value($hidetype);
 	    $conditions = explode(']::[',$hidetype);
-		
+
 		//扩展积分
 		if (!empty($conditions[0]))
-		{   
+		{
 			if(!in_array($conditions[0],$extracreditc))
 			{
-				$extracredit = $DB->query_first("SELECT id FROM ".TABLE_PREFIX."userexpand 
+				$extracredit = $DB->query_first("SELECT id FROM ".TABLE_PREFIX."userexpand
 				WHERE id='".$bbuserinfo['id']."' AND ".$conditions[0]."");
-			
-				$extracredits = $extracredit['id']?true:false;	
+
+				$extracredits = $extracredit['id']?true:false;
 				$extracreditc[$i] = $conditions[0];
 				$extracreditb[$i] = $extracredits;
 
 				$i++;
 			}
 			else
-			{	
+			{
 				$key =  array_search($conditions[0],$extracreditc);
-				$extracredits = $extracreditb[$key];				
+				$extracredits = $extracreditb[$key];
 			}
 		}
 
         //发帖数
 		if (!empty($conditions[1]))
-		{	
+		{
 			if(!in_array($conditions[1],$extracreditc))
 			{
 				$sendposttime = preg_replace('/^(posts)(<|>)([\d]+)$/i','\$postcount[\'postcount\']\\2\\3',$conditions[1]);
-				$postcount = $DB->query_first("SELECT count(*) AS postcount FROM ".TABLE_PREFIX."post 
+				$postcount = $DB->query_first("SELECT count(*) AS postcount FROM ".TABLE_PREFIX."post
 				WHERE userid = '".$bbuserinfo['id']."'");
 
 				eval("\$sendposttimes = $sendposttime?true:false;");
@@ -425,28 +428,28 @@ class hidefunc
 				$i++;
 			}
 			else
-			{	
+			{
 				$key =  array_search($conditions[1],$extracreditc);
 				$sendposttimes = $extracreditb[$key];
 			}
-		} 
+		}
 
 		//用户组
 		if (!empty($conditions[2]))
 		{
 			if(!in_array($conditions[2],$extracreditc))
 			{
-				$groupids = preg_replace('/-:::-/',',',$conditions[2]);			
-				$usergroupid = $DB->query_first("SELECT id FROM ".TABLE_PREFIX."user 
+				$groupids = preg_replace('/-:::-/',',',$conditions[2]);
+				$usergroupid = $DB->query_first("SELECT id FROM ".TABLE_PREFIX."user
 				WHERE usergroupid  IN(".$groupids.") AND id = '".$bbuserinfo['id']."'");
 
-				$ingroups =  $usergroupid['id']?true:false;		
+				$ingroups =  $usergroupid['id']?true:false;
 				$extracreditc[$i] = $conditions[2];
 				$extracreditb[$i] = $ingroups;
 				$i++;
 			}
 			else
-			{	
+			{
 				$key =  array_search($conditions[2],$extracreditc);
 				$ingroups = $extracreditb[$key];
 			}
@@ -454,12 +457,12 @@ class hidefunc
 
         //回复
 		if (!empty($conditions[3]))
-		{			
+		{
 			if(!in_array($conditions[3],$extracreditc))
 			{
-				$reply = $DB->query_first("SELECT count(pid) AS replycount FROM ".TABLE_PREFIX."post 
+				$reply = $DB->query_first("SELECT count(pid) AS replycount FROM ".TABLE_PREFIX."post
 				WHERE threadid = '".$threadid."' AND  newthread = '0' AND  userid ='".$bbuserinfo['id']."'");
-	
+
 				$replyeds = $reply['replycount']?true:false;
 				$extracreditc[$i] = $conditions[3];
 				$extracreditb[$i] = $replyeds;
@@ -471,7 +474,7 @@ class hidefunc
 				$replyeds = $extracreditb[$key];
 			}
 		}
-	
+
 		return $extracredits && $sendposttimes && $ingroups&& $replyeds;
 	}
 
@@ -504,12 +507,12 @@ class hidefunc
 			}
 		}
 
-		
+
 		$forums->func->check_cache('creditlist');
 		$hidecredit = array();
-		if ($forums->cache['creditlist']) 
+		if ($forums->cache['creditlist'])
 		{
-			foreach ($forums->cache['creditlist'] as $k => $v) 
+			foreach ($forums->cache['creditlist'] as $k => $v)
 			{
 				$hidecredit[$v['tag']] = $v['name'];
 			}
@@ -522,33 +525,33 @@ class hidefunc
 		{
 			$extracredit = preg_replace("/([a-zA-Z]+)(&lt;|&gt;)([\d]+)/e","\$hidecredit['\\1'].'\\2\\3'",$conditions[0]);
         }
-		
-         
+
+
 		if($conditions[1])
 		{
-			$sendposttimes = 
+			$sendposttimes =
 			preg_replace("/(posts)(&lt;|&gt;)([\d]+)/e", "\$forums->lang['_hideattachaboutposts'].'\\2\\3'",$conditions[1]);
 		}
-		
+
 
 		$usergroupids = explode('-:::-',$conditions[2]);
-		
+
 		//用户组
 		if (count($usergroupids))
 		{
 			$usergroupslang = '';
-			
+
 			foreach($usergrp AS $k => $v)
 			{
 				if (in_array($v['usergroupid'],$usergroupids))
 				{
 					$usergroupslang.= $forums->lang[$v['grouptitle']].' | ';
 				}
-			}		
+			}
 			$usergroupslang =substr_replace($usergroupslang,'',-3);
-			
+
 		}
-		
+
 		if ($conditions[3])
 		{
 			$needreply = $forums->lang['_needreply'];
@@ -559,7 +562,7 @@ class hidefunc
 			exit;
 		}
 
-		
+
 		if ($returntype == 1)
 		{
 			$extracredit = empty($extracredit)?'/':$extracredit;
@@ -595,7 +598,7 @@ str;
 		return $returnvalue;
 	}
 
-	
+
 
 }
 

@@ -61,7 +61,7 @@ class adminfunctions_importers
 
 	function initdb()
 	{
-		global $forums, $_INPUT, $DB;
+		global $forums, $DB;
 		$DB->return_die = 1;
 		$DB->query("CREATE TABLE " . TABLE_PREFIX . "importtable (
 									importid int(11) NOT NULL auto_increment,
@@ -202,7 +202,7 @@ class adminfunctions_importers
 
 	function importuser($user = array(), $md5 = 0, $salt = 1)
 	{
-		global $DB, $_INPUT, $cachekeys, $forums;
+		global $DB, $cachekeys, $forums;
 		if ($md5 == "1")
 		{
 			$user['password'] = md5($user['password']);
@@ -223,13 +223,13 @@ class adminfunctions_importers
 		}
 		$userid = $DB->insert_id();
 		$userimported = sprintf($forums->lang['userimported'], utf8_htmlspecialchars($user['name']));
-		$this->echo_flush($userimported . ($_INPUT['pause'] ? "<a href=" . ROOT_PATH . "" . ROOT_PATH . "user.php?" . $forums->sessionurl . "do=doform&amp;u=" . $userid . "' target='_blank'>" . $forums->lang['edit'] . "</a>" : "") . "<br /><br />\n\n");
+		$this->echo_flush($userimported . (input::int('pause') ? "<a href=" . ROOT_PATH . "" . ROOT_PATH . "user.php?" . $forums->sessionurl . "do=doform&amp;u=" . $userid . "' target='_blank'>" . $forums->lang['edit'] . "</a>" : "") . "<br /><br />\n\n");
 		return $userid;
 	}
 
 	function importpm($pm = array())
 	{
-		global $DB, $_INPUT, $cachepms, $cachepmtexts, $forums;
+		global $DB, $cachepms, $cachepmtexts, $forums;
 		if (!is_array($cachepms))
 		{
 			$cachepms = $this->describe("pm");
@@ -262,7 +262,7 @@ class adminfunctions_importers
 
 	function importcategory($category = array())
 	{
-		global $DB, $_INPUT, $ccachekeys, $forums;
+		global $DB, $ccachekeys, $forums;
 		if (!is_array($ccachekeys))
 		{
 			$ccachekeys = $this->describe("forum");
@@ -281,7 +281,7 @@ class adminfunctions_importers
 
 	function importforum($forum = array())
 	{
-		global $DB, $_INPUT, $fcachekeys, $forums;
+		global $DB, $fcachekeys, $forums;
 		if (!is_array($fcachekeys))
 		{
 			$fcachekeys = $this->describe("forum");
@@ -301,7 +301,7 @@ class adminfunctions_importers
 
 	function importmoderator($moderator = array())
 	{
-		global $DB, $_INPUT, $mcachekeys, $forums;
+		global $DB, $mcachekeys, $forums;
 		if (!is_array($mcachekeys))
 		{
 			$mcachekeys = $this->describe("moderator");
@@ -319,7 +319,7 @@ class adminfunctions_importers
 
 	function importthread($thread = array())
 	{
-		global $DB, $_INPUT, $tcachekeys, $forums;
+		global $DB, $tcachekeys, $forums;
 		if (!is_array($tcachekeys))
 		{
 			$tcachekeys = $this->describe("thread");
@@ -336,7 +336,7 @@ class adminfunctions_importers
 
 	function importpost($post = array())
 	{
-		global $DB, $_INPUT, $pcachekeys, $forums;
+		global $DB, $pcachekeys, $forums;
 		if (!is_array($pcachekeys))
 		{
 			$pcachekeys = $this->describe("post");
@@ -354,7 +354,7 @@ class adminfunctions_importers
 
 	function importattachment($attachment = array())
 	{
-		global $DB, $_INPUT, $acachekeys, $forums, $bboptions;
+		global $DB, $acachekeys, $forums, $bboptions;
 		require_once(ROOT_PATH . 'includes/functions_image.php');
 		$image = new functions_image();
 		if (!is_array($acachekeys))
@@ -402,7 +402,7 @@ class adminfunctions_importers
 
 	function importpoll($poll = array())
 	{
-		global $DB, $_INPUT, $pocachekeys, $forums, $bboptions;
+		global $DB, $pocachekeys, $forums, $bboptions;
 		if (!is_array($pocachekeys))
 		{
 			$pocachekeys = $this->describe("poll");
@@ -441,5 +441,3 @@ class adminfunctions_importers
 		return $newvalue;
 	}
 }
-
-?>
