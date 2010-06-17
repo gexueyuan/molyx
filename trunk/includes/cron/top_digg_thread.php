@@ -15,7 +15,7 @@ class cron_top_digg_thread
 
 	function docron()
 	{
-		global $DB, $forums, $bboptions, $_INPUT;
+		global $DB, $forums, $bboptions;
 		if ($bboptions['top_digg_thread_num'])
 		{
 			$forums->func->recache('top_digg_thread');

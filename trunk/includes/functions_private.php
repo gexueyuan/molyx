@@ -15,10 +15,14 @@ class functions_private
 
 	function functions_private()
 	{
-		global $_INPUT, $bbuserinfo;
+		global $bbuserinfo;
 		require_once(ROOT_PATH . 'includes/functions_post.php');
 		$this->postlib = new functions_post();
-		$this->posthash = $_INPUT['posthash'] ? trim($_INPUT['posthash']) : md5(microtime());
+		$this->posthash = input::str('posthash');
+		if (!$this->posthash)
+		{
+			$this->posthash = md5(microtime());
+		}
 		if ($bbuserinfo['attachlimit'] != -1 AND $bbuserinfo['canpmattach'])
 		{
 			$this->canupload = 1;
@@ -32,17 +36,18 @@ class functions_private
 
 	function sendpm()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		if ($_INPUT['removeattachid'])
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$removeattachid = input::int('removeattachid');
+		if ($removeattachid)
 		{
-			if ($_INPUT[ 'removeattach_' . $_INPUT['removeattachid'] ])
+			if (input::int('removeattach_' . $removeattachid))
 			{
-				$this->postlib->remove_attachment(intval($_INPUT['removeattachid']), $this->posthash);
+				$this->postlib->remove_attachment($removeattachid, $this->posthash);
 				return $this->newpm();
 			}
 		}
-		$_INPUT['title'] = str_replace("　", ' ', $_INPUT['title']);
-		$title = trim($_INPUT['title']);
+
+		$title = str_replace("\t", ' ', input::str('title'));
 		$title = $this->postlib->parser->censoredwords($title);
 
 		$this->cookie_mxeditor = $this->cookie_mxeditor ? $this->cookie_mxeditor : $forums->func->get_cookie('mxeditor');
@@ -61,20 +66,22 @@ class functions_private
 		$post = $bbuserinfo['usewysiwyg'] ? $_POST['post'] : utf8_htmlspecialchars($_POST['post']);
 		$post = $this->postlib->parser->censoredwords($post);
 		$message = $this->postlib->parser->convert(array('text' => $post,
-			'allowsmilies' => $_INPUT['allowsmile'],
+			'allowsmilies' => input::int('allowsmile'),
 			'allowcode' => $bboptions['pmallowbbcode'],
 		));
 		if ($title == '' OR $message == '')
 		{
 			return $this->newpm($forums->lang['_inputallform']);
 		}
-		if ($_INPUT['username'] == '')
+
+		$username = input::str('username');
+		if ($username == '')
 		{
 			return $this->newpm($forums->lang['_selectusername']);
 		}
-		$savecopy = intval($_INPUT['savecopy']);
-		$_INPUT['username'] = unclean_value($_INPUT['username']);
-		$users = explode(';', $_INPUT['username']);
+		$savecopy = input::int('savecopy');
+		$username = unclean_value($username);
+		$users = explode(';', $username);
 		$touser = array();
 		foreach ($users as $val)
 		{
@@ -86,7 +93,8 @@ class functions_private
 		}
 		$touser = array_unique($touser);
 		$usercounts = count($touser);
-		if (!$_INPUT['noredirect'])
+		$noredirect = input::int('noredirect');
+		if (!$noredirect)
 		{
 			$this->credit->check_credit('sendpm', $bbuserinfo['usergroupid'], '', $usercounts);
 		}
@@ -154,7 +162,7 @@ class functions_private
 			}
 			$touserlist[ $user['id'] ] = $user;
 		}
-		if (is_array($errors) AND !$_INPUT['noredirect'])
+		if (is_array($errors) AND !$noredirect)
 		{
 			$showerrors = '';
 			if ($errors['lengtherror'])
@@ -201,7 +209,7 @@ class functions_private
 				'fromuserid' => $bbuserinfo['id'],
 				'touserid' => $to_user['id'],
 				'folderid' => '0',
-				'tracking' => intval($_INPUT['addtracking']),
+				'tracking' => input::int('addtracking'),
 				'attach' => intval($no_attachment),
 				'userid' => $to_user['id'],
 			));
@@ -238,7 +246,7 @@ class functions_private
 				'userid' => $bbuserinfo['id'],
 			));
 		}
-		if (!$_INPUT['noredirect'])
+		if (!$noredirect)
 		{
 			if ($savecopy) $usercounts--;
 			$this->credit->update_credit('sendpm', $bbuserinfo['id'], $bbuserinfo['usergroupid'], '', $usercounts);
@@ -248,17 +256,17 @@ class functions_private
 
 	function newpm($errors = '')
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('post');
-		$userid = intval($_INPUT['u']);
-		$getpmid = intval($_INPUT['pmid']);
+		$userid = input::int('u');
+		$getpmid = input::int('pmid');
 		$posthash = $this->posthash;
 		$contact = $this->build_contact_list();
 		$sendmax = $bbuserinfo['pmsendmax'] ? intval($bbuserinfo['pmsendmax']) : '1';
 		if ($userid)
 		{
 			$user = $DB->query_first("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'");
-			if ($_INPUT['fwd'] != 1)
+			if (input::int('fwd') != 1)
 			{
 				if ($user['id'])
 				{
@@ -268,10 +276,10 @@ class functions_private
 		}
 		else
 		{
-			$username = $_INPUT['username'];
+			$username = input::str('username');
 		}
-		$title = preg_replace("/'/", "&#39;", $_INPUT['title']);
-		$content = utf8_htmlspecialchars($_INPUT['post']);
+		$title = preg_replace("/'/", "&#39;", input::str('title'));
+		$content = utf8_htmlspecialchars(input::str('post'));
 		if ($getpmid)
 		{
 			$pm = $DB->query_first("SELECT u.id,u.name, p.*, pt.*
@@ -295,7 +303,7 @@ class functions_private
 			$pm['message'] = $this->postlib->parser->unconvert($pm['message'], 1, 0, $bbuserinfo['usewysiwyg']);
 			if ($pm['title'])
 			{
-				if ($_INPUT['fwd'] == 1)
+				if (input::int('fwd') == 1)
 				{
 					$title = $forums->lang['_fw'] . ":" . $pm['title'];
 					$title = preg_replace("/^(?:" . $forums->lang['_fw'] . "\:){1,}/i", $forums->lang['_fw'] . ":", $title);
@@ -399,5 +407,3 @@ class functions_private
 		return $pmfolders;
 	}
 }
-
-?>

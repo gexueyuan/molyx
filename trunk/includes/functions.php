@@ -2174,4 +2174,45 @@ function load_editor_js($extrabuttons = '',$type = '')
 		add_foot_element('js-c', 'mxeditor("post");');
 	}
 }
-?>
+
+
+function is_xml_character($c)
+{
+	if ($c <= 0xD7FF)
+	{
+		if ($c >= 0x20) return true;
+		else
+		{
+			if ($c == '\n') return true;
+			if ($c == '\r') return true;
+			if ($c == '\t') return true;
+			return false;
+		}
+	}
+	if ($c < 0xE000) return false;
+	if ($c <= 0xFFFD) return true;
+	if ($c < 0x10000) return false;
+	if ($c <= 0x10FFFF) return true;
+	return false;
+}
+
+function xml_safe_str($str, $replace = true)
+{
+	$return = '';
+	for ($i = 0, $len = mb_strlen($str); $i < $len; ++$i)
+	{
+		$s = mb_substr($str, $i, 1);
+		if (is_xml_character(utf8_ord($s)))
+		{
+			if ($replace)
+			{
+				$return .= $s;
+			}
+			else
+			{
+				return false;
+			}
+		}
+	}
+	return $return;
+}

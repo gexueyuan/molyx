@@ -24,10 +24,9 @@ $mxajax_register_functions = array(
  */
 function open_close_thread($input, $postuserid, $fid = 0, $openclose = 0, $prms_fids = '')
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $response;
+	global $forums, $DB,  $bbuserinfo, $response;
 	if (is_array($input))
 	{
-		$_INPUT = init_input($input);
 		$valid_tids = $input['tid'];
 		$fid = intval($input['f']);
 	}
@@ -94,20 +93,21 @@ function open_close_thread($input, $postuserid, $fid = 0, $openclose = 0, $prms_
 
 function response_op_result($valid_tids, $fid)
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions, $response;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response;
 	//查询处理结果进行相应反馈和日志及短消息通知
 	$threads = $DB->query("SELECT open, postusername, postuserid, title, tid, sticky FROM " . TABLE_PREFIX . "thread  WHERE  tid IN (" . $valid_tids . ")");
 
 	$pm_touser = array();
 	$user_thread_num = array();
 	$moderator_log = array();
+	$title = input::str('title');
 	while ($thread = $DB->fetch_array($threads))
 	{
 		if ($thread['open'] == 1) //开放主题
 		{
 			$pic = 'folder.gif';
 			$open_close_lang = $forums->lang['openthread'];
-			$_INPUT['title'] = $forums->lang['openthreadpm'];
+			$title = $forums->lang['openthreadpm'];
 			$pic_alt = $forums->lang['openthread'];
 			$opreate_ret = $forums->lang['openthreadsuc'] . "[{$thread['title']}]";
 		}
@@ -115,7 +115,7 @@ function response_op_result($valid_tids, $fid)
 		{
 			$pic = 'closedfolder.gif';
 			$pic_alt = $forums->lang['closethread'];
-			$_INPUT['title'] = $forums->lang['closethreadpm'];
+			$title = $forums->lang['closethreadpm'];
 			$open_close_lang = $forums->lang['closethread'];
 			$opreate_ret = $forums->lang['closethreadsuc'] . "[{$thread['title']}]";
 		}
@@ -129,7 +129,7 @@ function response_op_result($valid_tids, $fid)
 			}
 			else
 			{
-				$user_thread_num[$thread['postusername']] = $_INPUT['title'];
+				$user_thread_num[$thread['postusername']] = $title;
 			}
 		}
 		//反馈操作结果
@@ -150,21 +150,21 @@ function response_op_result($valid_tids, $fid)
 		//发送短消息给主题作者
 		require_once(ROOT_PATH . 'includes/functions_private.php');
 		$pm = new functions_private();
-		$_INPUT['noredirect'] = 1;
+		input::set('noredirect', 1);
 		$bboptions['usewysiwyg'] = 1;
 		$bboptions['pmallowhtml'] = 1;
 		foreach ($pm_touser AS $uname => $thread)
 		{
-			$_INPUT['username'] = $uname;
+			input::set('username', $uname);
 			if (intval($user_thread_num[$uname]) > 1)
 			{
-				$_INPUT['title'] = $forums->lang['threads_openorclose'];
+				input::set('title', $forums->lang['threads_openorclose']);
 			}
 			else
 			{
-				$_INPUT['title'] = $user_thread_num[$uname];
+				input::set('title', $user_thread_num[$uname]);
 			}
-			$_POST['post'] = implode('<br />', $thread);
+			input::set('post', implode('<br />', $thread));
 			$pm->sendpm();
 		}
 	}
@@ -180,7 +180,7 @@ function response_op_result($valid_tids, $fid)
  */
 function change_thread_attr($tid, $color = 'reset', $bold = 0)
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $response;
+	global $forums, $DB, $bbuserinfo, $response;
 	//在没有传递主题ID参数或没有登陆，则不进行任何操作直接返回
 	if (!$tid || !$bbuserinfo['id'])
 	{
@@ -291,7 +291,7 @@ function change_thread_attr($tid, $color = 'reset', $bold = 0)
 
 function change_thread_title($tid, $title, $oldthreadhtml = '')
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $response;
+	global $forums, $DB, $bbuserinfo, $response;
 	//在没有传递主题ID参数或没有登陆，则不进行任何操作直接返回
 	if (!$tid || !$bbuserinfo['id'])
 	{
@@ -409,7 +409,7 @@ function change_thread_title($tid, $title, $oldthreadhtml = '')
  */
 function do_change_forumrule($fid, $forumrule = '', $wmode = 1)
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions, $response;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response;
 	$can_edit_forumrule = false;
 	if ($bbuserinfo['supermod'])
 	{
@@ -475,13 +475,14 @@ function do_change_forumrule($fid, $forumrule = '', $wmode = 1)
 
 function process_form($input, $action)
 {
-	global $forums, $bboptions, $response, $_INPUT, $DB;
+	global $forums, $bboptions, $response, $DB;
 	$forums->func->load_lang('moderate');
-	$_INPUT = init_input($input);
-	$fid = intval($_INPUT['f']);
+	input::set($input);
+
+	$fid = input::int('f');
 	if (!$action)
 	{
-		$action = $_INPUT['do'];
+		$action = input::str('do');
 	}
 	$prms_fids = '';
 	$prms_action = array(
@@ -509,17 +510,22 @@ function process_form($input, $action)
 			'quintessence' => 'canquintessence',		//清除移动标记
 			'unquintessence' => 'canquintessence',		//清除移动标记
 	);
-	if ($_INPUT['t'])
+
+	$t = input::int('t');
+	$tid = input::arr('tid');
+	if ($t)
 	{
-		$_INPUT['tid'][] = $_INPUT['t'];
+		$tid[] = $t;
+		input::set('tid', $tid);
 	}
 
-	if (!$_INPUT['tid'])
+	if (!$tid)
 	{
 		$forums->func->load_lang('error');
 		show_processinfo($forums->lang['erroroperation']);
 		return $response;
 	}
+
 	$prms_fid = check_moderate_prms($prms_action[$action], $fid);
 	if (!$prms_fid)
 	{
@@ -532,9 +538,9 @@ function process_form($input, $action)
 		$prms_fids = ' AND forumid IN (' . implode(',', $prms_fid) . ')';
 	}
 
-	if ($_INPUT['do'])
+	if ($action)
 	{
-		switch ($_INPUT['do'])
+		switch ($action)
 		{
 			case 'open' :
 				open_close_thread($input, 0, $fid, 1, $prms_fids);
@@ -582,133 +588,127 @@ function process_form($input, $action)
 				break;
 		}
 	}
-	else
+	else if ($tid)
 	{
-		if ($_INPUT['tid'])
+		$mod_action = array(
+				'openclose' => array(
+					'close' => $forums->lang['threadclose'],  //关闭主题
+					'open' => $forums->lang['threadopen'],   //开放主题
+				),	//开放/关闭主题
+				'approveorcancel' => array(
+					'approve' => $forums->lang['threadapprove'],		//验证主题
+					'unapprove' => $forums->lang['threadunapprove'],		//撤销验证主题
+				),	//验证/撤销主题
+				'moveclearthreads' => array(
+					'movethreads' => $forums->lang['movethreads'],		//移动主题
+					'cleanmoveurl' => $forums->lang['cleanmoveurl'],		//清理验证主题
+				),	//移动/清理主题
+				'quintessence' => array(
+					'quintessence' => $forums->lang['modquintess'],		//设置精华
+					'unquintessence' => $forums->lang['modunquintess'],		//取消精华
+				),	//精华/撤销精华	//移动/清理主题
+				'dospecialtopic' => array(
+					'specialtopic' => $forums->lang['threadspecialtopic'],	//设置专题
+					'unspecialtopic' => $forums->lang['unthreadspecialtopic'],		//取消专题
+				),	//设置/取消专题
+		);
+		//默认选中的操作
+		$action_checked = array(
+				'close' => ' checked="checked"',
+				'gstick' => ' checked="checked"',
+				'unapprove' => ' checked="checked"',
+				'quintessence' => ' checked="checked"',
+				'movethreads' => ' checked="checked"',
+				'specialtopic' => ' checked="checked"',
+		);
+		//点击事件
+		$click_event = array(
+				'movethreads' => ' onclick="showElement(\'movethread_extra\');"',
+				'cleanmoveurl' => ' onclick="hideElement(\'movethread_extra\');"',
+		);
+		if ($action == 'moveclearthreads')
 		{
-			$mod_action = array(
-					'openclose' => array(
-						'close' => $forums->lang['threadclose'],  //关闭主题
-						'open' => $forums->lang['threadopen'],   //开放主题
-					),	//开放/关闭主题
-					'approveorcancel' => array(
-						'approve' => $forums->lang['threadapprove'],		//验证主题
-						'unapprove' => $forums->lang['threadunapprove'],		//撤销验证主题
-					),	//验证/撤销主题
-					'moveclearthreads' => array(
-						'movethreads' => $forums->lang['movethreads'],		//移动主题
-						'cleanmoveurl' => $forums->lang['cleanmoveurl'],		//清理验证主题
-					),	//移动/清理主题
-					'quintessence' => array(
-						'quintessence' => $forums->lang['modquintess'],		//设置精华
-						'unquintessence' => $forums->lang['modunquintess'],		//取消精华
-					),	//精华/撤销精华	//移动/清理主题
-					'dospecialtopic' => array(
-						'specialtopic' => $forums->lang['threadspecialtopic'],	//设置专题
-						'unspecialtopic' => $forums->lang['unthreadspecialtopic'],		//取消专题
-					),	//设置/取消专题
-			);
-			//默认选中的操作
-			$action_checked = array(
-					'close' => ' checked="checked"',
-					'gstick' => ' checked="checked"',
-					'unapprove' => ' checked="checked"',
-					'quintessence' => ' checked="checked"',
-					'movethreads' => ' checked="checked"',
-					'specialtopic' => ' checked="checked"',
-			);
-			//点击事件
-			$click_event = array(
-					'movethreads' => ' onclick="showElement(\'movethread_extra\');"',
-					'cleanmoveurl' => ' onclick="hideElement(\'movethread_extra\');"',
-			);
-			if ($action == 'moveclearthreads')
-			{
-				$forums->func->check_cache('forum');
-				$foruminfo = $forums->cache['forum'];
-				$forums_info = list_forums();
-				$forums->lang['movethreadto'] = sprintf($forums->lang['movethreadto'], $foruminfo[$fid]['name'], $forum['name']);
-				$forums->lang['moveallthreadto'] = sprintf($forums->lang['moveallthreadto'], $fname);
-			}
-			elseif ($action == 'stickorcancel')
-			{
-				$forums->func->check_cache('forum');
-				$this_forum = $forums->forum->single_forum($fid);
-				$forums_info = '<option value="' . $fid . '">' . $forums->lang['currentforumstick'] . '</option>';
-				if (check_moderate_prms('canqstickthread', $fid))
-				{
-					$forums_info .= list_stickys(explode(',', $this_forum['parentlist']));
-				}
-				if (check_moderate_prms('cangstickthread', $fid))
-				{
-					$forums_info .= '<option value="-1">' . $forums->lang['threadgstick'] . '</option>';
-				}
-			}
-			elseif ($action == 'dospecialtopic')
-			{
-				$this_forum = $forums->forum->single_forum($fid);
-				if (!$this_forum['specialtopic'])
-				{
-					show_processinfo($forums->lang['nospecials']);
-					return $response;
-				}
-				$forums->func->check_cache('st');
-				$forumsspecial = $forums->cache['st'];
-				if (!$forumsspecial)
-				{
-					show_processinfo($forums->lang['nospecials']);
-					return $response;
-				}
-				$specialtopic = explode(',', $this_forum['specialtopic']);
-				if ($this_forum['forcespecial'])
-				{
-					unset($mod_action[$action]['unspecialtopic']);
-				}
-			}
-			$opreate_name = $forums->lang[$action]; //显示当前操作
-			$opreate_description = $forums->lang[$action . 'desc']; //显示当前操作的说明
-			if ($action == 'commend_thread')
-			{
-				$opreate_description = sprintf($opreate_description, $bboptions['commend_thread_num']);
-			}
-			$do_actions = $mod_action[$action];
-			$tids = implode(',', $_INPUT['tid']);
-			$DB->query("SELECT * FROM " . TABLE_PREFIX . "thread
-						WHERE tid IN (" . $tids . "){$prms_fids}
-						ORDER BY dateline DESC");
-			$thread = array();
-			while ($row = $DB->fetch_array())
-			{
-				$thread[] = $row;
-			}
-			if (count($thread) == 1)
-			{
-				$t_title = strip_tags($thread[0]['title']);
-				$special_selected[$thread[0]['stopic']] = ' selected="selected"';
-				$show_single = true;
-			}
-			$bboptions['gzipoutput'] = 0;
-			unset($input['tid'], $input['pid'], $input['code']);
-			ob_end_clean();
-			ob_start();
-			include $forums->func->load_template('confirm_operate_thread');
-			$thread_content = ob_get_contents();
-			ob_end_clean();
-			$response->assign('show_operation', 'innerHTML', $thread_content);
-			$response->call('showElement', 'operation_pannel');
-			$response->call('toCenter', 'operation_pannel');
+			$forums->func->check_cache('forum');
+			$foruminfo = $forums->cache['forum'];
+			$forums_info = list_forums();
+			$forums->lang['movethreadto'] = sprintf($forums->lang['movethreadto'], $foruminfo[$fid]['name'], $forum['name']);
+			$forums->lang['moveallthreadto'] = sprintf($forums->lang['moveallthreadto'], $fname);
 		}
+		elseif ($action == 'stickorcancel')
+		{
+			$forums->func->check_cache('forum');
+			$this_forum = $forums->forum->single_forum($fid);
+			$forums_info = '<option value="' . $fid . '">' . $forums->lang['currentforumstick'] . '</option>';
+			if (check_moderate_prms('canqstickthread', $fid))
+			{
+				$forums_info .= list_stickys(explode(',', $this_forum['parentlist']));
+			}
+			if (check_moderate_prms('cangstickthread', $fid))
+			{
+				$forums_info .= '<option value="-1">' . $forums->lang['threadgstick'] . '</option>';
+			}
+		}
+		elseif ($action == 'dospecialtopic')
+		{
+			$this_forum = $forums->forum->single_forum($fid);
+			if (!$this_forum['specialtopic'])
+			{
+				show_processinfo($forums->lang['nospecials']);
+				return $response;
+			}
+			$forums->func->check_cache('st');
+			$forumsspecial = $forums->cache['st'];
+			if (!$forumsspecial)
+			{
+				show_processinfo($forums->lang['nospecials']);
+				return $response;
+			}
+			$specialtopic = explode(',', $this_forum['specialtopic']);
+			if ($this_forum['forcespecial'])
+			{
+				unset($mod_action[$action]['unspecialtopic']);
+			}
+		}
+		$opreate_name = $forums->lang[$action]; //显示当前操作
+		$opreate_description = $forums->lang[$action . 'desc']; //显示当前操作的说明
+		if ($action == 'commend_thread')
+		{
+			$opreate_description = sprintf($opreate_description, $bboptions['commend_thread_num']);
+		}
+		$do_actions = $mod_action[$action];
+		$tids = implode(',', $tid);
+		$DB->query("SELECT * FROM " . TABLE_PREFIX . "thread
+					WHERE tid IN (" . $tids . "){$prms_fids}
+					ORDER BY dateline DESC");
+		$thread = array();
+		while ($row = $DB->fetch_array())
+		{
+			$thread[] = $row;
+		}
+		if (count($thread) == 1)
+		{
+			$t_title = strip_tags($thread[0]['title']);
+			$special_selected[$thread[0]['stopic']] = ' selected="selected"';
+			$show_single = true;
+		}
+		$bboptions['gzipoutput'] = 0;
+		unset($input['tid'], $input['pid'], $input['code']);
+		ob_end_clean();
+		ob_start();
+		include $forums->func->load_template('confirm_operate_thread');
+		$thread_content = ob_get_contents();
+		ob_end_clean();
+		$response->assign('show_operation', 'innerHTML', $thread_content);
+		$response->call('showElement', 'operation_pannel');
+		$response->call('toCenter', 'operation_pannel');
 	}
 	return $response;
 }
 
 function approveunapprove($input, $prms_fids, $type = 'approve')
 {
-	global $forums, $DB, $bbuserinfo, $_INPUT, $mod_func, $response;
-	if (!$input)
-	{
-		$input = $_INPUT;
-	}
+	global $forums, $DB, $bbuserinfo, $mod_func, $response;
+
 	if ($type == 'approve')
 	{
 		$action = $forums->lang['approvethread'];
@@ -721,15 +721,17 @@ function approveunapprove($input, $prms_fids, $type = 'approve')
 		$update_to_value = 0;
 		$class_name = 'item_list_shaded';
 	}
-	$tids = implode(',', $_INPUT['tid']);
+
+	$tid = input::arr('tid');
+	$tids = implode(',', $tid);
 	$DB->update(TABLE_PREFIX . 'thread', array('visible' => $update_to_value), 'tid IN (' . $tids . ')' . $prms_fids);
 	//记录版主操作日志
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
 	$mod_func = new modfunctions();
-	$change_threadids = $_INPUT['tid'];
-	if (count ($_INPUT['tid']) > 1)
+	$change_threadids = $tid;
+	if (count ($tid) > 1)
 	{
-		add_thread_log($_INPUT['tid'], $action);
+		add_thread_log($tid, $action);
 		add_moderate_log($action . " - " . $forums->lang['threadid'] . ": " . $tids);
 	}
 	else
@@ -737,7 +739,7 @@ function approveunapprove($input, $prms_fids, $type = 'approve')
 		$thread = $DB->query_first('SELECT tid, title FROM '. TABLE_PREFIX . "thread
 						  			WHERE tid = " . intval($tids));
 
-		$_INPUT['tid'] = $thread['tid'];
+		input::set('tid', $thread['tid']);
 		add_thread_log($thread['tid'], $action);
 		add_moderate_log($action . " - " . $thread['title']);
 	}
@@ -748,21 +750,24 @@ function approveunapprove($input, $prms_fids, $type = 'approve')
 	}
 	$response->assign('selectall', 'checked', false);
 	show_processinfo($action);
-	forum_recount($_INPUT['f']);
+	forum_recount(input::int('f'));
 	$response->call('hideElement', 'operation_pannel');
 	$response->assign('show_operation', 'innerHTML', '');
 }
 
 function merge_threads()
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $response, $mod_func;
+	global $forums, $DB, $bbuserinfo, $response, $mod_func;
 	if(!$mod_func)
 	{
 		require_once(ROOT_PATH . "includes/functions_moderate.php");
 		$mod_func = new modfunctions();
 	}
-	$count = count($_INPUT['tid']);
-	if ($count < 2 && !trim($_INPUT['threadurl']))
+
+	$tid = input::arr('tid');
+	$threadurl = input::str('threadurl');
+	$count = count($tid);
+	if ($count < 2 && !$threadurl)
 	{
 		$forums->func->load_lang('error');
 		show_processinfo($forums->lang['selectmerge']);
@@ -771,13 +776,13 @@ function merge_threads()
 	$merge_ids = $direct_merge_ids = $move_merge_ids = array();
 	if ($count < 2)
 	{
-		if (preg_match('/^[0-9]+$/', $_INPUT['threadurl']))
+		if (preg_match('/^[0-9]+$/', $threadurl))
 		{
-			$old_id = intval($_INPUT['threadurl']);
+			$old_id = (int) $threadurl;
 		}
 		else
 		{
-			preg_match("/(\?|&amp;)t=(\d+)($|&amp;)/", $_INPUT['threadurl'], $match);
+			preg_match("/(\?|&amp;)t=(\d+)($|&amp;)/", $threadurl, $match);
 			$old_id = intval(trim($match[2]));
 		}
 		if (!$old_id)
@@ -797,7 +802,7 @@ function merge_threads()
 		}
 		$thread = $DB->query_first('SELECT *
 			FROM ' . TABLE_PREFIX . 'thread
-			WHERE ' . $DB->sql_in('tid', $_INPUT['tid']));
+			WHERE ' . $DB->sql_in('tid', $tid));
 		if ($old_id == $thread['tid'])
 		{
 			$forums->func->load_lang('error');
@@ -838,7 +843,11 @@ function merge_threads()
 		$new_id = $thread['tid'];
 		$posttable = $thread['posttable'] ? $thread['posttable'] : 'post';
 		$old_posttable = $old_thread['posttable'] ? $old_thread['posttable'] : 'post';
-		$new_title = $_INPUT['title'] ? $_INPUT['title'] : $thread['title'];
+		$new_title = input::str('title');
+		if (!$new_title)
+		{
+			$new_title = $thread['title'];
+		}
 		if ($posttable == $old_posttable)
 		{
 			$direct_merge_ids[] = $old_thread['tid'];
@@ -860,7 +869,7 @@ function merge_threads()
 		$forums_recount = $thread = array();
 		$result = $DB->query('SELECT tid, title, description, posttable, forumid
 			FROM ' . TABLE_PREFIX . 'thread
-			WHERE ' . $DB->sql_in('tid', $_INPUT['tid']) . '
+			WHERE ' . $DB->sql_in('tid', $tid) . '
 			ORDER BY dateline ASC');
 		while ($row = $DB->fetch_array($result))
 		{
@@ -876,7 +885,11 @@ function merge_threads()
 		$first_thread = array_shift($thread);
 		$new_id = $first_thread['tid'];
 		$posttable = $first_thread['posttable'] ? $first_thread['posttable'] : 'post';
-		$new_title = $_INPUT['title'] ? $_INPUT['title'] : $first_thread['title'];
+		$new_title = input::str('title');
+		if (!$new_title)
+		{
+			$new_title = $first_thread['title'];
+		}
 		foreach($thread AS $t)
 		{
 			$old_posttable = $t['posttable'] ? $t['posttable'] : 'post';
@@ -890,7 +903,7 @@ function merge_threads()
 			}
 			$merge_ids[] = $t['tid'];
 		}
-		add_moderate_log($forums->lang['mergethread'] . " - " . $forums->lang['threadid'] . ": " . implode(',', $_INPUT['tid']));
+		add_moderate_log($forums->lang['mergethread'] . " - " . $forums->lang['threadid'] . ": " . implode(',', $tid));
 	}
 
 	$merge_ids = implode(',', $merge_ids);
@@ -945,13 +958,13 @@ function merge_threads()
 		forum_recount($fid);
 	}
 	show_processinfo($forums->lang['hasmerged']);
-	if ($_INPUT['f'])
+	if (input::int('f'))
 	{
 		$url = "showthread.php?{$forums->js_sessionurl}t=" . $new_id;
 	}
 	else
 	{
-		$url = $_INPUT['search_type'] . ".php?{$forums->js_sessionurl}do=show&searchid=" . $_INPUT['searchid'] . '&highlight=' . urlencode($_INPUT['highlight']);
+		$url = input::str('search_type') . ".php?{$forums->js_sessionurl}do=show&searchid=" . input::str('searchid') . '&highlight=' . urlencode(input::str('highlight'));
 	}
 	$response->redirect($url);
 	return $response;
@@ -959,11 +972,11 @@ function merge_threads()
 
 function list_stickys($forumids = array())
 {
-	global $forums, $_INPUT, $bboptions, $bbuserinfo;
+	global $forums, $bboptions, $bbuserinfo;
 	$foruminfo = $forums->cache['forum'];
 
 	$forum_jump = '<optgroup label="' . $forums->lang['stick_to_forum'] . '">';
-;
+	$f = input::int('f');
 	foreach((array) $foruminfo as $id => $forum)
 	{
 		if (($forum['canshow'] != '*' && $forums->func->fetch_permissions($forum['canshow'], 'canshow') != true) || $forum['url'])
@@ -976,7 +989,7 @@ function list_stickys($forumids = array())
 			continue;
 		}
 
-		if ($_INPUT['f'] && $_INPUT['f'] == $forum['id'])
+		if ($f == $forum['id'])
 		{
 			continue;
 		}
@@ -988,11 +1001,12 @@ function list_stickys($forumids = array())
 
 function move_threads()
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $response, $mod_func;
+	global $forums, $DB, $bbuserinfo, $response, $mod_func;
 
-	$dest_id = intval($_INPUT['move_id']);
-	$source_id = $_INPUT['f'];
-	$_INPUT['leave'] = $_INPUT['leave'] == '1' ? 1 : 0;
+	$dest_id = input::int('move_id');
+	$source_id = input::int('f');
+	$leave = input::int('leave');
+
 	if ($source_id == "")
 	{
 		$forums->func->load_lang('error');
@@ -1026,25 +1040,27 @@ function move_threads()
 	$forums->func->check_cache('forum');
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
 	$mod_func = new modfunctions();
-	$mod_func->thread_move($_INPUT['tid'], $source_id, $dest_id, $_INPUT['leave']);
+	$tid = input::arr('tid');
+	$mod_func->thread_move($tid, $source_id, $dest_id, $leave);
 	forum_recount($source_id);
 	forum_recount($dest_id);
 	$forums->lang['movethreadto'] = sprintf($forums->lang['movethreadto'], $forums->cache['forum'][$source_id]['name'], $forums->cache['forum'][$dest_id]['name']);
 	add_moderate_log($forums->lang['movethreadto']);
-	add_thread_log($_INPUT['tid'], $forums->lang['movethreadto']);
+	add_thread_log($tid, $forums->lang['movethreadto']);
 	show_processinfo($forums->lang['hasmoved']);
 
-	if ($_INPUT['t'])
+	$t = input::int('t');
+	if ($t)
 	{
-		$url = "showthread.php?{$forums->js_sessionurl}t=" . $_INPUT['t'];
+		$url = "showthread.php?{$forums->js_sessionurl}t=" . $t;
 	}
-	elseif ($_INPUT['f'])
+	elseif ($source_id)
 	{
 		$url = "forumdisplay.php?{$forums->js_sessionurl}f=" . $source_id;
 	}
 	else
 	{
-		$url = $_INPUT['search_type'] . ".php?{$forums->js_sessionurl}do=show&searchid=" . $_INPUT['searchid'] . '&highlight=' . urlencode($_INPUT['highlight']);
+		$url = input::str('search_type') . ".php?{$forums->js_sessionurl}do=show&searchid=" . input::str('searchid') . '&highlight=' . urlencode(input::str('highlight'));
 	}
 	$response->redirect($url);
 }

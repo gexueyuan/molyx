@@ -5,7 +5,7 @@ $mxajax_register_functions = array(
 
 function send_mailto_user($input, $uid)
 {
-	global $_INPUT, $DB, $bbuserinfo, $forums, $response, $bboptions;
+	global  $DB, $bbuserinfo, $forums, $response, $bboptions;
 	if (! $bbuserinfo['id'])
 	{
 		show_processinfo($forums->lang['notlogin']);
@@ -18,14 +18,14 @@ function send_mailto_user($input, $uid)
 		show_processinfo($forums->lang['noperms']);
 		return $response;
 	}
-	$_INPUT['u'] = intval($uid);
-	if (!$_INPUT['u'])
+	$uid = (int) $uid;
+	if (!$uid)
 	{
 		$forums->func->load_lang('error');
 		show_processinfo($forums->lang['cannotfindmailer']);
 		return $response;
 	}
-	if (!$user = $DB->query_first("SELECT id, name, email, emailcharset, options FROM " . TABLE_PREFIX . "user WHERE id=" . $_INPUT['u']))
+	if (!$user = $DB->query_first("SELECT id, name, email, emailcharset, options FROM " . TABLE_PREFIX . "user WHERE id=" . $uid))
 	{
 		$forums->func->load_lang('error');
 		show_processinfo($forums->lang['cannotfindmailer']);
@@ -56,9 +56,7 @@ function send_mailto_user($input, $uid)
 	}
 	else
 	{
-		$_POST['message'] = $input['message'];
-		$_INPUT = init_input($input);
-		if (! $_INPUT['subject'] OR ! $_INPUT['message'])
+		if (! $input['subject'] OR ! $input['message'])
 		{
 			$forums->func->load_lang('error');
 			show_processinfo($forums->lang['plzinputallform']);
@@ -67,13 +65,13 @@ function send_mailto_user($input, $uid)
 		require_once(ROOT_PATH . "includes/functions_email.php");
 		$email = new functions_email();
 		$message = $email->fetch_email_mailmember(array(
-			'message' => preg_replace("#<br.*>#siU", "\n", str_replace("\r", '', $_POST['message'])),
+			'message' => preg_replace("#<br.*>#siU", "\n", str_replace("\r", '', $input['message'])),
 			'username' => $user['name'],
 			'from' => $bbuserinfo['name']
 		));
 		$email->char_set = $user['emailcharset']?$user['emailcharset']:'GBK';
 		$email->build_message($message);
-		$email->subject = $_INPUT['subject'];
+		$email->subject = $input['subject'];
 		$email->to = $user['email'];
 		$email->from = $bbuserinfo['email'];
 		$email->send_mail();
@@ -85,7 +83,7 @@ function send_mailto_user($input, $uid)
 
 function digg_thread($tid)
 {
-	global $_INPUT, $DB, $bbuserinfo, $forums, $response, $bboptions;
+	global $DB, $bbuserinfo, $forums, $response, $bboptions;
 	if (! $bbuserinfo['id'])
 	{
 		show_processinfo($forums->lang['notlogin']);
@@ -130,4 +128,3 @@ function digg_thread($tid)
 	$response->assign('digg_exponent_' . $tid, 'innerHTML', intval($now_digg_exp['digg_exps']));
 	return $response;
 }
-?>

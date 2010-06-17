@@ -215,10 +215,7 @@ class input
 		}
 		else if (is_array($key))
 		{
-			foreach ($key as $k => $v)
-			{
-				self::set($k, $v);
-			}
+			array_map(array('self', 'set'), array_keys($key), $key);
 		}
 	}
 

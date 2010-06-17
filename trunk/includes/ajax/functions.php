@@ -16,7 +16,7 @@
  */
 function changemedo($do = '')
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions, $response;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response;
 	$do = init_input(array('d' => $do));
 	$do = $do['d'];
 	$userdo = str_replace(array("\n", '<br />'), ' ', trim($do));
@@ -62,12 +62,12 @@ function changemedo($do = '')
 	if ($touser) //短信通知
 	{
 		$userdo = substr($userdo, $usrnamepos + 1);
-		$_INPUT['title'] = sprintf($forums->lang['tomsgtitle'], $bbuserinfo['name']);
-		$_POST['post'] = $userdo;
-		$_INPUT['username'] = $tousername;
+		input::set('title', sprintf($forums->lang['tomsgtitle'], $bbuserinfo['name']));
+		input::set('post', $userdo);
+		input::set('username', $tousername);
 		require_once(ROOT_PATH . 'includes/functions_private.php');
 		$pm = new functions_private();
-		$_INPUT['noredirect'] = 1;
+		input::set('noredirect', 1);
 		$bboptions['usewysiwyg'] = 1;
 		$bboptions['pmallowhtml'] = 1;
 		$pm->sendpm();
@@ -230,8 +230,8 @@ function check_moderate_prms($prms_action, $fid)
 
 function add_moderate_log($action = 'Unknown', $title = '')
 {
-	global $_INPUT, $mod_func;
-	$mod_func->add_moderate_log($_INPUT['f'], $_INPUT['tid'], $_INPUT['p'], $title, $action);
+	global $mod_func;
+	$mod_func->add_moderate_log(input::int('f'), input::arr('tid'), input::int('p'), $title, $action);
 }
 
 function add_thread_log($tids, $action = 'Unknown')
@@ -256,8 +256,8 @@ function add_thread_log($tids, $action = 'Unknown')
 
 function forum_recount($fid = '')
 {
-	global $_INPUT, $mod_func;
-	$forumid = $fid ? $fid : $_INPUT['f'];
+	global $mod_func;
+	$forumid = $fid ? $fid : input::int('f');
 	if(!$mod_func)
 	{
 		require_once(ROOT_PATH . "includes/functions_moderate.php");
@@ -268,7 +268,7 @@ function forum_recount($fid = '')
 
 function list_forums($override = 0)
 {
-	global $forums, $_INPUT;
+	global $forums;
 	$foruminfo = $forums->cache['forum'];
 
 	foreach((array) $foruminfo as $forum)
@@ -279,7 +279,7 @@ function list_forums($override = 0)
 		}
 		if ($override == 1)
 		{
-			$selected = ($_INPUT['f'] && $_INPUT['f'] == $forum['id']) ? " selected='selected'" : '';
+			$selected = (input::int('f') == $forum['id']) ? " selected='selected'" : '';
 		}
 		$forum_jump .= '<option value="' . $forum['id'] . '"' . $selected . '>' . depth_mark($forum['depth'], '--') . ' ' . $forum['name'] . '</option>' . "\n";
 	}
@@ -316,4 +316,3 @@ function fetch_recycleforum()
 	}
 	return $recycleforum;
 }
-?>

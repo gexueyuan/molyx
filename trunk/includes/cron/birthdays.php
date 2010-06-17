@@ -15,7 +15,7 @@ class cron_birthdays
 
 	function docron()
 	{
-		global $DB, $forums, $_INPUT;
+		global $DB, $forums;
 		$forums->func->load_lang('cron');
 
 		$send_user = false;
@@ -84,12 +84,12 @@ class cron_birthdays
 				}
 				if ($send['birthday_send_type'] == 1 OR $send['birthday_send_type'] == 2)
 				{
-					$_INPUT['title'] = $send_title;
-					$_POST['post'] = $send_message;
-					$_INPUT['username'] = $user['name'];
+					input::set('title', $send_title);
+					input::set('post', $send_message);
+					input::set('username', $user['name']);
 					require_once(ROOT_PATH . 'includes/functions_private.php');
 					$pm = new functions_private();
-					$_INPUT['noredirect'] = 1;
+					input::set('noredirect', 1);
 					$bbuserinfo['usewysiwyg'] = 0;
 					$pm->sendpm();
 				}
@@ -126,9 +126,9 @@ class cron_birthdays
 
 		$forums->func->check_cache('creditlist');
 		$usedcredit = array();
-		if ($forums->cache['creditlist']) 
+		if ($forums->cache['creditlist'])
 		{
-			foreach ($forums->cache['creditlist'] as $k => $v) 
+			foreach ($forums->cache['creditlist'] as $k => $v)
 			{
 				$usedcredit[$v['tag']] = $v['name'];
 			}
@@ -150,5 +150,3 @@ class cron_birthdays
 		$this->cron = $this_cron;
 	}
 }
-
-?>
