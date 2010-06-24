@@ -32,13 +32,13 @@ class area
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditforums'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
-		switch ($_INPUT['do'])
+		switch (input::str('do'))
 		{
 			case 'add':
 				$this->area_form('add');
@@ -72,7 +72,7 @@ class area
 
 	function show_list()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['adminarea'];
 		$detail = $forums->lang['adminareadesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
@@ -97,7 +97,7 @@ class area
 	
 	function area_content_list()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['area_content_list'];
 		$detail = $forums->lang['area_content_list'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
@@ -112,17 +112,17 @@ class area
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "area_content ac 
 						LEFT JOIN " . TABLE_PREFIX . "area a
 							ON a.areaid=ac.areaid
-					WHERE ac.areaid=" . intval($_INPUT['areaid']) . " ORDER BY ac.orderid ASC, ac.id DESC");
+					WHERE ac.areaid=" . intval(input::int('areaid')) . " ORDER BY ac.orderid ASC, ac.id DESC");
 		while ($r = $DB->fetch_array())
 		{
-			$manage = "<a href='area.php?{$forums->sessionurl}do=del_content&amp;id={$r['id']}&amp;areaid={$_INPUT['areaid']}' onclick=\"return confirm('{$forums->lang['confirmdelete']}');\">" . $forums->lang['delete'] . "</a>&nbsp;<a href='area.php?{$forums->sessionurl}do=edit_content&amp;id={$r['id']}'>" . $forums->lang['edit'] . "</a>&nbsp;";
+			$manage = "<a href='area.php?{$forums->sessionurl}do=del_content&amp;id={$r['id']}&amp;areaid=".intval(input::int('areaid'))."' onclick=\"return confirm('{$forums->lang['confirmdelete']}');\">" . $forums->lang['delete'] . "</a>&nbsp;<a href='area.php?{$forums->sessionurl}do=edit_content&amp;id={$r['id']}'>" . $forums->lang['edit'] . "</a>&nbsp;";
 			if ($r['titlelink']) 
 			{
 				$r['title'] = "<a href='{$r['titlelink']}' target='_blank'>" . $r['title'] . "</a>";
 			}
 			$forums->admin->print_cells_row(array($r['id'], $r['title'], $r['target'], $r['areaname'], $manage));
 		}
-		$extra = '<input type="button" class="button" value="' . $forums->lang['add_area_content'] . '" name="setbt" onclick="document.location.href=\'area.php?' . $forums->sessionurl . 'do=add_content&areaid='. $_INPUT['areaid'] .'\'" />';
+		$extra = '<input type="button" class="button" value="' . $forums->lang['add_area_content'] . '" name="setbt" onclick="document.location.href=\'area.php?' . $forums->sessionurl . 'do=add_content&areaid='. intval(input::int('areaid')) .'\'" />';
 		$forums->admin->print_cells_single_row($extra, 'right');
 		$forums->admin->print_table_footer();
 		$forums->admin->print_form_end();
@@ -131,7 +131,7 @@ class area
 	
 	function content_form($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$hiddens = array();
 		if ($type == 'edit') 
 		{
@@ -139,8 +139,8 @@ class area
 			$action = 'doedit_content';
 			$detail = '';
 			$table_title = $forums->lang['edit_area_content'];
-			$content_info = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "area_content WHERE id=" . intval($_INPUT['id']));
-			$hiddens[] = array('id', $_INPUT['id']);
+			$content_info = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "area_content WHERE id=" . intval(input::int('id')));
+			$hiddens[] = array('id', input::int('id'));
 		}
 		else 
 		{
@@ -148,7 +148,7 @@ class area
 			$action = 'doadd_content';
 			$detail = '';
 			$table_title = $forums->lang['add_area_content'];
-			$content_info = $_INPUT;
+			//$content_info = $_INPUT;
 		}
 		$hiddens[] = array('do', $action);
 		
@@ -160,19 +160,19 @@ class area
 		$areainfo = $this->fetch_area();
 		$forums->admin->print_table_start($table_title);
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['content_title'] . "</strong>" ,
-				$forums->admin->print_input_row("title", $content_info['title'])
+				$forums->admin->print_input_row("title", input::str('title'))
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['content_link'] . "</strong>" ,
-				$forums->admin->print_input_row("titlelink", $content_info['titlelink'])
+				$forums->admin->print_input_row("titlelink", input::str('titlelink'))
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['content_target'] . "</strong>" ,
-				$forums->admin->print_input_row("target", $content_info['target'], 'text', '', 8)
+				$forums->admin->print_input_row("target", input::str('target'), 'text', '', 8)
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['content_order'] . "</strong>" ,
-				$forums->admin->print_input_row("orderid", $content_info['orderid'], 'text', '', 8)
+				$forums->admin->print_input_row("orderid", input::str('orderid'), 'text', '', 8)
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bareaname'] . "</strong>" ,
-				$forums->admin->print_input_select_row("areaid", $areainfo, $content_info['areaid'])
+				$forums->admin->print_input_select_row("areaid", $areainfo, input::str('areaid'))
 				));
 		$forums->admin->print_form_end($table_title);
 		$forums->admin->print_table_footer();
@@ -181,37 +181,37 @@ class area
 	
 	function doadd_content()
 	{
-		global $DB, $forums, $_INPUT;
-		$area_content = array('title' => $_INPUT['title'],
-			'titlelink' => $_INPUT['titlelink'],
-			'target' => $_INPUT['target'],
-			'areaid' => $_INPUT['areaid'],
-			'orderid' => $_INPUT['orderid'],
+		global $DB, $forums;
+		$area_content = array('title' => input::str('title'),
+			'titlelink' => input::str('titlelink'),
+			'target' => input::str('target'),
+			'areaid' => input::str('areaid'),
+			'orderid' => input::str('orderid'),
 			);
 		$DB->insert(TABLE_PREFIX . 'area_content', $area_content);
 		$this->recache();
-		$forums->admin->redirect("area.php?do=list_content&amp;areaid={$_INPUT['areaid']}", $forums->lang['area_content_list'], $forums->lang['add_content_suc']);
+		$forums->admin->redirect("area.php?do=list_content&amp;areaid=".intval(input::int('areaid')), $forums->lang['area_content_list'], $forums->lang['add_content_suc']);
 	}
 	
 	function doedit_content()
 	{
-		global $DB, $forums, $_INPUT;
-		$area_content = array('title' => $_INPUT['title'],
-			'titlelink' => $_INPUT['titlelink'],
-			'target' => $_INPUT['target'],
-			'areaid' => $_INPUT['areaid'],
-			'orderid' => $_INPUT['orderid'],
+		global $DB, $forums;
+		$area_content = array('title' => input::str('title'),
+			'titlelink' => input::str('titlelink'),
+			'target' => input::str('target'),
+			'areaid' => input::str('areaid'),
+			'orderid' => input::str('orderid'),
 			);
-		$DB->update(TABLE_PREFIX . 'area_content', $area_content, 'id = ' . intval($_INPUT['id']));
+		$DB->update(TABLE_PREFIX . 'area_content', $area_content, 'id = ' . intval(input::int('id')));
 		$this->recache();
-		$forums->admin->redirect("area.php?do=list_content&amp;areaid={$_INPUT['areaid']}", $forums->lang['area_content_list'], $forums->lang['edit_content_suc']);
+		$forums->admin->redirect("area.php?do=list_content&amp;areaid=".intval(input::int('areaid')), $forums->lang['area_content_list'], $forums->lang['edit_content_suc']);
 	}
 	function del_content()
 	{
-		global $DB, $forums, $_INPUT;
-		$DB->delete(TABLE_PREFIX . 'area_content', 'id = ' . intval($_INPUT['id']));
+		global $DB, $forums;
+		$DB->delete(TABLE_PREFIX . 'area_content', 'id = ' . intval(input::int('id')));
 		$this->recache();
-		$forums->admin->redirect("area.php?do=list_content&amp;areaid={$_INPUT['areaid']}", $forums->lang['area_content_list'], $forums->lang['del_content_suc']);
+		$forums->admin->redirect("area.php?do=list_content&amp;areaid=".intval(input::int('areaid')), $forums->lang['area_content_list'], $forums->lang['del_content_suc']);
 	}
 	
 	function fetch_area()
@@ -228,11 +228,11 @@ class area
 	
 	function recache()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$forums->func->check_cache('forum');
 		foreach ($forums->cache['forum'] AS $fid => $v)
 		{
-			$_INPUT['f'] = $fid;
+			input::set('f', $fid);
 			$forums->func->recache('forum_area');
 		}
 	}
