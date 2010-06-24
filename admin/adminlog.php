@@ -14,14 +14,14 @@ class adminlog
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['canviewadminlogs'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$forums->admin->nav[] = array("adminlog.php", $forums->lang['adminlog']);
-		switch ($_INPUT['do'])
+		switch (input::str('do'))
 		{
 			case 'view':
 				$this->view();
@@ -37,30 +37,30 @@ class adminlog
 
 	function view()
 	{
-		global $forums, $DB, $_INPUT;
-		$pp = $_INPUT['pp'] ? $_INPUT['pp'] : 0;
+		global $forums, $DB;
+		$pp = input::int('pp') ? input::int('pp') : 0;
 		$pagetitle = $forums->lang['adminlog'];
 		$detail = $forums->lang['viewalladminlog'];
 		$forums->admin->nav[] = array("adminlog.php?do=view", $forums->lang['viewadminlog']);
-		if ($_INPUT['key'] == "")
+		if (input::str('key') == "")
 		{
-			if (!$_INPUT['u'])
+			if (!input::int('u'))
 			{
 				$forums->main_msg = $forums->lang['inputkeywords'];
 				return $this->loglist();
 			}
-			$row = $DB->query_first("SELECT COUNT(adminlogid) as count FROM " . TABLE_PREFIX . "adminlog WHERE userid=" . intval($_INPUT['u']) . "");
+			$row = $DB->query_first("SELECT COUNT(adminlogid) as count FROM " . TABLE_PREFIX . "adminlog WHERE userid=" . intval(input::int('u')) . "");
 			$row_count = $row['count'];
-			$query = "u=" . $_INPUT['u'] . "&amp;do=view";
-			$DB->query("SELECT a.*, u.id, u.name FROM " . TABLE_PREFIX . "adminlog a, " . TABLE_PREFIX . "user u WHERE a.userid='" . $_INPUT['u'] . "' AND a.userid=u.id ORDER BY a.dateline DESC LIMIT " . $pp . ", 20");
+			$query = "u=" . input::int('u') . "&amp;do=view";
+			$DB->query("SELECT a.*, u.id, u.name FROM " . TABLE_PREFIX . "adminlog a, " . TABLE_PREFIX . "user u WHERE a.userid='" . input::int('u') . "' AND a.userid=u.id ORDER BY a.dateline DESC LIMIT " . $pp . ", 20");
 		}
 		else
 		{
-			$_INPUT['key'] = rawurldecode($_INPUT['key']);
-			$where = $_INPUT['type'] . " LIKE '%" . $_INPUT['key'] . "%'";
+			input::str('key') = rawurldecode(input::str('key'));
+			$where = input::str('type') . " LIKE '%" . input::str('key') . "%'";
 			$row = $DB->query_first("SELECT COUNT(adminlogid) as count FROM " . TABLE_PREFIX . "adminlog WHERE " . $where . "");
 			$row_count = $row['count'];
-			$query = "do=view&amp;type={$_INPUT['type']}&amp;key=" . urlencode($_INPUT['key']);
+			$query = "do=view&amp;type=".input::str('type')."&amp;key=" . urlencode(input::str('key'));
 			$DB->query("SELECT a.*, u.id, u.name FROM " . TABLE_PREFIX . "adminlog a, " . TABLE_PREFIX . "user u
 				 WHERE a.userid=u.id AND " . $where . " ORDER BY a.dateline DESC LIMIT " . $pp . ", 20");
 		}
@@ -100,12 +100,12 @@ class adminlog
 
 	function remove()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['u'] == "")
+		global $forums, $DB;
+		if (!input::int('u'))
 		{
 			$forums->admin->print_cp_error($forums->lang['nodeleteusers']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "adminlog WHERE userid=" . $_INPUT['u'] . "");
+		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "adminlog WHERE userid=" . input::int('u') . "");
 		$forums->func->standard_redirect("adminlog.php?" . $forums->sessionurl);
 	}
 
