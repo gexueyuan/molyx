@@ -20,10 +20,10 @@ class announce
 
 	function show()
 	{
-		global $_INPUT, $DB, $bbuserinfo, $bboptions, $forums;
+		global $DB, $bbuserinfo, $bboptions, $forums;
 		$forums->func->load_lang('showthread');
-		$this->pp = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$this->offset = $_INPUT['offset'] ? intval($_INPUT['offset']) : 0;
+		$this->pp = input::int('pp');
+		$this->offset = input::int('offset');
 		$pages = '';
 		$forums->lang['announcement'] = convert($forums->lang['announcement']);
 

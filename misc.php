@@ -64,7 +64,7 @@ class misc
 	function show_voters()
 	{
 		global $forums, $DB, $bbuserinfo, $bboptions;
-		$pollid = input::get('pollid');
+		$pollid = input::int('pollid');
 		if (!$pollid)
 		{
 			$errmsg = $forums->lang['cannotfindpost'];
@@ -118,7 +118,7 @@ class misc
 	function whobought()
 	{
 		global $forums, $DB, $bbuserinfo, $bboptions;
-		$pid = input::get('pid');
+		$pid = input::int('pid');
 		if (!$pid)
 		{
 			$errmsg = $forums->lang['cannotfindpost'];
@@ -143,8 +143,8 @@ class misc
 	function banuserpost()
 	{
 		global $forums, $DB, $bbuserinfo, $bboptions;
-		$uid = input::get('uid');
-		$fid = input::get('fid');
+		$uid = input::int('uid');
+		$fid = input::int('fid');
 		$user = $DB->query_first("SELECT id, name, liftban, usergroupid
 			FROM " . TABLE_PREFIX . "user WHERE id=$uid");
 		if (!$user['id'])
@@ -158,7 +158,7 @@ class misc
 		$ban = banned_detect($user['liftban']);
 		if (input::get('update', ''))
 		{
-			$permanent = input::get('permanent');
+			$permanent = input::int('permanent');
 			if (!$permanent)
 			{
 				echo "<script language='javascript'>
@@ -180,7 +180,7 @@ class misc
 				$limitunit = substr($moderator['bantimelimit'], -1);
 				$limitfactor = ($limitunit == 'd') ? 86400 : 3600;
 				$limitspan = TIMENOW + ($timelimit * $limitfactor);
-				$timespan = input::get('posttimespan');
+				$timespan = input::int('posttimespan');
 				$spanfactor = (input::get('banpostunit', '') == 'd') ? 86400 : 3600;
 				$posttimespan = TIMENOW + ($timespan * $spanfactor);
 				if ($limitspan < $posttimespan)
@@ -204,7 +204,7 @@ class misc
 			{
 				$msg = $forums->lang['banusersuccess'];
 				$usergroupid = 5;
-				$banposts = input::get('banbbspost') ? -1 : -2;
+				$banposts = input::int('banbbspost') ? -1 : -2;
 				$opera = $forums->lang['optionlog1'].$bbuserinfo['name'].$forums->lang['optionlog2'].$time.$forums->lang['optionlog3'];
 				if ($banposts == -1)
 				{
@@ -230,7 +230,7 @@ class misc
 				//按时封禁用户在所有版面内
 				case 1:
 					$liftban = banned_detect(array(
-						'timespan' => input::get('usertimespan'),
+						'timespan' => input::int('usertimespan'),
 						'unit' => input::get('banuserunit', ''),
 						'groupid' => $user['usergroupid'],
 						'banuser' => $bbuserinfo['name'],
@@ -241,7 +241,7 @@ class misc
 				case 2:
 					$msg = $forums->lang['banpostsuccess'];
 					$usergroupid = $user['usergroupid'];
-					$banposts = input::get('banbbspost') ? $fid : -2;
+					$banposts = input::int('banbbspost') ? $fid : -2;
 					if ($banposts > 0)
 					{
 						$opera = $forums->lang['optionlog1'].$bbuserinfo['name'].$forums->lang['optionlog2'].$time.$forums->lang['optionlog3'];
@@ -265,7 +265,7 @@ class misc
 						}
 					}
 					$liftban = banned_detect(array(
-						'timespan' => input::get('posttimespan'),
+						'timespan' => input::int('posttimespan'),
 						'unit' => input::get('banpostunit', ''),
 						'groupid' => $user['usergroupid'],
 						'banuser' => $bbuserinfo['name'],
@@ -383,8 +383,8 @@ class misc
 	function buyhidden()
 	{
 		global $forums, $DB, $bbuserinfo;
-		$pid = input::get('pid');
-		$tid = input::get('tid');
+		$pid = input::int('pid');
+		$tid = input::int('tid');
 		if (!$pid OR !$tid)
 		{
 			$forums->func->standard_error("cannotfindpost");
@@ -468,7 +468,7 @@ class misc
 	{
 		global $forums, $DB, $bboptions, $bbuserinfo;
 		$showforum = $forums->forum->forum_jump(1, 1);
-		if (input::get('update'))
+		if (input::int('update'))
 		{
 			$extra = array();
 			$forumlist = $this->get_forums();
@@ -483,7 +483,7 @@ class misc
 				$extra[] = "version=" . $version;
 			}
 
-			$limit = input::get('limit');
+			$limit = input::int('limit');
 			if ($limit)
 			{
 				$extra[] = "limit=" . $limit;
@@ -493,7 +493,7 @@ class misc
 		}
 		else
 		{
-			if (!input::get('f'))
+			if (!input::int('f'))
 			{
 				$selected = " selected='selected'";
 			}
@@ -615,7 +615,7 @@ class misc
 	function forumread()
 	{
 		global $forums, $bboptions;
-		$fid = input::get('f');
+		$fid = input::int('f');
 		if (!$fid)
 		{
 			$forums->func->standard_error("cannotfindforum");

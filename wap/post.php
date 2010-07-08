@@ -21,14 +21,23 @@ class newthread
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT;
-		$this->posthash = $_INPUT['posthash'] ? $_INPUT['posthash'] : md5(microtime());
-		if ($_INPUT['t'])
+		global $forums, $DB;
+		$this->posthash = input::str('posthash');
+		if (!$this->posthash)
+		{
+			$this->posthash = md5(microtime());
+		}
+
+		$t = input::int('t');
+		if ($t)
 		{
 			$this->type = 'reply';
-			$this->thread = $DB->query_first("SELECT t.*, u.usergroupid FROM " . TABLE_PREFIX . "thread t
-											  		LEFT JOIN " . TABLE_PREFIX . "user u ON (t.postuserid=u.id)
-			                                  WHERE t.forumid='" . intval($_INPUT['f']) . "' AND t.tid='" . intval($_INPUT['t']) . "'");
+			$this->thread = $DB->query_first("SELECT t.*, u.usergroupid
+				FROM " . TABLE_PREFIX . "thread t
+					LEFT JOIN " . TABLE_PREFIX . "user u
+						ON (t.postuserid = u.id)
+				WHERE t.forumid = " . input::int('f') . "
+					AND t.tid = $t");
 			if (! $this->thread['tid'])
 			{
 				$forums->func->load_lang('error');
@@ -82,18 +91,18 @@ class newthread
 
 	function process()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$this->check_permission();
 		$forums->func->load_lang('post');
 		$this->post = $this->lib->compile_post();
+		$title = input::str('title');
 		if ($this->type == 'new')
 		{
-			$_INPUT['title'] = trim($_INPUT['title']);
-			if ((utf8_strlen($_INPUT['title']) < 2) OR (!$_INPUT['title']))
+			if ((utf8_strlen($title) < 2) OR (!$title))
 			{
 				$this->lib->obj['errors'] = $forums->lang['musttitle'];
 			}
-			if (strlen(preg_replace("/&#([0-9]+);/", "-", $_INPUT['title'])) > 80)
+			if (strlen(preg_replace("/&#([0-9]+);/", "-", $title)) > 80)
 			{
 				$this->lib->obj['errors'] = $forums->lang['titletoolong'];
 			}
@@ -118,13 +127,13 @@ class newthread
 		$forums->func->check_cache('banksettings');
 		if ($this->type == 'new')
 		{
-			$_INPUT['title'] = $this->lib->parser->censoredwords($_INPUT['title']);
-			$_INPUT['title'] = $this->lib->compile_title($_INPUT['title']);
-			$_INPUT['title'] = convert($_INPUT['title']);
+			$title = $this->lib->parser->censoredwords($title);
+			$title = $this->lib->compile_title($title);
+			$title = convert($title);
 			$this->thread = array(
-				'title' => $_INPUT['title'],
-				'titletext' => implode(' ', duality_word(strip_tags($_INPUT['title']))),
-				'description' => $_INPUT['description'] ,
+				'title' => $title,
+				'titletext' => implode(' ', duality_word(strip_tags($title))),
+				'description' => input::str('description'),
 				'post' => 0,
 				'postuserid' => $bbuserinfo['id'],
 				'postusername' => $bbuserinfo['name'],
@@ -168,7 +177,7 @@ class newthread
 			$postcount = intval($post['posts'] - 1);
 			$modpost = $DB->query_first("SELECT COUNT(*) as posts FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND moderate = 1");
 			$modpostcount = intval($modpost['posts']);
-			$poster_name = $bbuserinfo['id'] ? $bbuserinfo['name'] : $_INPUT['username'];
+			$poster_name = $bbuserinfo['id'] ? $bbuserinfo['name'] : input::str('username');
 			$update_array = array('post' => $postcount,
 				'modposts' => $modpostcount
 				);
@@ -253,5 +262,3 @@ class newthread
 
 $output = new newthread();
 $output->show();
-
-?>

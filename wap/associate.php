@@ -15,7 +15,7 @@ class associate
 {
 	function show()
 	{
-		global $forums, $DB, $bbuserinfo, $bboptions, $_INPUT;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		if (!$bbuserinfo['id'])
 		{
 			$forums->func->load_lang('error');
@@ -24,7 +24,7 @@ class associate
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		switch ($_INPUT['do'])
+		switch (input::str('do'))
 		{
 			case 'undo':
 				$this->unassociate();
@@ -37,7 +37,7 @@ class associate
 
 	function doassociate()
 	{
-		global $forums, $DB, $bbuserinfo, $bboptions, $_INPUT;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		if ($bbuserinfo['mobile'])
 		{
 			$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -66,7 +66,7 @@ class associate
 
 	function unassociate()
 	{
-		global $forums, $DB, $bbuserinfo, $bboptions, $_INPUT;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		if (!$bbuserinfo['mobile'])
 		{
 			$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -81,5 +81,3 @@ class associate
 
 $output = new associate();
 $output->show();
-
-?>

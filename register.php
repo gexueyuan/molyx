@@ -247,7 +247,7 @@ class register
 		}
 
 		$username = input::get('username', '');
-		$check = unclean_value($username);
+		$check = input::unclean($username);
 		$len_u = utf8_strlen($check);
 		if ($bboptions['namenoallowenus'])
 		{
@@ -257,7 +257,7 @@ class register
 		{
 			$pattern .= '0-9';
 		}
-		$specialchar = unclean_value(addslashes($bboptions['namenoallowspecial']));
+		$specialchar = input::unclean(addslashes($bboptions['namenoallowspecial']));
 		if ($specialchar)
 		{
 			if (preg_match('/\s{1,}/', $specialchar))

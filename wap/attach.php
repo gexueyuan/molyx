@@ -15,11 +15,11 @@ class attachment
 {
 	function show()
 	{
-		global $_INPUT, $DB, $forums;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		$_INPUT['tid'] = intval($_INPUT['tid']);
+		global $DB, $forums;
+		$id = input::int('id');
+		$tid = input::int('tid');
 
-		if (!$_INPUT['tid'])
+		if (!$tid)
 		{
 			$forums->func->load_lang('error');
 			$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -27,7 +27,7 @@ class attachment
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid={$_INPUT['tid']}");
+		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid={$tid}");
 		if (!$this->thread['attach'])
 		{
 			$forums->func->load_lang('error');
@@ -46,7 +46,7 @@ class attachment
 			exit;
 		}
 
-		switch ($_INPUT['do'])
+		switch (input::str('do'))
 		{
 			case 'view':
 				$this->listattachment();
@@ -59,10 +59,10 @@ class attachment
 
 	function listattachment()
 	{
-		global $DB, $forums, $_INPUT, $bboptions, $bbuserinfo;
+		global $DB, $forums, $bboptions, $bbuserinfo;
 
 		$thread_title = convert(strip_tags($this->thread['title']));
-		$threadtitle = "<a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$_INPUT['extra']}'>{$thread_title}</a>";
+		$threadtitle = "<a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra=" . input::str('extra') . "'>{$thread_title}</a>";
 
 		$attachments = $DB->query("SELECT a.*, t.*, p.threadid, p.pid FROM " . TABLE_PREFIX . "attachment a
 													LEFT JOIN " . TABLE_PREFIX . "post p ON ( a.postid=p.pid )
@@ -98,16 +98,17 @@ class attachment
 
 	function showattachment()
 	{
-		global $DB, $forums, $_INPUT, $bbuserinfo, $bboptions;
+		global $DB, $forums, $bbuserinfo, $bboptions;
 		$forums->noheader = 1;
 
+		$id = input::int('id');
 		$attachment = $DB->query_first("SELECT a.*, t.*, p.threadid, p.pid
 			FROM " . TABLE_PREFIX . "attachment a
 				LEFT JOIN " . TABLE_PREFIX . "post p
 					ON ( a.postid=p.pid )
 				LEFT JOIN " . TABLE_PREFIX . "thread t
 					ON ( t.tid=p.threadid )
-			WHERE a.attachmentid='" . $_INPUT['id'] . "'"
+			WHERE a.attachmentid = $id"
 		);
 
 		if (!$attachment['attachmentid'] OR $attachment['threadid'] != $this->thread['tid'])
@@ -152,13 +153,13 @@ class attachment
 				{
 					if (@$fp = fopen(ROOT_PATH . 'cache/cache/attachmentviews.txt', 'a'))
 					{
-						fwrite($fp, intval($_INPUT['id']) . "\n");
+						fwrite($fp, $id . "\n");
 						fclose($fp);
 					}
 				}
 				else
 				{
-					$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "attachment SET counter=counter+1 WHERE attachmentid=" . intval($_INPUT['id']) . "");
+					$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "attachment SET counter=counter+1 WHERE attachmentid = $id");
 				}
 				@header('Cache-control: max-age=31536000');
 				@header('Expires: ' . $forums->func->get_time(TIMENOW + 31536000, "D, d M Y H:i:s") . ' GMT');
@@ -181,17 +182,19 @@ class attachment
 
 	function otherlink()
 	{
-		global $forums, $_INPUT, $DB, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
+		$extra = input::str('extra');
+
 		$otherlink = "<p>";
 		$otherlink .= "{$forums->lang['forum']}: <a href='forum.php{$forums->sessionurl}f={$this->forum['id']}{$this->extra}' title='{$forums->lang['go']}'>" . strip_tags($this->forum['name']) . "</a><br />";
-		$otherlink .= "{$forums->lang['thread']}: <a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$_INPUT['extra']}' title='{$forums->lang['go']}'>" . strip_tags($this->thread['title']) . "</a><br />";
+		$otherlink .= "{$forums->lang['thread']}: <a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra=$extra' title='{$forums->lang['go']}'>" . strip_tags($this->thread['title']) . "</a><br />";
 		if ($prevthread = $DB->query_first("SELECT tid, title FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost < '" . $this->thread['lastpost'] . "' ORDER BY lastpost DESC LIMIT 0, 1"))
 		{
-			$otherlink .= "{$forums->lang['prevthread']}: <a href='thread.php{$forums->sessionurl}t={$prevthread['tid']}&amp;extra={$_INPUT['extra']}' title='{$forums->lang['go']}'>" . strip_tags($prevthread['title']) . "</a><br />";
+			$otherlink .= "{$forums->lang['prevthread']}: <a href='thread.php{$forums->sessionurl}t={$prevthread['tid']}&amp;extra=$extra' title='{$forums->lang['go']}'>" . strip_tags($prevthread['title']) . "</a><br />";
 		}
 		if ($nextthread = $DB->query_first("SELECT tid, title FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost > '" . $this->thread['lastpost'] . "' ORDER BY lastpost LIMIT 0, 1"))
 		{
-			$otherlink .= "{$forums->lang['nextthread']}: <a href='thread.php{$forums->sessionurl}t={$nextthread['tid']}&amp;extra={$_INPUT['extra']}' title='{$forums->lang['go']}'>" . strip_tags($nextthread['title']) . "</a><br />";
+			$otherlink .= "{$forums->lang['nextthread']}: <a href='thread.php{$forums->sessionurl}t={$nextthread['tid']}&amp;extra=$extra' title='{$forums->lang['go']}'>" . strip_tags($nextthread['title']) . "</a><br />";
 		}
 		$otherlink .= "</p>\n";
 		return convert($otherlink);

@@ -29,12 +29,14 @@ class showthread
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->posthash = $forums->func->md5_check();
-		$this->offset = intval($_INPUT['offset']);
-		$this->tid = intval($_INPUT['t']);
-		$this->extra = $_INPUT['extra'] ? "&amp;pp=" . intval($_INPUT['extra']) : "";
-		$this->pp = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
+		$this->offset = input::int('offset');
+		$this->tid = input::int('t');
+		$this->extra = input::int('extra');
+		$this->extra = $this->extra ? "&amp;pp=" . $this->extra : "";
+		$this->pp = input::int('pp');
+
 		if ($this->tid < 1)
 		{
 			$forums->func->load_lang('error');
@@ -85,7 +87,7 @@ class showthread
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		switch ($_INPUT['do'])
+		switch (input::str('do'))
 		{
 			case 'reply':
 				$this->post();
@@ -101,9 +103,10 @@ class showthread
 
 	function showpost()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$extra = input::str('extra');
 		$thread_title = convert(strip_tags($this->thread['title']));
-		$threadtitle = "<a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$_INPUT['extra']}'>{$thread_title}</a>";
+		$threadtitle = "<a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$extra}'>{$thread_title}</a>";
 
 		$postlink = $this->postlink();
 
@@ -111,13 +114,17 @@ class showthread
 		if ($this->can_moderate($this->thread['forumid']))
 		{
 			$moderate = '';
-			if ($_INPUT['modfilter'] == 'invisiblepost')
+			if (input::str('modfilter') == 'invisiblepost')
 			{
 				$moderate = ' AND moderate=1';
 			}
 		}
 
-		$post = $DB->query_first("SELECT *, userid AS postuserid, username AS postusername FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND pid='" . intval($_INPUT['p']) . "'" . $moderate);
+		$post = $DB->query_first("SELECT *, userid AS postuserid, username AS postusername
+			FROM " . TABLE_PREFIX . "post
+			WHERE threadid='" . $this->thread['tid'] . "'
+				AND pid='" . input::int('p') . "'
+				" . $moderate);
 
 		if (!$post['pid'])
 		{
@@ -143,8 +150,8 @@ class showthread
 		$post = $DB->query_first("SELECT COUNT(pid) AS count FROM " . TABLE_PREFIX . "post WHERE newthread !=1 AND threadid = " . $this->thread['tid']);
 
 		$tlink = "<p><small>\r\n";
-		$tlink .= "<a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$_INPUT['extra']}'>" . convert($forums->lang['returnthread']) . "</a><br />\r\n";
-		$tlink .= "<a href='thread.php{$forums->sessionurl}do=reply&amp;t={$this->thread['tid']}&amp;pp={$this->pp}&amp;extra={$_INPUT['extra']}'>" . convert($forums->lang['returncomment']) . "</a>\r\n";
+		$tlink .= "<a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$extra}'>" . convert($forums->lang['returnthread']) . "</a><br />\r\n";
+		$tlink .= "<a href='thread.php{$forums->sessionurl}do=reply&amp;t={$this->thread['tid']}&amp;pp={$this->pp}&amp;extra={$extra}'>" . convert($forums->lang['returncomment']) . "</a>\r\n";
 		$tlink .= "</small></p>\r\n";
 
 		$otherlink = $this->otherlink();
@@ -155,10 +162,12 @@ class showthread
 
 	function post()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$extra = input::str('extra');
+
 		$this->ispost = true;
 		$thread_title = convert(strip_tags($this->thread['title']));
-		$threadtitle = "<a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$_INPUT['extra']}'>{$thread_title}</a>";
+		$threadtitle = "<a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$extra}'>{$thread_title}</a>";
 
 		$postlink = $this->postlink();
 
@@ -166,7 +175,7 @@ class showthread
 		if ($this->can_moderate($this->thread['forumid']))
 		{
 			$moderate = '';
-			if ($_INPUT['modfilter'] == 'invisiblepost')
+			if (input::str('modfilter') == 'invisiblepost')
 			{
 				$moderate = ' AND moderate=1';
 			}
@@ -208,7 +217,7 @@ class showthread
 			$nextpage .= $this->build_pagelinks(array('totalpages' => ($pcount['count'] + 1),
 					'perpage' => 10,
 					'curpage' => $this->pp,
-					'pagelink' => "thread.php{$forums->sessionurl}do=reply&amp;t={$this->thread['tid']}&amp;extra={$_INPUT['extra']}",
+					'pagelink' => "thread.php{$forums->sessionurl}do=reply&amp;t={$this->thread['tid']}&amp;extra={$extra}",
 					)
 				);
 			$nextpage .= "</small></p>\r\n";
@@ -226,7 +235,7 @@ class showthread
 
 	function thread()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$thread_title = $threadtitle = convert(strip_tags($this->thread['title']));
 
 		if ($bboptions['threadviewsdelay'])
@@ -288,15 +297,16 @@ class showthread
 
 		$tlink = "<p><small>";
 
+		$extra = input::str('extra');
 		if ($this->thread['attach'])
 		{
-			$tlink .= "<a href='attach.php{$forums->sessionurl}do=view&amp;tid={$this->thread['tid']}&amp;extra={$_INPUT['extra']}'>" . convert($forums->lang['viewattach']) . "</a><br />";
+			$tlink .= "<a href='attach.php{$forums->sessionurl}do=view&amp;tid={$this->thread['tid']}&amp;extra={$extra}'>" . convert($forums->lang['viewattach']) . "</a><br />";
 		}
 
 		if ($post['count'])
 		{
 			$allreply = sprintf($forums->lang['allreply'], $post['count']);
-			$tlink .= "<a href='thread.php{$forums->sessionurl}do=reply&amp;t={$this->thread['tid']}&amp;extra={$_INPUT['extra']}'>" . convert($allreply) . "</a>";
+			$tlink .= "<a href='thread.php{$forums->sessionurl}do=reply&amp;t={$this->thread['tid']}&amp;extra={$extra}'>" . convert($allreply) . "</a>";
 		}
 		else
 		{
@@ -312,17 +322,19 @@ class showthread
 
 	function otherlink()
 	{
-		global $forums, $_INPUT, $DB, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
+		$extra = input::str('extra');
+
 		$otherlink = "<p>";
 		$otherlink .= "{$forums->lang['forum']}: <a href='forum.php{$forums->sessionurl}f={$this->forum['id']}{$this->extra}' title='{$forums->lang['go']}'>" . strip_tags($this->forum['name']) . "</a><br />";
-		$otherlink .= "{$forums->lang['thread']}: <a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$_INPUT['extra']}' title='{$forums->lang['go']}'>" . strip_tags($this->thread['title']) . "</a><br />";
+		$otherlink .= "{$forums->lang['thread']}: <a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$extra}' title='{$forums->lang['go']}'>" . strip_tags($this->thread['title']) . "</a><br />";
 		if ($prevthread = $DB->query_first("SELECT tid, title FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost < '" . $this->thread['lastpost'] . "' ORDER BY lastpost DESC LIMIT 0, 1"))
 		{
-			$otherlink .= "{$forums->lang['prevthread']}: <a href='thread.php{$forums->sessionurl}t={$prevthread['tid']}&amp;extra={$_INPUT['extra']}' title='{$forums->lang['go']}'>" . strip_tags($prevthread['title']) . "</a><br />";
+			$otherlink .= "{$forums->lang['prevthread']}: <a href='thread.php{$forums->sessionurl}t={$prevthread['tid']}&amp;extra={$extra}' title='{$forums->lang['go']}'>" . strip_tags($prevthread['title']) . "</a><br />";
 		}
 		if ($nextthread = $DB->query_first("SELECT tid, title FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost > '" . $this->thread['lastpost'] . "' ORDER BY lastpost LIMIT 0, 1"))
 		{
-			$otherlink .= "{$forums->lang['nextthread']}: <a href='thread.php{$forums->sessionurl}t={$nextthread['tid']}&amp;extra={$_INPUT['extra']}' title='{$forums->lang['go']}'>" . strip_tags($nextthread['title']) . "</a><br />";
+			$otherlink .= "{$forums->lang['nextthread']}: <a href='thread.php{$forums->sessionurl}t={$nextthread['tid']}&amp;extra={$extra}' title='{$forums->lang['go']}'>" . strip_tags($nextthread['title']) . "</a><br />";
 		}
 		$otherlink .= "</p>\n";
 		return convert($otherlink);
@@ -330,7 +342,7 @@ class showthread
 
 	function postlink()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$postlink = "<p>";
 		if (!$bbuserinfo['id'])
 		{
@@ -349,7 +361,7 @@ class showthread
 
 	function parse_row($row = array(), $len = 400)
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$poster = array();
 		if ($row['postuserid'])
 		{
@@ -395,13 +407,14 @@ class showthread
 
 		if ($this->lib->more)
 		{
+			$extra = input::str('extra');
 			$offset = $this->offset + $this->lib->post_set;
 			$pp = $row['postcount'] -1;
-			$this->turllink = "thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;offset={$offset}&amp;extra={$_INPUT['extra']}";
-			$this->purllink = "thread.php{$forums->sessionurl}do=showpost&amp;t={$this->thread['tid']}&amp;p={$row['pid']}&amp;offset={$offset}&amp;extra={$_INPUT['extra']}";
+			$this->turllink = "thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;offset={$offset}&amp;extra={$extra}";
+			$this->purllink = "thread.php{$forums->sessionurl}do=showpost&amp;t={$this->thread['tid']}&amp;p={$row['pid']}&amp;offset={$offset}&amp;extra={$extra}";
 			if ($this->ispost)
 			{
-				$row['pagetext'] .= "[<a href='thread.php{$forums->sessionurl}do=showpost&amp;t={$this->thread['tid']}&amp;p={$row['pid']}&amp;pp={$this->pp}&amp;extra={$_INPUT['extra']}'>" . $forums->lang['viewall'] . "</a>]";
+				$row['pagetext'] .= "[<a href='thread.php{$forums->sessionurl}do=showpost&amp;t={$this->thread['tid']}&amp;p={$row['pid']}&amp;pp={$this->pp}&amp;extra={$extra}'>" . $forums->lang['viewall'] . "</a>]";
 			}
 		}
 		$row['pagetext'] = convert($row['pagetext']);
@@ -479,5 +492,3 @@ class showthread
 
 $output = new showthread();
 $output->show();
-
-?>

@@ -21,12 +21,12 @@ class forum
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$forums->func->load_lang('forumdisplay');
 		$this->posthash = $forums->func->md5_check();
-		$_INPUT['f'] = intval($_INPUT['f']);
+		$f = input::int('f');
 
-		$this->forum = $forums->forum->single_forum($_INPUT['f']);
+		$this->forum = $forums->forum->single_forum($f);
 		if (! $this->forum['id'])
 		{
 			$forums->func->load_lang('error');
@@ -36,7 +36,7 @@ class forum
 			exit;
 		}
 		$this->forum['name'] = strip_tags($this->forum['name']);
-		if ($_INPUT['pwd'])
+		if (input::str('pwd'))
 		{
 			$this->check_permissions();
 		}
@@ -46,11 +46,11 @@ class forum
 		}
 		if ($this->forum['allowposting'])
 		{
-			$this->render_forum($_INPUT['f']);
+			$this->render_forum($f);
 		}
 		else
 		{
-			$this->show_subforums($_INPUT['f']);
+			$this->show_subforums($f);
 		}
 	}
 
@@ -87,8 +87,9 @@ class forum
 
 	function check_permissions()
 	{
-		global $forums, $_INPUT;
-		if ($_INPUT['pwd'] == "")
+		global $forums;
+		$pwd = input::str('pwd');
+		if ($pwd == "")
 		{
 			$forums->func->load_lang('error');
 			$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -96,7 +97,8 @@ class forum
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		if ($_INPUT['pwd'] != $this->forum['password'])
+
+		if ($pwd != $this->forum['password'])
 		{
 			$forums->func->load_lang('error');
 			$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -104,21 +106,22 @@ class forum
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		if ($_POST['pwd'])
+
+		if ($pwd)
 		{
-			redirect("forum.php{$forums->sessionurl}pwd={$_INPUT['pwd']}&amp;f=" . $this->forum['id']);
+			redirect("forum.php{$forums->sessionurl}pwd={$pwd}&amp;f=" . $this->forum['id']);
 		}
 	}
 
 	function render_forum($fid)
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$posthash = $this->posthash;
 		$forum = $this->forum;
 		$canpost = true;
 		$forumname = convert($this->forum['name']);
 
-		if ($_INPUT['showsub'])
+		if (input::int('showsub'))
 		{
 			$this->show_subforums($fid);
 			exit;
@@ -138,7 +141,7 @@ class forum
 			$subforum = "+ [<a href='forum.php{$forums->sessionurl}f={$fid}&amp;showsub=1'>{$forumcount} " . convert($forums->lang['subforum']) . "</a>]";
 		}
 
-		$firstpost = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
+		$firstpost = input::int('pp');
 		$queryarray = array();
 		$addquery = "";
 
@@ -221,4 +224,3 @@ class forum
 
 $output = new forum();
 $output->show();
-?>

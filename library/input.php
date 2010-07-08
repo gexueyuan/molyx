@@ -66,7 +66,7 @@ class input
 	 * @param boolean $clear 是否清理数据
 	 * @return mixed
 	 */
-	static public function get($name, $default = 0, $clear = true)
+	static public function get($name, $default = NULL, $clear = true)
 	{
 		// 防止获取到 cookie 中的内容
 		if (isset($_COOKIE[$name]))
@@ -96,6 +96,10 @@ class input
 
 		if (isset($_REQUEST[$name]))
 		{
+			if ($default === NULL)
+			{
+				$default = $_REQUEST[$name];
+			}
 			return self::get_value($_REQUEST[$name], $default);
 		}
 		else if (is_array($default))
@@ -185,11 +189,11 @@ class input
 	}
 
 	/**
-	 * 用在 textarea 中编辑以前提交保存的数据
+	 * 恢复原始数据, 用在 textarea 中编辑以前提交保存的数据
 	 *
 	 * @param string $val
 	 */
-	static public function for_textarea($val)
+	static public function unclean($val)
 	{
 		if (empty($val))
 		{

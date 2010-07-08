@@ -15,12 +15,12 @@ class login
 {
 	function show($message = '')
 	{
-		global $_INPUT, $forums;
+		global $forums;
 		if ($bboptions['forcelogin'] == 1)
 		{
 			$this->message = $forums->lang['forcelogin'];
 		}
-		switch ($_INPUT['do'])
+		switch (input::str('do'))
 		{
 			case 'login':
 				$this->dologin();
@@ -39,7 +39,7 @@ class login
 
 	function loginpage()
 	{
-		global $forums, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $bboptions, $bbuserinfo;
 		if ($bbuserinfo['id'])
 		{
 			$forums->func->standard_redirect($bboptions['bburl'] . "/wap/index.php{$forums->sessionurl}");
@@ -71,19 +71,20 @@ class login
 
 	function dologin()
 	{
-		global $DB, $_INPUT, $forums, $bboptions;
-		if ($_INPUT['username'] == "" OR $_INPUT['password'] == "")
+		global $DB, $forums, $bboptions;
+		$username = input::str('username');
+		$password = input::str('password');
+		if ($username == "" OR $password == "")
 		{
 			$forums->func->standard_error("plzinputallform");
 		}
-		$username = trim($_INPUT['username']);
-		$password = trim($_INPUT['password']);
 
-		if ($_INPUT['logintype'] == 2)
+		$logintype = input::int('logintype');
+		if ($logintype == 2)
 		{
 			$where = "id=" . intval($username) . "";
 		}
-		else if ($_INPUT['logintype'] == 3)
+		else if ($logintype == 3)
 		{
 			if (strlen($username) < 6)
 			{
@@ -131,16 +132,12 @@ class login
 			return $this->loginpage();
 		}
 		$forums->func->convert_bits_to_array($user, $user['options']);
-		$sessionid = "";
-		if ($_INPUT['s'])
-		{
-			$sessionid = $_INPUT['s'];
-		}
-		else if ($forums->func->get_cookie('sessionid'))
+		$sessionid = input::str('s');
+		if ($forums->func->get_cookie('sessionid'))
 		{
 			$sessionid = $forums->func->get_cookie('sessionid');
 		}
-		$invisible = $_INPUT['invisible'] ? 1 : 0;
+		$invisible = input::int('invisible');
 		if ($sessionid)
 		{
 			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "session SET username='" . $user['name'] . "', userid=" . $user['id'] . ", avatar=" . $user['avatar'] . ", lastactivity=" . TIMENOW . ", usergroupid=" . $user['usergroupid'] . ", invisible=" . $invisible . "  WHERE sessionhash='" . $sessionid . "'");
@@ -163,7 +160,7 @@ class login
 		}
 		$bbuserinfo = $user;
 		$forums->sessionid = $sessionid;
-		$bbuserinfo['options'] = $forums->func->convert_array_to_bits(array_merge($bbuserinfo , array('invisible' => $_INPUT['invisible'], 'loggedin' => 1)));
+		$bbuserinfo['options'] = $forums->func->convert_array_to_bits(array_merge($bbuserinfo , array('invisible' => $invisible, 'loggedin' => 1)));
 		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET " . $style . "options=" . $bbuserinfo['options'] . " WHERE id='" . $bbuserinfo['id'] . "'");
 		$DB->shutdown_query("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid='" . $bbuserinfo['id'] . "' AND type=1");
 		$DB->shutdown_delete(TABLE_PREFIX . 'strikes', 'strikeip = ' . $DB->validate(IPADDRESS) . ' AND username = ' . $DB->validate($username));
@@ -175,7 +172,7 @@ class login
 
 	function dologout()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$bbuserinfo['loggedin'] = 0;
 		$bbuserinfo['options'] = $forums->func->convert_array_to_bits($bbuserinfo);
 		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "session SET username='', userid='0', invisible='0', avatar=0 WHERE sessionhash='" . $forums->sessionid . "'");
@@ -201,7 +198,7 @@ class login
 
 	function autologin()
 	{
-		global $forums, $DB, $bboptions, $bbuserinfo, $_INPUT;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		if (! $bbuserinfo['id'])
 		{
 			$userid = intval($forums->func->get_cookie('userid'));
@@ -221,7 +218,7 @@ class login
 		$login_success = $forums->lang['loginsuccess'];
 		$login_failed = $forums->lang['loginfailed'];
 		$show = false;
-		switch ($_INPUT['logintype'])
+		switch (input::str('logintype'))
 		{
 			case 'fromreg':
 				$login_success = $forums->lang['regsuccess'];
@@ -241,7 +238,7 @@ class login
 		}
 		if ($bbuserinfo['id'])
 		{
-			$redirect = $_INPUT['referer'] ? trim($_INPUT['referer']) : "";
+			$redirect = input::str('referer');
 			if ($show)
 			{
 				$forums->func->redirect_screen($login_success, $redirect);
@@ -266,7 +263,7 @@ class login
 
 	function verify_strike_status($username = '')
 	{
-		global $DB, $_INPUT, $forums;
+		global $DB, $forums;
 		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "strikes WHERE striketime < " . (TIMENOW - 3600));
 		$strikes = $DB->query_first('SELECT COUNT(*) AS strikes, MAX(striketime) AS lasttime
 			FROM ' . TABLE_PREFIX . 'strikes
@@ -306,5 +303,3 @@ class login
 
 $output = new login();
 $output->show();
-
-?>

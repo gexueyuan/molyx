@@ -618,7 +618,7 @@ info;
 					{
 						if($value["column_regular"])
 						{
-							$value["column_regular"] = unclean_value($value["column_regular"]);
+							$value["column_regular"] = input::unclean($value["column_regular"]);
 							$check_regular=<<<str
  && !preg_match("/{$value['column_regular']}/",\$_INPUT['{$value["column_name"]}'])
 str;
@@ -638,7 +638,7 @@ register_php;
 					{
 						if($value["column_regular"])
 						{
-							$value["column_regular"] = unclean_value($value["column_regular"]);
+							$value["column_regular"] = input::unclean($value["column_regular"]);
 							$check_regular=<<<str
 ||!preg_match("/{$value['column_regular']}/",\$_INPUT['{$value["column_name"]}'])
 str;
@@ -742,7 +742,7 @@ register_php;
 				if($value["column_value"])
 				{
 					//字符串还原
-					$value["column_value"] = unclean_value($value["column_value"]);
+					$value["column_value"] = input::unclean($value["column_value"]);
 
 					if(preg_match('/^function/i',trim($value["column_value"])))
 					{

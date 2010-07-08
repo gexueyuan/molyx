@@ -43,7 +43,7 @@ class search
 		$this->search->uniqueid = input::get('searchid', '');
 		$this->search->pagelink = "search.php{$forums->sessionurl}&amp;do=show&amp;searchid=" . $this->search->uniqueid . "&amp;highlight=" . $this->search->highlight;
 
-		$this->search->page = input::get('pp');
+		$this->search->page = input::int('pp');
 		require_once(ROOT_PATH . "includes/functions_credit.php");
 		$this->credit = new functions_credit();
 		$do = input::get('do', '');
@@ -71,7 +71,7 @@ class search
 	{
 		global $forums, $bboptions, $bbuserinfo, $DB;
 		$showforum = $this->search_forum_jump(1, 1);
-		if (!input::get('f'))
+		if (!input::int('f'))
 		{
 			$selected = ' selected="selected"';
 		}
@@ -109,7 +109,7 @@ class search
 			$key2 = $key1 - 1;
 			unset($this->foruminfo["$key1"],$this->foruminfo["$key2"]);
 		}
-		$f = input::get('f');
+		$f = input::int('f');
 		foreach((array) $this->foruminfo as $id => $forum)
 		{
 			if (($forum['canshow'] != '*' && $forums->func->fetch_permissions($forum['canshow'], 'canshow') != true) || $forum['url'])
@@ -202,7 +202,7 @@ class search
 		}
 
 		//发帖时间 <%d天>
-		$this->prune = input::get('prune');
+		$this->prune = input::int('prune');
 		if (!in_array($this->sortby, array(1, 7, 30, 60, 90, 180, 365, 0)))
 		{
 			$this->sortby = 0;
@@ -223,7 +223,7 @@ class search
 			$gt_lt = input::get('prune_type', '') == 'older' ? '<' : '>';
 
 			//计算时间差
-			$time = TIMENOW - (input::get('prune') * 86400);
+			$time = TIMENOW - (input::int('prune') * 86400);
 
 			//建立sql语句条件关系
 			//主题
@@ -240,7 +240,7 @@ class search
 			//转义 | <OR> 防止sql查询错误
 			$name_filter = str_replace('|', "&#124;", $name_filter);
 			//精确匹配用户名
-			if (input::get('exactmatch') == 1)
+			if (input::int('exactmatch') == 1)
 			{
 				$sql_query = "SELECT id from " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($name_filter) . "' OR name='" . $name_filter . "'";
 			}

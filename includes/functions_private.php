@@ -80,7 +80,7 @@ class functions_private
 			return $this->newpm($forums->lang['_selectusername']);
 		}
 		$savecopy = input::int('savecopy');
-		$username = unclean_value($username);
+		$username = input::unclean($username);
 		$users = explode(';', $username);
 		$touser = array();
 		foreach ($users as $val)

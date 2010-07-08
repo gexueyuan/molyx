@@ -231,7 +231,7 @@ function check_moderate_prms($prms_action, $fid)
 function add_moderate_log($action = 'Unknown', $title = '')
 {
 	global $mod_func;
-	$mod_func->add_moderate_log(input::int('f'), input::arr('tid'), input::int('p'), $title, $action);
+	$mod_func->add_moderate_log(input::int('f'), input::get('tid'), input::int('p'), $title, $action);
 }
 
 function add_thread_log($tids, $action = 'Unknown')

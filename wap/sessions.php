@@ -16,7 +16,7 @@ class session
 
 	function loadsession()
 	{
-		global $DB, $_INPUT, $forums, $bboptions;
+		global $DB, $forums, $bboptions;
 		if ($bboptions['loadlimit'] > 0)
 		{
 			if (!IS_WIN && @file_exists('/proc/loadavg') && $data = @file_get_contents('/proc/loadavg'))
@@ -35,15 +35,16 @@ class session
 		$cookie['userid'] = $_GET['bbuid'] ? $_GET['bbuid'] : $forums->func->get_cookie('userid');
 		$cookie['password'] = $_GET['bbpwd'] ? $_GET['bbpwd'] : $forums->func->get_cookie('password');
 		$forums->mobile = false;
-		if ($_INPUT['s'])
-		{
-			$this->get_session($_INPUT['s']);
-			$forums->sessiontype = 'url';
-		}
-		else if ($cookie['sessionid'])
+		$s = input::str('s');
+		if ($cookie['sessionid'])
 		{
 			$this->get_session($cookie['sessionid']);
 			$forums->sessiontype = 'cookie';
+		}
+		else if ($s)
+		{
+			$this->get_session($s);
+			$forums->sessiontype = 'url';
 		}
 		else
 		{
@@ -134,33 +135,39 @@ class session
 		}
 		if ($this->user['id'])
 		{
-			if (! $_INPUT['lastactivity'])
+			$lastactivity = input::int('lastactivity');
+			if (!$lastactivity)
 			{
 				if ($this->user['lastactivity'])
 				{
-					$_INPUT['lastactivity'] = $this->user['lastactivity'];
+					$lastactivity = $this->user['lastactivity'];
 				}
 				else
 				{
-					$_INPUT['lastactivity'] = TIMENOW;
+					$lastactivity = TIMENOW;
 				}
 			}
-			if (! $_INPUT['lastvisit'])
+			input::set('lastactivity', $lastactivity);
+
+			$lastvisit = input::int('lastvisit');
+			if (!$lastvisit)
 			{
 				if ($this->user['lastvisit'])
 				{
-					$_INPUT['lastvisit'] = $this->user['lastvisit'];
+					$lastvisit = $this->user['lastvisit'];
 				}
 				else
 				{
-					$_INPUT['lastvisit'] = TIMENOW;
+					$lastvisit = TIMENOW;
 				}
 			}
+			input::set('lastvisit', $lastvisit);
+
 			if (! $this->user['lastvisit'])
 			{
 				$DB->update(TABLE_PREFIX . 'user', array('lastvisit' => TIMENOW, 'lastactivity' => TIMENOW), 'id = ' . $this->user['id']);
 			}
-			else if ((TIMENOW - $_INPUT['lastactivity']) > 300)
+			else if ((TIMENOW - $lastactivity) > 300)
 			{
 				$this->user['loggedin'] = 1;
 				$this->user['options'] = $forums->func->convert_array_to_bits($this->user);
@@ -292,7 +299,7 @@ class session
 
 	function update_user_session()
 	{
-		global $DB, $_INPUT;
+		global $DB;
 		if (! $this->sessionid)
 		{
 			return $this->create_session($this->user['id']);
@@ -303,13 +310,16 @@ class session
 			$this->create_session();
 			return;
 		}
-		$inforum = $_INPUT['t'] ? '' : ', inforum=' . intval($_INPUT['f']);
+
+		$t = input::int('t');
+		$f = input::int('f');
+		$inforum = $t ? '' : ', inforum=' . $f;
 		$DB->update(TABLE_PREFIX . 'session', array(
 			'username' => $this->user['name'],
 			'userid' => intval($this->user['id']),
 			'usergroupid' => $this->user['usergroupid'],
-			'inforum' => intval($_INPUT['f']),
-			'inthread' => intval($_INPUT['t']),
+			'inforum' => $f,
+			'inthread' => $t,
 			'invisible' => $this->user['invisible'],
 			'lastactivity' => TIMENOW,
 			'location' => substr(SCRIPTPATH, 0, 250),
@@ -320,7 +330,7 @@ class session
 
 	function update_guest_session()
 	{
-		global $DB, $_INPUT;
+		global $DB;
 		if (! $this->sessionid)
 		{
 			$this->create_session();
@@ -330,8 +340,8 @@ class session
 			'username' => '',
 			'userid' => 0,
 			'usergroupid' => 2,
-			'inforum' => intval($_INPUT['f']),
-			'inthread' => intval($_INPUT['t']),
+			'inforum' => input::int('f'),
+			'inthread' => input::int('t'),
 			'invisible' => 0,
 			'lastactivity' => TIMENOW,
 			'location' => substr(SCRIPTPATH, 0, 250),
@@ -369,7 +379,7 @@ class session
 
 	function create_session($userid = 0)
 	{
-		global $DB, $_INPUT, $forums, $bboptions;
+		global $DB, $forums, $bboptions;
 		$cookietimeout = $bboptions['cookietimeout'] ? (TIMENOW - $bboptions['cookietimeout'] * 60) : (TIMENOW - 3600);
 		if ($userid)
 		{
@@ -384,8 +394,8 @@ class session
 					'lastvisit' => array('lastactivity', true),
 					'lastactivity' => TIMENOW
 				), 'id = ' . $this->user['id']);
-				$_INPUT['lastvisit'] = $this->user['lastactivity'];
-				$_INPUT['lastactivity'] = TIMENOW;
+				input::set('lastvisit', $this->user['lastactivity']);
+				input::set('lastactivity'], TIMENOW);
 			}
 		}
 		else
@@ -405,9 +415,9 @@ class session
 			'username' => $this->user['name'],
 			'userid' => intval($this->user['id']),
 			'usergroupid' => $this->user['usergroupid'],
-			'inforum' => intval($_INPUT['f']),
-			'inthread' => intval($_INPUT['t']),
-			'inblog' => intval($_INPUT['bid']),
+			'inforum' => input::int('f'),
+			'inthread' => input::int('t'),
+			'inblog' => input::int('bid'),
 			'invisible' => $this->user['invisible'],
 			'lastactivity' => TIMENOW,
 			'location' => substr(SCRIPTPATH, 0, 250),
@@ -419,4 +429,3 @@ class session
 		$DB->insert(TABLE_PREFIX . 'session', $sql_array);
 	}
 }
-?>
