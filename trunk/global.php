@@ -25,7 +25,6 @@ $forums->url = REFERRER;
 require_once(ROOT_PATH . 'includes/functions.php');
 $forums->func = new functions();
 
-$_INPUT = init_input();
 if (USE_SHUTDOWN && THIS_SCRIPT != 'cron')
 {
 	register_shutdown_function(array(&$forums->func, 'do_shutdown'));

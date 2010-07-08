@@ -50,7 +50,6 @@ $forums->si_sessionurl = '';
 require_once(ROOT_PATH . 'wap/sessions.php');
 require_once(ROOT_PATH . 'includes/functions_forum.php');
 $forums->forum = new functions_forum();
-$_INPUT = init_input();
 $forums->lang['returnindex'] = convert($forums->lang['returnindex']);
 $forums->url = REFERRER;
 
@@ -117,9 +116,10 @@ else
 }
 $seed = generate_seed();
 $forums->sessionurl .= 'seed=' . $seed . '&amp;';
-if ($_INPUT['pwd'])
+$pwd = input::str('pwd');
+if ($pwd)
 {
-	$forums->sessionurl .= 'pwd=' . $_INPUT['pwd'] . "&amp;";
+	$forums->sessionurl .= 'pwd=' . $pwd . "&amp;";
 }
 if (THIS_SCRIPT != 'login' && THIS_SCRIPT != 'register')
 {
@@ -197,12 +197,9 @@ function redirect($url = '', $text = '')
 
 function check_lang()
 {
-	global $forums, $bboptions, $_INPUT;
+	global $forums, $bboptions;
 
-	if (isset($_INPUT['lang']) && $_INPUT['lang'])
-	{
-		$bboptions['language'] = $_INPUT['lang'];
-	}
+	$bboptions['language'] = input::int('lang');
 	if ($bboptions['language'] == 1 || !$bboptions['language'])
 	{
 		$forums->func->set_cookie('language', '');
@@ -279,7 +276,7 @@ function check_password($fid, $prompt_login = 0, $in = 'forum')
 function check_forumpwd($fid)
 {
 	global $forums;
-	$forum_password = $_INPUT['pwd'];
+	$forum_password = input::str('pwd');
 	if (trim($forum_password) == $forums->forum->foruminfo[$fid]['password']) return true;
 	else return false;
 }
@@ -315,4 +312,3 @@ function forums_show_login($forumid)
 	include $forums->func->load_template('wap_forum_password');
 	exit;
 }
-?>

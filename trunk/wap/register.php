@@ -11,28 +11,30 @@
 define('THIS_SCRIPT', 'register');
 require_once('./global.php');
 
+$output = new register();
+switch (input::str('do'))
+{
+	case 'create':
+		$output->create();
+		break;
+	default:
+		$output->start_register();
+		break;
+}
+
 class register
 {
-	function show()
+	function __construct()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		// $forums->func->load_lang('register');
 		require_once(ROOT_PATH . "includes/functions_email.php");
 		$this->email = new functions_email();
-		switch ($_INPUT['do'])
-		{
-			case 'create':
-				$this->create();
-				break;
-			default:
-				$this->start_register();
-				break;
-		}
 	}
 
 	function start_register($errors = "")
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		if (!$bboptions['allowregistration'] OR !$bboptions['bbactive'])
 		{
 			$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -66,7 +68,7 @@ class register
 
 	function create()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		if (!$bboptions['allowregistration'] OR !$bboptions['bbactive'])
 		{
 			$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -74,10 +76,10 @@ class register
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		$username = preg_replace("/\s{2,}/", " ", trim(str_replace('|', '&#124;' , $_INPUT['username'])));
-		$password = trim($_INPUT['password']);
-		$email = strtolower(trim($_INPUT['email']));
-		$check = unclean_value($username);
+		$username = preg_replace("/\s{2,}/", " ", str_replace('|', '&#124;' , input::str('username')));
+		$password = input::str('password');
+		$email = strtolower(input::str('email'));
+		$check = input::unclean($username);
 		$len_u = utf8_strlen($check);
 		if ((empty($username)) || strstr($check, ';') || $len_u < $bboptions['usernameminlength'] || $len_u > $bboptions['usernamemaxlength'] || strlen($username) > 60)
 		{
@@ -87,7 +89,7 @@ class register
 		{
 			return $this->start_register('passwordtooshort');
 		}
-		if (trim($_INPUT['confirmpass']) != $password)
+		if (input::str('confirmpass') != $password)
 		{
 			return $this->start_register('errorpassword');
 		}
@@ -159,7 +161,12 @@ class register
 		$options['emailonpm'] = 0;
 		$options['usewysiwyg'] = 0;
 		$options = $forums->func->convert_array_to_bits($options);
-		$emailcharset = $_INPUT['emailcharset']?$_INPUT['emailcharset']:'GBK';
+		$emailcharset = input::str('emailcharset');
+		if (!$emailcharset)
+		{
+			$emailcharset = 'GBK';
+		}
+
 		$user = array('name' => $username,
 			'salt' => $salt,
 			'password' => $saltpassword,
@@ -170,13 +177,13 @@ class register
 			'joindate' => TIMENOW,
 			'host' => IPADDRESS,
 			'timezoneoffset' => $bboptions['timezoneoffset'],
-			'gender' => $_INPUT['gender'],
-			'website' => $_INPUT['website'],
-			'qq' => $_INPUT['qq'],
-			'icq' => $_INPUT['icq'],
-			'msn' => $_INPUT['msn'],
-			'aim' => $_INPUT['aim'],
-			'yahoo' => $_INPUT['yahoo'],
+			'gender' => input::int('gender'),
+			'website' => input::str('website'),
+			'qq' => input::str('qq'),
+			'icq' => input::str('icq'),
+			'msn' => input::str('msn'),
+			'aim' => input::str('aim'),
+			'yahoo' => input::str('yahoo'),
 			'forbidpost' => 0,
 			'options' => $options,
 			'pmtotal' => 0,
@@ -245,8 +252,3 @@ class register
 		}
 	}
 }
-
-$output = new register();
-$output->show();
-
-?>

@@ -1067,7 +1067,7 @@ function move_threads()
 
 function doquintessence($type)
 {
-	global $forums, $DB, $bbuserinfo, $_INPUT, $bboptions, $response, $mod_func;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response, $mod_func;
 	require_once(ROOT_PATH . "includes/functions_credit.php");
 	$credit = new functions_credit();
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
@@ -1077,7 +1077,7 @@ function doquintessence($type)
 		$action = $forums->lang['quintessencethread'];
 		$operation = 1;
 		$quint_sign = '+';
-		$_INPUT['title'] = $forums->lang['threadquintessenced'];
+		$title = $forums->lang['threadquintessenced'];
 		$pm_content_pre = $forums->lang['threadquintessenced'];
 	}
 	else if ($type == 'unquintessence')
@@ -1085,11 +1085,12 @@ function doquintessence($type)
 		$action = $forums->lang['unquintessencethread'];
 		$operation = 0;
 		$quint_sign = '-';
-		$_INPUT['title'] = $forums->lang['threadunquintessenced'];
+		$title = $forums->lang['threadunquintessenced'];
 		$pm_content_pre = $forums->lang['threadunquintessenced'];
 	}
 
-	$tids = implode(',', $_INPUT['tid']);
+	$tid = input::arr('tid');
+	$tids = implode(',', $tid);
 	$users = $DB->query("SELECT t.tid, t.title, t.postuserid, t.forumid, t.postusername, t.quintessence, u.usergroupid
 	                        FROM " . TABLE_PREFIX . "thread t
 							LEFT JOIN " . TABLE_PREFIX . "user u
@@ -1132,30 +1133,33 @@ function doquintessence($type)
 			//发送短消息给主题作者
 			require_once(ROOT_PATH . 'includes/functions_private.php');
 			$pm = new functions_private();
-			$_INPUT['noredirect'] = 1;
 			$bboptions['usewysiwyg'] = 1;
 			$bboptions['pmallowhtml'] = 1;
+
+			input::set('title', $title);
+			input::set('noredirect', 1);
 			foreach ($pm_touser AS $uname => $thread)
 			{
-				$_INPUT['username'] = $uname;
-				$_POST['post'] = $pm_content_pre . implode('', $thread);
+				input::set('username', $uname);
+				input::set('post', $pm_content_pre . implode('', $thread));
+
 				$pm->sendpm();
 			}
 		}
-		foreach ($_INPUT['tid'] AS $tid)
+		foreach ($tid AS $t)
 		{
-			$pic = '<img id="quintessence_pic' . $tid . '" src="' . ROOT_PATH . 'images/' . $bbuserinfo['imgurl'] . '/quintessence.gif" alt="' . $forums->lang["quintessence"] . '" />';
-			if (@in_array($tid, $update_tid))
+			$pic = '<img id="quintessence_pic' . $t . '" src="' . ROOT_PATH . 'images/' . $bbuserinfo['imgurl'] . '/quintessence.gif" alt="' . $forums->lang["quintessence"] . '" />';
+			if (@in_array($t, $update_tid))
 			{
-				$response->call('do_quintessence', $tid, $operation, $pic);
+				$response->call('do_quintessence', $t, $operation, $pic);
 			}
-			$response->assign('tid' . $tid, 'checked', false);
+			$response->assign('tid' . $t, 'checked', false);
 		}
 		$response->assign('selectall', 'checked', false);
-		if (count ($_INPUT['tid']) > 1)
+		if (count ($tid) > 1)
 		{
-			add_thread_log($_INPUT['tid'], $action);
-			$_INPUT['tid'] = '';
+			add_thread_log($tid, $action);
+			input::set('tid', '');
 			add_moderate_log($action . " - " . $forums->lang['threadid'] . ": " . $tids);
 		}
 		else
@@ -1163,7 +1167,7 @@ function doquintessence($type)
 			$thread = $DB->query_first('SELECT tid, title FROM '. TABLE_PREFIX . "thread
 							  			WHERE tid = " . intval($tids));
 
-			$_INPUT['tid'] = $thread['tid'];
+			input::set('tid', $thread['tid']);
 			add_thread_log($thread['tid'], $action);
 			add_moderate_log($action . " - " . $thread['title']);
 		}
@@ -1174,8 +1178,9 @@ function doquintessence($type)
 
 function sticky_threads()
 {
-	global $forums, $DB, $bbuserinfo, $_INPUT, $response, $mod_func;
-	if (!check_moderate_prms('canstickthread', $_INPUT['f']))
+	global $forums, $DB, $bbuserinfo, $response, $mod_func;
+	$f = input::int('f');
+	if (!check_moderate_prms('canstickthread', $f))
 	{
 		show_processinfo($forums->lang['noprms_stick']);
 		return $response;
@@ -1183,19 +1188,22 @@ function sticky_threads()
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
 	$mod_func = new modfunctions();
 
-	if (!$_INPUT['cancel_stick']) //置顶操作
+	$tid = input::arr('tid');
+	if (!input::int('cancel_stick')) //置顶操作
 	{
-		$this_forum = $forums->forum->single_forum($_INPUT['f']);
+		$this_forum = $forums->forum->single_forum($f);
 		$sticky = explode(',', $this_forum['parentlist']);
-		$sticky = @array_search($_INPUT['stick_to_forumid'], $sticky) + 1;
+
+		$stick_to_forumid = input::int('stick_to_forumid');
+		$sticky = @array_search($stick_to_forumid, $sticky) + 1;
 		$update_arr = array('sticky' => $sticky);
-		if ($_INPUT['stick_to_forumid'] == $_INPUT['f']) //置顶
+		if ($stick_to_forumid == $f) //置顶
 		{
 			$action = $forums->lang['stickthread'];
 		}
-		else if ($_INPUT['stick_to_forumid'] == -1) //总置顶
+		else if ($stick_to_forumid == -1) //总置顶
 		{
-			if (!check_moderate_prms('cangstickthread', $fid))
+			if (!check_moderate_prms('cangstickthread', $fid)) //?
 			{
 				show_processinfo($forums->lang['noprms_stick']);
 				return $response;
@@ -1203,38 +1211,38 @@ function sticky_threads()
 			$update_arr['sticky'] = 99;
 			$action = $forums->lang['gstickthread'];
 		}
-		else if ($_INPUT['stick_to_forumid'] != $_INPUT['f']) //区置顶
+		else if ($stick_to_forumid != $f) //区置顶
 		{
-			if (!check_moderate_prms('canqstickthread', $_INPUT['f']))
+			if (!check_moderate_prms('canqstickthread', $f))
 			{
 				show_processinfo($forums->lang['noprms_stick']);
 				return $response;
 			}
-			$action = $forums->lang['stick_to_forum'] . ': ' . $forums->cache['forum'][$_INPUT['stick_to_forumid']]['name'];
+			$action = $forums->lang['stick_to_forum'] . ': ' . $forums->cache['forum'][$stick_to_forumid]['name'];
 		}
-		$update_arr['stickforumid'] = intval($_INPUT['stick_to_forumid']);
-		$DB->update(TABLE_PREFIX . 'thread', $update_arr, 'tid IN (' . implode(',', $_INPUT['tid']) . ')');
+		$update_arr['stickforumid'] = $stick_to_forumid;
+		$DB->update(TABLE_PREFIX . 'thread', $update_arr, 'tid IN (' . implode(',', $tid) . ')');
 	}
 	else //取消置顶
 	{
-		if (!check_moderate_prms('canqstickthread', $_INPUT['f']))
+		if (!check_moderate_prms('canqstickthread', $f))
 		{
-			$cancel_condition = ' sticky > 0 AND (stickforumid = ' . intval($_INPUT['f']) . ' OR stickforumid=0)';
+			$cancel_condition = ' sticky > 0 AND (stickforumid = ' . intval($f) . ' OR stickforumid=0)';
 		}
-		if (!check_moderate_prms('cangstickthread', $fid))
+		if (!check_moderate_prms('cangstickthread', $fid))//?
 		{
 			$cancel_condition = ' AND sticky != 99';
 		}
 		$action = $forums->lang['unstickthread'];
-		$DB->update(TABLE_PREFIX . 'thread', array('sticky' => 0, 'stickforumid' => 0), 'tid IN (' . implode(',', $_INPUT['tid']) . ')' . $cancel_condition);
+		$DB->update(TABLE_PREFIX . 'thread', array('sticky' => 0, 'stickforumid' => 0), 'tid IN (' . implode(',', $tid) . ')' . $cancel_condition);
 	}
 
 
-	$tids = implode(',', $_INPUT['tid']);
-	if (count ($_INPUT['tid']) > 1)
+	$tids = implode(',', $tid);
+	if (count ($tid) > 1)
 	{
-		add_thread_log($_INPUT['tid'], $action);
-		$_INPUT['tid'] = '';
+		add_thread_log($tid, $action);
+		input::set('tid', '');
 		add_moderate_log($action . " - " . $forums->lang['threadid'] . ": " . $tids);
 	}
 	else
@@ -1242,60 +1250,66 @@ function sticky_threads()
 		$thread = $DB->query_first('SELECT tid, title FROM '. TABLE_PREFIX . "thread
 						  			WHERE tid = " . intval($tids));
 
-		$_INPUT['tid'] = $thread['tid'];
+		input::set('tid', $thread['tid']);
 		add_thread_log($thread['tid'], $action);
 		add_moderate_log($action . " - " . $thread['title']);
 	}
-	if ($_INPUT['t'])
+
+	$t = input::int('t');
+	if ($t)
 	{
-		$url = "showthread.php?{$forums->js_sessionurl}t=" . $_INPUT['t'];
+		$url = "showthread.php?{$forums->js_sessionurl}t=" . $t;
 	}
-	elseif ($_INPUT['f'])
+	elseif ($f)
 	{
-		$url = "forumdisplay.php?{$forums->js_sessionurl}f=" . $_INPUT['f'];
+		$url = "forumdisplay.php?{$forums->js_sessionurl}f=" . $f;
 	}
 	else
 	{
-		$url = $_INPUT['search_type'] . ".php?{$forums->js_sessionurl}do=show&searchid=" . $_INPUT['searchid'] . '&highlight=' . urlencode($_INPUT['highlight']);
+		$url = input::str('search_type') . ".php?{$forums->js_sessionurl}do=show&searchid=" . input::str('searchid') . '&highlight=' . urlencode(input::str('highlight'));
 	}
 	$response->redirect($url);
 }
 
 function clean_moveurl()
 {
-	global $forums, $DB, $bbuserinfo, $_INPUT, $response, $mod_func;
-	foreach ($_INPUT['tid'] AS $tid)
+	global $forums, $DB, $bbuserinfo, $response, $mod_func;
+	$tid = input::arr('tid');
+	foreach ($tid AS $t)
 	{
-		if ($cleanid = $DB->query_first("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE moved LIKE '" . $tid . "&%'"))
+		if ($cleanid = $DB->query_first("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE moved LIKE '" . $t . "&%'"))
 		{
 			$thread[] = $cleanid['tid'];
 		}
 	}
+
+	$f = input::int('f');
+	$t = input::int('t');
 	if (is_array($thread))
 	{
 		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "thread WHERE tid IN (" . implode(',', $thread) . ')');
-		forum_recount($_INPUT['f']);
+		forum_recount($f);
 	}
 	show_processinfo($forums->lang['hascleaned']);
-	if ($_INPUT['t'])
+	if ($t)
 	{
-		$url = "showthread.php?{$forums->js_sessionurl}t=" . $_INPUT['t'];
+		$url = "showthread.php?{$forums->js_sessionurl}t=" . $t;
 	}
-	elseif ($_INPUT['f'])
+	elseif ($f)
 	{
-		$url = "forumdisplay.php?{$forums->js_sessionurl}f=" . $_INPUT['f'];
+		$url = "forumdisplay.php?{$forums->js_sessionurl}f=" . $f;
 	}
 	else
 	{
-		$url = $_INPUT['search_type'] . ".php?{$forums->js_sessionurl}do=show&searchid=" . $_INPUT['searchid'] . '&highlight=' . urlencode($_INPUT['highlight']);
+		$url = input::str('search_type') . ".php?{$forums->js_sessionurl}do=show&searchid=" . input::str('searchid') . '&highlight=' . urlencode(input::str('highlight'));
 	}
 	$response->redirect($url);
 }
 
 function delete_threads()
 {
-	global $forums, $DB, $bbuserinfo, $bboptions, $_INPUT, $response, $mod_func;
-	$tids = $_INPUT['tid'];
+	global $forums, $DB, $bbuserinfo, $bboptions, $response, $mod_func;
+	$tids = input::arr('tid');
 	foreach ($tids AS $link_thread)
 	{
 		$linked_thread = $DB->query_first( "SELECT tid, forumid FROM ".TABLE_PREFIX."thread WHERE open=2 AND moved LIKE '".$link_thread."&%'" );
@@ -1331,11 +1345,11 @@ function delete_threads()
 	}
 	$recycleforumid = fetch_recycleforum();
 	//给删除主题的用户发送消息
-	if (isset($_INPUT['deletepmusers']) && !empty($delthread))
+	if (input::is_set('deletepmusers') && !empty($delthread))
 	{
 		require_once(ROOT_PATH . 'includes/functions_private.php');
 		$pm = new functions_private();
-		$_INPUT['noredirect'] = 1;
+		input::set('noredirect', 1);
 		$bboptions['pmallowhtml'] = 1;
 		$bboptions['usewysiwyg'] = 1;
 		foreach ($delthread AS $userid => $delthreadinfo)
@@ -1350,33 +1364,34 @@ function delete_threads()
 				$deltitle .= "<div>".$delinfo['title']."</div>\n";
 			}
 			if (!$deltitle) continue;
-			$_INPUT['title'] = $forums->lang['yourthreaddeleted'];
-			$forums->lang['yourthreaddeletedinfos'] = sprintf( $forums->lang['yourthreaddeletedinfo'], $deltitle, $_INPUT['deletereason'] );
-			$_POST['post'] = $forums->lang['yourthreaddeletedinfos'];
-			$_INPUT['username'] = $delinfo['name'];
+			input::set('title', $forums->lang['yourthreaddeleted']);
+			$forums->lang['yourthreaddeletedinfos'] = sprintf( $forums->lang['yourthreaddeletedinfo'], $deltitle, input::str('deletereason'));
+			input::set('post', $forums->lang['yourthreaddeletedinfos']);
+			input::set('username', $delinfo['name']);
 			$pm->sendpm();
 		}
 	}
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
 	$mod_func = new modfunctions();
-	if ($recycleforumid && $recycleforumid != $_INPUT['f'])
+	$f = input::int('f');
+	if ($recycleforumid && $recycleforumid != $f)
 	{
 		//搜索中删除主题
-		if (!$_INPUT['f'])
+		if (!$f)
 		{
 			foreach ($threadforum as $tid => $forumid)
 			{
 				$mod_func->thread_move($tid, $forumid, $recycleforumid);
-				$_INPUT['tid'] = $tid;
+				input::set('tid', $tid);
 				add_moderate_log($forums->lang['movetorecycle'] . $forums->lang['threadid'] . ':' . implode('<br />', $deltitles));
 				add_thread_log($forums->lang['movetorecycle']);
 			}
 		}
 		else
 		{
-			$mod_func->thread_move($_INPUT['tid'], $_INPUT['f'], $recycleforumid);
+			$mod_func->thread_move($tid, $f, $recycleforumid);
 			add_thread_log($forums->lang['movetorecycle']);
-			$_INPUT['tid'] = '';
+			input::set('tid', '');
 			add_moderate_log($forums->lang['movetorecycle'] . $forums->lang['threadid'] . ':' . implode('<br />', $deltitles));
 		}
 		$redirectstr = $forums->lang['hastorecycle'];
@@ -1384,11 +1399,11 @@ function delete_threads()
 	else
 	{
 		$mod_func->thread_delete($tids);
-		$_INPUT['tid'] = '';
+		input::set('tid', '');
 		add_moderate_log($forums->lang['deletethread'] . $forums->lang['threadid'] . ':' . implode('<br />', $deltitles));
 	}
 
-	if (!$_INPUT['f'] && !empty($recountids))
+	if (!$f && !empty($recountids))
 	{
 		$fids = array_unique($recountids);
 		foreach ($fids as $fid)
@@ -1398,18 +1413,18 @@ function delete_threads()
 	}
 	else
 	{
-		forum_recount($_INPUT['f']);
+		forum_recount($f);
 	}
 
 	forum_recount($recycleforumid);
 	show_processinfo($redirectstr);
-	if ($_INPUT['f'])
+	if ($f)
 	{
-		$response->redirect(ROOT_PATH . "forumdisplay.php?{$forums->js_sessionurl}f=" . $_INPUT['f'] . '&pp=' . $_INPUT['pp']);
+		$response->redirect(ROOT_PATH . "forumdisplay.php?{$forums->js_sessionurl}f=" . $f . '&pp=' . input::int('pp'));
 	}
 	else
 	{
-		$url = $_INPUT['search_type'] . ".php?{$forums->js_sessionurl}do=show&searchid=" . $_INPUT['searchid'] . '&highlight=' . urlencode($_INPUT['highlight']);
+		$url = input::str('search_type') . ".php?{$forums->js_sessionurl}do=show&searchid=" . input::str('searchid') . '&highlight=' . urlencode(input::str('highlight'));
 		$response->redirect($url);
 	}
 	return $response;
@@ -1417,12 +1432,13 @@ function delete_threads()
 
 function do_specialtopic($type = 'specialtopic')
 {
-	global $forums, $DB, $bbuserinfo, $_INPUT, $bboptions, $response, $mod_func;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response, $mod_func;
 
-	$this_forum = $forums->forum->single_forum($_INPUT['f']);
+	$f = input::int('f');
+	$this_forum = $forums->forum->single_forum($f);
 	if ($type == 'specialtopic')
 	{
-		$st_id = intval($_INPUT['st_id']);
+		$st_id = input::int('st_id');
 		if (!$this_forum['specialtopic'])
 		{
 			show_processinfo($forums->lang['nospecials']);
@@ -1454,31 +1470,37 @@ function do_specialtopic($type = 'specialtopic')
 		$log_content = $forums->lang['unsetspecialtopic'];
 		$success_info = $forums->lang['unsetspecialtopic'];
 	}
+
+	$tid = input::arr('tid');
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
 	$mod_func = new modfunctions();
-	$mod_func->thread_st($_INPUT['tid'], $st_id);
-	add_thread_log($_INPUT['tid'], $log_content);
-	$tids = implode(',', $_INPUT['tid']);
-	$_INPUT['tid'] = '';
+	$mod_func->thread_st($tid, $st_id);
+	add_thread_log($tid, $log_content);
+	$tids = implode(',', $tid);
+	input::set('tid', '');
 	add_moderate_log($log_content . ' - ' . $forums->lang['threadid'] . ': ' . $tids);
 	show_processinfo($success_info);
-	$url = ($_INPUT['t']) ? "showthread.php?{$forums->js_sessionurl}t=" . $_INPUT['t'] : "forumdisplay.php?{$forums->js_sessionurl}f=" . $_INPUT['f'];
+
+	$t = input::int('t');
+	$url = ($t) ? "showthread.php?{$forums->js_sessionurl}t=" . $t : "forumdisplay.php?{$forums->js_sessionurl}f=" . $f;
 	$response->redirect($url);
 }
 
 function do_revert_threads()
 {
-	global $forums, $DB, $bbuserinfo, $_INPUT, $bboptions, $response, $mod_func;
-	$forumid = intval($_INPUT['f']);
+	global $forums, $DB, $bbuserinfo, $bboptions, $response, $mod_func;
+	$forumid = input::int('f');
 	$recycleforumid = fetch_recycleforum();
 	if ($recycleforumid != $forumid)
 	{
 		return $response;
 	}
+
+	$tid = input::arr('tid');
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
 	$mod_func = new modfunctions();
 	$recountids = $revertpids = $reverttids = array();
-	$result = $DB->query('SELECT tid, rawforumid, forumid FROM ' . TABLE_PREFIX . 'thread WHERE tid IN (' . implode(',', $_INPUT['tid']) . ') AND forumid = ' . $forumid);
+	$result = $DB->query('SELECT tid, rawforumid, forumid FROM ' . TABLE_PREFIX . 'thread WHERE tid IN (' . implode(',', $tid) . ') AND forumid = ' . $forumid);
 	while ($row = $DB->fetch_array($result))
 	{
 		if (!$row['rawforumid'])
@@ -1536,7 +1558,7 @@ function do_revert_threads()
 	show_processinfo($forums->lang['revertthreadfromrecycle']);
 	if (!$forumid)
 	{
-		$url = $_INPUT['search_type'] . ".php?{$forums->js_sessionurl}do=show&searchid=" . $_INPUT['searchid'] . '&highlight=' . urlencode($_INPUT['highlight']);
+		$url = input::str('search_type') . ".php?{$forums->js_sessionurl}do=show&searchid=" . input::str('searchid') . '&highlight=' . urlencode(input::str('highlight'));
 	}
 	else
 	{
@@ -1547,14 +1569,14 @@ function do_revert_threads()
 
 function mod_commend_thread()
 {
-	global $forums, $DB, $bbuserinfo, $_INPUT, $bboptions, $response, $mod_func;
-	$forumid = intval($_INPUT['f']);
+	global $forums, $DB, $bbuserinfo, $bboptions, $response, $mod_func;
+	$forumid = input::int('f');
 	if (!$bbuserinfo['supermod'] && !$bbuserinfo['_moderator'][$forumid])
 	{
 		show_processinfo($forums->lang['noprms_commend_thread']);
 		return $response;
 	}
-	$commend_exp = intval($_INPUT['commend_exp']);
+	$commend_exp = input::int('commend_exp');
 	if ($commend_exp > $bboptions['commend_thread_num'] || $commend_exp > 127)
 	{
 		show_processinfo($forums->lang['commend_exp_overflow']);
@@ -1569,7 +1591,9 @@ function mod_commend_thread()
 		show_processinfo($forums->lang['commend_thread_overflow']);
 		return $response;
 	}
-	$DB->update(TABLE_PREFIX . 'thread', array('mod_commend' => $commend_exp), $DB->sql_in('tid', $_INPUT['tid']));
+
+	$tid = input::arr('tid');
+	$DB->update(TABLE_PREFIX . 'thread', array('mod_commend' => $commend_exp), $DB->sql_in('tid', $tid));
 	$forums->func->recache('forum_commend_thread');
 	if ($commend_exp)
 	{
@@ -1581,12 +1605,11 @@ function mod_commend_thread()
 	}
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
 	$mod_func = new modfunctions();
-	$log .= '(' . $forums->lang['threadid'] . implode(',', $_INPUT['tid']) . ')';
-	$_INPUT['tid'] = '';
+	$log .= '(' . $forums->lang['threadid'] . implode(',', $tid) . ')';
+	input::set('tid', '');
 	add_moderate_log($log);
 	show_processinfo($forums->lang['commend_thread_suc']);
 	$url = "forumdisplay.php?{$forums->js_sessionurl}f=" . $forumid;
 	$response->redirect($url);
 	return $response;
 }
-?>

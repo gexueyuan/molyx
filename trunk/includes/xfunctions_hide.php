@@ -389,7 +389,7 @@ class hidefunc
 		$extracredits = $sendposttimes = $ingroups = $replyeds = true;
 
 
-		$hidetype = unclean_value($hidetype);
+		$hidetype = input::unclean($hidetype);
 	    $conditions = explode(']::[',$hidetype);
 
 		//扩展积分

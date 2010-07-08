@@ -22,9 +22,9 @@ $mxajax_register_functions = array(
 
 function check_user_account($username)
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions, $response;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response;
 	$forums->func->load_lang('register');
-	$check = unclean_value($username);
+	$check = input::unclean($username);
 	if ($bboptions['namenoallowenus'])
 	{
 		$pattern .= 'a-zA-Z';
@@ -33,7 +33,7 @@ function check_user_account($username)
 	{
 		$pattern .= '0-9';
 	}
-	$specialchar = unclean_value(addslashes($bboptions['namenoallowspecial']));
+	$specialchar = input::unclean(addslashes($bboptions['namenoallowspecial']));
 	if ($specialchar)
 	{
 		if (preg_match('/\s{1,}/', $specialchar))
@@ -126,7 +126,7 @@ function display_check_result($field, $msg, $type = 'err')
 
 function check_user_email($email)
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions, $response;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response;
 	$forums->func->load_lang('register');
 	$email = strtolower(trim($email));
 	if (strlen($email) < 6)
@@ -177,7 +177,7 @@ function check_user_email($email)
  */
 function do_change_signature($pid, $uid, $signature = '', $wmode = 1)
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions, $response;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response;
 	$response->script('openquick();');
 	if ($bbuserinfo['id'] != $uid && !$bbuserinfo['supermod'])
 	{
@@ -321,8 +321,9 @@ function check_forum_permissions($this_forum)
 
 function do_report_post($input)
 {
-	global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo, $response;
-	$_INPUT = init_input($input);
+	global $forums, $DB, $bboptions, $bbuserinfo, $response;
+
+	input::set($input);
 	$forums->func->load_lang('report');
 	$forums->func->load_lang('error');
 	if (!$bbuserinfo['id'])
@@ -330,7 +331,7 @@ function do_report_post($input)
 		show_processinfo($forums->lang['noperms']);
 		return $response;
 	}
-	if (trim($_INPUT['message']) == '')
+	if (trim($input['message']) == '')
 	{
 		show_processinfo($forums->lang['plzinputallform']);
 		return $response;
@@ -373,13 +374,13 @@ function do_report_post($input)
 	}
 	require_once(ROOT_PATH . "includes/functions_email.php");
 	$email = new functions_email();
-	$report = trim($_INPUT['message']);
+	$report = trim($input['message']);
 	foreach($mods as $ids => $data)
 	{
 		$message = $email->fetch_email_reportpost(array('moderator' => $data['name'],
 				'username' => $bbuserinfo['name'],
 				'thread' => $thread['title'],
-				'link' => $bboptions['bburl'] . "/showthread.php?f=" . $this_forumid . "&amp;t=" . $input['t'] . "&amp;pp=" . $_INPUT['pp'] . "#pid" . $input['p'],
+				'link' => $bboptions['bburl'] . "/showthread.php?f=" . $this_forumid . "&amp;t=" . $input['t'] . "&amp;pp=" . $input['pp'] . "#pid" . $input['p'],
 				'report' => $report,
 				)
 			);
@@ -393,9 +394,9 @@ function do_report_post($input)
 		}
 		else
 		{
-			$_INPUT['title'] = $forums->lang['reportthread'] . ': ' . $thread['title'];
-			$_POST['post'] = $message;
-			$_INPUT['username'] = $data['name'];
+			input::set('title', $forums->lang['reportthread'] . ': ' . $thread['title']);
+			input::set('post', $message);
+			input::set('username', $data['name']);
 			require_once(ROOT_PATH . 'includes/functions_private.php');
 			$pm = new functions_private();
 			$bbuserinfo['pmfolders'] = unserialize($bbuserinfo['pmfolders']);
@@ -403,7 +404,7 @@ function do_report_post($input)
 			{
 				$bbuserinfo['pmfolders'] = array(-1 => array('pmcount' => 0, 'foldername' => $forums->lang['_outbox']), 0 => array('pmcount' => 0, 'foldername' => $forums->lang['_inbox']));
 			}
-			$_INPUT['noredirect'] = 1;
+			input::set('noredirect', 1);
 			$pm->sendpm();
 		}
 	}
@@ -547,7 +548,7 @@ function evaluation_post($input, $pid)
 
 function get_credit_range($id = 0, $fid = 0)
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions, $response, $this_credit;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response, $this_credit;
 	$range = array();
 	$minarrs = $this_credit->getactioncredit('evaluationmin', $bbuserinfo['usergroupid'], $fid);
 	$range['min'] = $minarrs[$id]['action'];
@@ -559,18 +560,18 @@ function get_credit_range($id = 0, $fid = 0)
 
 function do_evaluation_post($input)
 {
-	global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions, $response, $this_credit;
+	global $forums, $DB, $bbuserinfo, $bboptions, $response, $this_credit;
 	$forums->func->load_lang('evaluation');
-	$_INPUT = init_input($input);
+	input::set($input);
 	require_once(ROOT_PATH . "includes/functions_credit.php");
 	$this_credit = new functions_credit();
-	if (!check_eval_prms($_INPUT))
+	if (!check_eval_prms($input))
 	{
 		return $response;
 	}
-	$actcredit = $_INPUT['actcredit'];
-	$amount = intval($_INPUT['amount']);
-	$evalmessage = trim($_INPUT['evalmessage']);
+	$actcredit = $input['actcredit'];
+	$amount = intval($input['amount']);
+	$evalmessage = trim($input['evalmessage']);
 	$allrep = unserialize($forums->this_thread['allrep']);
 	$thiscredit = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "credit WHERE tag='$actcredit'");
 	//判断用户用该积分进行的评价活动是否超出评价默认值
@@ -605,7 +606,7 @@ function do_evaluation_post($input)
 
 	$log = $DB->query_first("SELECT *
 		FROM " . TABLE_PREFIX . "evaluationlog
-		WHERE postid = " . intval($_INPUT['p']) . " AND actionuserid = {$bbuserinfo['id']}");
+		WHERE postid = " . intval($input['p']) . " AND actionuserid = {$bbuserinfo['id']}");
 	if ($log['evaluationid'] && !$bbuserinfo['canevalsameuser'])
 	{
 		$forums->func->load_lang('error');
@@ -628,8 +629,8 @@ function do_evaluation_post($input)
 	}
 	//添加评价日志
 	$logarray = array('forumid' => $forums->this_forumid,
-					  'threadid' => $_INPUT['t'],
-					  'postid' => $_INPUT['p'],
+					  'threadid' => $input['t'],
+					  'postid' => $input['p'],
 					  'postuserid' => $forums->this_post['userid'],
 					  'actionusername' => $bbuserinfo['name'],
 					  'actionuserid' => $bbuserinfo['id'],
@@ -645,13 +646,13 @@ function do_evaluation_post($input)
 	//更新评价的用户积分
 	$evalcredit = 'eval'.$actcredit;
 	$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $evalcredit = $evalcredit - " . abs($amount) . " WHERE id = {$bbuserinfo['id']}");
-	$DB->shutdown_update(TABLE_PREFIX . "thread", array('allrep' => serialize($allrep)), "tid = " . intval($_INPUT['t']));
+	$DB->shutdown_update(TABLE_PREFIX . "thread", array('allrep' => serialize($allrep)), "tid = " . intval($input['t']));
 
 	//发送短消息
-	if ($_INPUT['sendpm'] == 'yes')
+	if ($input['sendpm'] == 'yes')
 	{
-		$_INPUT['title'] = sprintf($forums->lang['evalpmtitle'], $bbuserinfo['name']);
-		if ($forums->this_thread['firstpostid'] != $_INPUT['p'])
+		input::set('title', sprintf($forums->lang['evalpmtitle'], $bbuserinfo['name']));
+		if ($forums->this_thread['firstpostid'] != $input['p'])
 		{
 			$evaluationinfo = sprintf($forums->lang['evalpmcontentposter'], $bbuserinfo['name'], $forums->this_thread['title'], $thiscredit['name'], $amount, $evalmessage);
 		}
@@ -659,11 +660,11 @@ function do_evaluation_post($input)
 		{
 			$evaluationinfo = sprintf($forums->lang['evalpmcontentauthor'], $bbuserinfo['name'], $forums->this_thread['title'], $thiscredit['name'], $amount, $evalmessage);
 		}
-		$_POST['post'] = $evaluationinfo;
-		$_INPUT['username'] = $forums->this_post['username'];
+		input::set('post', $evaluationinfo);
+		input::set('username', $forums->this_post['username']);
 		require_once(ROOT_PATH . 'includes/functions_private.php');
 		$pm = new functions_private();
-		$_INPUT['noredirect'] = 1;
+		input::set('noredirect', 1);
 		$bboptions['usewysiwyg'] = 1;
 		$bboptions['pmallowhtml'] = 1;
 		$pm->sendpm();
@@ -671,7 +672,7 @@ function do_evaluation_post($input)
 	$evallog = array();
 	$rs = $DB->query('SELECT actionusername, affect, dateline, reason, creditid, creditname
 		FROM ' . TABLE_PREFIX . "evaluationlog
-		WHERE postid=" . intval($_INPUT['p']) . "
+		WHERE postid=" . intval($input['p']) . "
 		ORDER BY dateline DESC
 		LIMIT 0,5");
 	while ($r = $DB->fetch_array($rs))
@@ -686,7 +687,7 @@ function do_evaluation_post($input)
 
 	$rs = $DB->query('SELECT SUM(affect) AS credit, creditid, creditname
 		FROM ' . TABLE_PREFIX . "evaluationlog
-		WHERE postid=" . intval($_INPUT['p']) . "
+		WHERE postid=" . intval($input['p']) . "
 		GROUP BY creditid");
 	$postcredit = array();
 	while ($r = $DB->fetch_array($rs))
@@ -694,18 +695,18 @@ function do_evaluation_post($input)
 		$postcredit[] = $r;
 	}
 	$evallog['ac'] = $postcredit;
-	$DB->shutdown_update(TABLE_PREFIX . $forums->this_thread['posttable'], array('reppost' => serialize($evallog)), 'pid=' . intval($_INPUT['p']));
-	$url = "showthread.php?{$forums->js_sessionurl}f=" . $forums->this_forumid . "&t=" . $_INPUT['t'] . "&pp=" . $_INPUT['pp'];
+	$DB->shutdown_update(TABLE_PREFIX . $forums->this_thread['posttable'], array('reppost' => serialize($evallog)), 'pid=' . intval($input['p']));
+	$url = "showthread.php?{$forums->js_sessionurl}f=" . $forums->this_forumid . "&t=" . $input['t'] . "&pp=" . $input['pp'];
 	$response->redirect($url);
 	return $response;
 }
 
 function ban_user_post($input, $uid = 0, $do_ban = 0)
 {
-	global $forums, $DB, $bbuserinfo, $bboptions, $_INPUT, $response;
-	$_INPUT = init_input($input);
+	global $forums, $DB, $bbuserinfo, $bboptions, $response;
+	input::set($input);
 	$uid = intval($uid);
-	$fid = intval($_INPUT['f']);
+	$fid = intval($input['f']);
 	$user = $DB->query_first("SELECT id, name, liftban, usergroupid
 		FROM " . TABLE_PREFIX . "user WHERE id=$uid");
 	if (!$user['id'])
@@ -722,7 +723,7 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 	$ban = banned_detect($user['liftban']);
 	if ($do_ban)
 	{
-		$permanent = intval($_INPUT['permanent']);
+		$permanent = intval($input['permanent']);
 		if (!$permanent)
 		{
 			show_processinfo($forums->lang['notbantype']);
@@ -740,8 +741,8 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 			$limitunit = substr($moderator['bantimelimit'], -1);
 			$limitfactor = ($limitunit == 'd') ? 86400 : 3600;
 			$limitspan = TIMENOW + ($timelimit * $limitfactor);
-			$timespan = intval($_INPUT['posttimespan']);
-			$spanfactor = ($_INPUT['banpostunit'] == 'd') ? 86400 : 3600;
+			$timespan = intval($input['posttimespan']);
+			$spanfactor = ($input['banpostunit'] == 'd') ? 86400 : 3600;
 			$posttimespan = TIMENOW + ($timespan * $spanfactor);
 			if ($limitspan < $posttimespan)
 			{
@@ -763,7 +764,7 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 		{
 			$msg = $forums->lang['banusersuccess'];
 			$usergroupid = 5;
-			$banposts = $_INPUT['banbbspost']?-1:-2;
+			$banposts = $input['banbbspost']?-1:-2;
 			$opera = $forums->lang['optionlog1'].$bbuserinfo['name'].$forums->lang['optionlog2'].$time.$forums->lang['optionlog3'];
 			if ($banposts == -1)
 			{
@@ -782,23 +783,23 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 				break;
 			//按时封禁用户在所有版面内
 			case 1:
-				if (!intval($_INPUT['usertimespan']))
+				if (!intval($input['usertimespan']))
 				{
 					show_processinfo($forums->lang['setting_time_first']);
 					return $response;
 				}
-				$liftban = banned_detect(array('timespan' => intval($_INPUT['usertimespan']), 'unit' => $_INPUT['banuserunit'], 'groupid' => $user['usergroupid'], 'banuser' => $bbuserinfo['name'], 'banposts' => $banposts));
+				$liftban = banned_detect(array('timespan' => intval($input['usertimespan']), 'unit' => $input['banuserunit'], 'groupid' => $user['usergroupid'], 'banuser' => $bbuserinfo['name'], 'banposts' => $banposts));
 				break;
 			//按时封禁用户在此版面内
 			case 2:
-				if (!intval($_INPUT['posttimespan']))
+				if (!intval($input['posttimespan']))
 				{
 					show_processinfo($forums->lang['setting_time_first']);
 					return $response;
 				}
 				$msg = $forums->lang['banpostsuccess'];
 				$usergroupid = $user['usergroupid'];
-				$banposts = $_INPUT['banbbspost']?$fid:-2;
+				$banposts = $input['banbbspost']?$fid:-2;
 				if ($banposts > 0)
 				{
 					$opera = $forums->lang['optionlog1'].$bbuserinfo['name'].$forums->lang['optionlog2'].$time.$forums->lang['optionlog3'];
@@ -821,7 +822,7 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 						}
 					}
 				}
-				$liftban = banned_detect(array('timespan' => intval($_INPUT['posttimespan']), 'unit' => $_INPUT['banpostunit'], 'groupid' => $user['usergroupid'], 'banuser' => $bbuserinfo['name'], 'banposts' => $banposts, 'forumid' => $fid));
+				$liftban = banned_detect(array('timespan' => intval($input['posttimespan']), 'unit' => $input['banpostunit'], 'groupid' => $user['usergroupid'], 'banuser' => $bbuserinfo['name'], 'banposts' => $banposts, 'forumid' => $fid));
 				break;
 			default:
 				$msg = $forums->lang['unbanusersuccess'];
@@ -857,27 +858,27 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 		}
 
 		$DB->update(TABLE_PREFIX . 'user', array('liftban' => $liftban, 'usergroupid' => $usergroupid), 'id=' . $user['id']);
-		if ($_INPUT['sendbanmsg'])
+		if ($input['sendbanmsg'])
 		{
 			require_once(ROOT_PATH . 'includes/functions_private.php');
 			$pm = new functions_private();
-			$_INPUT['noredirect'] = 1;
+			input::set('noredirect', 1);
 			$bboptions['usewysiwyg'] = 1;
 			$bboptions['pmallowhtml'] = 1;
 			if ($permanent == -2)
 			{
-				$_INPUT['title'] = $forums->lang['unliftban'];
-				$_POST['post'] = $forums->lang['unliftbandesc'];
-				$_INPUT['username'] = $user['name'];
+				input::set('title', $forums->lang['unliftban']);
+				input::set('post', $forums->lang['unliftbandesc']);
+				input::set('username', $user['name']);
 				$pm->sendpm();
 			}
 			elseif ($permanent == 2)
 			{
 				$forum = $forums->forum->single_forum($fid);
-				$_INPUT['title'] = $forums->lang['banpost'];
+				input::set('title', $forums->lang['banpost']);
 				$forums->lang['banpostdesc'] = sprintf($forums->lang['banpostdesc'], $forum['name'], $forums->func->get_date($posttimespan, 2, 1));
-				$_POST['post'] = $forums->lang['banpostdesc'];
-				$_INPUT['username'] = $user['name'];
+				input::set('post', $forums->lang['banpostdesc']);
+				input::set('username', $user['name']);
 				$pm->sendpm();
 			}
 		}
@@ -921,4 +922,3 @@ function getselectoption($name, $option = '')
 	$bantype .= "</select>\n\n";
 	return $bantype;
 }
-?>

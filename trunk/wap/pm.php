@@ -23,7 +23,7 @@ class newprivate
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$forums->func->load_lang('usercp');
 		$forums->func->load_lang('private');
 		if (! $bbuserinfo['id'])
@@ -34,7 +34,7 @@ class newprivate
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		$this->folderid = intval($_INPUT['folderid']);
+		$this->folderid = input::int('folderid');
 		if (! $bbuserinfo['pmquota'])
 		{
 			$forums->func->load_lang('error');
@@ -61,9 +61,13 @@ class newprivate
 		}
 		$forums->lang['pmcenter'] = convert($forums->lang['pmcenter']);
 		$forums->lang['sendpm'] = convert($forums->lang['sendpm']);
-		$this->posthash = $_INPUT['posthash'] ? trim($_INPUT['posthash']) : md5(microtime());
+		$this->posthash = input::str('posthash');
+		if (!$this->posthash)
+		{
+			$this->posthash = md5(microtime());
+		}
 
-		switch ($_INPUT['do'])
+		switch (input::str('do'))
 		{
 			case 'editfolders':
 				$this->editfolders();
@@ -139,7 +143,7 @@ class newprivate
 
 	function pmhome()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$folder_links = "";
 		foreach($bbuserinfo['pmfolders'] AS $id => $data)
 		{
@@ -156,11 +160,11 @@ class newprivate
 
 	function pmlist()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$sortby = 'dateline DESC';
 		$folderid = $this->folderid;
 
-		$firstpost = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
+		$firstpost = input::int('pp');
 		$foldername = "<a href='pm.php{$forums->sessionurl}do=list&amp;folderid={$folderid}'>" . convert($bbuserinfo['pmfolders'][$this->folderid]['foldername']) . "</a>";
 		if ($this->folderid == '-1')
 		{
@@ -219,10 +223,10 @@ class newprivate
 
 	function showpm()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		$this->offset = intval($_INPUT['offset']);
-		if (! $_INPUT['id'])
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$id = input::int('id');
+		$this->offset = input::int('offset');
+		if (!$id)
 		{
 			$forums->func->load_lang('error');
 			$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -240,7 +244,7 @@ class newprivate
 				FROM " . TABLE_PREFIX . "pm p
 				 LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid)
 				 LEFT JOIN " . TABLE_PREFIX . "user u ON (p.fromuserid=u.id)
-				WHERE p.pmid='" . $_INPUT['id'] . "'");
+				WHERE p.pmid = $id");
 		if ($pm = $DB->fetch_array())
 		{
 			if ($pm['userid'] != $bbuserinfo['id'] && $pm['usergroupid'] != -1 && !preg_match("/," . $bbuserinfo['usergroupid'] . ",/i", "," . $pm['usergroupid'] . ","))
@@ -266,7 +270,7 @@ class newprivate
 		}
 		if ($pm['pmread'] < 1)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pm SET pmread=1, pmreadtime=" . TIMENOW . " WHERE pmid=" . $_INPUT['id'] . "");
+			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pm SET pmread=1, pmreadtime=" . TIMENOW . " WHERE pmid = $id");
 		}
 		$dateline = $forums->func->get_date($pm['dateline'], 2);
 		$username = convert($pm['username']);
@@ -289,7 +293,7 @@ class newprivate
 			$this->endoutput = true;
 			$pm['message'] = $this->con->fetch_trimmed_title($pm['message'], $leftlen);
 			$offset = $this->offset + $this->con->post_set;
-			$urllink = "pm.php{$forums->sessionurl}do=show&amp;id={$_INPUT['id']}&amp;folderid={$this->folderid}&amp;offset={$offset}";
+			$urllink = "pm.php{$forums->sessionurl}do=show&amp;id=$id&amp;folderid={$this->folderid}&amp;offset={$offset}";
 		}
 		$message = convert($pm['message']) . "\n";
 
@@ -299,8 +303,8 @@ class newprivate
 			$nextpage = "\n<p><a href='{$urllink}'>" . convert($forums->lang['nextlink']) . "</a></p>";
 		}
 
-		$otherlink = "<a href='pm.php{$forums->sessionurl}do=reply&amp;id={$_INPUT['id']}&amp;u={$pm['fromuserid']}' title='{$forums->lang['re']}'>{$forums->lang['re']}</a><br />";
-		$otherlink .= "<a href='pm.php{$forums->sessionurl}do=del&amp;id={$_INPUT['id']}&amp;folderid={$this->folderid}' title='{$forums->lang['delete']}'>{$forums->lang['delete']}</a><br />";
+		$otherlink = "<a href='pm.php{$forums->sessionurl}do=reply&amp;id=$id&amp;u={$pm['fromuserid']}' title='{$forums->lang['re']}'>{$forums->lang['re']}</a><br />";
+		$otherlink .= "<a href='pm.php{$forums->sessionurl}do=del&amp;id=$id&amp;folderid={$this->folderid}' title='{$forums->lang['delete']}'>{$forums->lang['delete']}</a><br />";
 		$otherlink = convert($otherlink);
 		$otherlink .= "<a href='pm.php{$forums->sessionurl}' title='{$forums->lang['pmcenter']}'>{$forums->lang['pmcenter']}</a>\n";
 
@@ -310,9 +314,9 @@ class newprivate
 
 	function pmdelete()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		if (! $_INPUT['id'])
+		global $forums, $DB, $bbuserinfo;
+		$id = input::int('id');
+		if (!$id)
 		{
 			$forums->func->load_lang('error');
 			$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -320,7 +324,7 @@ class newprivate
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		$this->delete_messages($_INPUT['id'], $bbuserinfo['id']);
+		$this->delete_messages($id, $bbuserinfo['id']);
 		$this->lib->rebuild_foldercount($bbuserinfo['id'],
 			$bbuserinfo['pmfolders'],
 			$this->folderid,
@@ -476,38 +480,42 @@ class newprivate
 
 	function sendpm()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 
 		require_once(ROOT_PATH . 'includes/functions_post.php');
 
-		$title = trim(convert($_INPUT['title']));
+		$title = convert(input::str('title'));
 		$title = $this->lib->postlib->parser->censoredwords($title);
 		$_POST['post'] = $this->lib->postlib->parser->censoredwords($_POST['post']);
 		$message = $this->lib->postlib->parser->convert(array(
 			'text' => utf8_htmlspecialchars(convert($_POST['post'])),
-			'allowsmilies' => $_INPUT['allowsmile'],
+			'allowsmilies' => input::int('allowsmile'),
 			'allowcode' => $bboptions['pmallowbbcode'],
 		));
 		if ($title == '' OR $message == '')
 		{
 			return $this->newpm($forums->lang['inputallform']);
 		}
-		if ($_INPUT['u'])
+
+		$u = input::int('u');
+		if ($u)
 		{
-			$user = $DB->query_first("SELECT name FROM " . TABLE_PREFIX . "user WHERE id=" . intval($_INPUT['u']) . "");
-			$_INPUT['username'] = $user['name'];
+			$user = $DB->query_first("SELECT name FROM " . TABLE_PREFIX . "user WHERE id = $u");
+			$username = $user['name'];
 		}
 		else
 		{
-			$_INPUT['username'] = convert($_INPUT['username']);
+			$username = convert(input::str('username'));
 		}
-		if ($_INPUT['username'] == "")
+
+		if ($username == '')
 		{
+			input::set('username', $username);
 			return $this->newpm($forums->lang['selectusername']);
 		}
-		$savecopy = intval($_INPUT['savecopy']);
-		$_INPUT['username'] = unclean_value($_INPUT['username']);
-		$users = explode(';', $_INPUT['username']);
+		$savecopy = input::int('savecopy');
+		$username = input::unclean($username);
+		$users = explode(';', $username);
 		$touser = array();
 		foreach ($users as $val)
 		{
@@ -519,6 +527,8 @@ class newprivate
 		}
 		$touser = array_unique($touser);
 		$usercounts = count($touser);
+
+		input::set('username', $username);
 		if (($bbuserinfo['pmsendmax'] > 0 AND $usercounts > $bbuserinfo['pmsendmax']) OR (empty($bbuserinfo['pmsendmax']) AND $usercounts > 2))
 		{
 			return $this->newpm($forums->lang['toomanyusers'] . ': ' . $usercounts);

@@ -28,8 +28,9 @@ class search
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		if ($_INPUT['do'] != 'getnew' AND $_INPUT['do'] != 'show')
+		global $forums, $DB, $bbuserinfo, $bboptions;
+		$do = input::str('do');
+		if ($do != 'getnew' AND $do != 'show')
 		{
 			if ($bbuserinfo['cansearch'] != 1)
 			{
@@ -40,8 +41,8 @@ class search
 				exit;
 			}
 		}
-		$this->page = intval($_INPUT['pp']);
-		switch ($_INPUT['do'])
+		$this->page = input::int('pp');
+		switch ($do)
 		{
 			case 'search':
 				$this->do_search();
@@ -92,7 +93,7 @@ class search
 
 	function showform()
 	{
-		global $forums, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $bboptions, $bbuserinfo;
 		$forums->lang['keyword'] = convert($forums->lang['keyword']);
 		$forums->lang['username'] = convert($forums->lang['byusername']);
 		$forums->lang['search'] = convert($forums->lang['search']);
@@ -104,17 +105,16 @@ class search
 
 	function search_thread()
 	{
-		global $_INPUT;
-		$this->threadid = intval($_INPUT['thread']);
+		$this->threadid = input::int('thread');
 		$this->do_search();
 	}
 
 	function find_user_thread()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->flood_contol();
 		$forumlist = $this->get_forums();
-		$userid = intval($_INPUT['u']);
+		$userid = input::int('u');
 		if (!$userid)
 		{
 			$forums->func->load_lang('error');
@@ -155,7 +155,7 @@ class search
 
 	function get_new_post()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		if (!$bbuserinfo['id'])
 		{
 			$forums->func->load_lang('error');
@@ -166,11 +166,12 @@ class search
 		}
 		$this->flood_contol();
 		$last_time = $bbuserinfo['lastvisit'];
-		if ($_INPUT['active'])
+		$lastdate = input::int('lastdate');
+		if (input::int('active'))
 		{
-			if ($_INPUT['lastdate'])
+			if ($lastdate)
 			{
-				$last_time = TIMENOW - intval($_INPUT['lastdate']);
+				$last_time = TIMENOW - $lastdate;
 			}
 			else
 			{
@@ -214,25 +215,29 @@ class search
 			'host' => IPADDRESS,
 			'query' => $query_to_cache
 		));
-		redirect("search.php{$forums->sessionurl}do=show&amp;searchid=$uniqueid&amp;lastdate={$_INPUT['lastdate']}");
+		redirect("search.php{$forums->sessionurl}do=show&amp;searchid=$uniqueid&amp;lastdate={$lastdate}");
 	}
 
 	function do_search()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
-		if ($_INPUT['namesearch'] != "")
+		global $forums, $DB, $bbuserinfo, $bboptions;
+
+		$namesearch = input::str('namesearch');
+		if ($namesearch != "")
 		{
-			$name_filter = $this->filter_keywords($_INPUT['namesearch'], 1);
+			$name_filter = $this->filter_keywords($namesearch, 1);
 		}
-		$keywords = $this->filter_keywords($_INPUT['keywords']);
-		if ($name_filter == "" AND $_INPUT['keywords'] != "")
+		$keywords = input::str('keywords');
+		if ($name_filter == "" AND $keywords != "")
 		{
 			$type = 'postonly';
 		}
-		else if ($name_filter != "" AND $_INPUT['keywords'] == "")
+		else if ($name_filter != "" AND $keywords == "")
 		{
 			$type = 'nameonly';
 		}
+
+		$keywords = $this->filter_keywords($keywords);
 		$checkwords = str_replace("%", "", trim($keywords));
 		if (!$checkwords OR $checkwords == "" OR !isset($checkwords))
 		{
@@ -382,12 +387,12 @@ class search
 
 	function show_results()
 	{
-		global $forums, $DB, $_INPUT, $bboptions, $bbuserinfo;
+		global $forums, $DB, $bboptions, $bbuserinfo;
 		$this->cached_query = 0;
 		$this->cached_matches = 0;
 		require_once(ROOT_PATH . "includes/functions_codeparse.php");
 		$this->parser = new functions_codeparse();
-		$searchid = $_INPUT['searchid'];
+		$searchid = input::str('searchid');
 		if ($searchid == "")
 		{
 			$forums->func->load_lang('error');
@@ -462,7 +467,7 @@ class search
 		}
 		else
 		{
-			if (! $_INPUT['lastdate'])
+			if (!input::int('lastdate'))
 			{
 				$forums->func->load_lang('error');
 				$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -500,7 +505,7 @@ class search
 
 	function get_forums()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$forumids = array();
 		foreach($forums->forum->foruminfo as $id => $data)
 		{
@@ -533,5 +538,3 @@ class search
 
 $output = new search();
 $output->show();
-
-?>

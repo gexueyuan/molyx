@@ -144,7 +144,7 @@ class newpoll
 		}
 		$forums->lang['optionsdesc'] = sprintf($forums->lang['optionsdesc'], $bboptions['maxpolloptions']);
 
-		$credit_list = $this->credit->show_credit('newpoll', $bbuserinfo['usergroupid'], input::get('f'));
+		$credit_list = $this->credit->show_credit('newpoll', $bbuserinfo['usergroupid'], input::int('f'));
 		$smiles = $this->lib->construct_smiles();
 		$smile_count = $smiles['count'];
 		$all_smiles = $smiles['all'];
@@ -179,7 +179,7 @@ class newpoll
 	{
 		global $forums, $DB, $bbuserinfo, $bboptions;
 
-		$f = input::get('f');
+		$f = input::int('f');
 		$this->credit->check_credit('newpoll', $bbuserinfo['usergroupid'], $f);
 		if (! $this->lib->forum['allowpoll'])
 		{
@@ -261,13 +261,13 @@ class newpoll
 
 		if ($bboptions['disablenoreplypoll'] != 1)
 		{
-			$pollstate = input::get('allow_disc') == 0 ? 1 : 2;
+			$pollstate = input::int('allow_disc') == 0 ? 1 : 2;
 		}
 		else
 		{
 			$pollstate = 1;
 		}
-		$multipoll = input::get('allowmultipoll') ? 1 : 0;
+		$multipoll = input::int('allowmultipoll') ? 1 : 0;
 		$sticky = 0;
 		$open = 1;
 
@@ -305,7 +305,7 @@ class newpoll
 				}
 				break;
 		}
-		if ($bbuserinfo['cananonymous'] AND input::get('anonymous'))
+		if ($bbuserinfo['cananonymous'] AND input::int('anonymous'))
 		{
 			$sql_array = array(
 				'postuserid' => 0,
@@ -334,7 +334,7 @@ class newpoll
 			'lastposterid' => $bbuserinfo['id'],
 			'lastposter' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $username,
 			'lastpost' => TIMENOW,
-			'iconid' => input::get('iconid'),
+			'iconid' => input::int('iconid'),
 			'pollstate' => $pollstate,
 			'lastvote' => 0,
 			'views' => 0,
@@ -378,7 +378,7 @@ class newpoll
 			$forums->lang['haspost'] = sprintf($forums->lang['haspost'], $forums->lang['poll']);
 			$forums->func->redirect_screen($forums->lang['haspost'], "forumdisplay.php{$forums->sessionurl}&f=" . $this->lib->forum['id'] . "");
 		}
-		if (input::get('redirect'))
+		if (input::int('redirect'))
 		{
 			$forums->func->standard_redirect("forumdisplay.php{$forums->sessionurl}f={$this->lib->forum['id']}");
 		}
@@ -395,14 +395,14 @@ class newpoll
 		{
 			$forums->func->standard_error("cannotvotepoll");
 		}
-		if (!input::get('nullvote'))
+		if (!input::int('nullvote'))
 		{
 			if (!input::is_set('poll_vote'))
 			{
 				$forums->func->standard_error("notselectpoll");
 			}
 		}
-		$t = input::get('t');
+		$t = input::int('t');
 		if (!$t)
 		{
 			$forums->func->standard_error("erroraddress");
@@ -466,7 +466,7 @@ class newpoll
 		$DB->shutdown_update(TABLE_PREFIX . 'thread', $sql_array, "tid={$this->thread['tid']}");
 		$this->credit->update_credit('replypoll', $bbuserinfo['id'], $bbuserinfo['usergroupid'], $this->thread['forumid']);
 		$this->credit->update_credit('threadpoll', $this->thread['postuserid'], $this->thread['usergroupid'], $this->thread['forumid']);
-		$forums->func->standard_redirect("showthread.php{$forums->sessionurl}f={$this->thread['forumid']}&amp;t={$this->thread['tid']}&amp;pp=" . input::get('pp'));
+		$forums->func->standard_redirect("showthread.php{$forums->sessionurl}f={$this->thread['forumid']}&amp;t={$this->thread['tid']}&amp;pp=" . input::int('pp'));
 	}
 }
 

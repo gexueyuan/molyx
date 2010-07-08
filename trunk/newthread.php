@@ -122,7 +122,7 @@ class newthread
 			$specialtopic = explode(',', $this->lib->forum['specialtopic']);
 			$forumsspecial = $forums->cache['st'];
 		}
-		$credit_list = $this->credit->show_credit('newthread', $bbuserinfo['usergroupid'], input::get('f'));
+		$credit_list = $this->credit->show_credit('newthread', $bbuserinfo['usergroupid'], input::int('f'));
 		$smiles = $this->lib->construct_smiles();
 		$smile_count = $smiles['count'];
 		$all_smiles = $smiles['all'];
@@ -157,7 +157,7 @@ class newthread
 	{
 		global $forums, $DB, $bbuserinfo, $bboptions;
 
-		$f = input::get('f');
+		$f = input::int('f');
 
 		$this->check_permission();
 		$this->credit->check_credit('newthread', $bbuserinfo['usergroupid'], $f);
@@ -257,7 +257,7 @@ class newthread
 			break;
 		}
 		$title = $this->lib->compile_title($title);
-		if ($bbuserinfo['cananonymous'] && input::get('anonymous'))
+		if ($bbuserinfo['cananonymous'] && input::int('anonymous'))
 		{
 			$useanonymous = array(
 				'postuserid' => 0,
@@ -286,7 +286,7 @@ class newthread
 			'lastposterid' => $bbuserinfo['id'],
 			'lastposter' => $bbuserinfo['id'] ? $bbuserinfo['name'] : $username,
 			'lastpost' => TIMENOW,
-			'iconid' => input::get('iconid'),
+			'iconid' => input::int('iconid'),
 			'pollstate' => 0,
 			'lastvote' => 0,
 			'views' => 0,
@@ -330,7 +330,7 @@ class newthread
 			$forums->lang['haspost'] = sprintf($forums->lang['haspost'], $forums->lang['thread']);
 			$forums->func->redirect_screen($forums->lang['haspost'], "forumdisplay.php{$forums->sessionurl}&f=" . $this->lib->forum['id'] . "");
 		}
-		if (input::get('redirect'))
+		if (input::int('redirect'))
 		{
 			$forums->func->standard_redirect("forumdisplay.php{$forums->sessionurl}f=" . $this->lib->forum['id'] . "");
 		}

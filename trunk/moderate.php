@@ -60,7 +60,7 @@ class moderate
 				}
 			}
 
-			$t = input::get('t');
+			$t = input::int('t');
 			if ($t)
 			{
 				if (!$t)
@@ -98,7 +98,7 @@ class moderate
 				}
 			}
 
-			$f = input::get('f');
+			$f = input::int('f');
 			if (!$f && !$bbuserinfo['supermod'])
 			{
 				$forums->func->standard_error("erroraddress");
@@ -270,14 +270,14 @@ class moderate
 		}
 		else
 		{
-			$forums->func->redirect_screen($action . $forums->lang['actioned'], "search.php?do=show&searchid=" . input::get('searchid', '') . "&searchin=" . input::get('searchin', '') . "&showposts=" . input::get('showposts', '') . "&highlight=" . urlencode(input::get('highlight')));
+			$forums->func->redirect_screen($action . $forums->lang['actioned'], "search.php?do=show&searchid=" . input::get('searchid', '') . "&searchin=" . input::get('searchin', '') . "&showposts=" . input::get('showposts', '') . "&highlight=" . urlencode(input::int('highlight')));
 		}
 	}
 
 	function moderate_log($action = 'Unknown')
 	{
-		$f = input::get('f');
-		$p = input::get('p');
+		$f = input::int('f');
+		$p = input::int('p');
 		$this->modfunc->add_moderate_log($f, $this->thread['tid'], $p, $this->thread['title'], $action);
 	}
 
@@ -313,7 +313,7 @@ class moderate
 			$forums->func->standard_error("erroraddress");
 		}
 		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "thread SET logtext = '' WHERE tid='" . $this->thread['tid'] . "'");
-		$forums->func->redirect_screen($forums->lang['threadlogcleaned'], "showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . "&amp;pp=" . input::get('pp'));
+		$forums->func->redirect_screen($forums->lang['threadlogcleaned'], "showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . "&amp;pp=" . input::int('pp'));
 	}
 
 	function recount($fid = '', $redirect = 0)
@@ -330,7 +330,7 @@ class moderate
 	function edituser()
 	{
 		global $DB, $forums, $bbuserinfo, $bboptions;
-		$userid = input::get('u');
+		$userid = input::int('u');
 		$posthash = $this->posthash;
 		$passed = ($bbuserinfo['supermod'] OR $bbuserinfo['caneditusers']) ? true : false;
 		if (empty($userid) OR !$passed)
@@ -346,7 +346,7 @@ class moderate
 			$forums->func->standard_error("cannotfindmember");
 		}
 		$ban = banned_detect($user['liftban']);
-		if (!input::get('update'))
+		if (!input::int('update'))
 		{
 			if (!$bbuserinfo['cancontrolpanel'])
 			{
@@ -388,7 +388,7 @@ class moderate
 			));
 			if (preg_match("#<!--sig_img-->(.+?)<!--sig_img1-->#is", $user['signature'], $match))
 			{
-				if (input::get('sigimg'))
+				if (input::int('sigimg'))
 				{
 					$path = split_todir($user['id'], $bboptions['uploadfolder'] . '/user');
 					foreach(array('swf', 'jpg', 'jpeg', 'gif', 'png') as $extension)
@@ -464,7 +464,7 @@ class moderate
 		{
 			if ($docredit)
 			{
-				if (input::get('docredit'))
+				if (input::int('docredit'))
 				{
 					$this->credit->check_credit('editpoll', $poll_data['usergroupid'], $fid);
 				}
@@ -479,7 +479,7 @@ class moderate
 		require_once (ROOT_PATH . "includes/functions_codeparse.php");
 		$this->parser = new functions_codeparse();
 		reset($polloptions);
-		if (!input::get('update'))
+		if (!input::int('update'))
 		{
 			foreach ($polloptions as $k => $v)
 			{
@@ -537,17 +537,17 @@ class moderate
 				'votes' => $votetotal,
 				'options' => serialize($newpolloptions),
 				'question' => input::get('question', ''),
-				'multipoll' => input::get('multipoll') ? 1 : 0,
+				'multipoll' => input::int('multipoll') ? 1 : 0,
 			);
 			$DB->update(TABLE_PREFIX . 'poll', $sql_array, "tid = {$this->thread['tid']}");
 
 			$sql_array = array(
-				'pollstate' => input::get('pollonly') ? 2 : 1,
+				'pollstate' => input::int('pollonly') ? 2 : 1,
 			);
 			$DB->update(TABLE_PREFIX . 'thread', $sql_array, "tid = {$this->thread['tid']}");
 			if ($docredit)
 			{
-				if (input::get('docredit'))
+				if (input::int('docredit'))
 				{
 					$this->credit->update_credit('editpoll', $poll_data['postuserid'], $poll_data['usergroupid'], $fid);
 				}
@@ -558,7 +558,7 @@ class moderate
 			}
 			$forums->lang['editthreadpoll'] = sprintf($forums->lang['editthreadpoll'], $this->thread['title']);
 			$this->moderate_log($forums->lang['editthreadpoll']);
-			$forums->func->redirect_screen($forums->lang['pollhasedited'], "showthread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;pp=" . input::get('pp'));
+			$forums->func->redirect_screen($forums->lang['pollhasedited'], "showthread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;pp=" . input::int('pp'));
 		}
 	}
 
@@ -588,7 +588,7 @@ class moderate
 		$this->credit->update_credit('delthread', $userinfo['id'], $userinfo['usergroupid'], $fid);
 		$forums->lang['deletepoll'] = sprintf($forums->lang['deletepoll'], $this->thread['title']);
 		$this->moderate_log($forums->lang['deletepoll']);
-		$forums->func->redirect_screen($forums->lang['pollhasdeleted'], "showthread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;pp=" . input::get('pp'));
+		$forums->func->redirect_screen($forums->lang['pollhasdeleted'], "showthread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;pp=" . input::int('pp'));
 	}
 
 	function openclose($type = 'open')
@@ -901,7 +901,7 @@ class moderate
 			unset($this->foruminfo["$key1"],$this->foruminfo["$key2"]);
 		}
 
-		$f = input::get('f');
+		$f = input::int('f');
 		foreach((array) $this->foruminfo as $id => $forum)
 		{
 			if (($forum['canshow'] != '*' && $forums->func->fetch_permissions($forum['canshow'], 'canshow') != true) || $forum['url'])
@@ -926,9 +926,9 @@ class moderate
 		{
 			$forums->func->standard_error("erroroperation");
 		}
-		$dest_id = input::get('move_id');
+		$dest_id = input::int('move_id');
 		$source_id = $this->forum['id'];
-		$leave = input::get('leave') ? 1 : 0;
+		$leave = input::int('leave') ? 1 : 0;
 		if ($source_id == '')
 		{
 			$forums->func->standard_error("cannotfindsource");
@@ -998,7 +998,7 @@ class moderate
 			$pagetitle = $forums->lang['setspecialtopic'] . ": " . $t_title . " - " . $bboptions['bbtitle'];
 		}
 		$nav = array ("<a href='forumdisplay.php{$forums->sessionurl}f={$this->forum['id']}'>{$this->forum['name']}</a>");
-		$t_title .= '<input type="hidden" name="t" value="' . input::get('t') . '" />';
+		$t_title .= '<input type="hidden" name="t" value="' . input::int('t') . '" />';
 		include $forums->func->load_template('_specialtopic_set');
 		exit;
 	}
@@ -1011,7 +1011,7 @@ class moderate
 		{
 			$forums->func->standard_error("erroroperation");
 		}
-		$st_id = input::get('st_id');
+		$st_id = input::int('st_id');
 		if ($st_id == '' OR $st_id == -1)
 		{
 			$forums->func->standard_error("cannotfindst");
@@ -1028,7 +1028,7 @@ class moderate
 		$this->thread_log($this->tids, $forums->lang['settospecialtopic']);
 		$forums->lang['hassettost'] = sprintf($forums->lang['hassettost'], $forums->cache['st'][$st_id]['name']);
 
-		$t = input::get('t');
+		$t = input::int('t');
 		$url = ($t) ? "showthread.php{$forums->sessionurl}t=" . $t : "forumdisplay.php{$forums->sessionurl}f=" . $this->forum['id'];
 		$forums->func->redirect_screen($forums->lang['hassettost'], $url);
 	}
@@ -1055,7 +1055,7 @@ class moderate
 			$this->thread_log($this->thread['tid'], $forums->lang['unsetspecialtopic']);
 		}
 
-		$t = input::get('t');
+		$t = input::int('t');
 		$url = ($t) ? "showthread.php{$forums->sessionurl}t=" . $t : "forumdisplay.php{$forums->sessionurl}f=" . $this->forum['id'];
 		$forums->func->redirect_screen($forums->lang['unsetspecialtopic'] . $forums->lang['actioned'], $url);
 		exit;
@@ -1265,7 +1265,7 @@ class moderate
 		}
 
 		$fid = $this->forum['id'];
-		if (!input::get('update'))
+		if (!input::int('update'))
 		{
 			$threadids = implode(',', $this->tids);
 			$pagetitle = $forums->lang['deletethread'] . ' - ' . $bboptions['bbtitle'];
@@ -1486,7 +1486,7 @@ class moderate
 		}
 		require_once (ROOT_PATH . "includes/functions_codeparse.php");
 		$this->parser = new functions_codeparse();
-		if (!input::get('update'))
+		if (!input::int('update'))
 		{
 			$result = $DB->query('SELECT pagetext, pid, dateline, userid, username
 				FROM ' . TABLE_PREFIX . "$posttable
@@ -1518,7 +1518,7 @@ class moderate
 				$forums->func->standard_error('notselectmove');
 			}
 
-			$old_id = input::get('threadurl');
+			$old_id = input::int('threadurl');
 			if (!$old_id)
 			{
 				$match = array();
@@ -1668,7 +1668,7 @@ class moderate
 			}
 			$this->recount($this->recycleforum);
 
-			$userid = input::get('userid');
+			$userid = input::int('userid');
 			$forums->func->redirect_screen( $forums->lang['posthasdeleted'], "search.php?do=finduser&u=$userid");
 		}
 		$posttable = $this->thread['posttable']?$this->thread['posttable']:'post';
@@ -1781,7 +1781,7 @@ class moderate
 		$curtable = $this->thread['posttable']?$this->thread['posttable']:'post';
 		require_once(ROOT_PATH."includes/functions_codeparse.php");
         $this->parser = new functions_codeparse();
-		if (!input::get('update'))
+		if (!input::int('update'))
 		{
 			$forum_jump = $forums->func->construct_forum_jump(0,1);
 			$t_title = $this->thread['title'];
@@ -1826,7 +1826,7 @@ class moderate
 				$forums->func->standard_error("notselectsplit");
 			}
 			$pids = implode( ",", $this->pids );
-			$fid = input::get('fid');
+			$fid = input::int('fid');
 			if ($fid != $this->forum['id'])
 			{
 				$forum = $forums->forum->single_forum($fid);
@@ -1987,7 +1987,7 @@ class moderate
 		{
 			$forums->func->standard_error("erroroperation");
 		}
-		$id = input::get('id');
+		$id = input::int('id');
 		$forum_html = '';
 		if ($id)
 		{
@@ -2140,17 +2140,17 @@ class moderate
 			)),
 			'pagetext' => $parser->convert(array(
 				'text' => utf8_htmlspecialchars($post),
-				'allowsmilies' => input::get('allowsmile'),
-				'allowcode' => input::get('allowbbcode')
+				'allowsmilies' => input::int('allowsmile'),
+				'allowcode' => input::int('allowbbcode')
 			)),
-			'active' => input::get('active'),
+			'active' => input::int('active'),
 			'forumid' => $forumids,
-			'allowhtml' => input::get('allowhtml'),
+			'allowhtml' => input::int('allowhtml'),
 			'startdate' => $startdate,
 			'enddate' => $enddate
 		);
 
-		$id = input::get('id');
+		$id = input::int('id');
 		if (!$id)
 		{
 			$save_array['userid'] = $bbuserinfo['id'];
@@ -2171,7 +2171,7 @@ class moderate
 		{
 			$forums->func->standard_error("erroroperation");
 		}
-		$id = input::get('id');
+		$id = input::int('id');
 		if (!$announce = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . ""))
 		{
 			$forums->func->standard_error("cannotfindannounce");
