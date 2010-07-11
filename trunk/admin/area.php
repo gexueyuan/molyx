@@ -9,30 +9,12 @@
 # $Id$
 # **************************************************************************#
 require ('./global.php');
-$forums->lang['adminarea'] = '版面自定义区块管理';
-$forums->lang['adminareadesc'] = '在这里可以管理版面内的自定义区块和区块内容';
-$forums->lang['area_content_list'] = '区块内容列表';
-$forums->lang['add_content_suc'] = '区块内容添加成功';
-$forums->lang['edit_content_suc'] = '区块内容编辑成功';
-$forums->lang['del_content_suc'] = '区块内容删除成功';
-$forums->lang['add_area_content'] = '添加区块内容';
-$forums->lang['edit_area_content'] = '编辑区块内容';
-$forums->lang['areaid'] = '区块ID';
-$forums->lang['areaname'] = '区块名称';
-$forums->lang['show_record'] = '显示记录数';
-$forums->lang['area_contentid'] = '区块内容ID';
-$forums->lang['bareaname'] = '所属区块';
-$forums->lang['content_title'] = '内容标题';
-$forums->lang['content_target'] = '链接窗口';
-$forums->lang['bareaname'] = '所属区块';
-$forums->lang['manage'] = '管理';
-$forums->lang['content_link'] = '区块链接';
-$forums->lang['content_order'] = '内容排序';
 class area
 {
 	function show()
 	{
 		global $forums, $bbuserinfo;
+		$forums->func->load_lang('admin_area');
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditforums'])
 		{
