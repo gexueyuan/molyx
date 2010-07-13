@@ -14,14 +14,14 @@ class settings
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditbank'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'banksetting_update' :
 				$this->banksetting_update();
@@ -34,7 +34,7 @@ class settings
 
 	function banksetting_view()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['managebank'];
 		$detail = $forums->lang['managebankdesc'];
 		$forums->admin->nav[] = array('bank.php', $forums->lang['managebank']);
@@ -75,7 +75,7 @@ class settings
 
 	function parse_entry($r)
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$form_element = "";
 		$dropdown = array();
 		$start = "";
@@ -91,7 +91,7 @@ class settings
 		{
 			$tdrow1 = "tdrow1shaded";
 			$tdrow2 = "tdrow2shaded";
-			$revert_button = "<div style='width:auto;float:right;padding-top:2px;'><a href='settings.php?{$forums->sessionurl}do=setting_revert&amp;id={$r['settingid']}&amp;groupid={$r['groupid']}&amp;search={$_INPUT['search']}' title='" . $forums->lang['restoredefault'] . "'><img src='{$forums->imageurl}/te_revert.gif' alt='' border='0' /></a></div>";
+			$revert_button = "<div style='width:auto;float:right;padding-top:2px;'><a href='settings.php?{$forums->sessionurl}do=setting_revert&amp;id={$r['settingid']}&amp;groupid={$r['groupid']}&amp;search=" . input::get('search', ''). "' title='" . $forums->lang['restoredefault'] . "'><img src='{$forums->imageurl}/te_revert.gif' alt='' border='0' /></a></div>";
 		}
 		switch ($r['type'])
 		{
@@ -188,18 +188,18 @@ class settings
 
 	function banksetting_update($donothing = "")
 	{
-		global $forums, $DB, $_INPUT;
-		foreach ($_INPUT AS $key => $value)
+		global $forums, $DB;
+		foreach ($_REQUEST AS $key => $value)
 		{
 			if (preg_match("/^cp_(\d+)$/", $key, $match))
 			{
-				if (isset($_INPUT[$match[0]]))
+				if (isset($_REQUEST[$match[0]]))
 				{
-					$DB->update(TABLE_PREFIX . 'setting', array('displayorder' => $_INPUT[$match[0]]), 'settingid=' . $match[1]);
+					$DB->update(TABLE_PREFIX . 'setting', array('displayorder' => $_REQUEST[$match[0]]), 'settingid=' . $match[1]);
 				}
 			}
 		}
-		$fields = explode(",", trim($_INPUT['settings_save']));
+		$fields = explode(",", trim(input::str('settings_save')));
 		if (!count($fields))
 		{
 			$forums->main_msg = $forums->lang['noselectitems'];
@@ -213,24 +213,22 @@ class settings
 		}
 		foreach ($db_fields AS $key => $data)
 		{
-			if (is_array($_INPUT[$key]))
+			if (is_array($_REQUEST[$key]))
 			{
-				$_INPUT[$key] = implode(",", $_INPUT[$key]);
+				$_REQUEST[$key] = implode(","[$key]);
 			}
-			if (($_INPUT[$key] != $data['defaultvalue']))
+			if (($_REQUEST[$key] != $data['defaultvalue']))
 			{
-				$value = str_replace('&#39;', "'", convert_andstr($_INPUT[ $key ]));
+				$value = str_replace('&#39;', "'", convert_andstr($_REQUEST[ $key ]));
 				$DB->update(TABLE_PREFIX . 'setting', array('value' => $value), 'settingid=' . $data['settingid']);
 			}
-			else if ($_INPUT[$key] != '' AND ($_INPUT[ $key ] == $data['defaultvalue']) AND $data['value'] != '')
+			else if ($_REQUEST[$key] != '' AND ($_REQUEST[ $key ] == $data['defaultvalue']) AND $data['value'] != '')
 			{
 				$DB->update(TABLE_PREFIX . 'setting', array('value' => ''), 'settingid=' . $data['settingid']);
 			}
 		}
-		//$paycredit = $_INPUT['bankruptcypaycredit'] ? $_INPUT['bankruptcypaycredit']:$db_fields['bankruptcypaycredit']['defaultvalue'];
-		//$this->reset_ruptcy_credit(explode(",", $paycredit));
-		
-		$_INPUT['groupid'] = $_INPUT['id'];
+
+		input::set('groupid', input::int('id'));
 		$forums->main_msg = $forums->lang['bankupdated'];
 		$forums->func->recache('banksettings');
 		if (! $donothing)
@@ -268,15 +266,15 @@ class settings
 	
 	function setting_revert()
 	{
-		global $forums, $DB, $_INPUT;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		if (! $_INPUT['id'])
+		global $forums, $DB;
+
+		if (!input::int('id'))
 		{
 			$forums->main_msg = $forums->lang['noids'];
 			$this->banksetting_view();
 		}
-		$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . $_INPUT['id'] . "");
-		$DB->update(TABLE_PREFIX . 'setting', array('value' => ''), 'settingid = ' . $_INPUT['id']);
+		$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
+		$DB->update(TABLE_PREFIX . 'setting', array('value' => ''), 'settingid = ' . input::int('id'));
 		$forums->main_msg = $forums->lang['bankrestored'];
 		$forums->func->recache('banksettings');
 		$this->banksetting_view();
@@ -284,11 +282,11 @@ class settings
 
 	function setting_make_dropdown()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$ret = "<form method='post' action='settings.php?{$forums->sessionurl}do=banksetting_view'><select name='groupid' class='dropdown'>";
 		foreach ($this->setting_groups AS $id => $data)
 		{
-			$ret .= ($id == $_INPUT['groupid']) ? "<option value='{$id}' selected='selected'>{$data['title']}</option>" : "<option value='{$id}'>{$data['title']}</option>";
+			$ret .= ($id == input::int('groupid')) ? "<option value='{$id}' selected='selected'>{$data['title']}</option>" : "<option value='{$id}'>{$data['title']}</option>";
 		}
 		$ret .= "\n</select><input type='submit' id='button' value='" . $forums->lang['ok'] . "' /></form>";
 		return $ret;

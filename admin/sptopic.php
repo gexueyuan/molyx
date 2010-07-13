@@ -16,10 +16,10 @@ class sptopic
 
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$forums->func->load_lang('admin_sptopic');
 		$this->allforum = $forums->adminforum->forumcache;
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'doadd':
 				$this->doadd();
@@ -41,27 +41,25 @@ class sptopic
 
 	function delete_st()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$_INPUT['id'] = intval($_INPUT['id']);
-		$_INPUT['other'] = intval($_INPUT['other']);
-		if (!$_INPUT['id'])
+		if (!input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$st = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "specialtopic WHERE id = " . $_INPUT['id'] . "");
+		$st = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "specialtopic WHERE id = " . input::int('id') . "");
 		if (!$st['id'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if ($_INPUT['update'])
+		if (input::str('update'))
 		{
-			if ($_INPUT['other'] == $st['id'])
+			if (input::str('other') == $st['id'])
 			{
-				$_INPUT['other'] = 0;
+				input::set('other', 0);
 			}
 			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "specialtopic WHERE id = '" . $st['id'] . "'");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET stopic={$_INPUT['other']} WHERE stopic = '" . $st['id'] . "'");
+			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET stopic=" . input::get('other', '') . " WHERE stopic = '" . $st['id'] . "'");
 			if ($st['forumids'] == -1)
 			{
 				foreach($this->allforum AS $fid => $forum)
@@ -123,7 +121,7 @@ class sptopic
 
 	function show_list()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['sptopicmanage'];
 		$detail = $forums->lang['sptopicmanagedesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
@@ -170,11 +168,10 @@ class sptopic
 
 	function add($type = 'edit')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == 'edit')
 		{
-			$_INPUT['id'] = intval($_INPUT['id']);
-			$st = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "specialtopic WHERE id={$_INPUT['id']}");
+			$st = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "specialtopic WHERE id=" . input::int('id') . "");
 			if (!$st['id'])
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
@@ -187,7 +184,7 @@ class sptopic
 			$pagetitle = $forums->lang['addsptopic'];
 		}
 		$forums->admin->print_cp_header($pagetitle);
-		$forums->admin->print_form_header(array(1 => array('do' , 'doadd'), 2 => array('id' , $_INPUT['id'])));
+		$forums->admin->print_form_header(array(1 => array('do' , 'doadd'), 2 => array('id' , input::get('id', ''))));
 		$forums->admin->columns[] = array("", "40%");
 		$forums->admin->columns[] = array("", "60%");
 		$forums->admin->print_table_start($pagetitle);
@@ -215,26 +212,26 @@ class sptopic
 
 	function doadd()
 	{
-		global $forums, $DB, $_INPUT;
-		$id = intval($_INPUT['id']);
-		$name = trim($_INPUT['name']);
-		if (!$name OR !is_array($_INPUT['forum_list']))
+		global $forums, $DB;
+		$id = input::int('id');
+		$name = trim(input::str('name'));
+		if (!$name OR !is_array(input::str('forum_list')))
 		{
 			$forums->admin->print_cp_error($forums->lang['require_fields']);
 		}
-		if (in_array("-1", $_INPUT['forum_list']))
+		if (in_array("-1", input::get('forum_list', '')))
 		{
 			$allids = array_keys($this->allforum);
 			$update_ids = "-1";
 		}
-		else if (count($_INPUT['forum_list']) == count($this->allforum))
+		else if (count(input::str('forum_list')) == count($this->allforum))
 		{
 			$allids = array_keys($this->allforum);
 			$update_ids = "-1";
 		}
 		else
 		{
-			$allids = $_INPUT['forum_list'];
+			$allids = input::get('forum_list', '');
 			$update_ids = implode(',', $allids);
 		}
 		$data = array(
@@ -256,7 +253,7 @@ class sptopic
 
 	function update_forum($id = 0, $forumids = array())
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if (!$id OR !is_array($forumids)) return;
 
 		foreach($this->allforum AS $fid => $forum)

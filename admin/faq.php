@@ -14,14 +14,14 @@ class faq
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditothers'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$forums->admin->nav[] = array('faq.php' , $forums->lang['managefaq']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'edit':
 				$this->showform('edit');
@@ -46,13 +46,13 @@ class faq
 
 	function doedit($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($_POST['title'] == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['inputfaqtitle']);
 		}
 		$title = convert_andstr($_POST['title']);
-		if ($_INPUT['parentid'])
+		if (input::str('parentid'))
 		{
 			$text = preg_replace(array("/\n/", "/\\\/"), array("<br />", "&#092;"), convert_andstr($_POST['text']));
 		}
@@ -61,8 +61,8 @@ class faq
 			'title' => $title,
 			'text' => $text,
 			'description' => $description,
-			'parentid' => $_INPUT['parentid'],
-			'displayorder' => $_INPUT['displayorder']
+			'parentid' => input::int('parentid'),
+			'displayorder' => input::get('displayorder', '')
 		);
 		if ($type == 'add')
 		{
@@ -71,7 +71,7 @@ class faq
 		}
 		else
 		{
-			$DB->update(TABLE_PREFIX . 'faq', $sql_array, 'id = ' . intval($_INPUT['id']));
+			$DB->update(TABLE_PREFIX . 'faq', $sql_array, 'id = ' . input::int('id'));
 			$forums->admin->save_log($forums->lang['editnewfaq']);
 		}
 		$forums->func->standard_redirect("faq.php?" . $forums->sessionurl);
@@ -80,16 +80,16 @@ class faq
 
 	function showform($type = 'new')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['managefaq'];
 		$detail = $forums->lang['managefaqdesc'];
 		if ($type != 'new')
 		{
-			if ($_INPUT['id'] == "")
+			if (0 == input::int('id'))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
-			if (! $r = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "faq WHERE id='" . intval($_INPUT['id']) . "'"))
+			if (! $r = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "faq WHERE id='" . input::int('id') . "'"))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
@@ -114,7 +114,7 @@ class faq
 				$p_array[] = array($parent['id'], $parent['title']);
 			}
 		}
-		$forums->admin->print_form_header(array(1 => array('do' , $code), 2 => array('id' , $_INPUT['id'])));
+		$forums->admin->print_form_header(array(1 => array('do' , $code), 2 => array('id' , input::int('id'))));
 		$forums->admin->columns[] = array("&nbsp;" , "30%");
 		$forums->admin->columns[] = array("&nbsp;" , "70%");
 		$r['text'] = preg_replace("#<br.*>#siU", "\n", $r['text']);
@@ -132,14 +132,14 @@ class faq
 
 	function remove()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'] == "")
+		global $forums, $DB;
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if ($_INPUT['update'])
+		if (input::str('update'))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "faq WHERE id=" . intval($_INPUT['id']) . " OR parentid=" . intval($_INPUT['id']) . "");
+			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "faq WHERE id=" . input::int('id') . " OR parentid=" . input::int('id') . "");
 			$forums->admin->save_log($forums->lang['deletefaq']);
 			$forums->func->standard_redirect("faq.php?" . $forums->sessionurl);
 			exit();
@@ -150,7 +150,7 @@ class faq
 			$detail = $forums->lang['confirmdeleteaction'];
 			$forums->admin->nav[] = array('', $forums->lang['deletefaq']);
 			$forums->admin->print_cp_header($pagetitle, $detail);
-			$forums->admin->print_form_header(array(1 => array('do', 'remove'), 2 => array('id', $_INPUT['id']), 3 => array('update', 1)));
+			$forums->admin->print_form_header(array(1 => array('do', 'remove'), 2 => array('id', input::int('id')), 3 => array('update', 1)));
 			$forums->admin->print_table_start($forums->lang['affdeletefaq']);
 			$forums->admin->print_cells_single_row($forums->lang['affdeletefaqdesc'], "center");
 			$forums->admin->print_form_submit($forums->lang['confirmdelete']);

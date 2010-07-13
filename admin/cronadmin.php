@@ -14,7 +14,7 @@ class cronadmin
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditcrons'])
 		{
@@ -26,7 +26,7 @@ class cronadmin
 		$detail = $forums->lang['managecrondesc'];
 		$forums->admin->nav[] = array('cronadmin.php', $forums->lang['managecron']);
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'edit':
 				$this->cronform('edit');
@@ -54,13 +54,13 @@ class cronadmin
 
 	function docron()
 	{
-		global $forums, $DB, $_INPUT;
-		if (! $_INPUT['id'])
+		global $forums, $DB;
+		if (! input::int('id'))
 		{
 			$forums->main_msg = $forums->lang['noids'];
 			$this->show_crons();
 		}
-		$cron = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "cron WHERE cronid=" . $_INPUT['id'] . "");
+		$cron = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "cron WHERE cronid=" . input::int('id'));
 		if (! $cron['cronid'])
 		{
 			$forums->main_msg = $forums->lang['noids'];
@@ -90,13 +90,13 @@ class cronadmin
 
 	function deletecron()
 	{
-		global $forums, $DB, $_INPUT;
-		if (! $_INPUT['id'])
+		global $forums, $DB;
+		if (! input::int('id'))
 		{
 			$forums->main_msg = $forums->lang['noids'];
 			$this->show_crons();
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "cron WHERE cronid=" . $_INPUT['id'] . "");
+		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "cron WHERE cronid=" . input::int('id') . "");
 		$this->functions->save_next_run();
 		$forums->main_msg = $forums->lang['crondeleted'];
 		$this->show_crons();
@@ -104,41 +104,41 @@ class cronadmin
 
 	function dosavecron($type = 'edit')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == 'edit')
 		{
-			if (! $_INPUT['id'])
+			if (! input::int('id'))
 			{
 				$forums->main_msg = $forums->lang['noids'];
 				$this->cronform();
 			}
 		}
-		if (! $_INPUT['title'])
+		if (! input::get('title', ''))
 		{
 			$forums->main_msg = $forums->lang['mustcronnamed'];
 			$this->cronform();
 		}
-		if (! $_INPUT['filename'])
+		if (! input::get('filename', ''))
 		{
 			$forums->main_msg = $forums->lang['mustrunnamed'];
 			$this->cronform();
 		}
 		$save = array(
-			'title' => $_INPUT['title'],
-			'description' => $_INPUT['description'],
-			'filename' => $_INPUT['filename'],
-			'weekday' => $_INPUT['weekday'],
-			'monthday' => $_INPUT['monthday'],
-			'hour' => $_INPUT['hour'],
-			'minute' => $_INPUT['minute'],
-			'loglevel' => $_INPUT['loglevel'],
-			'cronhash' => $_INPUT['cronhash'] ? $_INPUT['cronhash'] : md5(microtime()),
-			'enabled' => $_INPUT['enabled'],
+			'title' => input::get('title', ''),
+			'description' => input::get('description', ''),
+			'filename' => input::get('filename', ''),
+			'weekday' => input::get('weekday', ''),
+			'monthday' => input::get('monthday', ''),
+			'hour' => input::get('hour', ''),
+			'minute' => input::get('minute', ''),
+			'loglevel' => input::get('loglevel', ''),
+			'cronhash' => input::get('cronhash', md5(microtime())),
+			'enabled' => input::get('enabled', ''),
 		);
 		$save['nextrun'] = $this->functions->next_run($save);
 		if ($type == 'edit')
 		{
-			$DB->update(TABLE_PREFIX . 'cron', $save, 'cronid=' . $_INPUT['id']);
+			$DB->update(TABLE_PREFIX . 'cron', $save, 'cronid=' . input::int('id'));
 			$forums->main_msg = $forums->lang['cronedited'];
 		}
 		else
@@ -152,10 +152,10 @@ class cronadmin
 
 	function cronform($type = 'edit')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == 'edit')
 		{
-			$id = intval($_INPUT['id']);
+			$id = input::int('id');
 			$cron = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "cron WHERE cronid=" . $id . "");
 			$button = $forums->lang['doedited'];
 			$code = 'doeditcron';
@@ -210,31 +210,31 @@ class cronadmin
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
 		$forums->admin->print_table_start("$title", "", "<div style='float:right'>$input&nbsp;</div>");
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['crontitle'] . "</strong>",
-				$forums->admin->print_input_row('title', $_INPUT['title'] ? $_INPUT['title'] : $cron['title'])
+				$forums->admin->print_input_row('title', input::get('title', $cron['title']))
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['crondesc'] . "</strong>",
-				$forums->admin->print_input_row('description', $_INPUT['description'] ? $_INPUT['description'] : $cron['description'])
+				$forums->admin->print_input_row('description', input::get('description', $cron['description']))
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['cronfile'] . "</strong><div class='description'>" . $forums->lang['cronfiledesc'] . "</div>",
-				"./includes/cron/ " . $forums->admin->print_input_row('filename', $_INPUT['filename'] ? $_INPUT['filename'] : $cron['filename'], '', '', 20)
+				"./includes/cron/ " . $forums->admin->print_input_row('filename', input::get('filename', $cron['filename']), '', '', 20)
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['cronminute'] . "</strong><div class='description'>" . $forums->lang['cronminutedesc'] . "</div>",
-				$forums->admin->print_input_select_row('minute', $dd_minute, $_INPUT['minute'] ? $_INPUT['minute'] : $cron['minute'], 'onchange="updatepreview()"')
+				$forums->admin->print_input_select_row('minute', $dd_minute, input::get('minute', $cron['minute']), 'onchange="updatepreview()"')
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['cronhour'] . "</strong><div class='description'>" . $forums->lang['cronhourdesc'] . "</div>",
-				$forums->admin->print_input_select_row('hour', $dd_hour, $_INPUT['hour'] ? $_INPUT['hour'] : $cron['hour'], 'onchange="updatepreview()"')
+				$forums->admin->print_input_select_row('hour', $dd_hour, input::get('hour', $cron['hour']), 'onchange="updatepreview()"')
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['cronweek'] . "</strong><div class='description'>" . $forums->lang['cronweekdesc'] . "</div>",
-				$forums->admin->print_input_select_row('weekday', $dd_weekday, $_INPUT['weekday'] ? $_INPUT['weekday'] : $cron['weekday'], 'onchange="updatepreview()"')
+				$forums->admin->print_input_select_row('weekday', $dd_weekday, input::get('weekday', $cron['weekday']), 'onchange="updatepreview()"')
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['cronmonth'] . "</strong><div class='description'>" . $forums->lang['cronmonthdesc'] . "</div>",
-				$forums->admin->print_input_select_row('monthday', $dd_monthday, $_INPUT['monthday'] ? $_INPUT['monthday'] : $cron['monthday'], 'onchange="updatepreview()"')
+				$forums->admin->print_input_select_row('monthday', $dd_monthday, input::get('monthday', $cron['monthday']), 'onchange="updatepreview()"')
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['cronlog'] . "</strong><div class='description'>" . $forums->lang['cronlogdesc'] . "</div>",
-				$forums->admin->print_yes_no_row('loglevel', $_INPUT['loglevel'] ? $_INPUT['loglevel'] : $cron['loglevel'])
+				$forums->admin->print_yes_no_row('loglevel', input::get('loglevel', $cron['loglevel']))
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['cronenabled'] . "</strong><div class='description'>" . $forums->lang['cronenableddesc'] . "</div>",
-				$forums->admin->print_yes_no_row('enabled', $_INPUT['enabled'] ? $_INPUT['enabled'] : $cron['enabled'])
+				$forums->admin->print_yes_no_row('enabled', input::get('enabled', $cron['enabled']))
 				));
 		$forums->admin->print_table_footer();
 		echo "<div style='tableborder'><div align='center' class='pformstrip'><input type='submit' value='$button' class='button' /></div></div></form>";

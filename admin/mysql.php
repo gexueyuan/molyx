@@ -32,7 +32,7 @@ class mysql
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditmysql'])
 		{
@@ -47,10 +47,10 @@ class mysql
 		$one = (!isset($no_array) || !isset($no_array[0])) ? 3 : $no_array[0];
 		$two = (!isset($no_array[1])) ? 21 : $no_array[1];
 		$three = (!isset($no_array[2])) ? 0 : $no_array[2];
-		$this->savedate = isset($_INPUT['savedate']) ? intval($_INPUT['savedate']) : date('Ymd', TIMENOW);
-		$this->md5_check = isset($_INPUT['check']) ? trim($_INPUT['check']) : md5(TIMENOW . IPADDRESS);
+		$this->savedate = isset(input::str('savedate')) ? input::int('savedate') : date('Ymd', TIMENOW);
+		$this->md5_check = isset(input::str('check')) ? trim(input::str('check')) : md5(TIMENOW . IPADDRESS);
 		$this->mysql_version = (int) sprintf('%d%02d%02d', $one, $two, intval($three));
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'dotool':
 				$this->sqltool();
@@ -115,14 +115,14 @@ class mysql
 
 	function dobackup($tbl_name = '')
 	{
-		global $forums, $DB, $_INPUT;
-		$this->onlymolyx = intval($_INPUT['onlymolyx']);
-		$this->skip = intval($_INPUT['skip']);
-		$this->createtable = intval($_INPUT['createtable']);
-		$this->droptable = intval($_INPUT['droptable']);
-		$this->enablegzip = intval($_INPUT['enablegzip']);
-		$this->advbackup = intval($_INPUT['advbackup']);
-		$this->hex_type = intval($_INPUT['hex_type']);
+		global $forums, $DB;
+		$this->onlymolyx = input::int('onlymolyx');
+		$this->skip = input::int('skip');
+		$this->createtable = input::int('createtable');
+		$this->droptable = input::int('droptable');
+		$this->enablegzip = input::int('enablegzip');
+		$this->advbackup = input::int('advbackup');
+		$this->hex_type = input::int('hex_type');
 		if ($tbl_name == '')
 		{
 			$filename = 'molyx_dbbackup';
@@ -199,7 +199,7 @@ class mysql
 
 	function get_table_sql($tbl)
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($this->createtable)
 		{
 			if (isset($this->noshow) AND !$this->noshow)
@@ -335,11 +335,11 @@ class mysql
 
 	function doadvbackup()
 	{
-		global $DB, $forums, $_INPUT;
-		$this->dbblocksize = intval($_INPUT['dbblocksize']);
-		$this->tableid = isset($_INPUT['tableid']) ? intval($_INPUT['tableid']) : 0;
-		$this->offset = isset($_INPUT['offset']) ? intval($_INPUT['offset']) : 0;
-		$this->dbexportfolder = preg_replace('/[^a-zA-Z0-9\-_]/', '', $_INPUT['dbexportfolder']);
+		global $DB, $forums;
+		$this->dbblocksize = input::int('dbblocksize');
+		$this->tableid = isset(input::str('tableid')) ? input::int('tableid') : 0;
+		$this->offset = isset(input::str('offset')) ? input::int('offset') : 0;
+		$this->dbexportfolder = preg_replace('/[^a-zA-Z0-9\-_]/', '', input::get('dbexportfolder', ''));
 
 		if ($this->dbexportfolder == '')
 		{
@@ -355,7 +355,7 @@ class mysql
 
 		$tmp_tbl = $DB->get_table_names();
 		$t = 0;
-		$this->step = (isset($_INPUT['step']) && $_INPUT['step']) ? intval($_INPUT['step']) : 1;
+		$this->step = (isset(input::str('step')) && input::get('step', '')) ? input::int('step') : 1;
 		foreach ($tmp_tbl as $tbl)
 		{
 			$this->noshow = false;
@@ -379,17 +379,17 @@ class mysql
 
 	function to_write()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$this->write_to_file($this->dbsql);
-		$forums->lang['sqlfilesaved'] = sprintf($forums->lang['sqlfilesaved'], intval($_INPUT['step']) ? intval($_INPUT['step']) - 1 : 0);
+		$forums->lang['sqlfilesaved'] = sprintf($forums->lang['sqlfilesaved'], input::int('step') ? input::int('step') - 1 : 0);
 		$forums->admin->redirect("mysql.php?do=dobackup&amp;step={$this->step}&amp;advbackup=1&amp;offset={$this->offset}&amp;dbblocksize={$this->dbblocksize}&amp;tableid={$this->next_tableid}&amp;savedate={$this->savedate}&amp;onlymolyx={$this->onlymolyx}&amp;check={$this->md5_check}&amp;skip={$this->skip}&amp;createtable={$this->createtable}&amp;dbexportfolder={$this->dbexportfolder}&amp;hex_type={$this->hex_type}&amp;droptable={$this->droptable}", $forums->lang['managemysql'], $forums->lang['sqlfilesaved']);
 		exit;
 	}
 
 	function write_to_file($data, $finish = '0')
 	{
-		global $forums, $bboptions, $_INPUT;
-		$savefolder = $_INPUT['dbexportfolder'] ? $_INPUT['dbexportfolder'] : $this->savedate;
+		global $forums, $bboptions;
+		$savefolder = input::get('dbexportfolder', '') ? input::get('dbexportfolder', '') : $this->savedate;
 		if (is_writeable(ROOT_PATH . 'data/dbbackup'))
 		{
 			if (SAFE_MODE)
@@ -452,7 +452,7 @@ class mysql
 
 	function confirmbackup()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = 'MySQL ' . $DB->version . ' ' . $forums->lang['mysqlbackup'];
 		$detail = $forums->lang['mysqlbackupdesc'];
 		$forums->admin->nav[] = array('mysql.php?do=backup', $forums->lang['mysqlbackup']);
@@ -461,12 +461,11 @@ class mysql
 		{
 			$forums->admin->print_cp_error($forums->lang['mysqlversiontooold']);
 		}
-		if ($_INPUT['advbackup'])
+		if (input::str('advbackup'))
 		{
 			$type = $forums->lang['sqladvancedmode'];
-			$_INPUT['droptable'] = intval($_INPUT['droptable']);
-			$_INPUT['createtable'] = intval($_INPUT['createtable']);
-			if (is_dir(ROOT_PATH . 'data/dbbackup/' . $_INPUT['dbexportfolder']))
+
+			if (is_dir(ROOT_PATH . 'data/dbbackup/' . input::get('dbexportfolder', '')))
 			{
 				$extra = '<br /><br /><strong>' . $forums->lang['backupfolderexist'] . '</strong><br /><br />';
 			}
@@ -477,15 +476,15 @@ class mysql
 		}
 		$forums->admin->print_form_header(array(
 			array('do', 'dobackup'),
-			array('droptable', $_INPUT['droptable']),
-			array('createtable', $_INPUT['createtable']),
-			array('skip', $_INPUT['skip']),
-			array('enablegzip', $_INPUT['enablegzip']),
-			array('advbackup', $_INPUT['advbackup']),
-			array('dbblocksize', $_INPUT['dbblocksize']),
-			array('dbexportfolder', $_INPUT['dbexportfolder']),
-			array('onlymolyx', $_INPUT['onlymolyx']),
-			array('hex_type', $_INPUT['hex_type']),
+			array('droptable', input::int('droptable')),
+			array('createtable', input::int('createtable')),
+			array('skip', input::get('skip', '')),
+			array('enablegzip', input::get('enablegzip', '')),
+			array('advbackup', input::get('advbackup', '')),
+			array('dbblocksize', input::get('dbblocksize', '')),
+			array('dbexportfolder', input::get('dbexportfolder', '')),
+			array('onlymolyx', input::get('onlymolyx', '')),
+			array('hex_type', input::get('hex_type', '')),
 		) , 'dobackform');
 		$forums->admin->print_table_start($forums->lang['mysqlbackup'] . ' - ' . $type);
 		$forums->admin->print_cells_single_row($forums->lang['sqlbackupinfo'] . $extra);
@@ -560,8 +559,8 @@ class mysql
 
 	function restore_form()
 	{
-		global $forums, $DB, $_INPUT;
-		$_INPUT['fromserver'] = isset($_INPUT['fromserver']) ? intval($_INPUT['fromserver']) : '';
+		global $forums, $DB;
+
 		$pagetitle = 'MySQL ' . $DB->version . ' ' . $forums->lang['mysqlrestore'];
 		$detail = $forums->lang['mysqlrestoredesc'];
 		$forums->admin->nav[] = array('mysql.php?do=restore', $forums->lang['mysqlrestore']);
@@ -572,11 +571,11 @@ class mysql
 		$forums->admin->print_table_start($forums->lang['importsqlfile']);
 		$forums->admin->print_cells_row(array(
 			'<strong>' . $forums->lang['importlocalsqlfile'] . '</strong><div class="description">' . $forums->lang['importlocalsqlfiledesc'] . '</div>',
-			'<input type="file" value="' . $_INPUT['fromlocal'] . '" class="button" name="fromlocal" size="30" />',
+			'<input type="file" value="' . input::get('fromlocal', '') . '" class="button" name="fromlocal" size="30" />',
 		));
 		$forums->admin->print_cells_row(array(
 			'<strong>' . $forums->lang['importserversqlfile'] . '</strong><div class="description">' . $forums->lang['importserversqlfiledesc'] . '</div>',
-			$forums->admin->print_yes_no_row('fromserver', $_INPUT['fromserver']),
+			$forums->admin->print_yes_no_row('fromserver', input::get('fromserver', '')),
 		));
 		$forums->admin->print_cells_single_row('<input type="submit" value=" ' . $forums->lang['importsqldata'] . ' " class="button" accesskey="s" />', 'center', 'pformstrip');
 		$forums->admin->print_table_footer();
@@ -693,7 +692,7 @@ class mysql
 
 	function pttable_form()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
 		$pagetitle = $forums->lang['databasepttable'];
 		$detail = $forums->lang['databasepttabledesc'];
@@ -768,7 +767,7 @@ class mysql
 
 	function movedata_form()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
 		$pagetitle = $forums->lang['databasemovedata'];
 		$forums->admin->nav[] = array('mysql.php?do=movedata', $forums->lang['databasemovedata']);
@@ -864,8 +863,8 @@ class mysql
 
 	function dodeletesql()
 	{
-		global $forums, $_INPUT;
-		$delfolder = trim($_INPUT['id']);
+		global $forums;
+		$delfolder = trim(input::str('id'));
 		if (SAFE_MODE)
 		{
 			$dh = opendir(ROOT_PATH . 'data/dbbackup');
@@ -892,8 +891,8 @@ class mysql
 
 	function confirmrestore()
 	{
-		global $forums, $_INPUT, $DB;
-		if (!$_FILES['fromlocal']['name'] && (!$_INPUT['fromserver'] || ($_INPUT['fromserver'] && !$_INPUT['selectid'])))
+		global $forums, $DB;
+		if (!$_FILES['fromlocal']['name'] && (!input::get('fromserver', '') || (input::get('fromserver', '') && !input::get('selectid', ''))))
 		{
 			$forums->main_msg = $forums->lang['norestorefiles'];
 			$this->restore_form();
@@ -951,7 +950,7 @@ class mysql
 					natcasesort($allfolder);
 					foreach ($allfolder AS $file)
 					{
-						if (preg_match('/^' . $_INPUT['selectid'] . '_(\w){32}_(\d+)\.sql$/', $file))
+						if (preg_match('/^' . input::get('selectid', '') . '_(\w){32}_(\d+)\.sql$/', $file))
 						{
 							if ($fp = @fopen(ROOT_PATH . 'data/dbbackup/' . $file, 'rb'))
 							{
@@ -972,7 +971,7 @@ class mysql
 			}
 			else
 			{
-				$datapath = ROOT_PATH . 'data/dbbackup/' . $_INPUT['selectid'];
+				$datapath = ROOT_PATH . 'data/dbbackup/' . input::get('selectid', '');
 				$dh = opendir($datapath);
 				$file_nums = 0;
 				while (false !== ($file = readdir($dh)))
@@ -1014,7 +1013,7 @@ class mysql
 			array('do', 'dorestore'),
 			array('type', $rtype),
 			array('file', urlencode($datafile)),
-			array('filepath', $_INPUT['selectid']),
+			array('filepath', input::get('selectid', '')),
 		), 'restoreform', 'enctype="multipart/form-data"');
 		$forums->admin->print_table_start($forums->lang['mysqlrestore'] . ' - ' . $type);
 		$forums->admin->print_cells_single_row($forums->lang['confirmrestore'] . $extra);
@@ -1030,11 +1029,11 @@ class mysql
 
 	function dorestore()
 	{
-		global $forums, $DB, $_INPUT;
-		$type = (isset($_INPUT['type']) && $_INPUT['type']) ? 1 : 0;
-		$pp = (isset($_INPUT['pp']) && $_INPUT['pp']) ? intval($_INPUT['pp']) : 1;
-		$file = trim(rawurldecode($_INPUT['file']));
-		$filepath = trim($_INPUT['filepath']);
+		global $forums, $DB;
+		$type = (isset(input::str('type')) && input::get('type', '')) ? 1 : 0;
+		$pp = (isset(input::str('pp')) && input::get('pp', '')) ? input::int('pp') : 1;
+		$file = trim(rawurldecode(input::str('file')));
+		$filepath = trim(input::str('filepath'));
 		if ($type || SAFE_MODE)
 		{
 			$urlfile = ROOT_PATH . 'data/dbbackup/' . $file;
@@ -1055,12 +1054,12 @@ class mysql
 		{
 			$info = explode(',', base64_decode(preg_replace('/^# key:\s*(\w+).*/s', '\\1', fgets($fp, 256))));
 			$filesize = @filesize($urlfile);
-			$offset = isset($_INPUT['offset']) ? intval($_INPUT['offset']) : 0;
+			$offset = isset(input::str('offset')) ? input::int('offset') : 0;
 			if ($offset <= $filesize && fseek($fp, $offset) == 0)
 			{
 				$sql = '';
 				$in_parents = false;
-				$line_number = isset($_INPUT['begin']) ? intval($_INPUT['begin']) : 0;
+				$line_number = isset(input::str('begin')) ? input::int('begin') : 0;
 				$end = $line_number + 3000;
 				while ($line_number < $end || $sql != '')
 				{
@@ -1148,7 +1147,7 @@ class mysql
 
 	function dopttable($type='create')
 	{
-		global $forums, $DB, $bboptions, $_INPUT;
+		global $forums, $DB, $bboptions;
 
 		$splittable = array();
 		$nextid = 0;
@@ -1201,7 +1200,7 @@ class mysql
 			{
 				$forums->admin->print_cp_error($forums->lang['mustclosebbs']);
 			}
-			$tblname = trim($_INPUT['tblname']);
+			$tblname = trim(input::str('tblname'));
 			if (!$tblname)
 			{
 				$forums->admin->print_cp_error($forums->lang['requireselectdeftable']);
@@ -1222,14 +1221,14 @@ class mysql
 
 	function domovedata()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$done = 0;
 		if ($bboptions['bbactive'])
 		{
 			$forums->admin->print_cp_error($forums->lang['mustclosebbs']);
 		}
-		$fromtable = $_INPUT['fromtable'] ? trim($_INPUT['fromtable']) : '';
-		$totable = $_INPUT['totable'] ? trim($_INPUT['totable']) : '';
+		$fromtable = input::get('fromtable', '') ? trim(input::str('fromtable')) : '';
+		$totable = input::get('totable', '') ? trim(input::str('totable')) : '';
 		$upfromtable = str_replace(TABLE_PREFIX, '', $fromtable);
 		$uptotable = str_replace(TABLE_PREFIX, '', $totable);
 		if (!$fromtable || !$totable)
@@ -1261,8 +1260,8 @@ class mysql
 			$fields[] = $row['Field'];
 		}
 
-		$mintid = $_INPUT['mintid'] ? intval($_INPUT['mintid']) : 0;
-		$maxtid = $_INPUT['maxtid'] ? intval($_INPUT['maxtid']) : 0;
+		$mintid = input::get('mintid', '') ? input::int('mintid') : 0;
+		$maxtid = input::get('maxtid', '') ? input::int('maxtid') : 0;
 		if ($mintid == $maxtid)
 		{
 			$forums->admin->print_cp_error($forums->lang['movetidnotsame']);
@@ -1272,11 +1271,11 @@ class mysql
 			$forums->admin->print_cp_error($forums->lang['movetidmaxminerror']);
 		}
 
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : ($mintid-1);
-		$end = $_INPUT['percycle'] ? intval($_INPUT['percycle']) : 500;
+		$start = input::get('pp', '') ? input::int('pp') : ($mintid-1);
+		$end = input::get('percycle', '') ? input::int('percycle') : 500;
 		$end += $start;
 		$end = $end > $maxtid ? $maxtid : $end;
-		if (!$_INPUT['pp'])
+		if (!input::get('pp', ''))
 		{
 			$movenum = $end-$mintid+1;
 		}
@@ -1298,7 +1297,7 @@ class mysql
 		{
 			$tid = intval($row['tid']);
 			$tids[] = $tid;
-			if ($_INPUT['percycle'] <= 200)
+			if (input::get('percycle', '') <= 200)
 			{
 				$output[] = $forums->lang['movedthreaddata'] . " - " . $row['title'];
 			}
@@ -1343,7 +1342,7 @@ class mysql
 		{
 			$forums->lang['finishmovepostdata'] = sprintf($forums->lang['finishmovepostdata'], $movenum);
 			$text = "<strong>" . $forums->lang['finishmovepostdata'] . "</strong><br />" . implode("<br />", $output);
-			$url = "mysql.php?do=domovedata&amp;fromtable=" . $fromtable . "&amp;totable=" . $totable . "&amp;mintid=" . $mintid . "&amp;maxtid=" . $maxtid . "&amp;percycle=" . $_INPUT['percycle'] . '&amp;pp=' . $end;
+			$url = "mysql.php?do=domovedata&amp;fromtable=" . $fromtable . "&amp;totable=" . $totable . "&amp;mintid=" . $mintid . "&amp;maxtid=" . $maxtid . "&amp;percycle=" . input::get('percycle', 0) . '&amp;pp=' . $end;
 			$time = 3;
 		}
 
@@ -1352,9 +1351,9 @@ class mysql
 
 	function view_sql($sql)
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$limit = 30;
-		$start = intval($_INPUT['pp']) == '' ? 0 : intval($_INPUT['pp']);
+		$start = input::int('pp') == '' ? 0 : input::int('pp');
 		$pages = '';
 		$pagetitle = 'MySQL ' . $DB->version . ' ' . $forums->lang['managemysql'];
 		$detail = $forums->lang['managemysqldesc'];
@@ -1365,9 +1364,9 @@ class mysql
 			'runtime' => $forums->lang['mysqlruntime'],
 			'system' => $forums->lang['mysqlsystem'],
 		);
-		if ($map[$_INPUT['do']] != '')
+		if ($map[input::get('do', '')] != '')
 		{
-			$tbl_title = $map[$_INPUT['do']];
+			$tbl_title = $map[input::get('do', '')];
 			$this_query = false;
 		}
 		else
@@ -1459,14 +1458,14 @@ class mysql
 
 	function sqltool()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$tables = array();
-		$tables = $_INPUT['table'];
+		$tables = input::get('table', '');
 		if (count($tables) < 1)
 		{
 			$forums->admin->print_cp_error($forums->lang['requireselecttables']);
 		}
-		if (strtoupper($_INPUT['tool']) == 'DROP' || strtoupper($_INPUT['tool']) == 'CREATE' || strtoupper($_INPUT['tool']) == 'FLUSH')
+		if (strtoupper(input::str('tool')) == 'DROP' || strtoupper(input::str('tool')) == 'CREATE' || strtoupper(input::str('tool')) == 'FLUSH')
 		{
 			$forums->admin->print_cp_error($forums->lang['sqlerrors']);
 		}
@@ -1475,7 +1474,7 @@ class mysql
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		foreach($tables as $table)
 		{
-			$result = $DB->query(strtoupper($_INPUT['tool']) . " TABLE $table");
+			$result = $DB->query(strtoupper(input::str('tool')) . " TABLE $table");
 			$fields = $DB->get_result_fields($result);
 			$data = $DB->fetch_array($result);
 			$cnt = count($fields);
@@ -1483,7 +1482,7 @@ class mysql
 			{
 				$forums->admin->columns[] = array($fields[$i]->name , '');
 			}
-			$forums->admin->print_table_start($forums->lang['result'] . ': ' . $_INPUT['tool'] . ' ' . $table);
+			$forums->admin->print_table_start($forums->lang['result'] . ': ' . input::get('tool', '') . ' ' . $table);
 			$rows = array();
 			for($i = 0; $i < $cnt; $i++)
 			{
@@ -1648,7 +1647,7 @@ class mysql
 
 	function export_header($dumptype = 'Standard Backup', $vol = 'NULL', $step = 1, $finish = 1, $dbstrlen = 0)
 	{
-		global $forums, $bboptions, $_INPUT;
+		global $forums, $bboptions;
 		return '# key: ' . base64_encode(date('Y-m-d H:i:s') . ",$dumptype,$vol,$step,$finish, $dbstrlen, " . $this->md5_check . '_') . "\n\n" .
 			"# MolyX SQL DUMP\n" .
 			"# version 1.0.0\n" .

@@ -16,7 +16,7 @@ class attachment
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditattachments'])
 		{
@@ -26,7 +26,7 @@ class attachment
 		$pagetitle = $forums->lang['manageattachments'];
 		$detail = $forums->lang['maattachmentsdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'types':
 				$this->attachtypes_start();
@@ -66,10 +66,10 @@ class attachment
 
 	function dosearch()
 	{
-		global $forums, $DB, $_INPUT;
-		$show = intval($_INPUT['show']);
+		global $forums, $DB;
+		$show = input::int('show');
 		$show = $show > 100 ? 100 : $show;
-		$first = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
+		$first = input::int('pp');
 		$forums->cache['attachmenttype'] = array();
 		$result = $DB->query('SELECT extension, mimetype, usepost, useavatar, attachimg
 			FROM ' . TABLE_PREFIX . 'attachmenttype
@@ -82,41 +82,41 @@ class attachment
 		$url_components = array('extension', 'filesize', 'filesize_gt', 'days', 'days_gt', 'hits', 'hits_gt', 'filename', 'authorname', 'onlyimage');
 		foreach($url_components AS $u)
 		{
-			$url .= $u . '=' . $_INPUT[ $u ] . '&amp;';
+			$url .= $u . '=' . input::get($u, '') . '&amp;';
 		}
-		$url .= 'orderby=' . $_INPUT['orderby'] . '&amp;sort=' . $_INPUT['sort'] . '&amp;show=' . $_INPUT['show'];
+		$url .= 'orderby=' . input::get('orderby', '') . '&amp;sort=' . input::get('sort', '') . '&amp;show=' . input::str('show');
 		$queryfinal = "";
 		$query = array();
-		if ($_INPUT['filename'])
+		if (input::str('filename'))
 		{
-			$query[] = 'LOWER(a.filename) LIKE "%' . strtolower($_INPUT['filename']) . '%"';
+			$query[] = 'LOWER(a.filename) LIKE "%' . strtolower(input::str('filename')) . '%"';
 		}
-		if ($_INPUT['extension'])
+		if (input::str('extension'))
 		{
-			$query[] = 'a.extension="' . strtolower(str_replace('.', '', $_INPUT['extension'])) . '"';
+			$query[] = 'a.extension="' . strtolower(str_replace('.', '', input::str('extension'))) . '"';
 		}
-		if ($_INPUT['filesize'])
+		if (input::int('filesize'))
 		{
-			$gt = $_INPUT['filesize_gt'] == 'gt' ? '>=' : '<';
-			$query[] = "a.filesize $gt " . intval($_INPUT['filesize'] * 1024);
+			$gt = input::str('filesize_gt') == 'gt' ? '>=' : '<';
+			$query[] = "a.filesize $gt " . intval(input::int('filesize') * 1024);
 		}
-		if ($_INPUT['days'])
+		if (input::int('days'))
 		{
-			$day_break = TIMENOW - intval($_INPUT['days'] * 86400);
-			$gt = $_INPUT['days_gt'] == 'lt' ? '>=' : '<';
+			$day_break = TIMENOW - intval(input::int('days') * 86400);
+			$gt = input::str('days_gt') == 'lt' ? '>=' : '<';
 			$query[] = "a.dateline $gt " . $day_break;
 		}
-		if ($_INPUT['hits'])
+		if (input::int('hits'))
 		{
-			$gt = $_INPUT['hits_gt'] == 'gt' ? '>=' : '<';
-			$query[] = "a.counter $gt " . $_INPUT['hits'];
+			$gt = input::str('hits_gt') == 'gt' ? '>=' : '<';
+			$query[] = "a.counter $gt " . input::int('hits');
 		}
-		if ($_INPUT['authorname'])
+		if (input::str('authorname'))
 		{
-			$user = $DB->query_first("SELECT id FROM " . TABLE_PREFIX . "user WHERE LOWER(name) LIKE '%" . strtolower($_INPUT['authorname']) . "%' OR name LIKE '%" . $_INPUT['authorname'] . "%'");
+			$user = $DB->query_first("SELECT id FROM " . TABLE_PREFIX . "user WHERE LOWER(name) LIKE '%" . strtolower(input::str('authorname')) . "%' OR name LIKE '%" . input::str('authorname') . "%'");
 			$query[] = 'a.userid = ' . intval($user['id']);
 		}
-		if ($_INPUT['onlyimage'])
+		if (input::str('onlyimage'))
 		{
 			$query[] = 'a.image=1';
 		}
@@ -135,7 +135,7 @@ class attachment
 				 LEFT JOIN " . TABLE_PREFIX . "post p ON (p.pid=a.postid)
 				 LEFT JOIN " . TABLE_PREFIX . "thread t ON (p.threadid=t.tid)
 				WHERE a.postid != 0 " . $queryfinal . "
-				ORDER BY a." . $_INPUT['orderby'] . " " . $_INPUT['sort'] . "
+				ORDER BY a." . input::get('orderby', '') . " " . input::get('sort', '') . "
 				LIMIT $first, $show");
 		$forums->admin->print_form_header(array(1 => array('do' , 'massremove'),
 				3 => array('return', 'search'),
@@ -179,26 +179,26 @@ class attachment
 		$forums->admin->print_form_header(array(1 => array('do' , 'dosearch'),));
 		$forums->admin->print_table_start($forums->lang['searchattachment']);
 		$gt_array = array(0 => array('gt', $forums->lang['greatthan']), 1 => array('lt', $forums->lang['lessthan']));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['filename'] . "</strong>", $forums->admin->print_input_row('filename', $_INPUT['filename'], '', '', 10)));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['extension'] . "</strong>", $forums->admin->print_input_row('extension', $_INPUT['extension'], '', '', 10)));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['filesize'] . " (" . $forums->lang['units'] . ": kb)</strong>", $forums->admin->print_input_select_row('filesize_gt', $gt_array, $_INPUT['filesize_gt']) . ' ' . $forums->admin->print_input_row('filesize', $_INPUT['filesize'], '', '', 10)));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['uploadtime'] . "</strong>", $forums->admin->print_input_select_row('days_gt', $gt_array, $_INPUT['days_gt']) . ' ' . $forums->admin->print_input_row('days', $_INPUT['days'], '', '', 10) . ' ' . $forums->lang['days']));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['downloadtimes'] . "</strong>", $forums->admin->print_input_select_row('hits_gt', $gt_array, $_INPUT['hits_gt']) . ' ' . $forums->admin->print_input_row('hits', $_INPUT['hits'], '', '', 10) . ' ' . $forums->lang['times']));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['uploaduser'] . "</strong>", $forums->admin->print_input_row('authorname', $_INPUT['authorname'], '', '', 30)));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['filename'] . "</strong>", $forums->admin->print_input_row('filename', input::str('filename'), '', '', 10)));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['extension'] . "</strong>", $forums->admin->print_input_row('extension', input::str('extension'), '', '', 10)));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['filesize'] . " (" . $forums->lang['units'] . ": kb)</strong>", $forums->admin->print_input_select_row('filesize_gt', $gt_array, input::str('filesize_gt')) . ' ' . $forums->admin->print_input_row('filesize', input::int('filesize'), '', '', 10)));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['uploadtime'] . "</strong>", $forums->admin->print_input_select_row('days_gt', $gt_array, input::str('days_gt')) . ' ' . $forums->admin->print_input_row('days', input::int('days'), '', '', 10) . ' ' . $forums->lang['days']));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['downloadtimes'] . "</strong>", $forums->admin->print_input_select_row('hits_gt', $gt_array, input::str('hits_gt')) . ' ' . $forums->admin->print_input_row('hits', input::str('hits'), '', '', 10) . ' ' . $forums->lang['times']));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['uploaduser'] . "</strong>", $forums->admin->print_input_row('authorname', input::str('authorname'), '', '', 30)));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['onlyimages'] . "</strong><div class='description'>" . $forums->lang['onlyimagesdesc'] . "</div>",
-				$forums->admin->print_yes_no_row('onlyimage', $_INPUT['onlyimage']),
+				$forums->admin->print_yes_no_row('onlyimage', input::str('onlyimage')),
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['orderby'] . "</strong>",
 				$forums->admin->print_input_select_row('orderby', array(0 => array('dateline', $forums->lang['uploadtime']),
 						1 => array('counter', $forums->lang['viewtimes']),
 						2 => array('filesize', $forums->lang['filesize']),
 						3 => array('filename', $forums->lang['filename']),
-						), $_INPUT['orderby']) . ' ' . $forums->admin->print_input_select_row('sort', array(0 => array('desc', $forums->lang['descending']),
+						), input::str('orderby')) . ' ' . $forums->admin->print_input_select_row('sort', array(0 => array('desc', $forums->lang['descending']),
 						1 => array('asc', $forums->lang['ascending']),
-						), $_INPUT['sort'])
+						), input::str('sort'))
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['pageresults'] . "</strong><div class='description'>" . $forums->lang['nomorethanhundred'] . "</div>",
-				$forums->admin->print_input_row('show', $_INPUT['show'] ? $_INPUT['show'] : 25, '', '', 10),
+				$forums->admin->print_input_row('show', input::get('show', 25), '', '', 10),
 				));
 		$forums->admin->print_form_submit($forums->lang['search']);
 		$forums->admin->print_table_footer();
@@ -208,10 +208,10 @@ class attachment
 
 	function massremove()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
-		if (is_array($_INPUT['attach']))
+		global $forums, $DB, $bboptions;
+		if (!empty(input::get('attach', array())))
 		{
-			foreach ($_INPUT['attach'] AS $value)
+			foreach (input::get('attach', array()) AS $value)
 			{
 				if ($value)
 				{
@@ -247,7 +247,7 @@ class attachment
 			}
 		}
 		$forums->main_msg = $forums->lang['attachdeleted'];
-		if ($_INPUT['return'] == 'stats')
+		if (input::str('return') == 'stats')
 		{
 			$this->stats_form();
 		}
@@ -259,7 +259,7 @@ class attachment
 				foreach(explode('&', $_POST['url']) AS $u)
 				{
 					list ($k, $v) = explode('=', $u);
-					$_INPUT[ $k ] = $v;
+					input::set($k, $v);
 				}
 			}
 			$this->dosearch();
@@ -387,8 +387,8 @@ class attachment
 
 	function attachtypes_delete()
 	{
-		global $forums, $DB, $_INPUT;
-		$DB->delete(TABLE_PREFIX . 'attachmenttype', 'id=' . intval($_INPUT['id']));
+		global $forums, $DB;
+		$DB->delete(TABLE_PREFIX . 'attachmenttype', 'id=' . input::int('id'));
 		$forums->func->recache('attachmenttype');
 		$forums->main_msg = $forums->lang['attachtypedeleted'];
 		$this->attachtypes_start();
@@ -396,20 +396,20 @@ class attachment
 
 	function attachtypes_save($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		if (!$_INPUT['extension'] || !$_INPUT['mimetype'])
+		global $forums, $DB;
+
+		if (!input::str('extension') || !input::str('mimetype'))
 		{
 			$forums->main_msg = $forums->lang['mustinputmime'];
 			$this->attachtypes_form($type);
 		}
 		$save_array = array(
-			'extension' => str_replace('.', '', $_INPUT['extension']),
-			'mimetype' => $_INPUT['mimetype'],
-			'maxsize' => intval($_INPUT['maxsize']),
-			'usepost' => intval($_INPUT['usepost']),
-			'useavatar' => intval($_INPUT['useavatar']),
-			'attachimg' => $_INPUT['attachimg']
+			'extension' => str_replace('.', '', input::str('extension')),
+			'mimetype' => input::str('mimetype'),
+			'maxsize' => input::int('maxsize'),
+			'usepost' => input::int('usepost'),
+			'useavatar' => input::int('useavatar'),
+			'attachimg' => input::str('attachimg')
 		);
 		if ($type == 'add')
 		{
@@ -427,7 +427,7 @@ class attachment
 		}
 		else
 		{
-			$DB->update(TABLE_PREFIX . 'attachmenttype', $save_array, 'id=' . $_INPUT['id']);
+			$DB->update(TABLE_PREFIX . 'attachmenttype', $save_array, 'id=' . input::int('id'));
 			$forums->main_msg = $forums->lang['attachtypeedited'];
 		}
 		$forums->func->recache('attachmenttype');
@@ -436,9 +436,8 @@ class attachment
 
 	function attachtypes_form($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		$_INPUT['istype'] = intval($_INPUT['istype']);
+		global $forums, $DB;
+
 		if ($type == 'add')
 		{
 			$code = 'doadd';
@@ -451,7 +450,7 @@ class attachment
 			while ($r = $DB->fetch_array($result))
 			{
 				$selected = '';
-				if ($_INPUT['istype'] && $r['id'] == $_INPUT['istype'])
+				if (input::int('istype') && $r['id'] == input::int('istype'))
 				{
 					$attach = $r;
 					$selected = ' selected="selected"';
@@ -466,7 +465,7 @@ class attachment
 			$title = $forums->lang['editattachtype'];
 			$attach = $DB->query_first('SELECT *
 				FROM ' . TABLE_PREFIX . 'attachmenttype
-				WHERE id=' . $_INPUT['id']);
+				WHERE id=' . input::int('id'));
 
 			if (!$attach['id'])
 			{
@@ -478,40 +477,40 @@ class attachment
 		$forums->admin->columns[] = array('&nbsp;' , '60%');
 		$createform = array(
 			1 => array('do' , $code),
-			2 => array('id' , $_INPUT['id'])
+			2 => array('id' , input::int('id'))
 		);
 		$forums->admin->print_table_start($title, '', $extra, $createform);
 
 		$forums->admin->print_cells_row(array(
 			'<strong>' . $forums->lang['extension'] . '</strong><div class="description">' . $forums->lang['extensiondesc'] . '</div>',
-			$forums->admin->print_input_row('extension', isset($_INPUT['extension']) ? $_INPUT['extension'] : $attach['extension'], '', '', 10),
+			$forums->admin->print_input_row('extension', input::get('extension', $attach['extension']), '', '', 10),
 		));
 
 		$forums->admin->print_cells_row(array(
 			'<strong>' . $forums->lang['mimetype'] . '</strong><div class="description">' . $forums->lang['mimetypedesc'] . '</div>',
-			$forums->admin->print_input_row('mimetype', isset($_INPUT['mimetype']) ? $_INPUT['mimetype'] : $attach['mimetype'], 40),
+			$forums->admin->print_input_row('mimetype', input::get('extension', $attach['mimetype']), 40),
 		));
 
 		$upload_max_filesize = function_exists('ini_get') ? ' ' . @ini_get('upload_max_filesize') : '';
 
 		$forums->admin->print_cells_row(array(
 			'<strong>' . $forums->lang['maxsize'] . '</strong><div class="description">' . sprintf($forums->lang['maxsizedesc'], $upload_max_filesize) . '</div>',
-			$forums->admin->print_input_row('maxsize', isset($_INPUT['maxsize']) ? $_INPUT['maxsize'] : $attach['maxsize'], 20),
+			$forums->admin->print_input_row('maxsize', input::get('extension', $attach['maxsize']), 20),
 		));
 
 		$forums->admin->print_cells_row(array(
 			'<strong>' . $forums->lang['mimetypeusepost'] . '</strong>',
-			$forums->admin->print_yes_no_row('usepost', isset($_INPUT['usepost']) ? $_INPUT['usepost'] : $attach['usepost']),
+			$forums->admin->print_yes_no_row('usepost', input::get('usepost', $attach['usepost'])),
 		));
 
 		$forums->admin->print_cells_row(array(
 			'<strong>' . $forums->lang['mimetypeuseavatar'] . '</strong>',
-			$forums->admin->print_yes_no_row('useavatar', isset($_INPUT['useavatar']) ? $_INPUT['useavatar'] : $attach['useavatar']),
+			$forums->admin->print_yes_no_row('useavatar', input::get('useavatar', $attach['useavatar'])),
 		));
 
 		$forums->admin->print_cells_row(array(
 			'<strong>' . $forums->lang['attachimages'] . '</strong><div class="description">' . $forums->lang['attachimagesdesc'] . '</div>',
-			$forums->admin->print_input_row('attachimg', $_INPUT['attachimg'] ? $_INPUT['attachimg'] : $attach['attachimg'], '', '', 40),
+			$forums->admin->print_input_row('attachimg', input::get('attachimg', $attach['attachimg']), '', '', 40),
 		));
 		$forums->admin->print_form_submit($title);
 		$forums->admin->print_table_footer();

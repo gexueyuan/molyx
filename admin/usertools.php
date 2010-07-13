@@ -13,14 +13,14 @@ class usertools
 {
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditusers'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$forums->admin->nav[] = array('user.php', $forums->lang['manageuser']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'pmstats':
 				$this->pmstats();
@@ -45,7 +45,7 @@ class usertools
 
 	function pmstats()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
 		$pagetitle = $forums->lang['pmtools'];
 		$detail = $forums->lang['pmtoolsdesc'];
@@ -81,7 +81,7 @@ class usertools
 
 	function pmuserstats()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
 		$pagetitle = $forums->lang['pmtools'];
 		$detail = $forums->lang['pmtoolsdesc'];
@@ -107,7 +107,7 @@ class usertools
 		echo "</script>\n";
 		$forums->admin->print_table_start($forums->lang['pmtools']);
 
-		$total = intval($_INPUT['total']);
+		$total = input::int('total');
 		if (!$total)
 		{
 			$forums->admin->print_cells_single_row($forums->lang['noanyitems']);
@@ -140,8 +140,8 @@ class usertools
 
 	function pmfolderstats()
 	{
-		global $forums, $DB, $_INPUT;
-		$userid = intval($_INPUT['u']);
+		global $forums, $DB;
+		$userid = input::int('u');
 		$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id = {$userid}");
 		if (!$user['id'])
 		{
@@ -190,14 +190,14 @@ class usertools
 
 	function removepms()
 	{
-		global $DB, $forums, $bbuserinfo, $_INPUT, $bboptions;
-		$userid = intval($_INPUT['u']);
+		global $DB, $forums, $bbuserinfo, $bboptions;
+		$userid = input::int('u');
 		$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id = {$userid}");
 		if (!$user['id'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if ($_INPUT['update'])
+		if (input::str('update'))
 		{
 			$pmtextids = array();
 			$pmtexts = $DB->query("SELECT pmtextid FROM " . TABLE_PREFIX . "pmtext WHERE fromuserid = {$user['id']}");
@@ -281,7 +281,7 @@ class usertools
 
 	function email_form()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
 		$pagetitle = $forums->lang['mailtools'];
 		$detail = $forums->lang['mailtoolsdesc'];
@@ -298,7 +298,7 @@ class usertools
 		$check1 = "";
 		$check2 = " checked='checked'";
 
-		if ($_INPUT['glist'])
+		if (input::str('glist'))
 		{
 			$maillist = "";
 			$sendmail = "none";
@@ -318,7 +318,7 @@ class usertools
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
 		$forums->admin->print_table_start($forums->lang['listseparator']);
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['listseparator']}</strong><div class='description'>{$forums->lang['listseparatordesc']}</div>", $forums->admin->print_input_row("separate", isset($_INPUT['separate']) ? $_INPUT['separate'] : " ")));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['listseparator']}</strong><div class='description'>{$forums->lang['listseparatordesc']}</div>", $forums->admin->print_input_row("separate", isset(input::str('separate')) ? input::get('separate', '') : " ")));
 		$forums->admin->print_table_footer();
 		echo "</div>\n";
 
@@ -328,10 +328,10 @@ class usertools
 		$forums->admin->print_table_start($forums->lang['mailtools']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['onlytestmail']}</strong>" ,
 				$forums->admin->print_yes_no_row("onlytest", 0)));
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['operateuser']}</strong>", $forums->admin->print_input_row("operateuser", $_INPUT['operateuser'] ? intval($_INPUT['operateuser']) : 500)));
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['mailtitle']}</strong>", $forums->admin->print_input_row("email_title", $_INPUT['email_title'])));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['operateuser']}</strong>", $forums->admin->print_input_row("operateuser", input::get('operateuser', '') ? input::int('operateuser') : 500)));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['mailtitle']}</strong>", $forums->admin->print_input_row("email_title", input::get('email_title', ''))));
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['mailcontents']}</strong><div class='description'>{$forums->lang['mailcontentsdesc']}</div>",
-				$forums->admin->print_textarea_row("email_contents", $_INPUT['email_contents'], "", 10)
+				$forums->admin->print_textarea_row("email_contents", input::get('email_contents', ''), "", 10)
 				), "", 'top');
 
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['pausesend']}</strong>" ,
@@ -348,40 +348,40 @@ class usertools
 						1 => array('is', $forums->lang['exactmatch']),
 						2 => array('contains', $forums->lang['nameinclude']),
 						3 => array('end', $forums->lang['nameend'])
-						), $_INPUT['namewhere']
+						), input::get('namewhere', '')
 					)
-				 . '&nbsp;' . $forums->admin->print_input_row("name", $_INPUT['name'])
+				 . '&nbsp;' . $forums->admin->print_input_row("name", input::get('name', ''))
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['usergroup'] . "</strong>" ,
-				$forums->admin->print_input_select_row("usergroupid", $user_group, $_INPUT['usergroupid'])
+				$forums->admin->print_input_select_row("usergroupid", $user_group, input::get('usergroupid', ''))
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['membergroup'] . "</strong>" ,
-				$forums->admin->print_input_select_row("membergroupid", $user_group, $_INPUT['membergroupid'])
+				$forums->admin->print_input_select_row("membergroupid", $user_group, input::get('membergroupid', ''))
 				));
 		$forums->admin->print_cells_single_row($forums->lang['optionalsearchparts'], "left", "pformstrip");
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['emailinclude'] . "</strong>", $forums->admin->print_input_row("email", $_INPUT['email'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['emailinclude'] . "</strong>", $forums->admin->print_input_row("email", input::get('email', ''))));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['tempbanuser'] . "</strong>",
-				$forums->admin->print_input_select_row("suspended", array(0 => array('0', $forums->lang['any']), 1 => array('yes', $forums->lang['yes']), 2 => array('no', $forums->lang['no'])), $_INPUT['suspended'])
+				$forums->admin->print_input_select_row("suspended", array(0 => array('0', $forums->lang['any']), 1 => array('yes', $forums->lang['yes']), 2 => array('no', $forums->lang['no'])), input::get('suspended', ''))
 				));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['ipaddressinclude'] . "</strong>", $forums->admin->print_input_row("host", $_INPUT['host'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['wsinclude'] . "</strong>", $forums->admin->print_input_row("website", $_INPUT['website'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['qqinclude'] . "</strong>", $forums->admin->print_input_row("qq", $_INPUT['qq'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['ucinclude'] . "</strong>", $forums->admin->print_input_row("uc", $_INPUT['uc'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['popoinclude'] . "</strong>", $forums->admin->print_input_row("popo", $_INPUT['popo'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['aiminclude'] . "</strong>", $forums->admin->print_input_row("aim", $_INPUT['aim'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['icqinclude'] . "</strong>", $forums->admin->print_input_row("icq", $_INPUT['icq'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['msninclude'] . "</strong>", $forums->admin->print_input_row("msn", $_INPUT['msn'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['yahooinclude'] . "</strong>", $forums->admin->print_input_row("yahoo", $_INPUT['yahoo'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['signatureinclude'] . "</strong>", $forums->admin->print_input_row("signature", $_INPUT['signature'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['postslessthan'] . "</strong>", $forums->admin->print_input_row("posts", $_INPUT['posts'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['ipaddressinclude'] . "</strong>", $forums->admin->print_input_row("host", input::get('host', ''))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['wsinclude'] . "</strong>", $forums->admin->print_input_row("website", input::get('website', ''))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['qqinclude'] . "</strong>", $forums->admin->print_input_row("qq", input::get('qq', ''))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['ucinclude'] . "</strong>", $forums->admin->print_input_row("uc", input::get('uc', ''))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['popoinclude'] . "</strong>", $forums->admin->print_input_row("popo", input::get('popo', ''))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['aiminclude'] . "</strong>", $forums->admin->print_input_row("aim", input::get('aim', ''))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['icqinclude'] . "</strong>", $forums->admin->print_input_row("icq", input::get('icq', ''))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['msninclude'] . "</strong>", $forums->admin->print_input_row("msn", input::get('msn', ''))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['yahooinclude'] . "</strong>", $forums->admin->print_input_row("yahoo", input::get('yahoo', ''))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['signatureinclude'] . "</strong>", $forums->admin->print_input_row("signature", input::get('signature', ''))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['postslessthan'] . "</strong>", $forums->admin->print_input_row("posts", input::get('posts', ''))));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['regdateinter'] . " (YYYY-MM-DD)</strong><div class='description'>" . $forums->lang['regdateinterdesc'] . "</div>",
-				$forums->lang['from'] . ' ' . $forums->admin->print_input_row("registered_first", $_INPUT['registered_first'], '', '', 10) . ' ' . $forums->lang['to'] . ' ' . $forums->admin->print_input_row("registered_last", $_INPUT['registered_last'], '', '', 10)
+				$forums->lang['from'] . ' ' . $forums->admin->print_input_row("registered_first", input::get('registered_first', ''), '', '', 10) . ' ' . $forums->lang['to'] . ' ' . $forums->admin->print_input_row("registered_last", input::get('registered_last', ''), '', '', 10)
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['lastpostinter'] . " (YYYY-MM-DD)</strong><div class='description'>" . $forums->lang['lastpostinterdesc'] . "</div>" ,
-				$forums->lang['from'] . ' ' . $forums->admin->print_input_row("lastpost_first", $_INPUT['lastpost_first'], '', '', 10) . ' ' . $forums->lang['to'] . ' ' . $forums->admin->print_input_row("lastpost_last", $_INPUT['lastpost_last'], '', '', 10)
+				$forums->lang['from'] . ' ' . $forums->admin->print_input_row("lastpost_first", input::get('lastpost_first', ''), '', '', 10) . ' ' . $forums->lang['to'] . ' ' . $forums->admin->print_input_row("lastpost_last", input::get('lastpost_last', ''), '', '', 10)
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['lastactivityinter'] . " (YYYY-MM-DD)</strong><div class='description'>" . $forums->lang['lastactivityinterdesc'] . "</div>" ,
-				$forums->lang['from'] . ' ' . $forums->admin->print_input_row("lastactivity_first", $_INPUT['lastactivity_first'], '', '', 10) . ' ' . $forums->lang['to'] . ' ' . $forums->admin->print_input_row("lastactivity_last", $_INPUT['lastactivity_last'], '', '', 10)
+				$forums->lang['from'] . ' ' . $forums->admin->print_input_row("lastactivity_first", input::get('lastactivity_first', ''), '', '', 10) . ' ' . $forums->lang['to'] . ' ' . $forums->admin->print_input_row("lastactivity_last", input::get('lastactivity_last', ''), '', '', 10)
 				));
 		$forums->admin->print_form_submit($forums->lang['dosendmail']);
 		$forums->admin->print_table_footer();
@@ -391,11 +391,10 @@ class usertools
 
 	function sendmail()
 	{
-		global $forums, $DB, $_INPUT;
-		$first = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$_INPUT['operateuser'] = intval($_INPUT['operateuser']);
+		global $forums, $DB;
+		$first = input::int('pp');
 
-		if ($_INPUT['glist'])
+		if (input::str('glist'))
 		{
 			if (!$_POST['separate'])
 			{
@@ -473,13 +472,13 @@ class usertools
 		$date_keys = array('registered_first', 'registered_last', 'lastpost_first', 'lastpost_last', 'lastactivity_first', 'lastactivity_last');
 		foreach(array('name', 'email', 'host', 'website', 'qq', 'uc', 'popo', 'aim', 'icq', 'yahoo', 'msn', 'signature', 'posts', 'suspended', 'registered_first', 'registered_last', 'lastpost_first', 'lastpost_last', 'lastactivity_first', 'lastactivity_last', 'usergroupid', 'membergroupid') AS $bit)
 		{
-			$_INPUT[ $bit ] = rawurldecode(trim($_INPUT[ $bit ]));
-			$page_query .= '&amp;' . $bit . '=' . urlencode($_INPUT[ $bit ]);
-			if ($_INPUT[ $bit ])
+			input::set($bit, rawurldecode(trim(input::get($bit, ''))));
+			$page_query .= '&amp;' . $bit . '=' . urlencode(input::get($bit, ''));
+			if (input::get($bit, ''))
 			{
 				if (in_array($bit, $date_keys))
 				{
-					list($year, $month, $day) = explode('-', $_INPUT[ $bit ]);
+					list($year, $month, $day) = explode('-'[ $bit ]);
 					if (! checkdate($month, $day, $year))
 					{
 						$forums->lang['inputdateerror'] = sprintf($forums->lang['inputdateerror'], $year, $month, $day);
@@ -501,29 +500,29 @@ class usertools
 				}
 				else if ($bit == 'usergroupid')
 				{
-					if ($_INPUT['usergroupid'] != '')
+					if (input::get('usergroupid', '') != '')
 					{
-						$query[] = "u.usergroupid=" . $_INPUT['usergroupid'];
+						$query[] = "u.usergroupid=" . input::get('usergroupid', '');
 					}
 				}
 				else if ($bit == 'membergroupid')
 				{
-					if ($_INPUT['membergroupid'] != '')
+					if (input::get('membergroupid', '') != '')
 					{
-						$query[] = "(u.membergroupids LIKE ('" . $_INPUT['membergroupid'] . ",%') OR u.membergroupids LIKE ('%," . $_INPUT['membergroupid'] . "') OR u.membergroupids LIKE ('%," . $_INPUT['membergroupid'] . ",%') OR u.membergroupids =" . $_INPUT['membergroupid'] . ")";
+						$query[] = "(u.membergroupids LIKE ('" . input::get('membergroupid', '') . ",%') OR u.membergroupids LIKE ('%," . input::get('membergroupid', '') . "') OR u.membergroupids LIKE ('%," . input::get('membergroupid', '') . ",%') OR u.membergroupids =" . input::get('membergroupid', '') . ")";
 					}
 				}
 				else if ($bit == 'posts')
 				{
-					$query[] = "u.posts <=" . $_INPUT[$bit];
+					$query[] = "u.posts <=" . input::get($bit, '');
 				}
 				else if ($bit == 'suspended')
 				{
-					if ($_INPUT[$bit] == 'yes')
+					if (input::get($bit, '') == 'yes')
 					{
 						$query[] = "u.liftban IS NOT NULL OR u.liftban != ''";
 					}
-					else if ($_INPUT[$bit] == 'no')
+					else if (input::get($bit, '') == 'no')
 					{
 						$query[] = "u.liftban IS NULL OR u.liftban = ''";
 					}
@@ -532,25 +531,25 @@ class usertools
 				{
 					$start_bit = '%';
 					$end_bit = '%';
-					if ($_INPUT['namewhere'] == 'begin')
+					if (input::str('namewhere') == 'begin')
 					{
 						$start_bit = '';
 					}
-					else if ($_INPUT['namewhere'] == 'end')
+					else if (input::str('namewhere') == 'end')
 					{
 						$end_bit = '';
 					}
-					else if ($_INPUT['namewhere'] == 'is')
+					else if (input::str('namewhere') == 'is')
 					{
 						$end_bit = '';
 						$start_bit = '';
 					}
-					$name = "LOWER(u.name) LIKE concat('" . $start_bit . "','" . strtolower($_INPUT[$bit]) . "','" . $end_bit . "') OR u.name LIKE concat('" . $start_bit . "','" . $_INPUT[$bit] . "','" . $end_bit . "')";
+					$name = "LOWER(u.name) LIKE concat('" . $start_bit . "','" . strtolower(input::get($bit, '')) . "','" . $end_bit . "') OR u.name LIKE concat('" . $start_bit . "','" . input::get($bit, '') . "','" . $end_bit . "')";
 					$query[] = $name;
 				}
 				else
 				{
-					$query[] = "u." . $bit . " LIKE '%" . $_INPUT[$bit] . "%'";
+					$query[] = "u." . $bit . " LIKE '%" . input::get($bit, '') . "%'";
 				}
 			}
 		}
@@ -558,9 +557,9 @@ class usertools
 		{
 			$where = ' WHERE ' . implode(" AND ", $query);
 		}
-		if ($_INPUT['operateuser'])
+		if (input::str('operateuser'))
 		{
-			$limit = " LIMIT {$first},{$_INPUT['operateuser']}";
+			$limit = " LIMIT {$first}," . input::get('operateuser', '') . "";
 		}
 		$DB->query("SELECT COUNT(*) as count FROM " . TABLE_PREFIX . "user u " . $where . "");
 		$count = $DB->fetch_array();
@@ -569,13 +568,13 @@ class usertools
 			$forums->main_msg = $forums->lang['nomatchresult'];
 			$this->email_form();
 		}
-		$page_query .= '&amp;namewhere=' . $_INPUT['namewhere'] . '&amp;gotcount=' . $count['count'];
+		$page_query .= '&amp;namewhere=' . input::get('namewhere', '') . '&amp;gotcount=' . $count['count'];
 		$pagetitle = $forums->lang['usersearchresult'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$pages = $forums->func->build_pagelinks(array('totalpages' => $count['count'],
 				'perpage' => 25,
 				'curpage' => $first,
-				'pagelink' => "user.php?{$forums->sessionurl}do={$_INPUT['do']}" . $page_query,
+				'pagelink' => "user.php?{$forums->sessionurl}do=" . input::get('do', '') . $page_query,
 				));
 		$mailcount = 0;
 		require_once(ROOT_PATH . "includes/functions_email.php");
@@ -588,7 +587,7 @@ class usertools
 		$users = $DB->query("SELECT u.email, u.emailcharset, u.name, u.id, u.usergroupid, ua.useractivationid FROM " . TABLE_PREFIX . "user u LEFT JOIN " . TABLE_PREFIX . "useractivation ua ON (ua.userid = u.id AND ua.type = 2) " . $where . " ORDER BY name$limit");
 		while ($user = $DB->fetch_array($users))
 		{
-			if ($_INPUT['glist'])
+			if (input::str('glist'))
 			{
 				$lib->echo_flush($user['email'] . $separate . "\n");
 			}
@@ -597,7 +596,7 @@ class usertools
 				$mailcount++;
 				$sendingmaillist = sprintf($forums->lang['sendingmaillist'], $user['name']);
 				$lib->echo_flush("<p>&raquo; $sendingmaillist {$user['email']} ....\n");
-				if (!$_INPUT['onlytest'])
+				if (!input::get('onlytest', ''))
 				{
 					$msg = trim($email_contents);
 					if ($useactivation == true AND $user['usergroupid'] == 1)
@@ -628,7 +627,7 @@ class usertools
 				$lib->echo_flush("{$forums->lang['done']}</p>\n");
 			}
 		}
-		if (($mailcount < $_INPUT['operateuser'] AND $_INPUT['operateuser'] != 0) OR ($_INPUT['operateuser'] == 0))
+		if (($mailcount < input::get('operateuser', '') AND input::get('operateuser', '') != 0) OR (input::int('operateuser') == 0))
 		{
 			@unlink(ROOT_PATH . "cache/send_mail.txt");
 			$lib->echo_flush("<hr><strong><a href='usertools.php?" . $forums->sessionurl . "'>{$forums->lang['finishsending']}</a></strong>\n");
@@ -637,7 +636,7 @@ class usertools
 		{
 			$pp = $first + $mailcount;
 			$js_query = str_replace("&amp;", "&", $page_query);
-			echo (!$_INPUT['pause'] ? "<script language='javascript'>window.location='usertools.php?" . $forums->js_sessionurl . "do=sendmail&pp=$pp" . $js_query . "';</script>\b" : "");
+			echo (!input::get('pause', '') ? "<script language='javascript'>window.location='usertools.php?" . $forums->js_sessionurl . "do=sendmail&pp=$pp" . $js_query . "';</script>\b" : "");
 			$lib->echo_flush("<hr><strong>&raquo; <a href='usertools.php?" . $forums->sessionurl . "do=sendmail&amp;pp=$pp" . $page_query . "'>{$forums->lang['redirectsending']}</a> &laquo;</strong>\n");
 		}
 	}

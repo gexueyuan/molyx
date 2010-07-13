@@ -12,14 +12,14 @@ class userregfield
 {
 	function show()
 	{
-		global $forums, $_INPUT, $DB, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$forums->func->load_lang('admin_userfield');
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditusers'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'addfield':
 				$this->field_form('add');
@@ -41,9 +41,9 @@ class userregfield
 
 	function filedlist()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$pp = $_INPUT['pp']?intval($_INPUT['pp']):0;
+		$pp = input::get('pp', '')?input::int('pp'):0;
 
 		$pagetitle = $forums->lang['manageuser'];
 		$forums->admin->nav[] = array('userfield.php' , $forums->lang['userextrafieldlist']);
@@ -96,12 +96,12 @@ class userregfield
 
 	function field_form($type='add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
 		$langtitle = $forums->lang['adduserextrafield'];
 		if ($type=='edit')
 		{
-			$fieldid = intval($_INPUT['fieldid']);
+			$fieldid = input::int('fieldid');
 			$field = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "userextrafield WHERE fieldid = $fieldid");
 			if (!$field['fieldid'])
 			{
@@ -146,28 +146,28 @@ class userregfield
 
 		$forums->admin->print_table_start($langtitle);
 
-		$forums->admin->print_cells_row(array("<strong>".$forums->lang['column_title']."</strong>", $forums->admin->print_input_row("fieldname", $_INPUT['fieldname'] ? $_INPUT['fieldname'] : $field['fieldname']), $forums->lang['text_des']));
+		$forums->admin->print_cells_row(array("<strong>".$forums->lang['column_title']."</strong>", $forums->admin->print_input_row("fieldname", input::get('fieldname', '') ? input::get('fieldname', '') : $field['fieldname']), $forums->lang['text_des']));
 
-		$forums->admin->print_cells_row(array("<strong>".$forums->lang['column_name']."</strong>", $field['fieldtag']?$field['fieldtag']:$forums->admin->print_input_row("fieldtag", $_INPUT['fieldtag'] ? $_INPUT['fieldtag'] : ''), ''));
+		$forums->admin->print_cells_row(array("<strong>".$forums->lang['column_name']."</strong>", $field['fieldtag']?$field['fieldtag']:$forums->admin->print_input_row("fieldtag", input::get('fieldtag', '') ? input::get('fieldtag', '') : ''), ''));
 
-		$forums->admin->print_cells_row(array("<strong>".$forums->lang['column_desc']."</strong>", $forums->admin->print_textarea_row("fielddesc", $_INPUT['fielddesc'] ? $_INPUT['fielddesc'] : $field['fielddesc']), ''));
+		$forums->admin->print_cells_row(array("<strong>".$forums->lang['column_desc']."</strong>", $forums->admin->print_textarea_row("fielddesc", input::get('fielddesc', '') ? input::get('fielddesc', '') : $field['fielddesc']), ''));
 
-		$forums->admin->print_cells_row(array("<strong>".$forums->lang['is_only']."</strong>", $forums->admin->print_yes_no_row("isonly", $_INPUT['isonly'] ? $_INPUT['isonly'] : $field['isonly']), ''));
+		$forums->admin->print_cells_row(array("<strong>".$forums->lang['is_only']."</strong>", $forums->admin->print_yes_no_row("isonly", input::get('isonly', '') ? input::get('isonly', '') : $field['isonly']), ''));
 
-		$forums->admin->print_cells_row(array("<strong>".$forums->lang['regular']."</strong>", $forums->admin->print_input_row("checkregular", $_INPUT['checkregular'] ? $_INPUT['checkregular'] : $field['checkregular']), ''));
+		$forums->admin->print_cells_row(array("<strong>".$forums->lang['regular']."</strong>", $forums->admin->print_input_row("checkregular", input::get('checkregular', '') ? input::get('checkregular', '') : $field['checkregular']), ''));
 
-		$forums->admin->print_cells_row(array("<strong>".$forums->lang['mustfillin']."</strong>", $forums->admin->print_yes_no_row("ismustfill", $_INPUT['ismustfill'] ? $_INPUT['ismustfill'] : $field['ismustfill']), ''));
+		$forums->admin->print_cells_row(array("<strong>".$forums->lang['mustfillin']."</strong>", $forums->admin->print_yes_no_row("ismustfill", input::get('ismustfill', '') ? input::get('ismustfill', '') : $field['ismustfill']), ''));
 
-		$forums->admin->print_cells_row(array("<strong>".$forums->lang["select_type"]."</strong>", $forums->admin->print_input_select_row("showtype", $showtypes, $_INPUT['showtype'] ? $_INPUT['showtype'] : $field['showtype']), ''));
+		$forums->admin->print_cells_row(array("<strong>".$forums->lang["select_type"]."</strong>", $forums->admin->print_input_select_row("showtype", $showtypes, input::get('showtype', '') ? input::get('showtype', '') : $field['showtype']), ''));
 
-        $forums->admin->print_cells_row(array("<strong>".$forums->lang['rows_cols_des']."</strong>", $forums->admin->print_textarea_row("listcontent", $_INPUT['listcontent'] ? $_INPUT['listcontent'] : $listcontent), $forums->lang['column_list_content_des']));
+        $forums->admin->print_cells_row(array("<strong>".$forums->lang['rows_cols_des']."</strong>", $forums->admin->print_textarea_row("listcontent", input::get('listcontent', '') ? input::get('listcontent', '') : $listcontent), $forums->lang['column_list_content_des']));
 
-		$forums->admin->print_cells_row(array("<strong>".$forums->lang["datatype"]."</strong>", $forums->admin->print_input_select_row("datatype", $datatype, $_INPUT['datatype'] ? $_INPUT['datatype'] : $field['datatype']) . $forums->admin->print_input_row("length", $_INPUT['length'] ? $_INPUT['length'] : $field['length'], '', '', 10), ''));
+		$forums->admin->print_cells_row(array("<strong>".$forums->lang["datatype"]."</strong>", $forums->admin->print_input_select_row("datatype", $datatype, input::get('datatype', '') ? input::get('datatype', '') : $field['datatype']) . $forums->admin->print_input_row("length", input::get('length', '') ? input::get('length', '') : $field['length'], '', '', 10), ''));
 
-		$forums->admin->print_cells_row(array("<strong>".$forums->lang['maxlength']."</strong>", $forums->admin->print_input_row("minlength", $_INPUT['minlength'] ? $_INPUT['minlength'] : $field['minlength'], '', '', 10) . ' / ' . $forums->admin->print_input_row("maxlength", $_INPUT['maxlength'] ? $_INPUT['maxlength'] : $field['maxlength'], '', '', 10), $forums->lang['column_length_des']));
+		$forums->admin->print_cells_row(array("<strong>".$forums->lang['maxlength']."</strong>", $forums->admin->print_input_row("minlength", input::get('minlength', '') ? input::get('minlength', '') : $field['minlength'], '', '', 10) . ' / ' . $forums->admin->print_input_row("maxlength", input::get('maxlength', '') ? input::get('maxlength', '') : $field['maxlength'], '', '', 10), $forums->lang['column_length_des']));
 
 		$extra = $type=='edit'?'disabled="disabled"':'';
-		$forums->admin->print_cells_row(array("<strong>".$forums->lang["tablename"]."</strong>", $forums->admin->print_input_select_row("tablename", $tablelist, $_INPUT['tablename'] ? $_INPUT['tablename'] : $field['tablename'], $extra), ''));
+		$forums->admin->print_cells_row(array("<strong>".$forums->lang["tablename"]."</strong>", $forums->admin->print_input_select_row("tablename", $tablelist, input::get('tablename', '') ? input::get('tablename', '') : $field['tablename'], $extra), ''));
 
 		$forums->admin->print_form_submit($langtitle);
 		$forums->admin->print_table_footer();
@@ -177,11 +177,11 @@ class userregfield
 
 	function doedit()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$fieldid = intval($_INPUT['fieldid']);
-		$fieldtag = $_INPUT['fieldtag'] ? trim($_INPUT['fieldtag']) : trim($_INPUT['edittag']);
-		$tablename = $_INPUT['tablename'] ? trim($_INPUT['tablename']) : trim($_INPUT['edittblname']);
+		$fieldid = input::int('fieldid');
+		$fieldtag = input::get('fieldtag', '') ? trim(input::str('fieldtag')) : trim(input::str('edittag'));
+		$tablename = input::get('tablename', '') ? trim(input::str('tablename')) : trim(input::str('edittblname'));
 		if(!$fieldtag)
 		{
 			$forums->admin->print_cp_error($forums->lang['error_dataname']);
@@ -190,23 +190,23 @@ class userregfield
 		{
 			$forums->admin->print_cp_error($forums->lang['error_tablename']);
 		}
-		if(!trim($_INPUT['fieldname']))
+		if(!trim(input::str('fieldname')))
 		{
 			$forums->admin->print_cp_error($forums->lang['error_title']);
 		}
         //需要填写长度的数据类型
-		if(!$_INPUT["length"] && in_array($_INPUT['datatype'], array("VARCHAR", "CHAR")))
+		if(!input::int('length') && in_array(input::get('datatype', ''), array("VARCHAR", "CHAR")))
 		{
 			$forums->admin->print_cp_error($forums->lang['error_datalength']);
 		}
         //非需要长度字段去掉其长度，输入长度则只为验证该项的输入长短
-		if(!in_array($_INPUT['datatype'], array("VARCHAR", "CHAR")))
+		if(!in_array(input::get('datatype', ''), array("VARCHAR", "CHAR")))
 		{
-             $_INPUT["length"] = '';
+             input::set('length', '');
 		}
 
 		//判断用户自定义字段的唯一标签是否存在于用户或用户扩展表中
-		if (!$_INPUT['fieldid'])
+		if (!input::get('fieldid', ''))
 		{
 			$result = $DB->query('SHOW FIELDS FROM ' . TABLE_PREFIX . 'user');
 			while ($r = $DB->fetch_array($result))
@@ -239,8 +239,8 @@ class userregfield
 
 	function deletefield()
 	{
-		global $forums, $DB, $_INPUT;
-		if (!$_INPUT['fieldid'])
+		global $forums, $DB;
+		if (!input::get('fieldid', ''))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
@@ -251,18 +251,18 @@ class userregfield
 
 	function processdata($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
-		$tablename = $_INPUT['tablename'] ? trim($_INPUT['tablename']) : trim($_INPUT['edittblname']);
-		$fieldname = trim($_INPUT['fieldname']);
-		$fieldtag = $_INPUT['fieldtag'] ? trim($_INPUT['fieldtag']) : trim($_INPUT['edittag']);
-		$datanull = intval($_INPUT['ismustfill']) ? 'NOT NULL DEFAULT \'\'' : 'NULL';
-		$datatype = trim($_INPUT['datatype']);
-		$maxlength = intval($_INPUT['maxlength']);
-		$minlength = intval($_INPUT['minlength']);
-		$length = intval($_INPUT['length']);
-		$fielddesc = trim($_INPUT['fielddesc']);
+		global $forums, $DB;
+		$tablename = input::get('tablename', '') ? trim(input::str('tablename')) : trim(input::str('edittblname'));
+		$fieldname = trim(input::str('fieldname'));
+		$fieldtag = input::get('fieldtag', '') ? trim(input::str('fieldtag')) : trim(input::str('edittag'));
+		$datanull = input::int('ismustfill') ? 'NOT NULL DEFAULT \'\'' : 'NULL';
+		$datatype = trim(input::str('datatype'));
+		$maxlength = input::int('maxlength');
+		$minlength = input::int('minlength');
+		$length = input::int('length');
+		$fielddesc = trim(input::str('fielddesc'));
 
-		$listcontent = explode('<br />', trim($_INPUT["listcontent"]));
+		$listcontent = explode('<br />', trim(input::get('listcontent', '')));
 		$list_array = array();
 		foreach ($listcontent as $v)
 		{
@@ -283,7 +283,7 @@ class userregfield
 		{
 			case 'drop':
 				$DB->query_unbuffered("ALTER TABLE `" . TABLE_PREFIX . $tablename . "` DROP `". $fieldtag . "`");
-				$DB->delete(TABLE_PREFIX . "userextrafield", "fieldid=" . intval($_INPUT["fieldid"]));
+				$DB->delete(TABLE_PREFIX . "userextrafield", "fieldid=" . input::int('fieldid'));
 		    break;
 
 			case 'change':
@@ -298,18 +298,18 @@ class userregfield
 					'fieldname' => $fieldname,
 					'fieldtag' => $fieldtag,
 					'fielddesc' => $fielddesc,
-					'showtype' =>  trim($_INPUT['showtype']),
-					'ismustfill' =>  intval($_INPUT['ismustfill']),
+					'showtype' =>  trim(input::str('showtype')),
+					'ismustfill' =>  input::int('ismustfill'),
 					'length' => $length,
 					'maxlength' => $maxlength,
 					'minlength' => $minlength,
 					'tablename' =>  $tablename,
 					'datatype' =>  $datatype,
-					'checkregular' =>  trim($_INPUT['checkregular']),
+					'checkregular' =>  trim(input::str('checkregular')),
 					'listcontent' =>  $listcontent,
-					'isonly' => intval($_INPUT['isonly']),
+					'isonly' => input::int('isonly'),
 				);
-				$DB->update(TABLE_PREFIX . "userextrafield" , $data, "fieldid=" . intval($_INPUT["fieldid"]));
+				$DB->update(TABLE_PREFIX . "userextrafield" , $data, "fieldid=" . input::int('fieldid'));
 			break;
 
 			default:
@@ -317,16 +317,16 @@ class userregfield
 					'fieldname' => $fieldname,
 					'fieldtag' => $fieldtag,
 					'fielddesc' => $fielddesc,
-					'showtype' =>  trim($_INPUT['showtype']),
-					'ismustfill' =>  intval($_INPUT['ismustfill']),
+					'showtype' =>  trim(input::str('showtype')),
+					'ismustfill' =>  input::int('ismustfill'),
 					'length' => $length,
 					'maxlength' => $maxlength,
 					'minlength' => $minlength,
 					'tablename' =>  $tablename,
 					'datatype' =>  $datatype,
-					'checkregular' =>  trim($_INPUT['checkregular']),
+					'checkregular' =>  trim(input::str('checkregular')),
 					'listcontent' =>  $listcontent,
-					'isonly' => intval($_INPUT['isonly']),
+					'isonly' => input::int('isonly'),
 				);
 				$DB->insert(TABLE_PREFIX . "userextrafield" , $data);
 			    $DB->query("ALTER TABLE `" . TABLE_PREFIX . $tablename ."` ADD `" . $fieldtag . "` ". $datatype . ' ( ' . $length . ' ) ' . $datanull);

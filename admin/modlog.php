@@ -14,14 +14,14 @@ class modlog
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['canviewmodlogs'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$forums->admin->nav[] = array("modlog.php", $forums->lang['modlog']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'view':
 				$this->view();
@@ -37,39 +37,39 @@ class modlog
 
 	function view()
 	{
-		global $forums, $DB, $_INPUT;
-		$start = isset($_INPUT['pp']) ? intval($_INPUT['pp']) : 0;
+		global $forums, $DB;
+		$start = isset(input::str('pp')) ? input::int('pp') : 0;
 		$pagetitle = $forums->lang['modlog'];
 		$detail = $forums->lang['viewallmodlog'];
 		$forums->admin->nav[] = array("modlog.php?do=view", $forums->lang['viewmodlog']);
-		if ($_INPUT['search_string'] == "")
+		if (input::str('search_string') == "")
 		{
-			if (!$_INPUT['u'])
+			if (!input::get('u', ''))
 			{
 				$forums->main_msg = $forums->lang['inputkeywords'];
 				return $this->list_current();
 			}
-			$row = $DB->query_first("SELECT COUNT(moderatorlogid) as count FROM " . TABLE_PREFIX . "moderatorlog WHERE userid='" . intval($_INPUT['u']) . "'");
+			$row = $DB->query_first("SELECT COUNT(moderatorlogid) as count FROM " . TABLE_PREFIX . "moderatorlog WHERE userid='" . input::int('u') . "'");
 			$row_count = $row['count'];
-			$query = "u={$_INPUT['u']}&amp;do=view&amp;pp={$start}";
+			$query = "u=" . input::get('u', '') . "&amp;do=view&amp;pp={$start}";
 			$DB->query("SELECT m.*, f.id as forumid, f.name FROM " . TABLE_PREFIX . "moderatorlog m
 				 LEFT JOIN " . TABLE_PREFIX . "forum f ON(f.id=m.forumid)
-				WHERE m.userid='" . $_INPUT['u'] . "' ORDER BY m.dateline DESC LIMIT " . $start . ", 20");
+				WHERE m.userid='" . input::get('u', '') . "' ORDER BY m.dateline DESC LIMIT " . $start . ", 20");
 		}
 		else
 		{
-			$_INPUT['search_string'] = trim(rawurldecode($_INPUT['search_string']));
-			if (($_INPUT['search_type'] == 'threadid') OR ($_INPUT['search_type'] == 'forumid'))
+			input::set('search_string', trim(rawurldecode(input::str('search_string'))));
+			if ((input::str('search_type') == 'threadid') OR (input::str('search_type') == 'forumid'))
 			{
-				$where = $_INPUT['search_type'] . "='" . $_INPUT['search_string'] . "'";
+				$where = input::get('search_type', '') . "='" . input::get('search_string', '') . "'";
 			}
 			else
 			{
-				$where = $_INPUT['search_type'] . " LIKE '%" . $_INPUT['search_string'] . "%'";
+				$where = input::get('search_type', '') . " LIKE '%" . input::get('search_string', '') . "%'";
 			}
 			$row = $DB->query_first("SELECT COUNT(moderatorlogid) as count FROM " . TABLE_PREFIX . "moderatorlog WHERE " . $where . "");
 			$row_count = $row['count'];
-			$query = "do=view&amp;search_type={$_INPUT['search_type']}&amp;pp={$start}&amp;search_string=" . urlencode($_INPUT['search_string']);
+			$query = "do=view&amp;search_type=" . input::get('search_type', '') . "&amp;pp={$start}&amp;search_string=" . urlencode(input::str('search_string'));
 			$DB->query("SELECT m.*, f.id as forumid, f.name FROM " . TABLE_PREFIX . "moderatorlog m
 				LEFT JOIN " . TABLE_PREFIX . "forum f ON(f.id=m.forumid)
 				WHERE " . $where . " ORDER BY m.dateline DESC LIMIT " . $start . ", 20");
@@ -120,12 +120,12 @@ class modlog
 
 	function remove()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['u'] == "")
+		global $forums, $DB;
+		if (input::str('u') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "moderatorlog WHERE userid=" . intval($_INPUT['u']) . "");
+		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "moderatorlog WHERE userid=" . input::int('u') . "");
 		$forums->admin->save_log($forums->lang['modlogdeleted']);
 		$forums->func->standard_redirect("modlog.php?" . $forums->sessionurl);
 		exit();

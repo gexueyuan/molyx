@@ -16,13 +16,13 @@ class settings
 
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditsettings'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'deletegroup':
 				$this->deletegroup();
@@ -168,10 +168,10 @@ class settings
 
 	function deletegroup()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'])
+		global $forums, $DB;
+		if (input::str('id'))
 		{
-			$conf = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "setting WHERE groupid=" . $_INPUT['id'] . "");
+			$conf = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "setting WHERE groupid=" . input::get('id', '') . "");
 			$count = intval($conf['count']);
 			if ($count > 0)
 			{
@@ -179,7 +179,7 @@ class settings
 			}
 			else
 			{
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "settinggroup WHERE groupid=" . $_INPUT['id'] . "");
+				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "settinggroup WHERE groupid=" . input::get('id', '') . "");
 				$forums->main_msg = $forums->lang['settinggroupdeleted'];
 			}
 		}
@@ -188,7 +188,7 @@ class settings
 
 	function group_recount($gid)
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($gid)
 		{
 			$conf = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "setting WHERE groupid=" . $gid . "");
@@ -199,7 +199,7 @@ class settings
 
 	function settinggroup_form($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == 'add')
 		{
 			$formcode = 'settinggroup_add';
@@ -208,7 +208,7 @@ class settings
 		}
 		else
 		{
-			$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "settinggroup WHERE groupid=" . $_INPUT['id'] . "");
+			$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "settinggroup WHERE groupid=" . input::get('id', '') . "");
 			if (! $conf['groupid'])
 			{
 				$forums->main_msg = $forums->lang['noids'];
@@ -221,11 +221,11 @@ class settings
 		}
 		$detail = $forums->lang['managesettingsdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		$forums->admin->print_form_header(array(1 => array('do', $formcode), 2 => array('id', $_INPUT['id'])));
+		$forums->admin->print_form_header(array(1 => array('do', $formcode), 2 => array('id', input::get('id', ''))));
 		$forums->admin->columns[] = array("", "40%");
 		$forums->admin->columns[] = array("", "60%");
 		$forums->admin->print_table_start($pagetitle);
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['grouptitle'] . ":</strong>", $forums->admin->print_input_row('title', $_INPUT['title'] ? $_INPUT['title'] : $conf['title'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['grouptitle'] . ":</strong>", $forums->admin->print_input_row('title', input::get('title', '') ? input::get('title', '') : $conf['title'])));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['groupdesc'] . ":</strong>", $forums->admin->print_textarea_row('description', $_POST['description'] ? $_POST['description'] : $conf['description'])));
 		$forums->admin->print_form_submit($button);
 		$forums->admin->print_table_footer();
@@ -235,21 +235,21 @@ class settings
 
 	function savegroup($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == 'edit')
 		{
-			if (! $_INPUT['id'])
+			if (! input::get('id', ''))
 			{
 				$forums->main_msg = $forums->lang['noids'];
 				$this->setting_form();
 			}
 		}
-		if (trim($_INPUT['title']) == '')
+		if (trim(input::str('title')) == '')
 		{
 			$forums->main_msg = $forums->lang['inputsettingname'];
 			$this->setting_form();
 		}
-		$array = array('title' => $_INPUT['title'], 'description' => convert_andstr($_POST['description']));
+		$array = array('title' => input::get('title', ''), 'description' => convert_andstr($_POST['description']));
 		if ($type == 'add')
 		{
 			$DB->insert(TABLE_PREFIX . 'settinggroup', $array);
@@ -257,7 +257,7 @@ class settings
 		}
 		else
 		{
-			$DB->update(TABLE_PREFIX . 'settinggroup', $array, 'groupid=' . $_INPUT['id']);
+			$DB->update(TABLE_PREFIX . 'settinggroup', $array, 'groupid=' . input::get('id', ''));
 			$forums->main_msg = $forums->lang['settinggroupedited'];
 		}
 		$forums->func->recache('settings');
@@ -266,16 +266,16 @@ class settings
 
 	function setting_form($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == 'add')
 		{
 			$formcode = 'setting_add';
 			$pagetitle = $forums->lang['addnewsetting'];
 			$button = $forums->lang['addsetting'];
-			$conf = array('groupid' => $_INPUT['groupid'], 'addcache' => 1);
-			if ($_INPUT['groupid'])
+			$conf = array('groupid' => input::get('groupid', ''), 'addcache' => 1);
+			if (input::str('groupid'))
 			{
-				$max = $DB->query_first("SELECT max(displayorder) as max FROM " . TABLE_PREFIX . "setting WHERE groupid=" . $_INPUT['groupid'] . "");
+				$max = $DB->query_first("SELECT max(displayorder) as max FROM " . TABLE_PREFIX . "setting WHERE groupid=" . input::get('groupid', '') . "");
 			}
 			else
 			{
@@ -285,7 +285,7 @@ class settings
 		}
 		else
 		{
-			$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . $_INPUT['id'] . "");
+			$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::get('id', '') . "");
 			if (! $conf['settingid'])
 			{
 				$forums->main_msg = $forums->lang['noids'];
@@ -309,20 +309,20 @@ class settings
 			4 => array('multi', $forums->lang['multiitems']),
 			);
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		$forums->admin->print_form_header(array(1 => array('do' , $formcode), 2 => array('id' , $_INPUT['id'])));
+		$forums->admin->print_form_header(array(1 => array('do' , $formcode), 2 => array('id' , input::get('id', ''))));
 		$forums->admin->columns[] = array("", "40%");
 		$forums->admin->columns[] = array("", "60%");
 		$forums->admin->print_table_start($pagetitle);
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingtitle'] . "</strong>", $forums->admin->print_input_row('title', $_INPUT['title'] ? $_INPUT['title'] : $conf['title'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingorder'] . "</strong>", $forums->admin->print_input_row('displayorder', $_INPUT['displayorder'] ? $_INPUT['displayorder'] : $conf['displayorder'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingdesc'] . "</strong>", $forums->admin->print_textarea_row('description', $_INPUT['description'] ? $_INPUT['description'] : $conf['description'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingingroup'] . "</strong>", $forums->admin->print_input_select_row('groupid', $groups, $_INPUT['groupid'] ? $_INPUT['groupid'] : $conf['groupid'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingtype'] . "</strong>", $forums->admin->print_input_select_row('type', $types, $_INPUT['type'] ? $_INPUT['type'] : $conf['type'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingvar'] . "</strong>", $forums->admin->print_input_row('varname', $_INPUT['varname'] ? $_INPUT['varname'] : $conf['varname'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingvalue'] . "</strong>", $forums->admin->print_textarea_row('value', $_INPUT['value'] ? $_INPUT['value'] : $conf['value'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingdefault'] . "</strong>", $forums->admin->print_textarea_row('defaultvalue', $_INPUT['defaultvalue'] ? $_INPUT['defaultvalue'] : $conf['defaultvalue'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingextra'] . "</strong><div class='description'>" . $forums->lang['settingextradesc'] . "</div>", $forums->admin->print_textarea_row('dropextra', $_INPUT['dropextra'] ? $_INPUT['dropextra'] : $conf['dropextra'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingaddcache'] . "</strong>", $forums->admin->print_yes_no_row('addcache', $_INPUT['addcache'] ? $_INPUT['addcache'] : $conf['addcache'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingtitle'] . "</strong>", $forums->admin->print_input_row('title', input::get('title', '') ? input::get('title', '') : $conf['title'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingorder'] . "</strong>", $forums->admin->print_input_row('displayorder', input::get('displayorder', '') ? input::get('displayorder', '') : $conf['displayorder'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingdesc'] . "</strong>", $forums->admin->print_textarea_row('description', input::get('description', '') ? input::get('description', '') : $conf['description'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingingroup'] . "</strong>", $forums->admin->print_input_select_row('groupid', $groups, input::get('groupid', '') ? input::get('groupid', '') : $conf['groupid'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingtype'] . "</strong>", $forums->admin->print_input_select_row('type', $types, input::get('type', '') ? input::get('type', '') : $conf['type'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingvar'] . "</strong>", $forums->admin->print_input_row('varname', input::get('varname', '') ? input::get('varname', '') : $conf['varname'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingvalue'] . "</strong>", $forums->admin->print_textarea_row('value', input::get('value', '') ? input::get('value', '') : $conf['value'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingdefault'] . "</strong>", $forums->admin->print_textarea_row('defaultvalue', input::get('defaultvalue', '') ? input::get('defaultvalue', '') : $conf['defaultvalue'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingextra'] . "</strong><div class='description'>" . $forums->lang['settingextradesc'] . "</div>", $forums->admin->print_textarea_row('dropextra', input::get('dropextra', '') ? input::get('dropextra', '') : $conf['dropextra'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['settingaddcache'] . "</strong>", $forums->admin->print_yes_no_row('addcache', input::get('addcache', '') ? input::get('addcache', '') : $conf['addcache'])));
 		$forums->admin->print_form_submit($button);
 		$forums->admin->print_table_footer();
 		$forums->admin->print_form_end();
@@ -331,13 +331,13 @@ class settings
 
 	function setting_view()
 	{
-		global $forums, $DB, $_INPUT;
-		$start = intval($_INPUT['pp']);
+		global $forums, $DB;
+		$start = input::int('pp');
 		$end = 50;
 		$entry = array();
-		if ($_INPUT['search'])
+		if (input::str('search'))
 		{
-			$keywords = strtolower($_INPUT['search']);
+			$keywords = strtolower(input::str('search'));
 			$DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE LOWER(title) LIKE '%" . $keywords . "%' OR LOWER(description) LIKE '%" . $keywords . "%' ORDER BY title LIMIT " . $start . ", " . $end . "");
 			while ($r = $DB->fetch_array())
 			{
@@ -356,7 +356,7 @@ class settings
 		}
 		else
 		{
-			$DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE groupid='" . $_INPUT['groupid'] . "' ORDER BY displayorder, title LIMIT " . $start . ", " . $end . "");
+			$DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE groupid='" . input::get('groupid', '') . "' ORDER BY displayorder, title LIMIT " . $start . ", " . $end . "");
 			while ($r = $DB->fetch_array())
 			{
 				if ($r['settingid'] == 7 && $r['groupid'] == 1)
@@ -365,13 +365,13 @@ class settings
 				}
 				$entry[ $r['settingid'] ] = $r;
 			}
-			$title = $forums->lang['settinggroup'] . ": {$this->setting_groups[$_INPUT['groupid']]['title']}";
+			$title = $forums->lang['settinggroup'] . ": {$this->setting_groups[input::get('groupid', '')]['title']}";
 		}
 		$pagetitle = $forums->lang['managesettings'];
 		$detail = $forums->lang['managesettingsdesc'] . "<br />" . $forums->lang['managesettingsdesc1'];
 		$forums->admin->nav[] = array('settings.php', $forums->lang['managesettings']);
-		$_INPUT['search'] = trim(rawurldecode($_INPUT['search']));
-		if (! $_INPUT['groupid'] AND ! $_INPUT['search'])
+		input::set('search', trim(rawurldecode(input::str('search'))));
+		if (! input::get('groupid', '') AND ! input::get('search', ''))
 		{
 			$forums->main_msg = $forums->lang['noselectgroup'];
 			$this->setting_start();
@@ -379,17 +379,17 @@ class settings
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$this->setting_get_groups();
 		$forums->admin->print_form_header(array(1 => array('do', 'setting_update'),
-				2 => array('id', $_INPUT['groupid']),
-				3 => array('search', $_INPUT['search']),)
+				2 => array('id', input::get('groupid', '')),
+				3 => array('search', input::get('search', '')),)
 			);
-		$pages = $forums->func->build_pagelinks(array('totalpages' => $this->setting_groups[$_INPUT['groupid']]['groupcount'],
+		$pages = $forums->func->build_pagelinks(array('totalpages' => $this->setting_groups[input::get('groupid', '')]['groupcount'],
 				'perpage' => $end,
 				'curpage' => $start,
-				'pagelink' => "settings.php?" . $forums->sessionurl . "do=setting_view&amp;search={$_INPUT['search']}",)
+				'pagelink' => "settings.php?" . $forums->sessionurl . "do=setting_view&amp;search=" . input::get('search', '') . "",)
 			);
-		if (! $_INPUT['search'])
+		if (! input::get('search', ''))
 		{
-			$newbutton = $forums->admin->print_button($forums->lang['addsetting'] , "settings.php?{$forums->sessionurl}do=settingnew&amp;groupid=" . $_INPUT['groupid']);
+			$newbutton = $forums->admin->print_button($forums->lang['addsetting'] , "settings.php?{$forums->sessionurl}do=settingnew&amp;groupid=" . input::get('groupid', ''));
 		}
 		echo "<table width='100%' cellspacing='0' cellpadding='0' align='center' border='0'>\n";
 		echo "<tr><td class='tableborder'>\n";
@@ -410,7 +410,7 @@ class settings
 
 	function parse_entry($r)
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$form_element = '';
 		$dropdown = array();
 		$start = '';
@@ -426,7 +426,7 @@ class settings
 		{
 			$tdrow1 = "tdrow1shaded";
 			$tdrow2 = "tdrow2shaded";
-			$revert_button = "<div style='width:auto;float:right;padding-top:2px;'><a href='settings.php?{$forums->sessionurl}do=setting_revert&amp;id={$r['settingid']}&amp;groupid={$r['groupid']}&amp;search={$_INPUT['search']}' title='" . $forums->lang['restoredefault'] . "'><img src='{$forums->imageurl}/te_revert.gif' alt='' border='0' /></a></div>";
+			$revert_button = "<div style='width:auto;float:right;padding-top:2px;'><a href='settings.php?{$forums->sessionurl}do=setting_revert&amp;id={$r['settingid']}&amp;groupid={$r['groupid']}&amp;search=" . input::get('search', '') . "' title='" . $forums->lang['restoredefault'] . "'><img src='{$forums->imageurl}/te_revert.gif' alt='' border='0' /></a></div>";
 		}
 		switch ($r['type'])
 		{
@@ -501,10 +501,10 @@ class settings
 		}
 		$delete = "&#0124; <a href='settings.php?{$forums->sessionurl}do=setting_delete&amp;id={$r['settingid']}&amp;gid={$r['groupid']}' title='key: \$bboptions[" . $r['varname'] . "]'>" . $forums->lang['delete'] . "</a>";
 		$edit = "<a href='settings.php?{$forums->sessionurl}do=setting_showedit&amp;id={$r['settingid']}' title='id: {$r['settingid']}'>" . $forums->lang['edit'] . "</a>";
-		if ($_INPUT['search'])
+		if (input::str('search'))
 		{
-			$r['title'] = preg_replace("/(" . $_INPUT['search'] . ")/i", "<span style='background:#878787'>\\1</span>", $r['title']);
-			$r['description'] = preg_replace("/(" . $_INPUT['search'] . ")/i", "<span style='background:#878787'>\\1</span>", $r['description']);
+			$r['title'] = preg_replace("/(" . input::get('search', '') . ")/i", "<span style='background:#878787'>\\1</span>", $r['title']);
+			$r['description'] = preg_replace("/(" . input::get('search', '') . ")/i", "<span style='background:#878787'>\\1</span>", $r['description']);
 		}
 		echo "<table cellpadding='5' cellspacing='0' border='0' width='100%'>\n";
 		echo "<tr>\n";
@@ -514,7 +514,7 @@ class settings
 		{
 			echo "<td width='10%' class='$tdrow1' align='center'>{$edit}{$delete}</td>\n";
 		}
-		if (! $_INPUT['search'])
+		if (! input::get('search', ''))
 		{
 			echo "<td width='5%' class='$tdrow2' align='center'><input type='text' size='2' name='cp_{$r['settingid']}' value='{$r['displayorder']}' class='button' /></td>\n";
 		}
@@ -524,23 +524,23 @@ class settings
 
 	function setting_update($donothing = "")
 	{
-		global $forums, $DB, $_INPUT;
-		if (! $_INPUT['id'] AND ! $_INPUT['search'])
+		global $forums, $DB;
+		if (! input::get('id', '') AND ! input::get('search', ''))
 		{
 			$forums->main_msg = $forums->lang['noids'];
 			$this->setting_start();
 		}
-		foreach ($_INPUT as $key => $value)
+		foreach ($_REQUEST as $key => $value)
 		{
 			if (preg_match("/^cp_(\d+)$/", $key, $match))
 			{
-				if (isset($_INPUT[$match[0]]))
+				if (isset($_REQUEST[$match[0]]))
 				{
-					$DB->update(TABLE_PREFIX . 'setting', array('displayorder' => $_INPUT[$match[0]]), 'settingid=' . $match[1]);
+					$DB->update(TABLE_PREFIX . 'setting', array('displayorder' => $_REQUEST[$match[0]]), 'settingid=' . $match[1]);
 				}
 			}
 		}
-		$fields = explode(",", trim($_INPUT['settings_save']));
+		$fields = explode(",", trim(input::str('settings_save')));
 		if (! count($fields))
 		{
 			$forums->main_msg = $forums->lang['noanysaveitems'];
@@ -565,7 +565,7 @@ class settings
 				$value = str_replace("&#39;", "'", convert_andstr($_POST[$key]));
 				$DB->update(TABLE_PREFIX . 'setting', array('value' => $value), 'settingid=' . $data['settingid']);
 			}
-			else if ($_INPUT[$key] != '' && ($_INPUT[$key] == $data['defaultvalue']) && $data['value'] != '')
+			else if ($_REQUEST[$key] != '' && ($_REQUEST[$key] == $data['defaultvalue']) && $data['value'] != '')
 			{
 				$DB->update(TABLE_PREFIX . 'setting', array('value' => ''), 'settingid=' . $data['settingid']);
 			}
@@ -578,13 +578,13 @@ class settings
 				$DB->update(TABLE_PREFIX . 'cron', array('enabled' => 1), "filename='attachmentviews.php'");
 			}
 		}
-		$_INPUT['groupid'] = $_INPUT['id'];
+		input::set('groupid', input::int('id'));
 		$forums->func->recache('settings');
 		if (! $donothing)
 		{
-			if ($_INPUT['id'])
+			if (input::str('id'))
 			{
-				$forums->admin->redirect("settings.php?{$forums->sessionurl}do=setting_view&amp;groupid={$_INPUT['id']}", $forums->lang['settingupdated'], $forums->lang['settingupdated']);
+				$forums->admin->redirect("settings.php?{$forums->sessionurl}do=setting_view&amp;groupid=" . input::int('id') . "", $forums->lang['settingupdated'], $forums->lang['settingupdated']);
 			}
 			else
 			{
@@ -596,40 +596,40 @@ class settings
 
 	function setting_save($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == 'edit')
 		{
-			if (! $_INPUT['id'])
+			if (! input::int('id'))
 			{
 				$forums->main_msg = $forums->lang['noids'];
 				$this->setting_form();
 			}
 		}
-		if (!$_INPUT['title'] OR !$_INPUT['groupid'] OR !$_INPUT['varname'])
+		if (!input::get('title', '') OR !input::get('groupid', '') OR !input::get('varname', ''))
 		{
 			$forums->main_msg = $forums->lang['inputallforms'];
 			$this->setting_form();
 		}
-		$array = array('title' => $_INPUT['title'],
+		$array = array('title' => input::get('title', ''),
 			'description' => convert_andstr($_POST['description']),
-			'groupid' => intval($_INPUT['groupid']),
-			'type' => $_INPUT['type'],
-			'varname' => $_INPUT['varname'],
+			'groupid' => input::int('groupid'),
+			'type' => input::get('type', ''),
+			'varname' => input::get('varname', ''),
 			'value' => convert_andstr($_POST['value']),
 			'defaultvalue' => convert_andstr($_POST['defaultvalue']),
 			'dropextra' => convert_andstr($_POST['dropextra']),
-			'displayorder' => intval($_INPUT['displayorder']),
-			'addcache' => intval($_INPUT['addcache']),
+			'displayorder' => input::int('displayorder'),
+			'addcache' => input::int('addcache'),
 			);
 		if ($type == 'add')
 		{
 			$DB->insert(TABLE_PREFIX .'setting', $array);
-			$this->group_recount($_INPUT['groupid']);
+			$this->group_recount(input::str('groupid'));
 			$forums->main_msg = $forums->lang['settingadded'];
 		}
 		else
 		{
-			$DB->update(TABLE_PREFIX .'setting', $array, 'settingid=' . $_INPUT['id']);
+			$DB->update(TABLE_PREFIX .'setting', $array, 'settingid=' . input::int('id'));
 			$forums->main_msg = $forums->lang['settingedited'];
 		}
 		$forums->func->recache('settings');
@@ -638,15 +638,15 @@ class settings
 
 	function setting_revert()
 	{
-		global $forums, $DB, $_INPUT;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		if (! $_INPUT['id'])
+		global $forums, $DB;
+
+		if (! input::get('id', ''))
 		{
 			$forums->main_msg = $forums->lang['noids'];
 			$this->setting_form();
 		}
-		$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . $_INPUT['id'] . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "setting SET value='' WHERE settingid=" . $_INPUT['id'] . "");
+		$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
+		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "setting SET value='' WHERE settingid=" . input::int('id') . "");
 		$forums->main_msg = $forums->lang['settingrestored'];
 		$forums->func->recache('settings');
 		$this->setting_view();
@@ -654,16 +654,16 @@ class settings
 
 	function setting_delete()
 	{
-		global $forums, $DB, $_INPUT;
-		if (! $_INPUT['id'])
+		global $forums, $DB;
+		if (! input::int('id'))
 		{
 			$forums->main_msg = $forums->lang['noids'];
 			$this->setting_form();
 		}
-		if ($_INPUT['update'])
+		if (input::str('update'))
 		{
-			$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . $_INPUT['id'] . "");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "setting WHERE settingid=" . $_INPUT['id'] . "");
+			$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
+			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
 			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "settinggroup SET groupcount=groupcount-1 WHERE groupid=" . $conf['groupid'] . "");
 			$forums->main_msg = $forums->lang['settingdeleted'];
 			$forums->func->recache('settings');
@@ -676,7 +676,7 @@ class settings
 			$detail = $forums->lang['confirmdeletesetting'];
 			$forums->admin->nav[] = array('', $forums->lang['deletesetting']);
 			$forums->admin->print_cp_header($pagetitle, $detail);
-			$forums->admin->print_form_header(array(1 => array('do', 'setting_delete'), 2 => array('id', $_INPUT['id']), 3 => array('update', 1)));
+			$forums->admin->print_form_header(array(1 => array('do', 'setting_delete'), 2 => array('id', input::get('id', '')), 3 => array('update', 1)));
 			$forums->admin->print_table_start($forums->lang['confirmdeletesetting']);
 			$forums->admin->print_cells_single_row($forums->lang['deletesettingdesc'], "center");
 			$forums->admin->print_form_end($forums->lang['confirmdelete']);
@@ -699,7 +699,7 @@ class settings
 
 	function setting_make_dropdown()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if (! is_array($this->setting_groups))
 		{
 			$this->setting_get_groups();
@@ -707,7 +707,7 @@ class settings
 		$ret = "<form method='post' action='settings.php?{$forums->sessionurl}do=setting_view'>\n<select name='groupid' class='dropdown' onchange='submit()'>\n";
 		foreach($this->setting_groups AS $id => $data)
 		{
-			$ret .= ($id == $_INPUT['groupid']) ? "<option value='{$id}' selected='selected'>{$data['title']}</option>\n" : "<option value='{$id}'>{$data['title']}</option>\n";
+			$ret .= ($id == input::get('groupid', '')) ? "<option value='{$id}' selected='selected'>{$data['title']}</option>\n" : "<option value='{$id}'>{$data['title']}</option>\n";
 		}
 		$ret .= "\n</select>\n<input type='submit' class='button' value='" . $forums->lang['ok'] . "' /></form>";
 		return $ret;

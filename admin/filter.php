@@ -14,13 +14,13 @@ class filter
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditbans'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'badword':
 				$this->badword_start();
@@ -60,17 +60,18 @@ class filter
 
 	function ban_delete()
 	{
-		global $forums, $DB, $_INPUT;
-		if (is_array($_INPUT['id']))
+		global $forums, $DB;
+		
+		$ids = input::arr('id');
+
+		foreach ($ids AS $k => $v)
 		{
-			foreach ($_INPUT['id'] AS $value)
+			if (!$v)
 			{
-				if ($value)
-				{
-					$ids[] = $value;
-				}
+				unset($ids[$k]);
 			}
 		}
+		
 		if (count($ids))
 		{
 			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "banfilter WHERE id IN(" . implode(",", $ids) . ")");
@@ -82,18 +83,18 @@ class filter
 
 	function ban_add()
 	{
-		global $forums, $DB, $_INPUT;
-		if (! $_INPUT['content'])
+		global $forums, $DB;
+		if (! input::get('content', ''))
 		{
 			$forums->main_msg = $forums->lang['requirecontent'];
 			$this->ban_start();
 		}
-		if ($result = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "banfilter WHERE type='" . $_INPUT['type'] . "' AND content='" . $_INPUT['content'] . "'"))
+		if ($result = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "banfilter WHERE type='" . input::get('type', '') . "' AND content='" . input::get('content', '') . "'"))
 		{
 			$forums->main_msg = $forums->lang['filterexist'];
 			$this->ban_start();
 		}
-		$DB->insert(TABLE_PREFIX . 'banfilter', array('type' => $_INPUT['type'], 'content' => $_INPUT['content']));
+		$DB->insert(TABLE_PREFIX . 'banfilter', array('type' => input::get('type', ''), 'content' => input::get('content', '')));
 		$forums->func->recache('banfilter');
 		$forums->main_msg = $forums->lang['filteradded'];
 		$this->ban_start();
@@ -225,22 +226,22 @@ class filter
 
 	function badword_doedit()
 	{
-		global $forums, $_INPUT;
-		if ($_INPUT['badbefore'] == "")
+		global $forums;
+		if (input::str('badbefore') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['requirebadword']);
 		}
-		if ($_INPUT['id'] == "")
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$_INPUT['type'] = $_INPUT['type'] ? 1 : 0;
-		strlen($_INPUT['badafter']) > 1 ? $_INPUT['badafter'] : "";
+		input::set('type', input::get('type', '') ? 1 : 0);
+		strlen(input::str('badafter')) > 1 ? input::get('badafter', '') : "";
 		$DB->update(TABLE_PREFIX . 'badword', array(
-			'badbefore' => $_INPUT['badbefore'],
-			'badafter' => $_INPUT['badafter'],
-			'type' => $_INPUT['type']
-		), "id='" . $_INPUT['id'] . "'");
+			'badbefore' => input::get('badbefore', ''),
+			'badafter' => input::get('badafter', ''),
+			'type' => input::get('type', '')
+		), "id='" . input::get('id', '') . "'");
 		$forums->func->recache('badword');
 		$forums->main_msg = $forums->lang['badwordedited'];
 		$this->badword_start();
@@ -248,20 +249,20 @@ class filter
 
 	function badword_edit()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['managebadword'];
 		$detail = $forums->lang['managebadworddesc'];
 		$forums->admin->nav[] = array('filter.php?do=badword' , $forums->lang['managebadword']);
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		if ($_INPUT['id'] == "")
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (! $r = $DB->query_first("SELECT badbefore,badafter,type FROM " . TABLE_PREFIX . "badword WHERE id='" . $_INPUT['id'] . "'"))
+		if (! $r = $DB->query_first("SELECT badbefore,badafter,type FROM " . TABLE_PREFIX . "badword WHERE id=" . input::int('id')))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$forums->admin->print_form_header(array(1 => array('do' , 'badword_doedit'), 2 => array('id', $_INPUT['id'])));
+		$forums->admin->print_form_header(array(1 => array('do' , 'badword_doedit'), 2 => array('id', input::int('id'))));
 		$forums->admin->columns[] = array($forums->lang['badword'], "40%");
 		$forums->admin->columns[] = array($forums->lang['replaceword'], "40%");
 		$forums->admin->columns[] = array($forums->lang['replacetype'], "20%");
@@ -278,12 +279,12 @@ class filter
 
 	function badword_remove()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'] == "")
+		global $forums, $DB;
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "badword WHERE id='" . intval($_INPUT['id']) . "'");
+		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "badword WHERE id=" . input::int('id'));
 		$forums->func->recache('badword');
 		$forums->main_msg = $forums->lang['badworddeleted'];
 		$this->badword_start();
@@ -291,21 +292,21 @@ class filter
 
 	function badword_add()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['badbefore'] == "")
+		global $forums, $DB;
+		if (input::str('badbefore') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['requirebadword']);
 		}
-		$_INPUT['type'] = $_INPUT['type'] ? 1 : 0;
-		if ($badword = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "badword WHERE badbefore='" . $_INPUT['badbefore'] . "' AND type=" . $_INPUT['type'] . ""))
+		input::set('type', input::get('type', '') ? 1 : 0);
+		if ($badword = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "badword WHERE badbefore='" . input::get('badbefore', '') . "' AND type=" . input::get('type', '') . ""))
 		{
 			$forums->main_msg = $forums->lang['badwordexist'];
 			$this->badword_start();
 		}
 		$DB->insert(TABLE_PREFIX . 'badword', array(
-			'badbefore' => $_INPUT['badbefore'],
-			'badafter' => $_INPUT['badafter'],
-			'type' => $_INPUT['type'])
+			'badbefore' => input::get('badbefore', ''),
+			'badafter' => input::get('badafter', ''),
+			'type' => input::get('type', ''))
 		);
 		$forums->func->recache('badword');
 		$forums->main_msg = $forums->lang['badwordadded'];

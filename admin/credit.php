@@ -14,7 +14,7 @@ class credit
 {
 	function show()
 	{
-		global $forums, $_INPUT, $DB, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$forums->func->load_lang('admin_credit');
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditusers'])
@@ -23,7 +23,7 @@ class credit
 		}
 		require_once(ROOT_PATH . 'includes/functions_credit.php');
 		$this->credit = new functions_credit();
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'add':
 				$this->credit_form('add');
@@ -69,9 +69,9 @@ class credit
 
 	function creditlist()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$pp = isset($_INPUT['pp']) ? intval($_INPUT['pp']) : 0;
+		$pp = isset(input::str('pp')) ? input::int('pp') : 0;
 
 		$pagetitle = $forums->lang['managecredit'];
 		$forums->admin->nav[] = array('credit.php' , $forums->lang['creditlist']);
@@ -133,10 +133,10 @@ class credit
 
 	function credit_form($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == "edit")
 		{
-			$id = intval($_INPUT['id']);
+			$id = input::int('id');
 			$credit = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "credit WHERE creditid = $id");
 			if (!$credit['creditid'])
 			{
@@ -160,20 +160,20 @@ class credit
 		$forums->admin->columns[] = array('&nbsp;', '60%');
 		$forums->admin->print_table_start($forums->lang['set_cash_info']);
 
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_name']}</strong>", $forums->admin->print_input_row('name', $_INPUT['name'] ? $_INPUT['name'] : $credit['name'])));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_name']}</strong>", $forums->admin->print_input_row('name', input::get('name', $credit['name']))));
 
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_tag_name']}</strong><div class='description'>{$forums->lang['credit_tag_name_desc']}</div>", $credit['tag'] ? $credit['tag'] : $forums->admin->print_input_row('tag', $_INPUT['tag'] ? $_INPUT['tag'] : "")));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_tag_name']}</strong><div class='description'>{$forums->lang['credit_tag_name_desc']}</div>", $credit['tag'] ? $credit['tag'] : $forums->admin->print_input_row('tag', input::get('tag', ''))));
 
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_unit']}</strong><div class='description'>{$forums->lang['credit_unit_desc']}</div>", $forums->admin->print_input_row('unit', $_INPUT['unit'] ? $_INPUT['unit'] : $credit['unit'])));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_unit']}</strong><div class='description'>{$forums->lang['credit_unit_desc']}</div>", $forums->admin->print_input_row('unit', input::get('unit', $credit['unit']))));
 
-		$downlimit = isset($_INPUT['downlimit']) ? $_INPUT['downlimit'] : $credit['downlimit'];
+		$downlimit = input::get('downlimit', $credit['downlimit']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_limit']}</strong>", $forums->admin->print_input_row('downlimit', $downlimit)));
 
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['creditinitvalue']}</strong>", $forums->admin->print_input_row('initvalue', $_INPUT['initvalue'] ? $_INPUT['initvalue'] : $credit['initvalue'])));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['creditinitvalue']}</strong>", $forums->admin->print_input_row('initvalue', input::get('initvalue', $credit['initvalue']))));
 
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['creditinittime']}</strong><div class='description'>{$forums->lang['creditinittimedesc']}</div>", $forums->admin->print_input_row('inittime', $_INPUT['inittime'] ? $_INPUT['inittime'] : $credit['inittime'])));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['creditinittime']}</strong><div class='description'>{$forums->lang['creditinittimedesc']}</div>", $forums->admin->print_input_row('inittime', input::get('inittime', $credit['inittime']))));
 
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_used']}</strong>", $forums->admin->print_yes_no_row('used', $_INPUT['used'] ? $_INPUT['used'] : $credit['used'])));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_used']}</strong>", $forums->admin->print_yes_no_row('used', input::get('used', $credit['used']))));
 		$forums->admin->print_form_submit($button);
 		$forums->admin->print_table_footer();
 		$forums->admin->print_form_end();
@@ -182,15 +182,15 @@ class credit
 
 	function doedit($redirect = true)
 	{
-		global $forums, $DB, $_INPUT;
-		$id = intval($_INPUT['id']);
-		$_INPUT['name'] = trim($_INPUT['name']);
-		$_INPUT['tag'] = strtolower(trim($_INPUT['tag']));
-		if (!$_INPUT['name'])
+		global $forums, $DB;
+		$id = input::int('id');
+		input::set('name', trim(input::str('name')));
+		input::set('tag', strtolower(trim(input::str('tag'))));
+		if (!input::get('name', ''))
 		{
 			$forums->admin->print_cp_error($forums->lang['require_credit_name']);
 		}
-		if (!$_INPUT['tag'] && $_INPUT['do']!='doedit')
+		if (!input::get('tag', '') && input::get('do', '')!='doedit')
 		{
 			$forums->admin->print_cp_error($forums->lang['require_credit_tag']);
 		}
@@ -204,7 +204,7 @@ class credit
 		}
 		else
 		{
-			if (!preg_match('#^[A-Za-z][\w]*$#i', $_INPUT['tag']))
+			if (!preg_match('#^[A-Za-z][\w]*$#i', input::get('tag', '')))
 			{
 				$forums->admin->print_cp_error($forums->lang['only_letter_num']);
 			}
@@ -212,7 +212,7 @@ class credit
 			$result = $DB->query('DESCRIBE ' . TABLE_PREFIX . 'user');
 			while ($row = $DB->fetch_array($result))
 			{
-				if ($row['Field'] == $_INPUT['tag'])
+				if ($row['Field'] == input::get('tag', ''))
 				{
 					$key_already_used = true;
 					break;
@@ -221,7 +221,7 @@ class credit
 			$DB->free_result($result);
 			if (!$key_already_used)
 			{
-				$result = $DB->query_first('SELECT creditid FROM ' . TABLE_PREFIX . "credit WHERE tag = '{$_INPUT['tag']}'");
+				$result = $DB->query_first('SELECT creditid FROM ' . TABLE_PREFIX . "credit WHERE tag = '" . input::get('tag', '') . "'");
 				if ($result['creditid'])
 				{
 					$key_already_used = true;
@@ -232,7 +232,7 @@ class credit
 				$result = $DB->query('DESCRIBE ' . TABLE_PREFIX . 'userexpand');
 				while ($row = $DB->fetch_array($result))
 				{
-					if ($row['Field'] == $_INPUT['tag'])
+					if ($row['Field'] == input::get('tag', ''))
 					{
 						$key_already_used = true;
 					}
@@ -246,12 +246,12 @@ class credit
 			}
 		}
 		$sql_array = array(
-				'name' => trim($_INPUT['name']),
-				'unit' => trim($_INPUT['unit']),
-				'downlimit' => intval($_INPUT['downlimit']),
-				'initvalue' => intval($_INPUT['initvalue']),
-				'inittime' => intval($_INPUT['inittime']),
-				'used' => intval($_INPUT['used']));
+				'name' => trim(input::str('name')),
+				'unit' => trim(input::str('unit')),
+				'downlimit' => input::int('downlimit'),
+				'initvalue' => input::int('initvalue'),
+				'inittime' => input::int('inittime'),
+				'used' => input::int('used'));
 		if ($credit['creditid'])
 		{
 			$DB->update(TABLE_PREFIX . 'credit', $sql_array, 'creditid = ' . $credit['creditid']);
@@ -259,13 +259,13 @@ class credit
 		}
 		else
 		{
-			$sql_array['tag'] = $_INPUT['tag'];
+			$sql_array['tag'] = input::get('tag', '');
 			$sql_array['initevalvalue'] = 20;
 			$sql_array['initevaltime'] = 24;
 			$DB->insert(TABLE_PREFIX . 'credit', $sql_array);
 			$id = $DB->insert_id();
 			$DB->query_unbuffered('ALTER TABLE ' . TABLE_PREFIX . 'userexpand
-				ADD `' . $_INPUT['tag'] . '` FLOAT( 10, 2 ) NOT NULL default 0, ADD `eval' . $_INPUT['tag'] . '` INT( 10 ) NOT NULL default 0');
+				ADD `' . input::get('tag', '') . '` FLOAT( 10, 2 ) NOT NULL default 0, ADD `eval' . input::get('tag', '') . '` INT( 10 ) NOT NULL default 0');
 			//添加一套积分的默认规则
 			$result = $DB->query('SELECT eventtag, defaultvalue FROM ' . TABLE_PREFIX . "creditevent");
 			$params = array();
@@ -288,9 +288,9 @@ class credit
 
 	function rulelist()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$pp = $_INPUT['pp']?intval($_INPUT['pp']):0;
+		$pp = input::int('pp');
 		$pagetitle = $forums->lang['managecredit'];
 		$detail = $forums->lang['managecreditruledesc'];
 		$forums->admin->nav[] = array('credit.php?do=rulelist' , $forums->lang['creditrulelist']);
@@ -380,7 +380,7 @@ class credit
 
 	function rule_form($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
 		$pagetitle = $forums->lang['addcreditrule'];
 		$button = $forums->lang['addcreditrule'];
@@ -388,11 +388,11 @@ class credit
 		{
 			if ($type == "edit")
 			{
-				$wheresql = "WHERE ruleid = '{$_INPUT['ruleid']}'";
+				$wheresql = "WHERE ruleid = '" . input::get('ruleid', '') . "'";
 			}
 			else
 			{
-				$wheresql = "WHERE creditid = '{$_INPUT['creditid']}' AND type = 0";
+				$wheresql = "WHERE creditid = '" . input::get('creditid', '') . "' AND type = 0";
 			}
 			$rule = $DB->query_first("SELECT *
 					FROM " . TABLE_PREFIX . "creditrule
@@ -497,7 +497,7 @@ class credit
 		while($row = $DB->fetch_array($result))
 		{
 			$tag = $row['eventtag'];
-			$eventvalue = isset($_INPUT[$tag]) ? $_INPUT[$tag] : $parms[$tag];
+			$eventvalue = input::get($tag, $parms[$tag]);
 			$eventvalue = $eventvalue != '100%' ? $eventvalue : '';
 			$forums->admin->print_cells_row(array("<strong>{$row['eventname']}</strong>", $forums->admin->print_input_row($tag, $eventvalue)));
 		}
@@ -510,15 +510,15 @@ class credit
 
 	function doeditrule()
 	{
-		global $forums, $DB, $_INPUT;
-		$type = $_INPUT['edittype']?intval($_INPUT['edittype']):$_INPUT['type'];
-		$creditid = $_INPUT['editid']?intval($_INPUT['editid']):$_INPUT['creditid'];
-		$ruleid = $_INPUT['editruleid']?intval($_INPUT['editruleid']):0;
-		if ($_INPUT['lists'])
+		global $forums, $DB;
+		$type = input::get('edittype', input::int('type'));
+		$creditid = input::get('editid', input::int('creditid'));
+		$ruleid = input::int('editruleid');
+		if (input::str('lists'))
 		{
-			$lists = implode(',', $_INPUT['lists']);
+			$lists = implode(',', input::get('lists', ''));
 		}
-		if ($_INPUT['editruleid'])
+		if (input::str('editruleid'))
 		{
 			$msg = $forums->lang['creditrule_edited'];
 		}
@@ -531,7 +531,7 @@ class credit
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		//判断选择的版面或用户组是否在其他规则中已定义
-		if (!empty($_INPUT['lists']) && $type)
+		if (!empty(input::str('lists')) && $type)
 		{
 			$result = $DB->query('SELECT lists
 				FROM ' . TABLE_PREFIX . "creditrule
@@ -540,7 +540,7 @@ class credit
 			{
 				while ($row = $DB->fetch_array($result))
 				{
-					foreach ($_INPUT['lists'] as $id)
+					foreach (input::get('lists', '') as $id)
 					{
 						if (strpos(','.$row['lists'].',', ','.$id.',') !== false)
 						{
@@ -563,7 +563,7 @@ class credit
 		$result = $DB->query('SELECT eventtag FROM ' . TABLE_PREFIX . "creditevent");
 		while ($r = $DB->fetch_array($result))
 		{
-			$value = trim($_INPUT[$r['eventtag']]);
+			$value = trim($_REQUEST[$r['eventtag']]);
 			if (!$type && $ruleid)
 			{
 				$value = intval($value);
@@ -599,15 +599,15 @@ class credit
 
 	function editevalset()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$id = intval($_INPUT['creditid']);
+		$id = input::int('creditid');
 		$credit = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "credit WHERE creditid = $id");
 		if (!$credit['creditid'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (!$_INPUT['update'])
+		if (!input::get('update', ''))
 		{
 			$forums->admin->nav[] = array('credit.php' , $forums->lang['creditlist']);
 			$forums->admin->print_cp_header($forums->lang['editevalset']);
@@ -630,8 +630,8 @@ class credit
 		}
 		else
 		{
-			$initvalue = intval($_INPUT['initevalvalue']);
-			$inittime = intval($_INPUT['initevaltime']);
+			$initvalue = input::int('initevalvalue');
+			$inittime = input::int('initevaltime');
 			if ($inittime <= 0)
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
@@ -646,9 +646,9 @@ class credit
 
 	function delete_credit()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$id = intval($_INPUT['id']);
+		$id = input::int('id');
 		if (!$id)
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -664,22 +664,22 @@ class credit
 
 	function delete_creditrule()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		if (!$_INPUT['ruleid'])
+		if (!input::get('ruleid', ''))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->delete(TABLE_PREFIX . 'creditrule', "ruleid = {$_INPUT['ruleid']}");
+		$DB->delete(TABLE_PREFIX . 'creditrule', "ruleid = " . input::get('ruleid', ''));
 		$forums->func->recache('creditrule');
 		$forums->admin->redirect('credit.php?do=rulelist', $forums->lang['creditrulelist'], $forums->lang['creditrule_deleted']);
 	}
 
 	function event_list()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$pp = $_INPUT['pp']?intval($_INPUT['pp']):0;
+		$pp = input::int('pp');
 		$pagetitle = $forums->lang['managecredit'];
 		$forums->admin->nav[] = array('credit.php?do=eventlist' , $forums->lang['crediteventlists']);
 

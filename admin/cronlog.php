@@ -14,9 +14,9 @@ class cronlog
 {
 	function show()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$forums->admin->nav[] = array('cronlog.php', $forums->lang['runcronlog']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'view':
 				$this->view();
@@ -32,12 +32,12 @@ class cronlog
 
 	function remove()
 	{
-		global $forums, $DB, $_INPUT;
-		$prune = is_numeric($_INPUT['cron_prune']) ? intval($_INPUT['cron_prune']) : 30;
+		global $forums, $DB;
+		$prune = is_numeric(input::str('cron_prune')) ? input::int('cron_prune') : 30;
 		$prune = TIMENOW - ($prune * 86400);
-		if ($_INPUT['cronid'] != -1)
+		if (input::get('cronid', '') != -1)
 		{
-			$where = "title='" . $_INPUT['cronid'] . "' AND dateline < $prune";
+			$where = "title='" . input::get('cronid', '') . "' AND dateline < $prune";
 		}
 		else
 		{
@@ -50,16 +50,16 @@ class cronlog
 
 	function view()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['runcronlog'];
 		$detail = $forums->lang['runcronlogdesc'];
 		$forums->admin->nav[] = array('', $forums->lang['cronloglist']);
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		$limit = $_INPUT['cron_count'] ? $_INPUT['cron_count'] : 30;
+		$limit = input::get('cron_count', 30);
 		$limit = $limit > 150 ? 150 : $limit;
-		if ($_INPUT['cronid'] != -1)
+		if (input::get('cronid', '') != -1)
 		{
-			$DB->query("SELECT * FROM " . TABLE_PREFIX . "cronlog WHERE title='" . $_INPUT['cronid'] . "' ORDER BY dateline DESC LIMIT 0, " . $limit . "");
+			$DB->query("SELECT * FROM " . TABLE_PREFIX . "cronlog WHERE title='" . input::get('cronid', '') . "' ORDER BY dateline DESC LIMIT 0, " . $limit . "");
 		}
 		else
 		{

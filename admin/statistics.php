@@ -14,9 +14,9 @@ class statistics
 {
 	function show()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$forums->admin->nav[] = array('statistics.php' , $forums->lang['boardstats']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'showresults':
 				$this->showresults();
@@ -29,19 +29,19 @@ class statistics
 
 	function show_views()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['statsresult'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		if (!checkdate($_INPUT['from_month'], $_INPUT['from_day'], $_INPUT['from_year']))
+		if (!checkdate(input::get('from_month', ''), input::get('from_day', ''), input::get('from_year', '')))
 		{
 			$forums->admin->print_cp_error($forums->lang['fromdateerror']);
 		}
-		if (!checkdate($_INPUT['to_month'], $_INPUT['to_day'], $_INPUT['to_year']))
+		if (!checkdate(input::get('to_month', ''), input::get('to_day', ''), input::get('to_year', '')))
 		{
 			$forums->admin->print_cp_error($forums->lang['enddateerror']);
 		}
-		$to_time = mktime(0, 0, 0, $_INPUT['to_month'], $_INPUT['to_day'], $_INPUT['to_year']);
-		$from_time = mktime(0, 0, 0, $_INPUT['from_month'], $_INPUT['from_day'], $_INPUT['from_year']);
+		$to_time = mktime(0, 0, 0, input::get('to_month', ''), input::get('to_day', ''), input::get('to_year', ''));
+		$from_time = mktime(0, 0, 0, input::get('from_month', ''), input::get('from_day', ''), input::get('from_year', ''));
 		$human_to_date = getdate($to_time);
 		$human_from_date = getdate($from_time);
 		$DB->query("SELECT SUM(t.views) as result_count, t.forumid, f.name as result_name
@@ -50,7 +50,7 @@ class statistics
 				AND t.dateline < '" . $to_time . "'
 				AND t.forumid=f.id
 				GROUP BY t.forumid
-				ORDER BY result_count " . $_INPUT['sortby'] . "");
+				ORDER BY result_count " . input::get('sortby', '') . "");
 		$running_total = 0;
 		$max_result = 0;
 		$results = array();
@@ -98,20 +98,20 @@ class statistics
 
 	function showresults()
 	{
-		global $forums, $DB, $_INPUT;
-		if (!checkdate($_INPUT['from_month'], $_INPUT['from_day'], $_INPUT['from_year']))
+		global $forums, $DB;
+		if (!checkdate(input::get('from_month', ''), input::get('from_day', ''), input::get('from_year', '')))
 		{
 			$forums->admin->print_cp_error($forums->lang['fromdateerror']);
 		}
-		if (!checkdate($_INPUT['to_month'], $_INPUT['to_day'], $_INPUT['to_year']))
+		if (!checkdate(input::get('to_month', ''), input::get('to_day', ''), input::get('to_year', '')))
 		{
 			$forums->admin->print_cp_error($forums->lang['enddateerror']);
 		}
-		$to_time = mktime(0, 0, 0, $_INPUT['to_month'], $_INPUT['to_day'], $_INPUT['to_year']);
-		$from_time = mktime(0, 0, 0, $_INPUT['from_month'], $_INPUT['from_day'], $_INPUT['from_year']);
+		$to_time = mktime(0, 0, 0, input::get('to_month', ''), input::get('to_day', ''), input::get('to_year', ''));
+		$from_time = mktime(0, 0, 0, input::get('from_month', ''), input::get('from_day', ''), input::get('from_year', ''));
 		$human_to_date = getdate($to_time);
 		$human_from_date = getdate($from_time);
-		switch ($_INPUT['resulttype'])
+		switch (input::str('resulttype'))
 		{
 			case 'show_reg':
 				$table = $forums->lang['registerstats'];
@@ -149,7 +149,7 @@ class statistics
 		}
 		$forums->admin->nav[] = array('' , $table);
 		$forums->admin->print_cp_header($table, $detail);
-		switch ($_INPUT['timescale'])
+		switch (input::str('timescale'))
 		{
 			case 'daily':
 				$sql_date = "%w %U %m %Y";
@@ -172,7 +172,7 @@ class statistics
 				 WHERE " . $sql_field . " > '" . $from_time . "'
 				 AND " . $sql_field . " < '" . $to_time . "'
 				 GROUP BY result_time
-				 ORDER BY " . $sql_field . " " . $_INPUT['sortby'] . "");
+				 ORDER BY " . $sql_field . " " . input::get('sortby', '') . "");
 		$running_total = 0;
 		$max_result = 0;
 		$results = array();
@@ -204,7 +204,7 @@ class statistics
 					$img_width = 1;
 				}
 				$img_width .= '%';
-				if ($_INPUT['timescale'] == 'weekly')
+				if (input::str('timescale') == 'weekly')
 				{
 					$date = "Week #" . strftime("%W", $data['result_maxdate']) . date($php_date, $data['result_maxdate']);
 				}
@@ -248,7 +248,7 @@ class statistics
 						2 => array('show_post', $forums->lang['poststats']),
 						3 => array('show_msg', $forums->lang['pmstats']),
 						4 => array('show_views', $forums->lang['threadviews'])
-						), $_INPUT['namewhere']
+						), input::get('namewhere', '')
 					)
 				));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['startdate'] . "</strong>" ,

@@ -14,8 +14,8 @@ class index
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
-		switch ($_INPUT['do'])
+		global $forums, $bbuserinfo;
+		switch (input::get('do', ''))
 		{
 			case 'logout':
 				$this->logout();
@@ -28,10 +28,10 @@ class index
 
 	function showindex()
 	{
-		global $DB, $forums, $_INPUT, $bbuserinfo, $bboptions;
-		if (isset($_INPUT['adminnews']))
+		global $DB, $forums, $bbuserinfo, $bboptions;
+		if (isset(input::str('adminnews')))
 		{
-			switch ($_INPUT['adminnews'])
+			switch (input::str('adminnews'))
 			{
 				case 'hide':
 					$forums->func->set_cookie('adminnews', '-1');
@@ -203,7 +203,7 @@ class index
 
 	function logout()
 	{
-		global $DB, $forums, $_INPUT, $bbuserinfo, $bboptions;
+		global $DB, $forums, $bbuserinfo, $bboptions;
 		$DB->query_unbuffered('DELETE FROM ' . TABLE_PREFIX . 'adminsession
 			WHERE userid=' . $bbuserinfo['id']);
 		$forums->admin->print_cp_login($forums->lang['youhavesafelogout']);

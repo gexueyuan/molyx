@@ -14,7 +14,7 @@ class adminlog
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditads'])
 		{
@@ -23,7 +23,7 @@ class adminlog
 		$forums->func->load_lang('admin_bill');
 		$forums->admin->nav[] = array("bill.php", $forums->lang['admanage']);
 		$this->allforum = $forums->adminforum->forumcache;
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'step1':
 				$this->step1();
@@ -77,21 +77,21 @@ class adminlog
 
 	function step1()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'])
+		global $forums, $DB;
+		if (input::str('id'))
 		{
-			$ad = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "ad WHERE id = " . intval($_INPUT['id']) . "");
+			$ad = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "ad WHERE id = " . input::int('id') . "");
 			if (!$ad['id'])
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
-			$_INPUT['type'] = $ad['type'];
+			input::set('type', $ad['type']);
 			$code = unserialize($ad['code']);
 			$list = explode(",", $ad['ad_in']);
 			$starttime = $ad['starttime'] ? $forums->func->get_date($ad['starttime'], 2) : 0;
 			$endtime = $ad['endtime'] ? $forums->func->get_date($ad['endtime'], 2) : 0;
 		}
-		if ($_INPUT['type'] == "")
+		if (!input::str('type'))
 		{
 			$forums->admin->print_cp_error($forums->lang['no_select_type']);
 		}
@@ -130,7 +130,7 @@ class adminlog
 		//-->
 		</script>\n";
 
-		$forums->admin->print_form_header(array(1 => array('do', 'finish'), 2 => array('type', $_INPUT['type']), 3 => array('id', $ad['id'])));
+		$forums->admin->print_form_header(array(1 => array('do', 'finish'), 2 => array('type', input::str('type')), 3 => array('id', $ad['id'])));
 		$forums->admin->print_table_start($forums->lang['addnewad']);
 
 		$types = array('header' => $forums->lang['type_headers'],
@@ -139,7 +139,7 @@ class adminlog
 			'post' => $forums->lang['type_posts'],
 			'postfooter' => $forums->lang['type_postsfooter'],
 			);
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['select_ad_type']}</strong>", $types[$_INPUT['type']]));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['select_ad_type']}</strong>", $types[input::str('type')]));
 
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['ad_name']}</strong>",
 				$forums->admin->print_input_row('name', $ad['name'])));
@@ -248,40 +248,41 @@ class adminlog
 
 	function finish()
 	{
-		global $forums, $DB, $_INPUT;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		$_INPUT['type'] = trim($_INPUT['type']);
-		$_INPUT['name'] = trim($_INPUT['name']);
-		$_INPUT['starttime'] = trim($_INPUT['starttime']);
-		$_INPUT['endtime'] = trim($_INPUT['endtime']);
-		$_INPUT['codetype'] = intval($_INPUT['codetype']);
-		$_POST['code'] = trim(convert_andstr($_POST['code']));
-		$_INPUT['text_title'] = trim($_INPUT['text_title']);
-		$_INPUT['text_url'] = trim($_INPUT['text_url']);
-		$_INPUT['text_desc'] = trim($_INPUT['text_desc']);
-		$_INPUT['text_style'] = trim($_INPUT['text_style']);
-		$_INPUT['image_title'] = trim($_INPUT['image_title']);
-		$_INPUT['image_url'] = trim($_INPUT['image_url']);
-		$_INPUT['image_desc'] = trim($_INPUT['image_desc']);
-		$_INPUT['image_width'] = intval($_INPUT['image_width']);
-		$_INPUT['image_height'] = intval($_INPUT['image_height']);
-		$_INPUT['flash_url'] = trim($_INPUT['flash_url']);
-		$_INPUT['flash_width'] = intval($_INPUT['flash_width']);
-		$_INPUT['flash_height'] = intval($_INPUT['flash_height']);
+		global $forums, $DB;
+		
+		input::set('id', input::int('id'));
+		input::set('type', trim(input::str('type')));
+		input::set('name', trim(input::str('name')));
+		input::set('starttime', trim(input::str('starttime')));
+		input::set('endtime', trim(input::str('endtime')));
+		input::set('codetype', input::int('codetype'));
+		input::set('code', trim(input::str('code', '', false)));
+		input::set('text_title', trim(input::str('text_title')));
+		input::set('text_url', trim(input::str('text_url')));
+		input::set('text_desc', trim(input::str('text_desc')));
+		input::set('text_style', trim(input::str('text_style')));
+		input::set('image_title', trim(input::str('image_title')));
+		input::set('image_url', trim(input::str('image_url')));
+		input::set('image_desc', trim(input::str('image_desc')));
+		input::set('image_width', input::int('image_width'));
+		input::set('image_height', input::int('image_height'));
+		input::set('flash_url', trim(input::str('flash_url')));
+		input::set('flash_width', input::int('flash_width'));
+		input::set('flash_height', input::int('flash_height'));
 
-		if ($_INPUT['type'] == "")
+		if (input::str('type') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['no_select_type']);
 		}
-		if ($_INPUT['name'] == "")
+		if (input::str('name') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['no_select_name']);
 		}
-		if (!is_array($_INPUT['ad_in']))
+		if (empty(input::str('ad_in', array())))
 		{
 			$forums->admin->print_cp_error($forums->lang['no_select_forumlist']);
 		}
-		$start = explode(" ", $_INPUT['starttime']);
+		$start = explode(" ", input::str('starttime'));
 		if (!$start[0])
 		{
 			$starttime = TIMENOW;
@@ -292,7 +293,7 @@ class adminlog
 			$time = explode(":", $start[1]);
 			$starttime = $forums->func->mk_time($time[0], $time[1], $time[2], $date[1], $date[2], $date[0]);
 		}
-		$end = explode(" ", $_INPUT['endtime']);
+		$end = explode(" ", input::str('endtime'));
 		if (!$end[0])
 		{
 			$endtime = 0;
@@ -303,7 +304,7 @@ class adminlog
 			$time = explode(":", $end[1]);
 			$endtime = $forums->func->mk_time($time[0], $time[1], $time[2], $date[1], $date[2], $date[0]);
 		}
-		switch ($_INPUT['codetype'])
+		switch (input::str('codetype'))
 		{
 			case 0:
 				if ($_POST['code'] == "")
@@ -315,92 +316,92 @@ class adminlog
 				$htmlcode = $_POST['code'];
 				break;
 			case 1:
-				if ($_INPUT['text_title'] == "")
+				if (input::str('text_title') == "")
 				{
 					$forums->admin->print_cp_error($forums->lang['no_input_text_title']);
 				}
-				if ($_INPUT['text_url'] == "")
+				if (input::str('text_url') == "")
 				{
 					$forums->admin->print_cp_error($forums->lang['no_input_text_url']);
 				}
-				$code = array("text_title" => $_INPUT['text_title'],
-					"text_url" => $_INPUT['text_url'],
-					"text_desc" => $_INPUT['text_desc'],
-					"text_style" => $_INPUT['text_style'],
+				$code = array("text_title" => input::get('text_title', ''),
+					"text_url" => input::get('text_url', ''),
+					"text_desc" => input::get('text_desc', ''),
+					"text_style" => input::get('text_style', ''),
 					);
-				$style = $_INPUT['text_style'] ? " style='{$_INPUT['text_style']}'" : "";
-				$htmlcode = "<a href='click.php?id={$_INPUT['id']}&amp;url=" . urlencode($_INPUT['text_url']) . "' title='{$_INPUT['text_desc']}' target='_blank'{$style}>{$_INPUT['text_title']}</a>";
+				$style = input::get('text_style', '') ? " style='" . input::get('text_style', '') . "'" : "";
+				$htmlcode = "<a href='click.php?id=" . input::get('id', '') . "&amp;url=" . urlencode(input::str('text_url')) . "' title='" . input::get('text_desc', '') . "' target='_blank'{$style}>" . input::get('text_title', '') . "</a>";
 				break;
 			case 2:
-				if ($_INPUT['image_title'] == "")
+				if (input::str('image_title') == "")
 				{
 					$forums->admin->print_cp_error($forums->lang['no_input_image_title']);
 				}
-				if ($_INPUT['image_url'] == "")
+				if (input::str('image_url') == "")
 				{
 					$forums->admin->print_cp_error($forums->lang['no_input_image_url']);
 				}
-				$code = array("image_title" => $_INPUT['image_title'],
-					"image_url" => $_INPUT['image_url'],
-					"image_desc" => $_INPUT['image_desc'],
-					"image_width" => $_INPUT['image_width'],
-					"image_height" => $_INPUT['image_height'],
+				$code = array("image_title" => input::get('image_title', ''),
+					"image_url" => input::get('image_url', ''),
+					"image_desc" => input::get('image_desc', ''),
+					"image_width" => input::get('image_width', ''),
+					"image_height" => input::get('image_height', ''),
 					);
-				$image_width = $_INPUT['image_width'] ? " width='{$_INPUT['image_width']}'" : "";
-				$image_height = $_INPUT['image_height'] ? " height='{$_INPUT['image_height']}'" : "";
-				$htmlcode = "<a href='click.php?id={$_INPUT['id']}&amp;url=" . urlencode($_INPUT['image_url']) . "' target='_blank'><img src='{$_INPUT['image_title']}' border='0' alt='{$_INPUT['image_desc']}'{$image_width}{$image_height} /></a>";
+				$image_width = input::get('image_width', '') ? " width='" . input::get('image_width', '') . "'" : "";
+				$image_height = input::get('image_height', '') ? " height='" . input::get('image_height', '') . "'" : "";
+				$htmlcode = "<a href='click.php?id=" . input::get('id', '') . "&amp;url=" . urlencode(input::str('image_url')) . "' target='_blank'><img src='" . input::get('image_title', '') . "' border='0' alt='" . input::get('image_desc', '') . "'{$image_width}{$image_height} /></a>";
 				break;
 			case 3:
-				if ($_INPUT['flash_url'] == "")
+				if (input::str('flash_url') == "")
 				{
 					$forums->admin->print_cp_error($forums->lang['no_input_flash_url']);
 				}
-				if ($_INPUT['flash_width'] == "")
+				if (input::str('flash_width') == "")
 				{
 					$forums->admin->print_cp_error($forums->lang['no_input_flash_width']);
 				}
-				if ($_INPUT['flash_height'] == "")
+				if (input::str('flash_height') == "")
 				{
 					$forums->admin->print_cp_error($forums->lang['no_input_flash_height']);
 				}
 				$code = array(
-					"flash_url" => $_INPUT['flash_url'],
-					"flash_width" => $_INPUT['flash_width'],
-					"flash_height" => $_INPUT['flash_height'],
+					"flash_url" => input::get('flash_url', ''),
+					"flash_width" => input::get('flash_width', ''),
+					"flash_height" => input::get('flash_height', ''),
 				);
-				$htmlcode = "<object classid='clsid:d27cdb6e-ae6d-11cf-96b8-444553540000' width='{$_INPUT['flash_width']}' height='{$_INPUT['flash_height']}'><param name='movie' value='{$_INPUT['flash_url']}' /><param name='play' value='true' /><param name='loop' value='true' /><param name='quality' value='high' /><embed src='{$_INPUT['flash_url']}' width='{$_INPUT['flash_width']}' height='{$_INPUT['flash_height']}' play='true' loop='true' quality='high'></embed></object>";
+				$htmlcode = "<object classid='clsid:d27cdb6e-ae6d-11cf-96b8-444553540000' width='" . input::get('flash_width', '') . "' height='" . input::get('flash_height', '') . "'><param name='movie' value='" . input::get('flash_url', '') . "' /><param name='play' value='true' /><param name='loop' value='true' /><param name='quality' value='high' /><embed src='" . input::get('flash_url', '') . "' width='" . input::get('flash_width', '') . "' height='" . input::get('flash_height', '') . "' play='true' loop='true' quality='high'></embed></object>";
 				break;
 		}
 		$array = array(
-			'type' => $_INPUT['type'],
-			'name' => $_INPUT['name'],
+			'type' => input::get('type', ''),
+			'name' => input::get('name', ''),
 			'code' => '',
 			'htmlcode' => '',
 		);
-		if (!$_INPUT['id'])
+		if (!input::get('id', ''))
 		{
 			$DB->insert(TABLE_PREFIX . 'ad', $array);
-			$_INPUT['id'] = $DB->insert_id();
+			input::set('id', $DB->insert_id());
 		}
 
-		if (in_array('-1', $_INPUT['ad_in']))
+		if (in_array('-1', input::get('ad_in', '')))
 		{
-			$_INPUT['ad_in'] = array(-1);
+			input::set('ad_in', array(-1));
 		}
 
 		$array = array(
-			'type' => $_INPUT['type'],
-			'name' => $_INPUT['name'],
-			'ad_in' => implode(',', $_INPUT['ad_in']),
+			'type' => input::get('type', ''),
+			'name' => input::get('name', ''),
+			'ad_in' => implode(',', input::get('ad_in', '')),
 			'starttime' => $starttime,
 			'endtime' => $endtime,
-			'codetype' => $_INPUT['codetype'],
+			'codetype' => input::get('codetype', ''),
 			'code' => serialize($code),
 			'htmlcode' => $htmlcode,
 		);
-		if ($_INPUT['id'])
+		if (input::str('id'))
 		{
-			$DB->update(TABLE_PREFIX . 'ad', $array, 'id=' . $_INPUT['id']);
+			$DB->update(TABLE_PREFIX . 'ad', $array, 'id=' . input::get('id', ''));
 		}
 		else
 		{
@@ -412,7 +413,7 @@ class adminlog
 
 	function adlist()
 	{
-		global $forums, $_INPUT, $DB;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['admanage'];
 		$forums->admin->print_cp_header($pagetitle);
 		$forums->admin->print_form_header(array(1 => array('do' , 'reorder')));
@@ -533,8 +534,8 @@ class adminlog
 
 	function deletead()
 	{
-		global $forums, $DB, $_INPUT;
-		$ad = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "ad WHERE id = " . intval($_INPUT['id']) . "");
+		global $forums, $DB;
+		$ad = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "ad WHERE id = " . input::int('id') . "");
 		if (!$ad['id'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -546,17 +547,17 @@ class adminlog
 
 	function reorder()
 	{
-		global $forums, $_INPUT, $DB;
-		if (is_array($_INPUT['order']))
+		global $forums, $DB;
+		if (is_array(input::str('order')))
 		{
 			$ads = $DB->query("SELECT id,displayorder FROM " . TABLE_PREFIX . "ad");
 			while ($ad = $DB->fetch_array($ads))
 			{
-				if (!isset($_INPUT['order'][$ad['id']]))
+				if (!isset(input::get('order', '')[$ad['id']]))
 				{
 					continue;
 				}
-				$displayorder = intval($_INPUT['order'][$ad['id']]);
+				$displayorder = intval(input::get('order', '')[$ad['id']]);
 				if ($ad['displayorder'] != $displayorder)
 				{
 					$DB->update(TABLE_PREFIX . 'ad', array('displayorder' => $displayorder), 'id = ' . $ad['id']);

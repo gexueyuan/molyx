@@ -28,20 +28,20 @@ $forums->forum_read = $forums->lang = array();
 
 require_once(ROOT_PATH . 'includes/functions.php');
 $forums->func = new functions();
-$_INPUT = init_input();
-if (empty($_INPUT['url']))
+
+if (empty(input::str('url')))
 {
 	$url = REFERRER;
 }
 else
 {
-	if ($_INPUT['url'] == REFERRER)
+	if (input::str('url') == REFERRER)
 	{
 		$url = 'index.php';
 	}
 	else
 	{
-		$url = &$_INPUT['url'];
+		$url = input::get('url', '');
 	}
 }
 if ($url == SCRIPTPATH || empty($url))
@@ -96,13 +96,13 @@ if (defined('IN_SQL') && $fp = @fopen(ROOT_PATH . 'data/dbbackup/unlock.dbb', 'r
 	$validate = true;
 	fclose($fp);
 }
-else if ($_INPUT['login'] != 'yes')
+else if (input::get('login', '') != 'yes')
 {
 	if (!defined('IN_SQL') && file_exists(ROOT_PATH . 'data/dbbackup/unlock.dbb'))
 	{
 		$forums->admin->print_cp_error($forums->lang['unlockfileexist']);
 	}
-	if (!$_INPUT['s'])
+	if (!input::get('s', ''))
 	{
 		$forums->admin->print_cp_login();
 	}
@@ -110,7 +110,7 @@ else if ($_INPUT['login'] != 'yes')
 	{
 		$DB->query('SELECT *
 			FROM ' . TABLE_PREFIX . "adminsession
-			WHERE sessionhash='{$_INPUT['s']}'");
+			WHERE sessionhash='" . input::get('s', '') . "'");
 		$row = $DB->fetch_array();
 		if ($row['sessionhash'] == '' || $row['userid'] == '')
 		{
@@ -154,13 +154,13 @@ else if ($_INPUT['login'] != 'yes')
 }
 else
 {
-	$username = trim($_INPUT['username']);
+	$username = trim(input::str('username'));
 	$username = $DB->escape_string(str_replace('|', '&#124;', $username));
 	if (empty($username))
 	{
 		$forums->admin->print_cp_login($forums->lang['requireusername']);
 	}
-	if (empty($_INPUT['password']))
+	if (empty(input::str('password')))
 	{
 		$forums->admin->print_cp_login($forums->lang['requirepassword']);
 	}
@@ -176,7 +176,7 @@ else
 	{
 		$forums->admin->print_cp_login($forums->lang['usernotexist']);
 	}
-	$password = md5($_INPUT['password']);
+	$password = md5(input::str('password'));
 	if ($user['password'] != md5($password . $user['salt']))
 	{
 		$forums->admin->print_cp_login($forums->lang['passwordwrong']);
@@ -201,7 +201,7 @@ else
 				'logintime' => TIMENOW,
 				'lastactivity' => TIMENOW,
 			));
-			$forums->func->standard_redirect('./index.php?frames=1&amp;s=' . $forums->sessionid . '&amp;reffer_url=' . urlencode($_INPUT['reffer_url']));
+			$forums->func->standard_redirect('./index.php?frames=1&amp;s=' . $forums->sessionid . '&amp;reffer_url=' . urlencode(input::str('reffer_url')));
 		}
 	}
 }
@@ -241,15 +241,15 @@ if (!$validate)
 	}
 }
 
-if ($_INPUT['frames'])
+if (input::str('frames'))
 {
 	$forums->admin->print_frame_set();
 }
-else if ($_INPUT['do'] == 'menu')
+else if (input::get('do', '') == 'menu')
 {
 	$forums->admin->menu();
 }
-else if ($_INPUT['do'] == 'nav')
+else if (input::get('do', '') == 'nav')
 {
 	$forums->admin->nav();
 }

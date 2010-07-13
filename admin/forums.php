@@ -19,15 +19,15 @@ class forums
 
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditforums'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$this->allforum = $forums->adminforum->forumcache;
-		$this->forum = $this->allforum[$_INPUT['f']];
-		switch ($_INPUT['do'])
+		$this->forum = $this->allforum[input::int('f')];
+		switch (input::get('do', ''))
 		{
 			case 'new':
 				$this->do_form('new');
@@ -73,14 +73,14 @@ class forums
 
 	function recount($f_override = "")
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($f_override != "")
 		{
-			$_INPUT['f'] = $f_override;
+			input::set('f', $f_override);
 		}
 		require_once(ROOT_PATH . 'includes/functions_moderate.php');
 		$modfunc = new modfunctions();
-		$modfunc->forum_recount($_INPUT['f']);
+		$modfunc->forum_recount(input::str('f'));
 		$forums->lang['recacheforum'] = sprintf($forums->lang['recacheforum'], $this->forum['name']);
 		$forums->admin->save_log($forums->lang['recacheforum']);
 		$forums->admin->redirect("forums.php", $forums->lang['manageforum'], $forums->lang['forumstatsupdated']);
@@ -88,13 +88,13 @@ class forums
 
 	function emptyforum()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$form_array = array();
-		if ($_INPUT['f'] == "")
+		if (input::str('f') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query("SELECT id, name FROM " . TABLE_PREFIX . "forum WHERE id=" . $_INPUT['f'] . "");
+		$DB->query("SELECT id, name FROM " . TABLE_PREFIX . "forum WHERE id=" . input::int('f') . "");
 		if (!$DB->num_rows())
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -103,7 +103,7 @@ class forums
 		$pagetitle = $forums->lang['emptyforum'] . " - '{$this->forum['name']}'";
 		$detail = $forums->lang['emptyforumdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		$forums->admin->print_form_header(array(1 => array('do', 'doempty'), 2 => array('f', $_INPUT['f']), 3 => array('name' , $this->forum['name'])));
+		$forums->admin->print_form_header(array(1 => array('do', 'doempty'), 2 => array('f', input::int('f')), 3 => array('name' , $this->forum['name'])));
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
 		$forums->admin->print_table_start($forums->lang['emptyforum'] . " - '{$this->forum['name']}");
@@ -115,24 +115,24 @@ class forums
 
 	function doemptyforum()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		require_once(ROOT_PATH . 'includes/functions_moderate.php');
 		$modfunc = new modfunctions();
-		if ($_INPUT['f'] == '')
+		if (input::str('f') == '')
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (! $forum = $DB->query_first("SELECT id, name, post, thread FROM " . TABLE_PREFIX . "forum WHERE id=" . $_INPUT['f'] . ""))
+		if (! $forum = $DB->query_first("SELECT id, name, post, thread FROM " . TABLE_PREFIX . "forum WHERE id=" . input::int('f')))
 		{
 			$forums->admin->print_cp_error($forums->lang['noemptyforums']);
 		}
-		$DB->query("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE forumid=" . $_INPUT['f'] . "");
+		$DB->query("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE forumid=" . input::int('f'));
 		while ($t = $DB->fetch_array())
 		{
 			$tids[] = $t['tid'];
 		}
 		$modfunc->thread_delete($tids);
-		$modfunc->forum_recount($_INPUT['f']);
+		$modfunc->forum_recount(input::str('f'));
 		$forums->lang['emptyedinfo'] = sprintf($forums->lang['emptyedinfo'], $forum['name']);
 		$forums->admin->save_log($forums->lang['emptyedinfo']);
 		$forums->admin->redirect("forums.php", $forums->lang['manageforum'], $forums->lang['forumemptyed']);
@@ -140,10 +140,10 @@ class forums
 
 	function delete_form()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$form_array = array();
-		$_INPUT['f'] = intval($_INPUT['f']);
-		if (! $_INPUT['f'])
+
+		if (! input::int('f'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
@@ -154,7 +154,7 @@ class forums
 		}
 		while ($r = $DB->fetch_array($result))
 		{
-			if ($r['id'] == $_INPUT['f'])
+			if ($r['id'] == input::int('f'))
 			{
 				$name = $r['name'];
 				continue;
@@ -165,12 +165,12 @@ class forums
 			$forumlist[] = array($value[id], depth_mark($value['depth'], '--') . $value[name]);
 		}
 		
-		$post = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE forumid=" . $_INPUT['f'] . "");
-		$children = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "forum WHERE parentid=" . $_INPUT['f'] . "");
+		$post = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE forumid=" . input::int('f'));
+		$children = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "forum WHERE parentid=" . input::int('f'));
 		$pagetitle = $forums->lang['deleteforum'] . " - '$name'";
 		$detail = $forums->lang['deleteforumdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		$forums->admin->print_form_header(array(1 => array('do', 'dodelete'), 2 => array('f', $_INPUT['f'])));
+		$forums->admin->print_form_header(array(1 => array('do', 'dodelete'), 2 => array('f', input::int('f'))));
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
 		$forums->admin->print_table_start($forums->lang['deleteforum']);
@@ -190,21 +190,20 @@ class forums
 
 	function dodelete()
 	{
-		global $forums, $DB, $_INPUT;
-		$id = intval($_INPUT['f']);
-		$_INPUT['move_id'] = intval($_INPUT['move_id']);
-		$_INPUT['new_parentid'] = intval($_INPUT['new_parentid']);
+		global $forums, $DB;
+		$id = input::int('f');
+
 		if (!$id)
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (!$_INPUT['new_parentid'])
+		if (!input::get('new_parentid', ''))
 		{
-			$_INPUT['new_parentid'] = -1;
+			input::set('new_parentid', -1);
 		}
 		else
 		{
-			if ($_INPUT['new_parentid'] == $_INPUT['f'])
+			if (input::int('new_parentid') == input::int('f'))
 			{
 				$forums->main_msg = $forums->lang['cannotmoveforum'];
 				$this->delete_form();
@@ -213,43 +212,43 @@ class forums
 
 		require_once(ROOT_PATH . 'includes/functions_moderate.php');
 		$modfunc = new modfunctions();
-		if ($_INPUT['move_id'])
+		if (input::int('move_id'))
 		{
-			if ($_INPUT['move_id'] == $id)
+			if (input::int('move_id') == $id)
 			{
 				$forums->main_msg = $forums->lang['cannotmovepost'];
 				$this->delete_form();
 			}
-			$sql_array = array('forumid' => $_INPUT['move_id']);
+			$sql_array = array('forumid' => input::int('move_id'));
 			$DB->update(TABLE_PREFIX . 'thread', $sql_array, 'forumid=' . $id);
 			$DB->update(TABLE_PREFIX . 'poll', $sql_array, 'forumid=' . $id);
-			$modfunc->forum_recount($_INPUT['move_id']);
+			$modfunc->forum_recount(input::str('move_id'));
 		}
 		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "forum WHERE id=" . $id);
 		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "moderator WHERE forumid=" . $id);
 		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "subscribeforum WHERE forumid=" . $id);
 		$forums->func->rmcache(array('subforum_' . $id, 'forum_' . $id));
-		if (!$_INPUT['new_parentid'])
+		if (!input::int('new_parentid'))
 		{
-			$_INPUT['new_parentid'] = -1;
+			input::set('new_parentid', -1);
 		}
-		$DB->update(TABLE_PREFIX . 'forum', array('parentid' => $_INPUT['new_parentid']), "parentid = $id");
+		$DB->update(TABLE_PREFIX . 'forum', array('parentid' => input::get('new_parentid', '')), "parentid = $id");
 		$forums->func->recache('forum');
 		$forums->func->recache('moderator');
-		$forums->adminforum->build_forum_child_lists($forums->adminforum->forumcache[$_INPUT['f']]['parentid']);
+		$forums->adminforum->build_forum_child_lists($forums->adminforum->forumcache[input::int('f')]['parentid']);
 		$forums->admin->save_log($forums->lang['manageforum'] . " '{$this->forum['name']}'");
 		$forums->admin->redirect("forums.php", $forums->lang['manageforum'], $forums->lang['forumdeleted']);
 	}
 
 	function donew()
 	{
-		global $forums, $DB, $_INPUT;
-		$_INPUT['name'] = trim($_INPUT['name']);
-		if ($_INPUT['name'] == "")
+		global $forums, $DB;
+		input::set('name', trim(input::str('name')));
+		if (input::str('name') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['requireforumtitle']);
 		}
-		$parentlist = $forums->adminforum->fetch_forum_parentlist($_INPUT['parentid']);
+		$parentlist = $forums->adminforum->fetch_forum_parentlist(input::str('parentid'));
 		$perms = $forums->admin->compile_forum_permission();
 		$perm_array = serialize(array(
 			'canstart' => $perms['start'],
@@ -262,17 +261,17 @@ class forums
 		{
 			$threadprefix = str_replace("\r\n", "||", convert_andstr($_POST['threadprefix']));
 		}
-		if (is_array($_INPUT['st']))
+		if (is_array(input::str('st')))
 		{
-			foreach ($_INPUT['st'] as $key => $val)
+			foreach (input::get('st', '') as $key => $val)
 			{
 				if ($val)
 				{
-					$specialtopic[$_INPUT['storder'][$key]] = $val;
+					$specialtopic[input::get('storder', '')[$key]] = $val;
 				}
 				else
 				{
-					unset($_INPUT['st'][$key]);
+					unset(input::get('st', '')[$key]);
 				}
 			}
 			ksort($specialtopic);
@@ -282,35 +281,35 @@ class forums
 		{
 			$specialtopic = '';
 		}
-		$forumrule = trim($_INPUT['forumrule']) ? 1 : 0;
+		$forumrule = trim(input::str('forumrule')) ? 1 : 0;
 		$DB->insert(TABLE_PREFIX . 'forum', array(
 			'thread' => 0,
 			'post' => 0,
-			'style' => $_INPUT['style'] ? intval($_INPUT['style']) : 0,
+			'style' => input::int('style'),
 			'name' => convert_andstr($_POST['name']),
 			'forumicon' => convert_andstr($_POST['forumicon']),
 			'description' => str_replace("\n", '<br />', convert_andstr($_POST['description'])),
-			'allowbbcode' => $_INPUT['allowbbcode'],
-			'allowhtml' => $_INPUT['allowhtml'],
-			'status' => $_INPUT['status'],
-			'password' => $_INPUT['password'],
+			'allowbbcode' => input::get('allowbbcode', ''),
+			'allowhtml' => input::get('allowhtml', ''),
+			'status' => input::get('status', ''),
+			'password' => input::get('password', ''),
 //			'lastpostid' => 0,
-			'sortby' => $_INPUT['sortby'],
-			'sortorder' => $_INPUT['sortorder'],
-			'prune' => $_INPUT['prune'],
-			'moderatepost' => $_INPUT['moderatepost'],
-			'allowpoll' => $_INPUT['allowpoll'],
-			'allowpollup' => $_INPUT['allowpollup'],
-			'countposts' => $_INPUT['countposts'],
-			'parentid' => $_INPUT['parentid'],
-			'allowposting' => $_INPUT['allowposting'],
+			'sortby' => input::get('sortby', ''),
+			'sortorder' => input::get('sortorder', ''),
+			'prune' => input::get('prune', ''),
+			'moderatepost' => input::get('moderatepost', ''),
+			'allowpoll' => input::get('allowpoll', ''),
+			'allowpollup' => input::get('allowpollup', ''),
+			'countposts' => input::get('countposts', ''),
+			'parentid' => input::get('parentid', ''),
+			'allowposting' => input::get('allowposting', ''),
 			'permissions' => $perm_array,
 			'forumrule' => $forumrule,
 			'threadprefix' => $threadprefix,
-			'forcespecial' => $_INPUT['forcespecial'],
+			'forcespecial' => input::get('forcespecial', ''),
 			'specialtopic' => $specialtopic,
-			'showthreadlist' => $_INPUT['showthreadlist'],
-			'url' => $_INPUT['url'],
+			'showthreadlist' => input::get('showthreadlist', ''),
+			'url' => input::get('url', ''),
 			'customerror' => str_replace("\n", '<br />', convert_andstr($_POST['customerror'])),
 		));
 		$forumid = $DB->insert_id();
@@ -340,9 +339,9 @@ class forums
 				$forums->admin->print_cp_error($forums->lang['cachefoldererror']);
 			}
 		}
-		if ($_INPUT['parentid'] != -1)
+		if (input::get('parentid', '') != -1)
 		{
-			$DB->query("SELECT id FROM " . TABLE_PREFIX . "forum WHERE parentid = " . $_INPUT['parentid'] . " ");
+			$DB->query("SELECT id FROM " . TABLE_PREFIX . "forum WHERE parentid = " . input::get('parentid', '') . " ");
 			while ($cid = $DB->fetch_array())
 			{
 				$childids[] = $cid['id'];
@@ -350,7 +349,7 @@ class forums
 		}
 		if ($childids && count($childids) > 0)
 		{
-			$childlist = $_INPUT['parentid'] . "," . implode(",", $childids);
+			$childlist = input::int('parentid') . "," . implode(",", $childids);
 		}
 		else
 		{
@@ -358,41 +357,41 @@ class forums
 		}
 		$DB->update(TABLE_PREFIX . 'forum', array('parentlist' => "$forumid,$parentlist", 'childlist' => $forumid), "id = $forumid");
 		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET childlist = concat(childlist,'," . $forumid . "') WHERE id IN(" . $DB->escape_string($parentlist) . ")");
-		$this->update_specialtopic($_INPUT['st'], $forumid);
+		$this->update_specialtopic(input::get('st', ''), $forumid);
 		$forums->func->recache('forum');
-		$forums->lang['forumcreated'] = sprintf($forums->lang['forumcreated'], $_INPUT['name']);
+		$forums->lang['forumcreated'] = sprintf($forums->lang['forumcreated'], input::get('name', ''));
 		$forums->admin->save_log($forums->lang['forumcreated']);
 		$forums->admin->redirect("forums.php", $forums->lang['manageforum'], $forums->lang['forumcreated']);
 	}
 
 	function do_form($type = 'edit')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$detail = $forums->lang['forumeditdesc'];
 		if ($type == 'edit')
 		{
-			if ($_INPUT['f'] == "")
+			if (input::str('f') == "")
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
 			if ($this->forum['id'] == "")
 			{
-				$forums->admin->print_cp_error($forums->lang['noforumdata'] . " (" . $forums->lang['forumids'] . ": {$_INPUT['f']})");
+				$forums->admin->print_cp_error($forums->lang['noforumdata'] . " (" . $forums->lang['forumids'] . ": " . input::int('f') . ")");
 			}
 			$parentid = $this->forum['parentid'];
 			$pagetitle = $forums->lang['editforum'] . ": {$this->forum['name']}";
 			$button = $forums->lang['editforum'];
 			$do = "doedit";
-			$basic_title = "<div style='float:right'>" . $forums->admin->print_button($forums->lang['recount'], "forums.php?{$forums->sessionurl}do=recount&amp;f={$_INPUT['f']}") . "&nbsp;&nbsp;</div>{$this->forum['name']} " . $forums->lang['basicsetting'];
+			$basic_title = "<div style='float:right'>" . $forums->admin->print_button($forums->lang['recount'], "forums.php?{$forums->sessionurl}do=recount&amp;f=" . input::int('f') . "") . "&nbsp;&nbsp;</div>{$this->forum['name']} " . $forums->lang['basicsetting'];
 		}
 		else
 		{
 			$f_name = '';
-			if ($_INPUT['name'] != '')
+			if (input::get('name', '') != '')
 			{
-				$f_name = rawurldecode($_INPUT['name']);
+				$f_name = rawurldecode(input::str('name'));
 			}
-			if ($_INPUT['c'] == 1)
+			if (input::int('c') == 1)
 			{
 				$subcanpost = 0;
 			}
@@ -400,13 +399,13 @@ class forums
 			{
 				$subcanpost = 1;
 			}
-			if (!$_INPUT['p'])
+			if (!input::int('p'))
 			{
 				$parentid = -1;
 			}
 			else
 			{
-				$parentid = $_INPUT['p'];
+				$parentid = input::int('p');
 				$this->forum['allowposting'] = 1;
 				$this->forum['allowbbcode'] = 1;
 				$this->forum['allowpoll'] = 1;
@@ -436,7 +435,7 @@ class forums
 		}
 		$threadprefix = str_replace("||", "\r\n", $this->forum['threadprefix']);
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		$forums->admin->print_form_header(array(1 => array('do', $do), 2 => array('f', $_INPUT['f']), 3 => array('name' , $this->forum['name'])));
+		$forums->admin->print_form_header(array(1 => array('do', $do), 2 => array('f', input::int('f')), 3 => array('name' , $this->forum['name'])));
 		$forums->admin->columns[] = array('' , '40%');
 		$forums->admin->columns[] = array('', '60%');
 		$forums->admin->print_table_start($basic_title);
@@ -575,14 +574,14 @@ class forums
 
 	function doeditforum()
 	{
-		global $forums, $DB, $_INPUT;
-		$_INPUT['name'] = trim($_INPUT['name']);
-		if ($_INPUT['name'] == "")
+		global $forums, $DB;
+		input::set('name', trim(input::str('name')));
+		if (input::str('name') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['requireforumtitle']);
 		}
-		$forumid = intval($_INPUT['f']);
-		$parentid = intval($_INPUT['parentid']);
+		$forumid = input::int('f');
+		$parentid = input::int('parentid');
 		if ($parentid == $forumid)
 		{
 			$forums->admin->print_cp_error($forums->lang['parentnotsame']);
@@ -614,7 +613,7 @@ class forums
 		}
 		$oldforuminfo = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "forum WHERE id = $forumid");
 		$this->forum['parentlist'] = $forumid . ',' . $forums->adminforum->fetch_forum_parentlist($parentid);
-		$forumrule = trim($_INPUT['forumrule']) ? 1 : 0;
+		$forumrule = trim(input::str('forumrule')) ? 1 : 0;
 		if ($forumrule)
 		{
 			require ROOT_PATH . "includes/functions_codeparse.php";
@@ -626,7 +625,7 @@ class forums
 			));
 			require_once(ROOT_PATH . 'includes/class_textparse.php');
 			$content = textparse::parse_html($content, true);
-			$fp = file_write(ROOT_PATH . "cache/cache/rule_{$_INPUT['f']}.txt", $content, 'wb');
+			$fp = file_write(ROOT_PATH . "cache/cache/rule_" . input::int('f') . ".txt", $content, 'wb');
 
 			if ($fp)
 			{
@@ -640,17 +639,17 @@ class forums
 				$forums->admin->print_cp_error($forums->lang['cachefoldererror']);
 			}
 		}
-		if (is_array($_INPUT['st']))
+		if (is_array(input::str('st')))
 		{
-			foreach ($_INPUT['st'] as $key => $val)
+			foreach (input::get('st', '') as $key => $val)
 			{
 				if ($val)
 				{
-					$specialtopic[$_INPUT['storder'][$key]] = $val;
+					$specialtopic[input::get('storder', '')[$key]] = $val;
 				}
 				else
 				{
-					unset($_INPUT['st'][$key]);
+					unset(input::get('st', '')[$key]);
 				}
 			}
 			ksort($specialtopic);
@@ -662,46 +661,46 @@ class forums
 		}
 		$DB->update(TABLE_PREFIX . 'forum', array(
 				'name' => convert_andstr($_POST['name']),
-				'forumicon' => convert_andstr($_INPUT['forumicon']),
+				'forumicon' => convert_andstr(input::str('forumicon')),
 				'description' => str_replace("\n", "<br />", convert_andstr($_POST['description'])),
-				'style' => $_INPUT['style'] ? intval($_INPUT['style']) : 0,
-				'forumcolumns' => intval($_INPUT['forumcolumns']),
-				'allowbbcode' => $_INPUT['allowbbcode'],
-				'allowhtml' => $_INPUT['allowhtml'],
-				'status' => $_INPUT['status'],
-				'password' => $_INPUT['password'],
-				'sortby' => $_INPUT['sortby'],
-				'sortorder' => $_INPUT['sortorder'],
-				'prune' => $_INPUT['prune'],
-				'moderatepost' => $_INPUT['moderatepost'],
-				'allowpoll' => $_INPUT['allowpoll'],
-				'allowpollup' => $_INPUT['allowpollup'],
-				'countposts' => $_INPUT['countposts'],
-				'parentid' => $_INPUT['parentid'],
-				'allowposting' => $_INPUT['allowposting'],
-				'showthreadlist' => $_INPUT['showthreadlist'],
+				'style' => input::get('style', '') ? input::int('style') : 0,
+				'forumcolumns' => input::int('forumcolumns'),
+				'allowbbcode' => input::get('allowbbcode', ''),
+				'allowhtml' => input::get('allowhtml', ''),
+				'status' => input::get('status', ''),
+				'password' => input::get('password', ''),
+				'sortby' => input::get('sortby', ''),
+				'sortorder' => input::get('sortorder', ''),
+				'prune' => input::get('prune', ''),
+				'moderatepost' => input::get('moderatepost', ''),
+				'allowpoll' => input::get('allowpoll', ''),
+				'allowpollup' => input::get('allowpollup', ''),
+				'countposts' => input::get('countposts', ''),
+				'parentid' => input::get('parentid', ''),
+				'allowposting' => input::get('allowposting', ''),
+				'showthreadlist' => input::get('showthreadlist', ''),
 				'parentlist' => $this->forum['parentlist'],
 				'forumrule' => $forumrule,
 				'threadprefix' => $threadprefix,
 				'specialtopic' => $specialtopic,
-				'forcespecial' => $_INPUT['forcespecial'],
-				'url' => $_INPUT['url'],
+				'forcespecial' => input::get('forcespecial', ''),
+				'url' => input::get('url', ''),
 				'customerror' => str_replace("\n", "<br />", convert_andstr($_POST['customerror'])),
-			), "id={$_INPUT['f']}");
-		$forums->lang['forumedited'] = sprintf($forums->lang['forumedited'], $_INPUT['name']);
+			), "id=" . input::int('f'));
+		$forums->lang['forumedited'] = sprintf($forums->lang['forumedited'], input::get('name', ''));
 		$forums->admin->save_log($forums->lang['forumedited']);
 		$forums->adminforum->build_forum_parentlists($forumid);
 		$forums->adminforum->build_forum_parentlists($parentid);
 		$forums->adminforum->build_forum_child_lists($forumid);
 		$forums->adminforum->build_forum_child_lists($oldforuminfo['parentid']);
-		$this->update_specialtopic($_INPUT['st'], $_INPUT['f']);
+		$this->update_specialtopic(input::get('st', ''), input::int('f'));
 		$forums->func->recache('forum');
 		$forums->admin->redirect("forums.php", $forums->lang['manageforum'], $forums->lang['forumedited']);
 	}
 
 	function update_specialtopic($stids = array(), $fid = 0)
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if (!$stids || !is_array($stids))
 		{
 			$stids = array();
@@ -767,15 +766,15 @@ class forums
 
 	function editpermissions()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['f'] == "")
+		global $forums, $DB;
+		if (input::str('f') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$forum = $this->forum;
 		$next = "";
 		$previous = "";
-		$relative = $this->get_next_id($_INPUT['f']);
+		$relative = $this->get_next_id(input::str('f'));
 		if ($relative['next'] > 0)
 		{
 			$next = "<input type='submit' name='donext' value='" . $forums->lang['savenextto'] . "' class='button' />";
@@ -786,14 +785,14 @@ class forums
 		}
 		if ($this->forum['id'] == "")
 		{
-			$forums->admin->print_cp_error($forums->lang['noforumdata'] . " (" . $forums->lang['forumids'] . ": {$_INPUT['f']})");
+			$forums->admin->print_cp_error($forums->lang['noforumdata'] . " (" . $forums->lang['forumids'] . ": " . input::int('f') . ")");
 		}
 		$forums->lang['editforumpermission'] = sprintf($forums->lang['editforumpermission'], $this->forum['name']);
 		$pagetitle = $forums->lang['editforumpermission'];
 		$detail = "<strong>" . $forums->lang['permissionsetting'] . "</strong><br />" . $forums->lang['permissionsettingdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->print_form_header(array(1 => array('do', 'doeditpermissions'),
-				2 => array('f', $_INPUT['f']),
+				2 => array('f', input::int('f')),
 				3 => array('name', $this->forum['name']),
 				4 => array('nextid', $relative['next']),
 				5 => array('previd', $relative['previous']),
@@ -862,7 +861,7 @@ class forums
 
 	function doeditpermissions()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$perms = $forums->admin->compile_forum_permission();
 		$DB->update(TABLE_PREFIX . 'forum', array(
 			'permissions' => serialize(array(
@@ -872,25 +871,25 @@ class forums
 				'canupload' => $perms['upload'],
 				'canshow' => $perms['show']
 			)),
-		), 'id=' . $_INPUT['f']);
-		$forums->lang['permissionedited'] = sprintf($forums->lang['permissionedited'], $_INPUT['name']);
+		), 'id=' . input::int('f'));
+		$forums->lang['permissionedited'] = sprintf($forums->lang['permissionedited'], input::get('name', ''));
 		$forums->admin->save_log($forums->lang['permissionedited']);
 		$forums->func->recache('forum');
-		if ($_INPUT['doprevious'] AND $_INPUT['previd'] > 0)
+		if (input::get('doprevious', '') AND input::int('previd') > 0)
 		{
 			$forums->main_msg = $forums->lang['permissionedited'];
-			$_INPUT['f'] = $_INPUT['previd'];
-			$forums->func->standard_redirect("forums.php?{$forums->sessionurl}do=editpermissions&amp;f={$_INPUT['f']}");
+			input::set('f', input::int('previd'));
+			$forums->func->standard_redirect("forums.php?{$forums->sessionurl}do=editpermissions&amp;f=" . input::int('f'));
 		}
-		else if ($_INPUT['donext'] AND $_INPUT['nextid'] > 0)
+		else if (input::get('donext', '') AND input::int('nextid') > 0)
 		{
 			$forums->main_msg = $forums->lang['permissionedited'];
-			$_INPUT['f'] = $_INPUT['nextid'];
-			$forums->func->standard_redirect("forums.php?{$forums->sessionurl}do=editpermissions&amp;f={$_INPUT['f']}");
+			input::set('f', input::int('nextid'));
+			$forums->func->standard_redirect("forums.php?{$forums->sessionurl}do=editpermissions&amp;f=" . input::int('f'));
 		}
-		else if ($_INPUT['reload'])
+		else if (input::str('reload'))
 		{
-			$forums->func->standard_redirect("forums.php?{$forums->sessionurl}do=editpermissions&amp;f={$_INPUT['f']}");
+			$forums->func->standard_redirect("forums.php?{$forums->sessionurl}do=editpermissions&amp;f=" . input::int('f', ''));
 		}
 		else
 		{
@@ -900,15 +899,15 @@ class forums
 
 	function doreorder()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$ids = array();
-		foreach ($_INPUT AS $key => $value)
+		foreach ($_REQUEST AS $key => $value)
 		{
 			if (preg_match("/^f_(\d+)$/", $key, $match))
 			{
-				if ($_INPUT[$match[0]])
+				if ($_REQUEST[$match[0]])
 				{
-					$ids[ $match[1] ] = $_INPUT[$match[0]];
+					$ids[ $match[1] ] = $_REQUEST[$match[0]];
 				}
 			}
 		}

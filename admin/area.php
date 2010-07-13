@@ -130,7 +130,6 @@ class area
 			$action = 'doadd_content';
 			$detail = '';
 			$table_title = $forums->lang['add_area_content'];
-			//$content_info = $_INPUT;
 		}
 		$hiddens[] = array('do', $action);
 		

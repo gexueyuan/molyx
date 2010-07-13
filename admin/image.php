@@ -14,13 +14,13 @@ class image
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditimages'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'icon':
 				$this->icon_start();
@@ -62,19 +62,19 @@ class image
 
 	function dosmileedit()
 	{
-		global $forums, $DB, $_INPUT;
-		foreach ($_INPUT AS $key => $value)
+		global $forums, $DB;
+		foreach ($_REQUEST AS $key => $value)
 		{
 			if (preg_match("/^smile_type_(\d+)$/", $key, $match))
 			{
-				if (isset($_INPUT[$match[0]]))
+				if (isset($_REQUEST[$match[0]]))
 				{
-					if ($_INPUT['smile_remove_' . $match[1] ])
+					if ($_REQUEST['smile_remove_' . $match[1] ])
 					{
 						$delids[] = $match[1];
 					}
-					$smiletext = $_INPUT[$match[0]];
-					$displayorder = $_INPUT['smile_order_' . $match[1] ];
+					$smiletext = $_REQUEST[$match[0]];
+					$displayorder = $_REQUEST['smile_order_' . $match[1] ];
 					$smiletext = str_replace('&#092;', "", $smiletext);
 					if ($smiletext AND $match[1])
 					{
@@ -97,15 +97,15 @@ class image
 
 	function deletesmile()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['name'] == "")
+		global $forums, $DB;
+		if (input::str('name') == "")
 		{
 			$forums->main_msg = $forums->lang['noids'];
 			$this->smile_start();
 		}
-		if ($_INPUT['update'])
+		if (input::str('update'))
 		{
-			if (! @unlink(ROOT_PATH . 'images/smiles/' . $_INPUT['name']))
+			if (! @unlink(ROOT_PATH . 'images/smiles/' . input::get('name', '')))
 			{
 				$forums->main_msg = $forums->lang['noids'];
 			}
@@ -120,7 +120,7 @@ class image
 			$pagetitle = $forums->lang['deletesmilie'];
 			$forums->admin->print_cp_header($pagetitle, $detail);
 			$forums->admin->print_form_header(array(1 => array('do', 'deletesmile'),
-					2 => array('name', $_INPUT['name']),
+					2 => array('name', input::get('name', '')),
 					3 => array('update', 1)
 					));
 			$forums->admin->print_table_start($forums->lang['deletesmilie']);
@@ -134,18 +134,18 @@ class image
 
 	function smile_add()
 	{
-		global $forums, $DB, $_INPUT;
-		foreach ($_INPUT AS $key => $value)
+		global $forums, $DB;
+		foreach ($_REQUEST AS $key => $value)
 		{
 			if (preg_match("/^smile_type_(\d+)$/", $key, $match))
 			{
-				if (isset($_INPUT[$match[0]]))
+				if (isset($_REQUEST[$match[0]]))
 				{
-					$smiletext = $_INPUT[$match[0]];
-					$add = $_INPUT['smile_add_' . $match[1] ];
-					$image = $_INPUT['smile_image_' . $match[1] ];
+					$smiletext = $_REQUEST[$match[0]];
+					$add = $_REQUEST['smile_add_' . $match[1] ];
+					$image = $_REQUEST['smile_image_' . $match[1] ];
 					$smiletext = str_replace('&#092;', "", $smiletext);
-					if ($_INPUT['addall'])
+					if (input::str('addall'))
 					{
 						$add = 1;
 					}
@@ -166,7 +166,7 @@ class image
 
 	function uploadsmile()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$overwrite = 1;
 		foreach(array(1, 2, 3, 4) AS $i)
 		{
@@ -212,7 +212,7 @@ class image
 
 	function smile_start()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if (! is_dir(ROOT_PATH . 'images/smiles'))
 		{
 			$forums->admin->print_cp_error($forums->lang['smiliefoldererror']);
@@ -343,11 +343,11 @@ class image
 		$forums->admin->columns[] = array("&nbsp;" , "50%");
 		$forums->admin->columns[] = array("&nbsp;" , "50%");
 		$forums->admin->print_table_start($forums->lang['uploadnewsmilies']);
-		$forums->admin->print_cells_row(array($forums->admin->print_input_row('upload_1', $_INPUT['upload_1'], 'file', '', 30),
-				$forums->admin->print_input_row('upload_2', $_INPUT['upload_2'], 'file', '', 30),
+		$forums->admin->print_cells_row(array($forums->admin->print_input_row('upload_1', input::get('upload_1', ''), 'file', '', 30),
+				$forums->admin->print_input_row('upload_2', input::get('upload_2', ''), 'file', '', 30),
 				));
-		$forums->admin->print_cells_row(array($forums->admin->print_input_row('upload_3', $_INPUT['upload_3'], 'file', '', 30),
-				$forums->admin->print_input_row('upload_4', $_INPUT['upload_4'], 'file', '', 30),
+		$forums->admin->print_cells_row(array($forums->admin->print_input_row('upload_3', input::get('upload_3', ''), 'file', '', 30),
+				$forums->admin->print_input_row('upload_4', input::get('upload_4', ''), 'file', '', 30),
 				));
 		$forums->admin->print_form_submit($forums->lang['uploadnewsmilies']);
 		$forums->admin->print_table_footer();
@@ -376,7 +376,7 @@ class image
 
 	function icon_start()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if (! is_dir(ROOT_PATH . 'images/icons'))
 		{
 			$forums->admin->print_cp_error($forums->lang['iconfoldererror']);
@@ -514,8 +514,8 @@ class image
 		$forums->admin->columns[] = array("&nbsp;" , "50%");
 		$forums->admin->columns[] = array("&nbsp;" , "50%");
 		$forums->admin->print_table_start($forums->lang['uploadnewicons']);
-		$forums->admin->print_cells_row(array($forums->admin->print_input_row('upload_1', $_INPUT['upload_1'], 'file', '', 30), $forums->admin->print_input_row('upload_2', $_INPUT['upload_2'], 'file', '', 30)));
-		$forums->admin->print_cells_row(array($forums->admin->print_input_row('upload_3', $_INPUT['upload_3'], 'file', '', 30), $forums->admin->print_input_row('upload_4', $_INPUT['upload_4'], 'file', '', 30)));
+		$forums->admin->print_cells_row(array($forums->admin->print_input_row('upload_1', input::get('upload_1', ''), 'file', '', 30), $forums->admin->print_input_row('upload_2', input::get('upload_2', ''), 'file', '', 30)));
+		$forums->admin->print_cells_row(array($forums->admin->print_input_row('upload_3', input::get('upload_3', ''), 'file', '', 30), $forums->admin->print_input_row('upload_4', input::get('upload_4', ''), 'file', '', 30)));
 		$forums->admin->print_form_submit($forums->lang['uploadnewicons']);
 		$forums->admin->print_table_footer();
 		$forums->admin->print_form_end();
@@ -524,19 +524,19 @@ class image
 
 	function doiconedit()
 	{
-		global $forums, $DB, $_INPUT;
-		foreach ($_INPUT AS $key => $value)
+		global $forums, $DB;
+		foreach ($_REQUEST AS $key => $value)
 		{
 			if (preg_match("/^icon_type_(\d+)$/", $key, $match))
 			{
-				if (isset($_INPUT[$match[0]]))
+				if (isset($_REQUEST[$match[0]]))
 				{
-					if ($_INPUT['icon_remove_' . $match[1] ])
+					if ($_REQUEST['icon_remove_' . $match[1] ])
 					{
 						$delids[] = $match[1];
 					}
-					$icontext = $_INPUT[$match[0]];
-					$displayorder = $_INPUT['icon_order_' . $match[1] ];
+					$icontext = $_REQUEST[$match[0]];
+					$displayorder = $_REQUEST['icon_order_' . $match[1] ];
 					$icontext = str_replace('&#092;', "", $icontext);
 					if ($icontext AND $match[1])
 					{
@@ -559,18 +559,18 @@ class image
 
 	function doiconadd()
 	{
-		global $forums, $DB, $_INPUT;
-		foreach ($_INPUT AS $key => $value)
+		global $forums, $DB;
+		foreach ($_REQUEST AS $key => $value)
 		{
 			if (preg_match("/^icon_type_(\d+)$/", $key, $match))
 			{
-				if (isset($_INPUT[$match[0]]))
+				if (isset($_REQUEST[$match[0]]))
 				{
-					$icontext = $_INPUT[$match[0]];
-					$add = $_INPUT['icon_add_' . $match[1] ];
-					$image = $_INPUT['icon_image_' . $match[1] ];
+					$icontext = $_REQUEST[$match[0]];
+					$add = $_REQUEST['icon_add_' . $match[1] ];
+					$image = $_REQUEST['icon_image_' . $match[1] ];
 					$icontext = str_replace('&#092;', "", $icontext);
-					if ($_INPUT['addall'])
+					if (input::str('addall'))
 					{
 						$add = 1;
 					}
@@ -591,7 +591,7 @@ class image
 
 	function uploadicon()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$overwrite = 1;
 		foreach(array(1, 2, 3, 4) AS $i)
 		{
@@ -637,15 +637,15 @@ class image
 
 	function deleteicon()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['name'] == "")
+		global $forums, $DB;
+		if (input::str('name') == "")
 		{
 			$forums->main_msg = $forums->lang['noids'];
 			return $this->icon_start();
 		}
-		if ($_INPUT['update'])
+		if (input::str('update'))
 		{
-			if (! @unlink(ROOT_PATH . 'images/icons/' . $_INPUT['name']))
+			if (! @unlink(ROOT_PATH . 'images/icons/' . input::get('name', '')))
 			{
 				$forums->main_msg = $forums->lang['noids'];
 			}
@@ -660,7 +660,7 @@ class image
 			$pagetitle = $forums->lang['deleteicon'];
 			$forums->admin->print_cp_header($pagetitle, $detail);
 			$forums->admin->print_form_header(array(1 => array('do', 'deleteicon'),
-					2 => array('name' , $_INPUT['name']),
+					2 => array('name' , input::get('name', '')),
 					3 => array('update', 1),
 					));
 			$forums->admin->print_table_start($forums->lang['deleteicon']);

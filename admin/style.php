@@ -18,7 +18,7 @@ class style
 
 	function show()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditstyles'])
 		{
@@ -37,7 +37,7 @@ class style
 		}
 		require(ROOT_PATH . 'languages/list.php');
 		$this->lang_list = $lang_list;
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'addset':
 				$this->addstyle();
@@ -340,8 +340,8 @@ class style
 	 */
 	function set_toggle_default()
 	{
-		global $forums, $DB, $_INPUT;
-		$styleid = intval($_INPUT['id']);
+		global $forums, $DB;
+		$styleid = input::int('id');
 		if (empty($styleid))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -368,8 +368,8 @@ class style
 	 */
 	function set_visible()
 	{
-		global $forums, $DB, $_INPUT;
-		$styleid = intval($_INPUT['id']);
+		global $forums, $DB;
+		$styleid = input::int('id');
 		if (empty($styleid))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -404,9 +404,9 @@ class style
 	 */
 	function revert_all_form()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$styleid = intval($_INPUT['id']);
+		$styleid = input::int('id');
 		if ($styleid == '')
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -476,9 +476,9 @@ class style
 	 */
 	function do_revert_all()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$styleid = intval($_INPUT['id']);
+		$styleid = input::int('id');
 		if ($styleid == '')
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -496,7 +496,7 @@ class style
 
 		$message = array();
 		$dir = ROOT_PATH . 'templates/' . $title . '/';
-		if ($_INPUT['html'])
+		if (input::str('html'))
 		{
 			$dh = opendir($dir);
 			if ($dh)
@@ -512,7 +512,7 @@ class style
 			$message[] = $forums->lang['templatedeleting'];
 		}
 
-		if ($_INPUT['css'])
+		if (input::str('css'))
 		{
 			@unlink($dir . 'style.css');
 			$message[] = $forums->lang['cssdeleting'];
@@ -528,14 +528,14 @@ class style
 	 */
 	function addstyle()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
-		$styleid = intval($_INPUT['id']);
+		global $forums, $DB, $bboptions;
+		$styleid = input::int('id');
 		if ($styleid == '')
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 
-		$title_en = trim($_INPUT['title_en']);
+		$title_en = trim(input::str('title_en'));
 		if (empty($title_en))
 		{
 			$forums->main_msg = $forums->lang['requirestyleentitle'];
@@ -548,7 +548,7 @@ class style
 		}
 		$title_en = strtolower($title_en);
 
-		$title = trim($_INPUT['title']);
+		$title = trim(input::str('title'));
 		if (empty($title))
 		{
 			$title = ucfirst(str_replace('_', ' ', $title_en));
@@ -562,7 +562,7 @@ class style
 			'title_en' => $title_en,
 			'parentid' => $styleid,
 			'imagefolder' => $this_style['imagefolder'],
-			'userselect' => ($_INPUT['userselect'] == '0') ? 0 : 1,
+			'userselect' => (input::int('userselect') == '0') ? 0 : 1,
 			'usedefault' => 0
 		);
 		$DB->insert(TABLE_PREFIX . 'style', $new);
@@ -604,16 +604,16 @@ class style
 	 */
 	function remove_splash()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['deletestyle'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		$styleid = intval($_INPUT['id']);
+		$styleid = input::int('id');
 		$this_style = $DB->query_first("SELECT title, parentid, parentlist
 			FROM " . TABLE_PREFIX . "style
 			WHERE styleid = $styleid");
 		$forums->admin->print_form_header(array(
 			1 => array('do', 'doremove'),
-			2 => array('id' , $_INPUT['id']),
+			2 => array('id' , input::get('id', '')),
 			3 => array('parentid', $this_style['parentid']),
 			4 => array('parentlist', $this_style['parentlist']),
 		));
@@ -630,8 +630,8 @@ class style
 	 */
 	function do_remove()
 	{
-		global $forums, $DB, $_INPUT;
-		$styleid = intval($_INPUT['id']);
+		global $forums, $DB;
+		$styleid = input::int('id');
 		if (empty($styleid))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -673,8 +673,8 @@ class style
 	 */
 	function do_form()
 	{
-		global $forums, $DB, $_INPUT;
-		if (!$_INPUT['id'])
+		global $forums, $DB;
+		if (!input::get('id', ''))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
@@ -682,7 +682,7 @@ class style
 		$parents = array(0 => array('1', $forums->lang['noparentstyle']));
 		$row = $DB->query_first('SELECT *
 			FROM ' . TABLE_PREFIX . 'style
-			WHERE styleid=' . $_INPUT['id']);
+			WHERE styleid=' . input::get('id', ''));
 		$forums->admin->cache_styles();
 		foreach($forums->admin->stylecache as $style)
 		{
@@ -733,11 +733,11 @@ class style
 		$pagetitle = $forums->lang['editstylesetting'] . ' - ' . $row['title'];
 		$detail = $forums->lang['editstylesettingdesc'];
 		$forums->admin->nav[] = array('style.php' , $forums->lang['managestyle']);
-		$forums->admin->nav[] = array('style.php?do=edit&amp;id=' . $_INPUT['id'], $forums->lang['editstylesetting']);
+		$forums->admin->nav[] = array('style.php?do=edit&amp;id=' . input::get('id', ''), $forums->lang['editstylesetting']);
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->print_form_header(array(
 			1 => array('do', 'doedit'),
-			2 => array('id' , $_INPUT['id']),
+			2 => array('id' , input::get('id', '')),
 			3 => array('img' , $row['imagefolder']),
 			4 => array('d_parentid' , $row['parentid']),
 			5 => array('folder' , $row['imagefolder']),
@@ -766,8 +766,8 @@ class style
 	 */
 	function savestyle()
 	{
-		global $forums, $DB, $_INPUT;
-		$styleid = intval($_INPUT['id']);
+		global $forums, $DB;
+		$styleid = input::int('id');
 		if (empty($styleid))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -776,20 +776,20 @@ class style
 		$this_style = $DB->query_first('SELECT *
 			FROM ' . TABLE_PREFIX . "style
 			WHERE styleid = $styleid");
-		$title = trim($_INPUT['title']);
+		$title = trim(input::str('title'));
 		if (empty($title))
 		{
 			$title = ucfirst(str_replace('_', ' ', $this_style['title_en']));
 		}
 
-		$parentid = intval($_INPUT['parentid']);
+		$parentid = input::int('parentid');
 		$info = $DB->query_first('SELECT styleid, title, parentlist
 			FROM ' . TABLE_PREFIX . "style
 			WHERE styleid = $parentid");
 		$parents = explode(',', $info['parentlist']);
 		foreach($parents as $childid)
 		{
-			if ($childid == $_INPUT['id'])
+			if ($childid == input::get('id', ''))
 			{
 				$forums->lang['nosameparent'] = sprintf($forums->lang['nosameparent'], $info['title']);
 				$forums->admin->print_cp_error($forums->lang['nosameparent']);
@@ -798,14 +798,14 @@ class style
 
 		$barney = array(
 			'title' => $title,
-			'userselect' => $_INPUT['userselect'],
-			'usedefault' => $_INPUT['usedefault'],
-			'imagefolder' => $_INPUT['imagefolder'],
+			'userselect' => input::get('userselect', ''),
+			'usedefault' => input::get('usedefault', ''),
+			'imagefolder' => input::get('imagefolder', ''),
 			'parentid' => $parentid,
 		);
 
 		$affected_id = '';
-		if ($_INPUT['folder'] != $barney['imagefolder'])
+		if (input::get('folder', '') != $barney['imagefolder'])
 		{
 			$affected_id = $this_style['styleid'];
 		}
@@ -817,7 +817,7 @@ class style
 
 		$DB->update(TABLE_PREFIX . 'style', $barney, "styleid = $styleid");
 
-		if ($_INPUT['d_parentid'] != $parentid)
+		if (input::get('d_parentid', '') != $parentid)
 		{
 			$this->build_template_parentlists();
 		}
@@ -870,8 +870,8 @@ class style
 	 */
 	function colouredit()
 	{
-		global $forums, $DB, $_INPUT;
-		$styleid = intval($_INPUT['id']);
+		global $forums, $DB;
+		$styleid = input::int('id');
 		if (empty($styleid))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -915,7 +915,7 @@ class style
 		$pagetitle = $forums->lang['editcsscode'];
 		$detail = $forums->lang['editcsscodedesc'];
 		$forums->admin->nav[] = array('style.php', $forums->lang['managestyle']);
-		$forums->admin->nav[] = array('style.php?do=colouredit&amp;id=' . $_INPUT['id'], $forums->lang['editcsscode']);
+		$forums->admin->nav[] = array('style.php?do=colouredit&amp;id=' . input::get('id', ''), $forums->lang['editcsscode']);
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		echo '<script src="' . ROOT_PATH . 'scripts/colorpicker.js" type="text/javascript"></script>';
 		$forums->admin->print_form_header(array(
@@ -1271,8 +1271,8 @@ class style
 	 */
 	function do_colouredit()
 	{
-		global $forums, $DB, $_INPUT;
-		$styleid = intval($_INPUT['id']);
+		global $forums, $DB;
+		$styleid = input::int('id');
 		if (empty($styleid))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -1309,9 +1309,9 @@ class style
 			}
 			foreach(array('color', 'font-size', 'font-family', 'background-color', 'border', 'background-image') as $prop)
 			{
-				if (isset($_INPUT['frm_' . $md5 . '_' . $prop]))
+				if (isset($_REQUEST['frm_' . $md5 . '_' . $prop]))
 				{
-					$colours[$name][$prop] = $_INPUT['frm_' . $md5 . '_' . $prop];
+					$colours[$name][$prop] = $_REQUEST['frm_' . $md5 . '_' . $prop];
 				}
 			}
 		}
@@ -1351,14 +1351,14 @@ class style
 		{
 			file_write($dir . '/style.css', $css);
 			$extra = "<strong>" . $forums->lang['cssupdated'] . "</strong>";
-			$this->template->writecsscache($_INPUT['id']);
+			$this->template->writecsscache(input::str('id'));
 		}
 		else
 		{
 			$forums->admin->print_cp_error($forums->lang['mkdirerror']);
 		}
 
-		if (!$_INPUT['savereload'])
+		if (!input::get('savereload', ''))
 		{
 			$forums->admin->nav[] = array('style.php' , $forums->lang['managestyle']);
 			$forums->main_msg = $forums->lang['cssupdated'] . ": $extra";
@@ -1376,8 +1376,8 @@ class style
 	 */
 	function edit_css()
 	{
-		global $forums, $DB, $_INPUT;
-		$styleid = intval($_INPUT['id']);
+		global $forums, $DB;
+		$styleid = input::int('id');
 		if (empty($styleid))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -1407,7 +1407,7 @@ class style
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->print_form_header(array(
 			1 => array('do', 'doeditcss'),
-			2 => array('id', $_INPUT['id']),
+			2 => array('id', input::get('id', '')),
 			3 => array('parentlist', $style['parentlist'])
 		), "theform");
 		$forums->admin->print_table_start($forums->lang['editcsssetting']);
@@ -1471,9 +1471,9 @@ class style
 	 */
 	function exportstyle_xml()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 
-		$styleid = intval($_INPUT['styleid']);
+		$styleid = input::int('styleid');
 		if (empty($styleid))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -1483,7 +1483,7 @@ class style
 			$forums->admin->print_cp_error($forums->lang['cannotchangedstyle']);
 		}
 
-		$filename = trim($_INPUT['filename']);
+		$filename = trim(input::str('filename'));
 		if (empty($filename))
 		{
 			$filename = 'MolyX-style.xml';
@@ -1494,7 +1494,7 @@ class style
 			FROM " . TABLE_PREFIX . "style
 			WHERE styleid = $styleid");
 
-		$type = intval($_INPUT['export_type']) ? true : false;
+		$type = input::int('export_type') ? true : false;
 		$title = $style['title'];
 
 		$templates['StyleVars Setting'][] = array(
@@ -1575,8 +1575,8 @@ class style
 	 */
 	function importstyle_xml()
 	{
-		global $forums, $DB, $_INPUT;
-		if ((!$_FILES['fromlocal']['name'] || (isset($_FILES['fromlocal']) && $_FILES['fromlocal']['error'] != UPLOAD_ERR_OK)) && (!$_INPUT['fromserver'] || !file_exists($_INPUT['fromserver'])))
+		global $forums, $DB;
+		if ((!$_FILES['fromlocal']['name'] || (isset($_FILES['fromlocal']) && $_FILES['fromlocal']['error'] != UPLOAD_ERR_OK)) && (!input::get('fromserver', '') || !file_exists(input::str('fromserver'))))
 		{
 			$forums->main_msg = $forums->lang['nouploadfile'];
 			$this->stylefiles_xml();
@@ -1586,14 +1586,14 @@ class style
 		{
 			$xml = @file_get_contents($_FILES['fromlocal']['tmp_name']);
 		}
-		else if ($_INPUT['fromserver'])
+		else if (input::str('fromserver'))
 		{
-			$xml = @file_get_contents($_INPUT['fromserver']);
+			$xml = @file_get_contents(input::str('fromserver'));
 		}
 
 		require_once(ROOT_PATH . 'includes/class_template_import.php');
 		$import = new template_import();
-		$import->importxmlstyle($xml, $_INPUT['mergestyle'], $_INPUT['parentstyle'], $_INPUT['changetitle'], $_INPUT['checkversion'], $_INPUT['usedefault'], $_INPUT['userselect']);
+		$import->importxmlstyle($xml, input::get('mergestyle', ''), input::get('parentstyle', ''), input::get('changetitle', ''), input::get('checkversion', ''), input::get('usedefault', ''), input::get('userselect', ''));
 
 		$forums->func->recache('style');
 		$this->template->delstylecache($styleid);
@@ -1659,9 +1659,9 @@ class style
 
 	function editstylecfg()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
-		$foldername = $_INPUT['importfolder'];
+		$foldername = input::get('importfolder', '');
 		$dir = ROOT_PATH . 'templates/' . $foldername . '/';
 		if ($foldername == '' || !is_dir($dir) || !file_exists($dir . 'config.php'))
 		{
@@ -1708,9 +1708,9 @@ class style
 
 	function importstyle_htm()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 
-		$foldername = $_INPUT['importfolder'];
+		$foldername = input::get('importfolder', '');
 		$dir = ROOT_PATH . 'templates/' . $foldername . '/';
 		if ($foldername == '' || !is_dir($dir) || !file_exists($dir . 'config.php'))
 		{
@@ -1729,13 +1729,13 @@ class style
 		$newbits = array();
 
 		$title_en = $foldername;
-		$title = $_INPUT['title'];
-		$parentid = intval($_INPUT['parentid']);
-		$imagefolder = $_INPUT['imagefolder'];
-		$version = $_INPUT['version'];
-		$checkversion = $_INPUT['checkversion'];
-		$userselect = $_INPUT['userselect'];
-		$usedefault = $_INPUT['usedefault'];
+		$title = input::get('title', '');
+		$parentid = input::int('parentid');
+		$imagefolder = input::get('imagefolder', '');
+		$version = input::get('version', '');
+		$checkversion = input::get('checkversion', '');
+		$userselect = input::get('userselect', '');
+		$usedefault = input::get('usedefault', '');
 
 		$getstyle = $DB->query_first('SELECT styleid
 			FROM ' . TABLE_PREFIX . 'style
@@ -1776,8 +1776,8 @@ class style
 
 	function delexportstyle_htm()
 	{
-		global $forums, $_INPUT;
-		$foldername = $_INPUT['importfolder'];
+		global $forums;
+		$foldername = input::get('importfolder', '');
 		$pagetitle = $forums->lang['deletestyle'];
 		$forums->admin->print_cp_header($pagetitle);
 		$forums->admin->print_form_header(array(
@@ -1794,8 +1794,8 @@ class style
 
 	function do_delexportstyle_htm()
 	{
-		global $forums, $_INPUT;
-		$foldername = $_INPUT['foldername'];
+		global $forums;
+		$foldername = input::get('foldername', '');
 		if ($foldername == '')
 		{
 			$forums->admin->print_cp_error($forums->lang['notfolder']);
@@ -1858,8 +1858,8 @@ class style
 
 	function rebuildcaches()
 	{
-		global $forums, $DB, $_INPUT;
-		$id = intval($_INPUT['styleid']);
+		global $forums, $DB;
+		$id = input::int('styleid');
 		$this->template->rebuildallcaches($id);
 		$msg = '<div align="left" width="100%">' . $forums->lang['stylecacheupdated'] . ' (id: ' . $id . ')<br />' . implode("<br />", $this->template->messages) . '</div>';
 		$url = "style.php?do=tools&amp;styleid=$id";
@@ -1871,11 +1871,11 @@ class style
 	 */
 	function recacheall()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$langlist = array();
 		$styleidlist = array();
-		$idpos = intval($_INPUT['idpos']);
-		$langpos = intval($_INPUT['langpos']);
+		$idpos = input::int('idpos');
+		$langpos = input::int('langpos');
 
 		$result = $DB->query('SELECT styleid, parentlist
 			FROM ' . TABLE_PREFIX . 'style
@@ -1909,9 +1909,9 @@ class style
 	 */
 	function change_user()
 	{
-		global $forums, $DB, $_INPUT;
-		$old_id = intval($_INPUT['styleid']);
-		$new_id = intval($_INPUT['change']);
+		global $forums, $DB;
+		$old_id = input::int('styleid');
+		$new_id = input::int('change');
 		if (!$new_id)
 		{
 			$style = $DB->query_first('SELECT styleid
@@ -1929,8 +1929,8 @@ class style
 	 */
 	function save_css()
 	{
-		global $forums, $DB, $_INPUT;
-		$styleid = intval($_INPUT['id']);
+		global $forums, $DB;
+		$styleid = input::int('id');
 		if ($styleid < 2)
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -1954,11 +1954,11 @@ class style
 			}
 
 			file_write($dir . 'style.css', $css);
-			$message = $this->template->writecsscache($_INPUT['id']);
+			$message = $this->template->writecsscache(input::str('id'));
 		}
 		$extra = '<strong>' . $forums->lang['cssupdated'] . '</strong>';
 
-		if (!$_INPUT['savereload'])
+		if (!input::get('savereload', ''))
 		{
 			$forums->admin->nav[] = array('style.php' , $forums->lang['managestyle']);
 			$forums->main_msg = $forums->lang['cssupdated'] . ": $extra";
