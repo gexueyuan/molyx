@@ -14,14 +14,14 @@ class rebuild
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditothers'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$forums->admin->nav[] = array('rebuild.php' , $forums->lang['rebulidcounter']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'docount':
 				$this->docount();
@@ -54,12 +54,12 @@ class rebuild
 
 	function rebuild_attachdata()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		require_once(ROOT_PATH . 'includes/functions_upload.php');
 		$upload = new functions_upload();
 		$done = 0;
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$end = $_INPUT['percycle'] ? intval($_INPUT['percycle']) : 100;
+		$start = input::int('pp');
+		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = array();
 		$tmp = $DB->query_first("SELECT attachmentid FROM " . TABLE_PREFIX . "attachment WHERE attachmentid > " . $end . "");
@@ -92,7 +92,7 @@ class rebuild
 		{
 			$forums->lang['rebulidattachs'] = sprintf($forums->lang['rebulidattachs'], $end);
 			$text = "<strong>" . $forums->lang['rebulidattachs'] . "</strong><br />" . implode("<br />", $output);
-			$url = "rebuild.php?do=" . $_INPUT['do'] . '&amp;percycle=' . $_INPUT['percycle'] . '&amp;pp=' . $end;
+			$url = "rebuild.php?do=" . input::get('do', '') . '&amp;percycle=' . input::get('percycle', 0) . '&amp;pp=' . $end;
 			$time = 3;
 		}
 		$forums->admin->redirect($url, $forums->lang['rebulidattachmant'], $text, 0, $time);
@@ -100,10 +100,10 @@ class rebuild
 
 	function rebuild_thumbnails()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		$done = 0;
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$end = $_INPUT['percycle'] ? intval($_INPUT['percycle']) : 100;
+		$start = input::int('pp');
+		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = array();
 		$tmp = $DB->query_first("SELECT attachmentid FROM " . TABLE_PREFIX . "attachment WHERE attachmentid > " . $end . "");
@@ -165,7 +165,7 @@ class rebuild
 		{
 			$forums->lang['rebulidthumbs'] = sprintf($forums->lang['rebulidthumbs'], $end);
 			$text = "<strong>" . $forums->lang['rebulidthumbs'] . "</strong><br />" . implode("<br />", $output);
-			$url = "rebuild.php?do=" . $_INPUT['do'] . '&amp;percycle=' . $_INPUT['percycle'] . '&amp;pp=' . $end;
+			$url = "rebuild.php?do=" . input::get('do', '') . '&amp;percycle=' . input::get('percycle', 0) . '&amp;pp=' . $end;
 			$time = 3;
 		}
 		$forums->admin->redirect($url, $forums->lang['rebulidthumb'], $text, 0, $time);
@@ -173,10 +173,10 @@ class rebuild
 
 	function recount_post()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$done = 0;
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$end = $_INPUT['percycle'] ? intval($_INPUT['percycle']) : 100;
+		$start = input::int('pp');
+		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = $splittable = array();
 
@@ -210,7 +210,7 @@ class rebuild
 		{
 			$forums->lang['rebulidposts'] = sprintf($forums->lang['rebulidposts'], $end);
 			$text = "<strong>" . $forums->lang['rebulidposts'] . "</strong><br />" . implode("<br />", $output);
-			$url = "rebuild.php?do=" . $_INPUT['do'] . '&amp;percycle=' . $_INPUT['percycle'] . '&amp;pp=' . $end;
+			$url = "rebuild.php?do=" . input::get('do', '') . '&amp;percycle=' . input::get('percycle', 0) . '&amp;pp=' . $end;
 			$time = 3;
 		}
 		$forums->admin->redirect($url, $forums->lang['rebulidpost'], $text, 0, $time);
@@ -218,10 +218,10 @@ class rebuild
 
 	function rebuild_post_names()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$done = 0;
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$end = $_INPUT['percycle'] ? intval($_INPUT['percycle']) : 100;
+		$start = input::int('pp');
+		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = $splittable = array();
 		$tmp = $DB->query_first("SELECT id FROM " . TABLE_PREFIX . "user WHERE id > " . $end . "");
@@ -255,7 +255,7 @@ class rebuild
 		{
 			$forums->lang['rebulidnames'] = sprintf($forums->lang['rebulidnames'], $end);
 			$text = "<strong>" . $forums->lang['rebulidnames'] . "</strong><br />" . implode("<br />", $output);
-			$url = "rebuild.php?do=" . $_INPUT['do'] . '&amp;percycle=' . $_INPUT['percycle'] . '&amp;pp=' . $end;
+			$url = "rebuild.php?do=" . input::get('do', '') . '&amp;percycle=' . input::get('percycle', 0) . '&amp;pp=' . $end;
 			$time = 3;
 		}
 		$forums->admin->redirect($url, $forums->lang['rebulidusername'], $text, 0, $time);
@@ -263,13 +263,13 @@ class rebuild
 
 	function rebuild_post()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$forums->func->load_lang('post');
 		require_once(ROOT_PATH . 'includes/functions_codeparse.php');
 		$parser = new functions_codeparse();
 		$done = 0;
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$end = $_INPUT['percycle'] ? intval($_INPUT['percycle']) : 100;
+		$start = input::int('pp');
+		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = array();
 		$max = false;
@@ -365,7 +365,7 @@ class rebuild
 		{
 			$forums->lang['rebulidcontents'] = sprintf($forums->lang['rebulidcontents'], $end);
 			$text = "<strong>" . $forums->lang['rebulidcontents'] . "</strong><br />" . implode("<br />", $output);
-			$url = "rebuild.php?do=" . $_INPUT['do'] . '&amp;percycle=' . $_INPUT['percycle'] . '&amp;pp=' . $end;
+			$url = "rebuild.php?do=" . input::get('do', '') . '&amp;percycle=' . input::get('percycle', 0) . '&amp;pp=' . $end;
 			$time = 3;
 		}
 		$forums->admin->redirect($url, $forums->lang['rebulidcontent'], $text, 0, $time);
@@ -373,12 +373,12 @@ class rebuild
 
 	function recount_thread()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		require_once(ROOT_PATH . 'includes/functions_moderate.php');
 		$modfunc = new modfunctions();
 		$done = 0;
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$end = $_INPUT['percycle'] ? intval($_INPUT['percycle']) : 100;
+		$start = input::int('pp');
+		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = $tids = array();
 		$tmp = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE tid > " . $end . "");
@@ -387,7 +387,7 @@ class rebuild
 		while ($r = $DB->fetch_array($thread))
 		{
 			$tids[] = $r['tid'];
-			if ($_INPUT['percycle'] <= 200)
+			if (input::get('percycle', '') <= 200)
 			{
 				$output[] = $forums->lang['rebulidthreadtitle'] . " - " . $r['title'];
 			}
@@ -404,7 +404,7 @@ class rebuild
 		{
 			$forums->lang['rebulidthreads'] = sprintf($forums->lang['rebulidthreads'], $end);
 			$text = "<strong>" . $forums->lang['rebulidthreads'] . "</strong><br />" . implode("<br />", $output);
-			$url = "rebuild.php?do=" . $_INPUT['do'] . '&amp;percycle=' . $_INPUT['percycle'] . '&amp;pp=' . $end;
+			$url = "rebuild.php?do=" . input::get('do', '') . '&amp;percycle=' . input::get('percycle', 0) . '&amp;pp=' . $end;
 			$time = 3;
 		}
 		$forums->admin->redirect($url, $forums->lang['rebulidthread'], $text, 0, $time);
@@ -412,12 +412,12 @@ class rebuild
 
 	function recount_forums()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		require_once(ROOT_PATH . 'includes/functions_moderate.php');
 		$modfunc = new modfunctions();
 		$done = 0;
-		$start = $_INPUT['pp'] ? intval($_INPUT['pp']) : 0;
-		$end = $_INPUT['percycle'] ? intval($_INPUT['percycle']) : 100;
+		$start = input::int('pp');
+		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = array();
 		$tmp = $DB->query_first("SELECT COUNT(*) as count
@@ -444,7 +444,7 @@ class rebuild
 		{
 			$forums->lang['rebulidforums'] = sprintf($forums->lang['rebulidforums'], $end);
 			$text = "<strong>" . $forums->lang['rebulidforums'] . "</strong><br />" . implode("<br />", $output);
-			$url = "rebuild.php?do=" . $_INPUT['do'] . '&amp;percycle=' . $_INPUT['percycle'] . '&amp;pp=' . $end;
+			$url = "rebuild.php?do=" . input::get('do', '') . '&amp;percycle=' . input::get('percycle', 0) . '&amp;pp=' . $end;
 			$time = 3;
 		}
 		$forums->admin->redirect($url, $forums->lang['rebulidforum'], $text, 0, $time);
@@ -452,8 +452,8 @@ class rebuild
 
 	function docount()
 	{
-		global $forums, $DB, $_INPUT;
-		if (!$_INPUT['post'] && !$_INPUT['users'] && !$_INPUT['lastreg'])
+		global $forums, $DB;
+		if (!input::get('post', '') && !input::get('users', '') && !input::get('lastreg', ''))
 		{
 			$forums->admin->print_cp_error($forums->lang['norequirecounter']);
 		}

@@ -14,9 +14,9 @@ class reputation
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$forums->admin->nav[] = array('reputation.php' , $forums->lang['managereputation']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'list':
 				$this->replist();
@@ -32,9 +32,9 @@ class reputation
 
 	function replist()
 	{
-		global $forums, $DB, $_INPUT;
-		$pp = $_INPUT['pp'] ? $_INPUT['pp'] : 0;
-		if ($_INPUT['key']) $query = "AND " . $_INPUT['type'] . "='" . $_INPUT['key'] . "'";
+		global $forums, $DB;
+		$pp = input::get('pp', '') ? input::get('pp', '') : 0;
+		if (input::str('key')) $query = "AND " . input::get('type', '') . "='" . input::get('key', '') . "'";
 		$pagetitle = $forums->lang['reputationlist'];
 		$detail = $forums->lang['reputationlistdesc'];
 		$forums->func->recache('splittable');
@@ -46,7 +46,7 @@ class reputation
 		$links = $forums->func->build_pagelinks(array('totalpages' => $row_count,
 				'perpage' => 20,
 				'curpage' => $pp,
-				'pagelink' => "reputation.php?{$forums->sessionurl}do=list&amp;key=" . $_INPUT['key'] . "&amp;type=" . $_INPUT['type'] . "",
+				'pagelink' => "reputation.php?{$forums->sessionurl}do=list&amp;key=" . input::get('key', '') . "&amp;type=" . input::get('type', '') . "",
 				)
 			);
 		$forums->admin->print_cp_header($pagetitle, $detail);
@@ -110,8 +110,8 @@ class reputation
 
 	function resetrep()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'] == "")
+		global $forums, $DB;
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
@@ -123,13 +123,13 @@ class reputation
 		$tarinfo = $DB->query_first("SELECT p.reppost,p.threadid,u.id, u.name
 					     FROM " . TABLE_PREFIX . "$posttable p
 					     LEFT JOIN " . TABLE_PREFIX . "user u ON (p.userid = u.id) 
-						WHERE pid = " . $_INPUT['id']);
+						WHERE pid = " . input::get('id', ''));
 		$rr = unserialize($tarinfo['reppost']);
 		$rep = '-' . intval($rr['number']);
 		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET reputation = reputation+" . $rep . " WHERE id = " . $tarinfo['id'] . " LIMIT 1");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "$posttable SET reppost = '" . $reputation . "' WHERE pid = " . $_INPUT['id'] . "");
+		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "$posttable SET reppost = '" . $reputation . "' WHERE pid = " . input::get('id', '') . "");
 		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET allrep = allrep+" . $rep . " WHERE tid = " . $tarinfo['threadid'] . "");
-		$forums->lang['postreputationreset'] = sprintf($forums->lang['postreputationreset'], $tarinfo['name'], $_INPUT['id']);
+		$forums->lang['postreputationreset'] = sprintf($forums->lang['postreputationreset'], $tarinfo['name'], input::get('id', ''));
 		$forums->admin->print_popup_header();
 		$forums->admin->print_cells_single_row($forums->lang['postreputationreset'], 'center');
 		$forums->admin->print_popup_footer();

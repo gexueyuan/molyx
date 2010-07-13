@@ -17,7 +17,7 @@ class language
 
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditlang'])
 		{
@@ -26,7 +26,7 @@ class language
 		$this->root = ROOT_PATH . 'languages/';
 		require_once ROOT_PATH . "includes/adminfunctions_language.php";
 		$this->langfunc = new adminfunctions_language();
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'translate':
 				$this->translateform();
@@ -160,7 +160,7 @@ class language
 	 */
 	function search_form()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 
 		$langoptions = array();
 		$langoptions[] = array(-1, $forums->lang['alllanglist']);
@@ -201,17 +201,17 @@ class language
 	 */
 	function dosearch()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$searchkey = isset($_POST['searchkey']) ? $_POST['searchkey'] : urldecode($_GET['searchkey']);
 		$searchkey = trim($searchkey);
-		$searchtype = intval($_INPUT['searchtype']);
+		$searchtype = input::int('searchtype');
 
 		if (empty($searchkey))
 		{
 			$forums->admin->print_cp_error($forums->lang['inputkeywords']);
 		}
 
-		$fname = $_INPUT['fname'];
+		$fname = input::get('fname', '');
 		if ($fname == -1 || $fname[0] == -1 || empty($fname))
 		{
 			$files = -1;
@@ -229,7 +229,7 @@ class language
 
 		$root = $this->root;
 		require($root . 'list.php');
-		$lname = trim($_INPUT['lname']);
+		$lname = trim(input::str('lname'));
 		if ($lname == -1 || empty($lname) || !isset($lang_list[$lname]))
 		{
 			$langs = array_keys($lang_list);
@@ -336,8 +336,8 @@ class language
 	 */
 	function setdefault()
 	{
-		global $forums, $DB, $_INPUT;
-		$defaultlang = $_INPUT['defaultlang'];
+		global $forums, $DB;
+		$defaultlang = input::get('defaultlang', '');
 		if (empty($defaultlang))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -359,9 +359,9 @@ class language
 	 */
 	function translateform()
 	{
-		global $forums, $_INPUT, $bboptions;
-		$language = trim($_INPUT['languageid']);
-		$fname = trim($_INPUT['fid']);
+		global $forums, $bboptions;
+		$language = trim(input::str('languageid'));
+		$fname = trim(input::str('fid'));
 
 		$root = $this->root;
 		require($root . 'list.php');
@@ -494,10 +494,10 @@ class language
 	 */
 	function dotranslate()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 
-		$file = trim($_INPUT['fid']);
-		$language = trim($_INPUT['languageid']);
+		$file = trim(input::str('fid'));
+		$language = trim(input::str('languageid'));
 
 		$root = $this->root;
 		require($root . 'list.php');
@@ -542,8 +542,8 @@ class language
 	 */
 	function addlanguage($type = 'add')
 	{
-		global $forums, $_INPUT;
-		$language = isset($_INPUT['languageid']) ? trim($_INPUT['languageid']) : '';
+		global $forums;
+		$language = isset(input::str('languageid')) ? trim(input::str('languageid')) : '';
 		if($type == 'edit')
 		{
 			require($this->root . 'list.php');
@@ -594,10 +594,10 @@ class language
 	 */
 	function doaddlanguage($type = 'add')
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$querybit = array();
-		$title = strtolower(trim($_INPUT['title']));
-		$name = trim($_INPUT['name']);
+		$title = strtolower(trim(input::str('title')));
+		$name = trim(input::str('name'));
 
 		if (empty($title) || empty($name))
 		{
@@ -627,10 +627,10 @@ class language
 	 */
 	function deletevar()
 	{
-		global $forums, $_INPUT;
-		$vname = isset($_INPUT['vid']) ? trim($_INPUT['vid']) : '';
-		$fname = isset($_INPUT['fid']) ? trim($_INPUT['fid']) : '';
-		$deltype = isset($_INPUT['deltype']) ? trim($_INPUT['deltype']) : '';
+		global $forums;
+		$vname = isset(input::str('vid')) ? trim(input::str('vid')) : '';
+		$fname = isset(input::str('fid')) ? trim(input::str('fid')) : '';
+		$deltype = isset(input::str('deltype')) ? trim(input::str('deltype')) : '';
 
 		require($this->root . 'list.php');
 		if ($deltype == 'mutivar')
@@ -688,8 +688,8 @@ class language
 	 */
 	function dellang()
 	{
-		global $forums, $_INPUT, $bboptions;
-		$language = intval($_INPUT['languageid']);
+		global $forums, $bboptions;
+		$language = input::int('languageid');
 		require($this->root . 'list.php');
 		if (!$language || !isset($lang_list[$language]))
 		{
@@ -712,7 +712,7 @@ class language
 	 */
 	function modifyfile()
 	{
-		global $forums, $_INPUT, $bboptions;
+		global $forums, $bboptions;
 		$pagetitle = $forums->lang['langfilemanage'];
 		$forums->admin->nav[] = array('language.php?do=modifyfile' , $forums->lang['langfilemanage']);
 		$forums->admin->print_cp_header($pagetitle);
@@ -743,8 +743,8 @@ class language
 	 */
 	function editfile()
 	{
-		global $forums, $_INPUT;
-		$fname = isset($_INPUT['fid']) ? trim($_INPUT['fid']) : '';
+		global $forums;
+		$fname = isset(input::str('fid')) ? trim(input::str('fid')) : '';
 		$array_name = 'lang';
 		$ext = strrchr($fname, '.');
 		if ($ext == '.js')
@@ -774,9 +774,9 @@ class language
 	 */
 	function doeditfile()
 	{
-		global $forums, $_INPUT;
-		$filename = trim($_INPUT['filename']);
-		$arrname = trim($_INPUT['arrname']);
+		global $forums;
+		$filename = trim(input::str('filename'));
+		$arrname = trim(input::str('arrname'));
 		if ($filename == '')
 		{
 			$forums->admin->print_cp_error($forums->lang['inputlangfilename']);
@@ -818,9 +818,9 @@ class language
 	 */
 	function modifyvar()
 	{
-		global $forums, $bboptions, $_INPUT;
-		$fname = isset($_INPUT['fid']) ? trim($_INPUT['fid']) : '';
-		$searchkey = trim(urldecode($_INPUT['searchkey']));
+		global $forums, $bboptions;
+		$fname = isset(input::str('fid')) ? trim(input::str('fid')) : '';
+		$searchkey = trim(urldecode(input::str('searchkey')));
 
 		$dir = $this->root . $bboptions['default_lang'] . '/';
 		extract($this->langfunc->get_fileoptions($dir, $fname));
@@ -921,9 +921,9 @@ class language
 	 */
 	function editmutivar($type = 'edit')
 	{
-		global $forums, $_INPUT, $bboptions;
-		$fname = trim($_INPUT['fid']);
-		$vname = trim($_INPUT['vid']);
+		global $forums, $bboptions;
+		$fname = trim(input::str('fid'));
+		$vname = trim(input::str('vid'));
 		if (empty($fname))
 		{
 			$forums->admin->print_cp_error($forums->lang['sellangvarinfile']);
@@ -955,7 +955,7 @@ class language
 			$pagetitle = $forums->lang['addlangvar'];
 		}
 
-		$language = isset($_INPUT['languageid']) ? trim($_INPUT['languageid']) : '';
+		$language = isset(input::str('languageid')) ? trim(input::str('languageid')) : '';
 		if ($language)
 		{
 			$forums->admin->nav[] =  array("language.php?{$forums->sessionurl}do=translate&amp;fid=$fname&amp;languageid=$language", $forums->lang['languagetranslate']);
@@ -972,11 +972,11 @@ class language
 			array('vid', $vname),
 			array('fid', $fname),
 			array('languageid', $language),
-			array('searchkey', $_INPUT['searchkey']),
-			array('lname', $_INPUT['lname']),
-			array('fname', $_INPUT['fname']),
-			array('searchtype', $_INPUT['searchtype']),
-			array('redurl', $_INPUT['redurl']),
+			array('searchkey', input::get('searchkey', '')),
+			array('lname', input::get('lname', '')),
+			array('fname', input::get('fname', '')),
+			array('searchtype', input::get('searchtype', '')),
+			array('redurl', input::get('redurl', '')),
 		));
 		$forums->admin->columns[] = array('&nbsp;', '30%');
 		$forums->admin->columns[] = array('&nbsp;', '70%');
@@ -1022,15 +1022,15 @@ class language
 	 */
 	function do_editmutivar($type = 'edit')
 	{
-		global $forums, $_INPUT;
-		$fname = isset($_INPUT['fileid']) ? trim($_INPUT['fileid']) : trim($_INPUT['fid']);
+		global $forums;
+		$fname = isset(input::str('fileid')) ? trim(input::str('fileid')) : trim(input::str('fid'));
 		if (empty($fname))
 		{
 			$forums->admin->print_cp_error($forums->lang['sellangvarinfile']);
 		}
 		$is_js = (strrchr($fname, '.') == '.js');
 
-		$varname = isset($_INPUT['varname']) ? trim($_INPUT['varname']) : trim($_INPUT['vid']);
+		$varname = isset(input::str('varname')) ? trim(input::str('varname')) : trim(input::str('vid'));
 		if (empty($varname))
 		{
 			$forums->admin->print_cp_error($forums->lang['inputlangvarname']);
@@ -1070,7 +1070,7 @@ class language
 			}
 		}
 
-		$language = isset($_INPUT['languageid']) ? trim($_INPUT['languageid']) : '';
+		$language = isset(input::str('languageid')) ? trim(input::str('languageid')) : '';
 		if ($language)
 		{
 			$url = "language.php?{$forums->sessionurl}do=translate&amp;fid=$fname&amp;languageid=$language";
@@ -1079,9 +1079,9 @@ class language
 		{
 			$url = "language.php?{$forums->sessionurl}do=modifyvar&amp;vid=$vname&amp;fid=$fname";
 		}
-		if ($_INPUT['redurl'])
+		if (input::str('redurl'))
 		{
-			$url = "language.php?{$forums->sessionurl}do={$_INPUT['redurl']}&amp;searchkey={$_INPUT['searchkey']}&amp;lname={$_INPUT['lname']}&amp;fname={$_INPUT['fname']}&amp;searchtype={$_INPUT['searchtype']}";
+			$url = "language.php?{$forums->sessionurl}do=" . input::get('redurl', '') . "&amp;searchkey=" . input::get('searchkey', '') . "&amp;lname=" . input::get('lname', '') . "&amp;fname=" . input::get('fname', '') . "&amp;searchtype=" . input::get('searchtype', '') . "";
 		}
 		$forums->admin->redirect($url, $forums->lang['langvarmanage'], $forums->lang['langvareditsucess']);
 	}
@@ -1130,8 +1130,8 @@ class language
 
 	function exportlangxml()
 	{
-		global $forums, $_INPUT, $bboptions;
-		$language = trim($_INPUT['languageid']);
+		global $forums, $bboptions;
+		$language = trim(input::str('languageid'));
 
 		require($this->root . 'list.php');
 		if (!isset($lang_list[$language]))
@@ -1139,7 +1139,7 @@ class language
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 
-		$exportfile = trim($_INPUT['filename']);
+		$exportfile = trim(input::str('filename'));
 		if (empty($exportfile))
 		{
 			$exportfile = 'MolyX-language.xml';
@@ -1183,8 +1183,8 @@ class language
 
 	function importlangxml()
 	{
-		global $forums, $_INPUT;
-		if ((!$_FILES['fromlocal']['name'] || (isset($_FILES['fromlocal']) && $_FILES['fromlocal']['error'] != UPLOAD_ERR_OK)) && (!$_INPUT['fromserver'] || !file_exists($_INPUT['fromserver'])))
+		global $forums;
+		if ((!$_FILES['fromlocal']['name'] || (isset($_FILES['fromlocal']) && $_FILES['fromlocal']['error'] != UPLOAD_ERR_OK)) && (!input::get('fromserver', '') || !file_exists(input::str('fromserver'))))
 		{
 			$forums->main_msg = $forums->lang['nouploadfile'];
 			$this->langxml();
@@ -1194,14 +1194,14 @@ class language
 		{
 			$xml = @file_get_contents($_FILES['fromlocal']['tmp_name']);
 		}
-		else if ($_INPUT['fromserver'])
+		else if (input::str('fromserver'))
 		{
-			$xml = @file_get_contents($_INPUT['fromserver']);
+			$xml = @file_get_contents(input::str('fromserver'));
 		}
 
 		require_once(ROOT_PATH . 'includes/class_language_import.php');
 		$importlang = new language_import();
-		$importlang->importxmllanguage($xml, $_INPUT['title'], $_INPUT['name']);
+		$importlang->importxmllanguage($xml, input::get('title', ''), input::get('name', ''));
 
 		//重新生成语言缓存
 		$recachelangid = $importlang->importlangids;

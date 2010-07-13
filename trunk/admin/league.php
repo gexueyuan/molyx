@@ -14,14 +14,14 @@ class league
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditleagues'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$forums->admin->nav[] = array('league.php', $forums->lang['manageleague']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'addleague':
 				$this->league_form('add');
@@ -46,7 +46,7 @@ class league
 
 	function leaguelist()
 	{
-		global $forums, $_INPUT, $DB;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['manageleague'];
 		$detail = $forums->lang['manageleaguedesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
@@ -118,13 +118,13 @@ class league
 
 	function league_form($type = 'edit')
 	{
-		global $forums, $_INPUT, $DB;
-		$leagueid = intval($_INPUT['id']);
+		global $forums, $DB;
+		$leagueid = input::int('id');
 		if ($type == 'edit')
 		{
 			$pagetitle = $forums->lang['editlague'];
 			$detail = $forums->lang['editlaguedesc'];
-			if (!$_INPUT['id'] OR !$league = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "league WHERE leagueid=" . $leagueid . ""))
+			if (!input::get('id', '') OR !$league = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "league WHERE leagueid=" . $leagueid . ""))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
@@ -159,18 +159,18 @@ class league
 
 	function updateleague()
 	{
-		global $forums, $_INPUT, $DB;
+		global $forums, $DB;
 		if (!$_POST['sitename'] OR !$_POST['siteurl'])
 		{
 			$forums->admin->print_cp_error($forums->lang['inputallforms']);
 		}
-		$leagueid = intval($_INPUT['id']);
+		$leagueid = input::int('id');
 		$league = array(
-			'sitename' => $_INPUT['sitename'],
-			'siteurl' => $_INPUT['siteurl'],
-			'siteimage' => $_INPUT['siteimage'],
-			'siteinfo' => $_INPUT['siteinfo'],
-			'type' => $_INPUT['type']
+			'sitename' => input::get('sitename', ''),
+			'siteurl' => input::get('siteurl', ''),
+			'siteimage' => input::get('siteimage', ''),
+			'siteinfo' => input::get('siteinfo', ''),
+			'type' => input::get('type', '')
 		);
 		if ($leagueid)
 		{
@@ -181,18 +181,18 @@ class league
 			$DB->insert(TABLE_PREFIX . 'league', $league);
 		}
 		$forums->func->recache('league');
-		$forums->admin->save_log($forums->lang['addlague'] . " - {$_INPUT['sitename']}");
+		$forums->admin->save_log($forums->lang['addlague'] . " - " . input::get('sitename', '') . "");
 		$forums->admin->redirect("league.php", $forums->lang['manageleague'], $forums->lang['leaguechanged']);
 	}
 
 	function removeleague()
 	{
-		global $forums, $_INPUT, $DB;
-		if (!$_INPUT['id'])
+		global $forums, $DB;
+		if (!input::get('id', ''))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "league WHERE leagueid=" . intval($_INPUT['id']) . "");
+		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "league WHERE leagueid=" . input::int('id') . "");
 		$forums->func->recache('league');
 		$forums->admin->save_log($forums->lang['deletelague']);
 		$forums->admin->redirect("league.php", $forums->lang['manageleague'], $forums->lang['leaguedeleted']);
@@ -200,17 +200,17 @@ class league
 
 	function reorder()
 	{
-		global $forums, $_INPUT, $DB;
-		if (is_array($_INPUT['order']))
+		global $forums, $DB;
+		if (is_array(input::str('order')))
 		{
 			$leagues = $DB->query("SELECT leagueid,displayorder FROM " . TABLE_PREFIX . "league");
 			while ($league = $DB->fetch_array($leagues))
 			{
-				if (!isset($_INPUT['order'][$league['leagueid']]))
+				if (!isset(input::get('order', '')[$league['leagueid']]))
 				{
 					continue;
 				}
-				$displayorder = intval($_INPUT['order'][$league['leagueid']]);
+				$displayorder = intval(input::get('order', '')[$league['leagueid']]);
 				if ($league['displayorder'] != $displayorder)
 				{
 					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "league SET displayorder = $displayorder WHERE leagueid = " . $league['leagueid'] . "");

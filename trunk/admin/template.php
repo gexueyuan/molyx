@@ -17,7 +17,7 @@ class template
 
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditstyles'])
 		{
@@ -31,7 +31,7 @@ class template
 		$this->inherited = "<img src='{$forums->imageurl}/style_inherited.gif' border='0' alt='|' title='" . $forums->lang['styleinherited'] . "' />&nbsp;";
 		$forums->admin->cache_styles();
 
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'edit':
 				$this->edittemplates();
@@ -71,14 +71,13 @@ class template
 
 	function edittemplates($type = 'list')
 	{
-		global $forums, $DB, $_INPUT;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		if (!$_INPUT['id'])
+		global $forums, $DB;
+		if (!input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$styles = $forums->admin->stylecache[$_INPUT['id']];
-		$forums->admin->nav[] = array('template.php?id=' . $_INPUT['id'] , $forums->lang['templatesetting'] . ' - "' . $styles['title'] . '"');
+		$styles = $forums->admin->stylecache[input::get('id', '')];
+		$forums->admin->nav[] = array('template.php?id=' . input::int('id') , $forums->lang['templatesetting'] . ' - "' . $styles['title'] . '"');
 
 		$groups = array();
 		$group_bits = array();
@@ -88,7 +87,7 @@ class template
 			$search_word = $_GET['searchkeywords'] ? rawurldecode($_GET['searchkeywords']) : $_POST['searchkeywords'];
 			$search_word = trim($search_word);
 			$search_safe = urlencode($search_word);
-			$search_all = intval($_INPUT['searchall']);
+			$search_all = input::int('searchall');
 
 			if (!$search_word)
 			{
@@ -189,10 +188,10 @@ function dodeletealltemp()
 </script>
 JS;
 	echo "
-<form action='template.php?{$forums->sessionurl}do=search&amp;id={$_INPUT['id']}&amp;searchall=1' method='post'>
+<form action='template.php?{$forums->sessionurl}do=search&amp;id=" . input::get('id', '') . "&amp;searchall=1' method='post'>
 <table width='100%' cellspacing='0' cellpadding='0' align='center' border='0'>
 <tr><td class='tableborder'>
-<div style='float:right'><input type='text' size='20' class='textinput' name='searchkeywords' value='{$forums->lang['searchtpl']}...' onfocus=\"this.value=''\" />&nbsp;<input type='submit' class='button' value='{$forums->lang['ok']}' />&nbsp;".$forums->admin->print_button($forums->lang['addnewtemplate'], "template.php?{$forums->sessionurl}do=addbit&amp;id={$_INPUT['id']}&amp;p={$_INPUT['p']}&amp;", "button", $forums->lang['addnewtemplate'])."</div>
+<div style='float:right'><input type='text' size='20' class='textinput' name='searchkeywords' value='{$forums->lang['searchtpl']}...' onfocus=\"this.value=''\" />&nbsp;<input type='submit' class='button' value='{$forums->lang['ok']}' />&nbsp;".$forums->admin->print_button($forums->lang['addnewtemplate'], "template.php?{$forums->sessionurl}do=addbit&amp;id=" . input::get('id', '') . "&amp;p=" . input::get('p', '') . "&amp;", "button", $forums->lang['addnewtemplate'])."</div>
 <div id='catfont'>
 <img src='" . $forums->imageurl . "/arrow.gif' class='inline' />&nbsp;&nbsp;" . $forums->lang['templatelist'] . "</div>
 </td></tr>
@@ -203,7 +202,7 @@ JS;
 		{
 			$eid = $group['tid'];
 			$exp_content = '';
-			if ($_INPUT['expand'] == $group['templategroup'] || count($final[$group['templategroup']]))
+			if (input::str('expand') == $group['templategroup'] || count($final[$group['templategroup']]))
 			{
 				$forums->admin->checkdelete();
 
@@ -230,7 +229,7 @@ JS;
 				else
 				{
 					echo "
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='template.php?{$forums->sessionurl}do=edit&amp;id={$_INPUT['id']}&amp;expand={$group['templategroup']}' onclick=\"toggle('popbox'); return false;\">{$group['easy_name']}</a>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<a href='template.php?{$forums->sessionurl}do=edit&amp;id=" . input::get('id', '') . "&amp;expand={$group['templategroup']}' onclick=\"toggle('popbox'); return false;\">{$group['easy_name']}</a>
 </td>
 <td align='right' width='40%'>{$group['easy_preview']}</td>
 </tr>
@@ -248,8 +247,8 @@ JS;
 &nbsp;{$group['easy_name']}
 </div>
 </div>
-<form name='mutliact' action='template.php?{$forums->sessionurl}do=edittemplatebit&amp;expand={$group['templategroup']}&amp;id={$_INPUT['id']}&amp;p={$_INPUT['p']}&amp;search_string=$search_safe' method='post'>
-<input type='hidden' name='delmultiaction' id='delmultiaction' value='template.php?{$forums->sessionurl}do=remove_bit&amp;type=multi&amp;id={$_INPUT['id']}&amp;expand={$group['templategroup']}' />
+<form name='mutliact' action='template.php?{$forums->sessionurl}do=edittemplatebit&amp;expand={$group['templategroup']}&amp;id=" . input::get('id', '') . "&amp;p=" . input::get('p', '') . "&amp;search_string=$search_safe' method='post'>
+<input type='hidden' name='delmultiaction' id='delmultiaction' value='template.php?{$forums->sessionurl}do=remove_bit&amp;type=multi&amp;id=" . input::get('id', '') . "&amp;expand={$group['templategroup']}' />
 <div>
 <table cellspacing='0' cellpadding='2'>\n";
 				$temp = '';
@@ -260,7 +259,7 @@ JS;
 				}
 				else
 				{
-					$group_bits = $this->template->get_templates($styles['styleid'], 'groups', $_INPUT['expand']);
+					$group_bits = $this->template->get_templates($styles['styleid'], 'groups', input::get('expand', ''));
 				}
 
 				foreach($group_bits as $eye => $i)
@@ -295,20 +294,20 @@ JS;
 						$pre = (empty($group['templategroup']) || $group['templategroup'] == 'global') ? '' : $group['templategroup'] . '_';
 						if (file_exists(ROOT_DIR . 'templates/global/' . $pre . $sec['title'] . '.htm'))
 						{
-							$remove_button = "<a title='" . $forums->lang['revertoriginaltpl'] . "' href=\"javascript:checkdelete('template.php','do=remove_bit&amp;type=single&amp;title={$sec['title']}&amp;id={$_INPUT['id']}&amp;expand={$group['templategroup']}')\"><img src='{$forums->imageurl}/te_revert.gif' alt='X' border='0' /></a>&nbsp;";
+							$remove_button = "<a title='" . $forums->lang['revertoriginaltpl'] . "' href=\"javascript:checkdelete('template.php','do=remove_bit&amp;type=single&amp;title={$sec['title']}&amp;id=" . input::get('id', '') . "&amp;expand={$group['templategroup']}')\"><img src='{$forums->imageurl}/te_revert.gif' alt='X' border='0' /></a>&nbsp;";
 						}
 						else
 						{
 							$css_info = '#4790C4';
 							$custom_bit = ' (' . $forums->lang['customtemplate'] . ')';
-							$remove_button = "<a title='" . $forums->lang['revertoriginaltpl'] . "' href=\"javascript:checkdelete('template.php','do=remove_bit&amp;type=single&amp;title={$sec['title']}&amp;id={$_INPUT['id']}&amp;expand={$group['templategroup']}')\"><img src='{$forums->imageurl}/te_remove.gif' alt='X' border='0' /></a>&nbsp;";
+							$remove_button = "<a title='" . $forums->lang['revertoriginaltpl'] . "' href=\"javascript:checkdelete('template.php','do=remove_bit&amp;type=single&amp;title={$sec['title']}&amp;id=" . input::get('id', '') . "&amp;expand={$group['templategroup']}')\"><img src='{$forums->imageurl}/te_remove.gif' alt='X' border='0' /></a>&nbsp;";
 						}
 					}
 					echo "<tr>\n";
 					echo "<td width='2%' style='background-color:$css_info' align='center'><img src='{$forums->imageurl}/file.gif' title='" . $forums->lang['styleid'] . ":{$sec['styleid']}' alt='" . $forums->lang['template'] . "' style='vertical-align:middle' /></td>\n";
-					echo "<td width='88%' style='background-color:$css_info'><input type='checkbox' style='background-color:$css_info' name='cb_{$sec['title']}' value='1' />&nbsp;{$altered_image}<a href='template.php?{$forums->sessionurl}do=edittemplatebit&amp;title={$sec['title']}&amp;id={$_INPUT['id']}&amp;expand={$group['templategroup']}&amp;type=single&amp;search_string=$search_safe' title='" . $forums->lang['templatename'] . ": {$sec['title']}'>{$sec['easy_name']}</a>{$custom_bit}</td>\n";
-					echo "<td width='10%' style='background-color:$css_info' align='right' nowrap='nowrap'>" . $remove_button . "<a style='text-decoration:none' title='" . $forums->lang['viewtemplateastext'] . "' href='javascript:pop_win(\"template.php?{$forums->sessionurl}do=preview&amp;id={$_INPUT['id']}&amp;title={$sec['title']}&amp;type=text\", \"Preview\", 400, 450)'><img src='{$forums->imageurl}/preview_text.gif' border='0' alt='" . $forums->lang['viewtemplateastext'] . "' /></a>\n";
-					echo "<a style='text-decoration:none' title='" . $forums->lang['viewtemplateashtml'] . "' href='javascript:pop_win(\"template.php?{$forums->sessionurl}do=preview&amp;id={$_INPUT['id']}&amp;title={$sec['title']}&amp;type=html\", \"Preview\", 400, 450)'><img src='{$forums->imageurl}/preview_html.gif' border='0' alt='" . $forums->lang['viewtemplateashtml'] . "' />&nbsp;</a>\n";
+					echo "<td width='88%' style='background-color:$css_info'><input type='checkbox' style='background-color:$css_info' name='cb_{$sec['title']}' value='1' />&nbsp;{$altered_image}<a href='template.php?{$forums->sessionurl}do=edittemplatebit&amp;title={$sec['title']}&amp;id=" . input::get('id', '') . "&amp;expand={$group['templategroup']}&amp;type=single&amp;search_string=$search_safe' title='" . $forums->lang['templatename'] . ": {$sec['title']}'>{$sec['easy_name']}</a>{$custom_bit}</td>\n";
+					echo "<td width='10%' style='background-color:$css_info' align='right' nowrap='nowrap'>" . $remove_button . "<a style='text-decoration:none' title='" . $forums->lang['viewtemplateastext'] . "' href='javascript:pop_win(\"template.php?{$forums->sessionurl}do=preview&amp;id=" . input::get('id', '') . "&amp;title={$sec['title']}&amp;type=text\", \"Preview\", 400, 450)'><img src='{$forums->imageurl}/preview_text.gif' border='0' alt='" . $forums->lang['viewtemplateastext'] . "' /></a>\n";
+					echo "<a style='text-decoration:none' title='" . $forums->lang['viewtemplateashtml'] . "' href='javascript:pop_win(\"template.php?{$forums->sessionurl}do=preview&amp;id=" . input::get('id', '') . "&amp;title={$sec['title']}&amp;type=html\", \"Preview\", 400, 450)'><img src='{$forums->imageurl}/preview_html.gif' border='0' alt='" . $forums->lang['viewtemplateashtml'] . "' />&nbsp;</a>\n";
 					echo "</td>\n";
 					echo "</tr>\n";
 				}
@@ -316,7 +315,7 @@ JS;
 				echo "</div>\n";
 				echo "<div style='background:#142938'>\n";
 				echo "<div align='left' style='padding:5px;margin-left:25px'>\n";
-				echo "<div style='float:right'>" . $forums->admin->print_button($forums->lang['addnewtemplate'], "template.php?{$forums->sessionurl}do=addbit&amp;id={$_INPUT['id']}&amp;p={$_INPUT['p']}&amp;expand={$group['templategroup']}", "button", $forums->lang['addnewtemplate']) . "</div>\n";
+				echo "<div style='float:right'>" . $forums->admin->print_button($forums->lang['addnewtemplate'], "template.php?{$forums->sessionurl}do=addbit&amp;id=" . input::get('id', '') . "&amp;p=" . input::get('p', '') . "&amp;expand={$group['templategroup']}", "button", $forums->lang['addnewtemplate']) . "</div>\n";
 				echo "<div><input type='submit' class='button' value='" . $forums->lang['editselecttemplate'] . "' />&nbsp;&nbsp;";
 				if ($type != 'search')
 				{
@@ -361,7 +360,7 @@ JS;
 <table cellspacing='0' cellpadding='0' border='0'>
 <tr>
 <td align='center' width='1%'><img src='{$forums->imageurl}/toc_expand.gif' alt='" . $forums->lang['templategroup'] . "' style='vertical-align:middle' /></td>
-<td align='left' width='60%'>&nbsp;{$folder_blob}&nbsp;<a style='font-size:12px' onmouseover=\"return togglediv('desc_{$group['templategroup']}', 1);\" onmouseout=\"return togglediv('desc_{$group['templategroup']}', 0);\" href='template.php?{$forums->sessionurl}do=edit&amp;id={$_INPUT['id']}&amp;expand={$group['templategroup']}#{$group['templategroup']}'>{$group['easy_name']}</a></td>
+<td align='left' width='60%'>&nbsp;{$folder_blob}&nbsp;<a style='font-size:12px' onmouseover=\"return togglediv('desc_{$group['templategroup']}', 1);\" onmouseout=\"return togglediv('desc_{$group['templategroup']}', 0);\" href='template.php?{$forums->sessionurl}do=edit&amp;id=" . input::get('id', '') . "&amp;expand={$group['templategroup']}#{$group['templategroup']}'>{$group['easy_name']}</a></td>
 <td align='right' width='40%'>($count_string)</td>
 </tr>
 </table>
@@ -382,9 +381,9 @@ JS;
 
 	function do_preview()
 	{
-		global $forums, $DB, $_INPUT;
-		$styleid = $_INPUT['id'] ? 1 : intval($_INPUT['id']);
-		$title = trim($_INPUT['title']);
+		global $forums, $DB;
+		$styleid = input::get('id', '') ? 1 : input::int('id');
+		$title = trim(input::str('title'));
 		if (!$title || !$styleid)
 		{
 			$forums->admin->print_cp_error($forums->lang['requiretemplatename']);
@@ -393,7 +392,7 @@ JS;
 		$groupname = ($pos = strpos($title, '_')) ? substr($title, 0, $pos) : 'global';
 		$content = $this->template->get_template_content($styleid, $title);
 
-		if ($_INPUT['type'] == 'html')
+		if (input::str('type') == 'html')
 		{
 			$css_text = $this->template->get_template_content($styleid, 'style.css');
 			$css_text = "\n<style>\n<!--\n" . str_replace('<#IMAGE#>', 'images/' . $r['img_dir'], $css) . "\n//-->\n</style>";
@@ -411,14 +410,14 @@ JS;
 		echo "</tr>\n";
 		echo "</table>\n";
 		echo "<br /><br />\n";
-		if ($_INPUT['type'] == 'text')
+		if (input::str('type') == 'text')
 		{
 			$html = $this->convert_tags($content);
 			$html = $this->highlight_code($html);
 			echo "<table width='100%' cellpadding='4' style='font-family:verdana, arial;font-size:12px;'><tr><td>" . $html . "</td></tr></table>";
 			exit();
 		}
-		else if ($_INPUT['type'] == 'html')
+		else if (input::str('type') == 'html')
 		{
 			echo $this->convert_tags($content);
 			exit();
@@ -427,22 +426,22 @@ JS;
 
 	function edittemplatebit()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['edittemplate'];
 		$titles = array();
 		$groupname = '';
-		if ($_INPUT['type'] == 'single')
+		if (input::str('type') == 'single')
 		{
-			$titles[] = $_INPUT['title'];
-			$groupname = $this->template->get_groupname($_INPUT['title']);
+			$titles[] = input::get('title', '');
+			$groupname = $this->template->get_groupname(input::str('title'));
 		}
 		else
 		{
-			foreach ($_INPUT as $key => $value)
+			foreach ($_REQUEST as $key => $value)
 			{
 				if (preg_match('/^cb_([a-z0-9_]+)$/i', $key, $match))
 				{
-					if ($_INPUT[$match[0]])
+					if ($_REQUEST[$match[0]])
 					{
 						$titles[] = $match[1];
 						if (empty($groupname))
@@ -459,7 +458,7 @@ JS;
 			$forums->admin->print_cp_error($forums->lang['noselecttemplate']);
 		}
 
-		$forums->admin->nav[] = array("template.php?do=edit&amp;id={$_INPUT['id']}&amp;expand={$groupname}#{$groupname}", $forums->lang['templategroup'] . ' - ' . $groupname);
+		$forums->admin->nav[] = array("template.php?do=edit&amp;id=" . input::get('id', '') . "&amp;expand={$groupname}#{$groupname}", $forums->lang['templategroup'] . ' - ' . $groupname);
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		echo <<<JS
 <script language='javascript' type='text/javascript'>
@@ -470,12 +469,12 @@ function restore(title, expand, styleid)
 }
 </script>
 JS;
-		$styleid = intval($_INPUT['id']);
+		$styleid = input::int('id');
 
 		$forums->admin->print_form_header(array(
 			array('do', 'doedit'),
-			array('title', $_INPUT['title']),
-			array('type', $_INPUT['type']),
+			array('title', input::get('title', '')),
+			array('type', input::get('type', '')),
 			array('id', $styleid),
 		), 'theform');
 
@@ -516,13 +515,13 @@ JS;
 			$forums->admin->columns[] = array('&nbsp;' , '80%');
 			$forums->admin->print_table_start($altered_image . $name);
 			$forums->admin->print_cells_row(array(
-				"<input type='button' value='" . $forums->lang['enlargeeditor'] . "' class='button' title='" . $forums->lang['enlargeeditor'] . "' onclick=\"pop_win('template.php?{$forums->sessionurl}do=floateditor&amp;id=$styleid&amp;title={$name}', 'Float{$name}', 800, 500)\" /><br /><br /><input type='button' value='" . $forums->lang['reverttemplate'] . "' class='button' title='" . $forums->lang['reverttemplatedesc'] . "' onclick='restore(\"$name\", \"{$_INPUT['expand']}\", \"$styleid\")' /><br /><br /><input type='button' value='" . $forums->lang['vieworiginaltemplate'] . "'  class='button' title='" . $forums->lang['vieworiginaltemplate'] . "' onclick='pop_win(\"template.php?{$forums->sessionurl}do=preview&amp;title=$name&amp;id=1&amp;type=text\", \"OriginalPreview\", 400,400)' />\n",
+				"<input type='button' value='" . $forums->lang['enlargeeditor'] . "' class='button' title='" . $forums->lang['enlargeeditor'] . "' onclick=\"pop_win('template.php?{$forums->sessionurl}do=floateditor&amp;id=$styleid&amp;title={$name}', 'Float{$name}', 800, 500)\" /><br /><br /><input type='button' value='" . $forums->lang['reverttemplate'] . "' class='button' title='" . $forums->lang['reverttemplatedesc'] . "' onclick='restore(\"$name\", \"" . input::get('expand', '') . "\", \"$styleid\")' /><br /><br /><input type='button' value='" . $forums->lang['vieworiginaltemplate'] . "'  class='button' title='" . $forums->lang['vieworiginaltemplate'] . "' onclick='pop_win(\"template.php?{$forums->sessionurl}do=preview&amp;title=$name&amp;id=1&amp;type=text\", \"OriginalPreview\", 400,400)' />\n",
 				$forums->admin->print_textarea_row("txt$name", $templ, '100', '30', 'none', "t$name")
 			));
 
 			$forums->admin->print_cells_row(array(
 				"<strong>" . $forums->lang['searchintemplate'] . "</strong>",
-				$forums->admin->print_input_row('string' . $name, $_INPUT['search_string']) . "<INPUT class=\"button\" accessKey=\"f\" onclick=\"findInPage('t$name', document.theform.string$name.value);\" tabIndex=\"1\" type=\"button\" value=\" " . $forums->lang['find'] . " \" /><INPUT class=button accessKey=c onclick=highlightAll(t$name); type='button' value=' " . $forums->lang['copy'] . " ' />"
+				$forums->admin->print_input_row('string' . $name, input::get('search_string', '')) . "<INPUT class=\"button\" accessKey=\"f\" onclick=\"findInPage('t$name', document.theform.string$name.value);\" tabIndex=\"1\" type=\"button\" value=\" " . $forums->lang['find'] . " \" /><INPUT class=button accessKey=c onclick=highlightAll(t$name); type='button' value=' " . $forums->lang['copy'] . " ' />"
 			));
 
 			unset($forums->admin->columns);
@@ -535,16 +534,16 @@ JS;
 
 	function floatededitor()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$forums->admin->print_popup_header();
 		$forums->admin->print_form_header('', 'theform');
-		$forums->admin->print_table_start($_INPUT['title']);
+		$forums->admin->print_table_start(input::str('title'));
 		$forums->admin->print_cells_single_row($forums->admin->print_textarea_row('templatebit', $html, '100', '27', 'none', 'templatebit'));
 		$forums->admin->print_form_end($forums->lang['saveandreturn'], 'onclick="saveandclose();"');
 		$forums->admin->print_table_footer();
 		echo <<<JS
 <script type="text/javascript">
-var templateTitle = '{$_INPUT['title']}';
+var templateTitle = '" . input::get('title', '') . "';
 var templateBit  = eval('opener.document.theform.txt' + templateTitle + '.value');
 document.theform.templatebit.value = templateBit;
 function saveandclose()
@@ -559,14 +558,14 @@ JS;
 
 	function do_edit()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$titles = $cb_titles = array();
 		$groupname = '';
-		foreach ($_INPUT as $key => $value)
+		foreach ($_REQUEST as $key => $value)
 		{
 			if (preg_match('/^txt([a-z0-9_]+)$/i', $key, $match))
 			{
-				if (isset($_INPUT[$match[0]]))
+				if (isset($_REQUEST[$match[0]]))
 				{
 					if (empty($groupname))
 					{
@@ -582,7 +581,7 @@ JS;
 			$forums->admin->print_cp_error($forums->lang['noselecttemplate']);
 		}
 
-		$styleid = intval($_INPUT['id']);
+		$styleid = input::int('id');
 		$del_cache = false;
 		$dir = ROOT_PATH . 'templates/' . $forums->admin->stylecache[$styleid]['title_en'] . '/';
 		foreach($titles as $name)
@@ -604,17 +603,17 @@ JS;
 				file_write($dir . $name . '.htm', $text);
 			}
 
-			if ($_INPUT['type'] == 'single' )
+			if (input::str('type') == 'single' )
 			{
-				$_INPUT['title'] = $name;
+				input::set('title', $name);
 			}
 			else
 			{
-				$_INPUT['cb_' . $name] = 1;
+				$_REQUEST['cb_' . $name] = 1;
 			}
 		}
 		$type = '';
-		if ($_INPUT['type'] != 'single' )
+		if (input::get('type', '') != 'single' )
 		{
 			$type = 'edit';
 		}
@@ -624,9 +623,9 @@ JS;
 			$this->template->delstylecache($styleid);
 		}
 
-		if (!$_INPUT['savereload'])
+		if (!input::get('savereload', ''))
 		{
-			$forums->admin->redirect("template.php?do=edit&amp;id={$_INPUT['id']}&amp;expand={$groupname}#{$groupname}", $forums->lang['templateupdated'], $forums->lang['templateupdateddesc']);
+			$forums->admin->redirect("template.php?do=edit&amp;id=" . input::get('id', '') . "&amp;expand={$groupname}#{$groupname}", $forums->lang['templateupdated'], $forums->lang['templateupdateddesc']);
 		}
 		else
 		{
@@ -637,11 +636,11 @@ JS;
 
 	function addtemplatebit()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
 		$pagetitle = $forums->lang['addnewtemplate'];
-		$groupname = trim($_INPUT['expand']);
-		$styleid = intval($_INPUT['id']);
+		$groupname = trim(input::str('expand'));
+		$styleid = input::int('id');
 		$title = $forums->admin->stylecache[$styleid]['title'];
 		$forums->admin->nav[] = array("template.php?{$forums->sessionurl}do=edit&amp;id=$styleid&amp;expand={$groupname}#{$groupname}", $styles['title']);
 		$forums->admin->nav[] = array('', $forums->lang['addnewtemplate'] . ' - ' . $title);
@@ -662,11 +661,11 @@ JS;
 		$forums->admin->print_table_start($forums->lang['addnewtemplate']);
 		$forums->admin->print_cells_row(array(
 			'<strong>' . $forums->lang['templatename'] . '</strong><br />' . $forums->lang['templatenamedesc'],
-			$forums->admin->print_input_select_row('templategroup', $formatted_groups, $groupname ? $groupname : 'global'). '_' .$forums->admin->print_input_row('title', $_INPUT['title'])
+			$forums->admin->print_input_select_row('templategroup', $formatted_groups, $groupname ? $groupname : 'global'). '_' .$forums->admin->print_input_row('title', input::get('title', ''))
 		));
 		$forums->admin->print_cells_row(array(
 			$forums->lang['createnewgroup'] . '<br />' . $forums->lang['createnewgroupdesc'],
-			$forums->admin->print_input_row('new_templategroup', $_INPUT['new_templategroup'])
+			$forums->admin->print_input_row('new_templategroup', input::get('new_templategroup', ''))
 		));
 		$forums->admin->print_table_footer();
 		$forums->admin->print_table_start($forums->lang['addnewtemplate']);
@@ -678,10 +677,10 @@ JS;
 
 	function do_addtemplatebit()
 	{
-		global $forums, $DB, $_INPUT;
-		$styleid = intval($_INPUT['id']);
-		$templategroup = strtolower(trim($_INPUT['new_templategroup']));
-		$title = strtolower(trim($_INPUT['title']));
+		global $forums, $DB;
+		$styleid = input::int('id');
+		$templategroup = strtolower(trim(input::str('new_templategroup')));
+		$title = strtolower(trim(input::str('title')));
 
 		if ($templategroup)
 		{
@@ -691,7 +690,7 @@ JS;
 				$this->addtemplatebit();
 			}
 		}
-		$templategroup = $templategroup ? $templategroup : trim($_INPUT['templategroup']);
+		$templategroup = $templategroup ? $templategroup : trim(input::str('templategroup'));
 
 		if (!$title || preg_match("#[^\w_]#s", $title))
 		{
@@ -733,20 +732,20 @@ JS;
 
 	function removetemplatebit()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$titles = array();
-		$styleid = intval($_INPUT['id']);
-		if ($_INPUT['type'] == 'single')
+		$styleid = input::int('id');
+		if (input::str('type') == 'single')
 		{
-			$titles[] = $_INPUT['title'];
+			$titles[] = input::get('title', '');
 		}
 		else
 		{
-			foreach ($_INPUT as $key => $value)
+			foreach ($_REQUEST as $key => $value)
 			{
 				if (preg_match('/^cb_([a-z0-9_]+)$/i', $key, $match))
 				{
-					if (isset($_INPUT[$match[0]]))
+					if (isset($_REQUEST[$match[0]]))
 					{
 						$titles[] = $match[1];
 					}
@@ -770,7 +769,7 @@ JS;
 		}
 		$this->template->delstylecache($styleid);
 
-		$expand = trim($_INPUT['expand']);
+		$expand = trim(input::str('expand'));
 		$forums->admin->redirect("template.php?do=edit&id=$styleid&expand=$expand#$expand", $forums->lang['templatereverted'], $forums->lang['templatereverteddesc']);
 	}
 

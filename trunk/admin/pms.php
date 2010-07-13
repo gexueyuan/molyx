@@ -14,14 +14,14 @@ class pms
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['cansendpms'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$forums->admin->nav[] = array('pms.php' , $forums->lang['managepms']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'pmlist':
 				$this->pmlist();
@@ -46,12 +46,12 @@ class pms
 
 	function remove()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'] == "")
+		global $forums, $DB;
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (!$pm = $DB->query_first("SELECT p.*, pt.* FROM " . TABLE_PREFIX . "pm p LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid) WHERE p.pmid=" . $_INPUT['id'] . ""))
+		if (!$pm = $DB->query_first("SELECT p.*, pt.* FROM " . TABLE_PREFIX . "pm p LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid) WHERE p.pmid=" . input::get('id', '') . ""))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
@@ -112,7 +112,7 @@ class pms
 
 	function newpm($type = 'edit')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == 'new')
 		{
 			$pagetitle = $forums->lang['sendnewpms'];
@@ -120,7 +120,7 @@ class pms
 		}
 		else
 		{
-			if (!$pm = $DB->query_first("SELECT p.*, pt.* FROM " . TABLE_PREFIX . "pm p LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid) WHERE p.pmid=" . $_INPUT['id'] . ""))
+			if (!$pm = $DB->query_first("SELECT p.*, pt.* FROM " . TABLE_PREFIX . "pm p LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid) WHERE p.pmid=" . input::get('id', '') . ""))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
@@ -156,22 +156,22 @@ class pms
 
 	function sendpm()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		require_once(ROOT_PATH . 'includes/functions_codeparse.php');
 		$lib = new functions_codeparse();
-		$title = trim($_INPUT['title']);
+		$title = trim(input::str('title'));
 		$message = $lib->convert(array(
 			'text' => convert_andstr($_POST['message']),
 			'allowsmilies' => 0,
 			'allowcode' => 1,
 		));
 
-		if ($title == '' OR $message == '' OR !count($_INPUT['usergroupid']))
+		if ($title == '' OR $message == '' OR !count(input::int('usergroupid')))
 		{
 			$forums->admin->print_cp_error($forums->lang['inputallforms']);
 		}
 		$skip = false;
-		foreach ($_INPUT['usergroupid'] as $k => $ids)
+		foreach (input::get('usergroupid', '') as $k => $ids)
 		{
 			if ($ids == -1)
 			{
@@ -184,7 +184,7 @@ class pms
 		{
 			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread = pmunread+1 WHERE usergroupid IN (" . implode(',', $groupids) . ")");
 		}
-		if (!$_INPUT['id'])
+		if (!input::get('id', ''))
 		{
 			$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "pmtext
 								(dateline, message, deletedcount, savedcount)
@@ -195,15 +195,15 @@ class pms
 			$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "pm
 									(messageid, dateline, title, usergroupid,fromuserid)
 								VALUES
-									(" . $pmtextid . ", " . TIMENOW . ", '" . $title . "', '" . implode(',', $_INPUT['usergroupid']) . "', " . intval($bbuserinfo['id']) . ")"
+									(" . $pmtextid . ", " . TIMENOW . ", '" . $title . "', '" . implode(',', input::get('usergroupid', '')) . "', " . intval($bbuserinfo['id']) . ")"
 				);
 			$forums->admin->save_log($forums->lang['sendnewpms']);
 			$forums->func->standard_redirect("pms.php?" . $forums->sessionurl);
 		}
 		else
 		{
-			$DB->update(TABLE_PREFIX . 'pm', array('title' => $title, 'usergroupid' => implode(',', $_INPUT['usergroupid'])), 'pmid = ' . intval($_INPUT['id']));
-			$DB->update(TABLE_PREFIX . 'pmtext', array('message' => $message), 'pmtextid = ' . intval($_INPUT['messageid']));
+			$DB->update(TABLE_PREFIX . 'pm', array('title' => $title, 'usergroupid' => implode(',', input::get('usergroupid', ''))), 'pmid = ' . input::int('id'));
+			$DB->update(TABLE_PREFIX . 'pmtext', array('message' => $message), 'pmtextid = ' . input::int('messageid'));
 			$forums->admin->save_log($forums->lang['editpms']);
 			$forums->func->standard_redirect("pms.php?" . $forums->sessionurl);
 		}

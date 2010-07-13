@@ -14,14 +14,14 @@ class importers
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditothers'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$forums->admin->nav[] = array('importers.php', $forums->lang['importers']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'doinit':
 				$this->doinit();
@@ -34,7 +34,7 @@ class importers
 
 	function start()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$pagetitle = $forums->lang['importers'];
 		$detail = $forums->lang['importersdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
@@ -72,8 +72,8 @@ class importers
 
 	function doinit()
 	{
-		global $forums, $_INPUT;
-		if (!$_INPUT['importscript'])
+		global $forums;
+		if (!input::get('importscript', ''))
 		{
 			$forums->main_msg = $forums->lang['plzselectimporter'];
 			$this->start();
@@ -84,13 +84,13 @@ class importers
 		$newinit = new adminfunctions_importers();
 		$forums->func->update_cache(array('name' => 'cron', 'array' => 0));
 		$forums->func->update_cache(array('name' => 'settings', 'array' => 1));
-		if ($_INPUT['importscript'] == "membersarea")
+		if (input::str('importscript') == "membersarea")
 		{
 			header("Location: http://www.molyx.com/");
 		}
 		else
 		{
-			$script = $_INPUT['importscript'];
+			$script = input::get('importscript', '');
 			$sess = $forums->sessionurl;
 			header("Location: ../importers/import_$script.php?" . $sess);
 		}

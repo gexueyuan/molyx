@@ -14,13 +14,13 @@ class moderate
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditusers'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'add':
 				$this->add_one();
@@ -51,8 +51,8 @@ class moderate
 
 	function remove()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'] == '' OR ! $mod = $DB->query_first('SELECT username, userid, usergroupid, usergroupname, isgroup FROM ' . TABLE_PREFIX . 'moderator WHERE moderatorid=' . intval($_INPUT['id'])))
+		global $forums, $DB;
+		if (input::str('id') == '' OR ! $mod = $DB->query_first('SELECT username, userid, usergroupid, usergroupname, isgroup FROM ' . TABLE_PREFIX . 'moderator WHERE moderatorid=' . input::int('id')))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
@@ -74,7 +74,7 @@ class moderate
 				}
 			}
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "moderator WHERE moderatorid=" . intval($_INPUT['id']) . "");		
+		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "moderator WHERE moderatorid=" . input::int('id') . "");		
 		if ($DB->query_first("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE userid=" . intval($mod['userid']))) 
 		{
 		}		
@@ -89,39 +89,39 @@ class moderate
 
 	function do_edit()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['userid'] == "")
+		global $forums, $DB;
+		if (input::str('userid') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$bantimelimit = intval($_INPUT['bantimelimit'])<0?0:intval($_INPUT['bantimelimit']);
-		$mod = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE moderatorid='" . intval($_INPUT['u']) . "'");
+		$bantimelimit = input::int('bantimelimit')<0?0:input::int('bantimelimit');
+		$mod = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE moderatorid='" . input::int('u') . "'");
 		$DB->update(TABLE_PREFIX . 'moderator', array(
-			'forumid' => $_INPUT['forumid'],
-			'caneditposts' => $_INPUT['caneditposts'],
-			'caneditthreads' => $_INPUT['caneditthreads'],
-			'candeleteposts' => $_INPUT['candeleteposts'],
-			'candeletethreads' => $_INPUT['candeletethreads'],
-			'canviewips' => $_INPUT['canviewips'],
-			'canopenclose' => $_INPUT['canopenclose'],
-			'canremoveposts' => $_INPUT['canremoveposts'],
-			'canstickthread' => $_INPUT['canstickthread'],
-			'canqstickthread' => $_INPUT['canqstickthread'],
-			'cangstickthread' => $_INPUT['cangstickthread'],
-			'canmoderateposts' => $_INPUT['canmoderateposts'],
-			'canmanagethreads' => $_INPUT['canmanagethreads'],
-			'canmergethreads' => $_INPUT['canmergethreads'],
-			'cansplitthreads' => $_INPUT['cansplitthreads'],
-			'caneditusers' => $_INPUT['caneditusers'],
-			'caneditrule' => $_INPUT['caneditrule'],
-			'cansetst' => $_INPUT['cansetst'],
-			'canbanuser' => $_INPUT['canbanuser'],
-			'canquintessence' => $_INPUT['canquintessence'],
-			'canbanpost' => $_INPUT['canbanpost'],
-			'modcancommend' => $_INPUT['modcancommend'],
-			'bantimelimit' => $bantimelimit . $_INPUT['bantimeunit'],
-			'sendbanmsg' => $_INPUT['sendbanmsg'],
-		), 'moderatorid=' . intval($_INPUT['u']));
+			'forumid' => input::get('forumid', ''),
+			'caneditposts' => input::get('caneditposts', ''),
+			'caneditthreads' => input::get('caneditthreads', ''),
+			'candeleteposts' => input::get('candeleteposts', ''),
+			'candeletethreads' => input::get('candeletethreads', ''),
+			'canviewips' => input::get('canviewips', ''),
+			'canopenclose' => input::get('canopenclose', ''),
+			'canremoveposts' => input::get('canremoveposts', ''),
+			'canstickthread' => input::get('canstickthread', ''),
+			'canqstickthread' => input::get('canqstickthread', ''),
+			'cangstickthread' => input::get('cangstickthread', ''),
+			'canmoderateposts' => input::get('canmoderateposts', ''),
+			'canmanagethreads' => input::get('canmanagethreads', ''),
+			'canmergethreads' => input::get('canmergethreads', ''),
+			'cansplitthreads' => input::get('cansplitthreads', ''),
+			'caneditusers' => input::get('caneditusers', ''),
+			'caneditrule' => input::get('caneditrule', ''),
+			'cansetst' => input::get('cansetst', ''),
+			'canbanuser' => input::get('canbanuser', ''),
+			'canquintessence' => input::get('canquintessence', ''),
+			'canbanpost' => input::get('canbanpost', ''),
+			'modcancommend' => input::get('modcancommend', ''),
+			'bantimelimit' => $bantimelimit . input::get('bantimeunit', ''),
+			'sendbanmsg' => input::get('sendbanmsg', ''),
+		), 'moderatorid=' . input::int('u'));
 		$forums->func->recache('moderator');
 		$forums->admin->save_log($forums->lang['moderateedited'] . " '{$mod['username']}'");
 		$forums->admin->redirect("moderate.php", $forums->lang['managemoderate'], $forums->lang['moderateedited']);
@@ -129,54 +129,54 @@ class moderate
 
 	function add_mod()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['fid'] == "")
+		global $forums, $DB;
+		if (input::str('fid') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['selectmodforum']);
 		}
-		$bantimelimit = intval($_INPUT['bantimelimit']);
+		$bantimelimit = input::int('bantimelimit');
 		$bantimelimit = $bantimelimit<0?0:$bantimelimit;
-		$moderator = array('caneditposts' => $_INPUT['caneditposts'],
-			'caneditthreads' => $_INPUT['caneditthreads'],
-			'candeleteposts' => $_INPUT['candeleteposts'],
-			'candeletethreads' => $_INPUT['candeletethreads'],
-			'canviewips' => $_INPUT['canviewips'],
-			'canopenclose' => $_INPUT['canopenclose'],
-			'canremoveposts' => $_INPUT['canremoveposts'],
-			'canstickthread' => $_INPUT['canstickthread'],
-			'canqstickthread' => $_INPUT['canqstickthread'],
-			'cangstickthread' => $_INPUT['cangstickthread'],
-			'canmoderateposts' => $_INPUT['canmoderateposts'],
-			'canmanagethreads' => $_INPUT['canmanagethreads'],
-			'canmergethreads' => $_INPUT['canmergethreads'],
-			'cansplitthreads' => $_INPUT['cansplitthreads'],
-			'canquintessence' => $_INPUT['canquintessence'],
-			'caneditusers' => $_INPUT['caneditusers'],
-			'caneditrule' => $_INPUT['caneditrule'],
-			'cansetst' => $_INPUT['cansetst'],
-			'canbanuser' => $_INPUT['canbanuser'],
-			'canbanpost' => $_INPUT['canbanpost'],
-			'modcancommend' => $_INPUT['modcancommend'],
-			'bantimelimit' => $bantimelimit . $_INPUT['bantimeunit'],
-			'sendbanmsg' => $_INPUT['sendbanmsg']
+		$moderator = array('caneditposts' => input::get('caneditposts', ''),
+			'caneditthreads' => input::get('caneditthreads', ''),
+			'candeleteposts' => input::get('candeleteposts', ''),
+			'candeletethreads' => input::get('candeletethreads', ''),
+			'canviewips' => input::get('canviewips', ''),
+			'canopenclose' => input::get('canopenclose', ''),
+			'canremoveposts' => input::get('canremoveposts', ''),
+			'canstickthread' => input::get('canstickthread', ''),
+			'canqstickthread' => input::get('canqstickthread', ''),
+			'cangstickthread' => input::get('cangstickthread', ''),
+			'canmoderateposts' => input::get('canmoderateposts', ''),
+			'canmanagethreads' => input::get('canmanagethreads', ''),
+			'canmergethreads' => input::get('canmergethreads', ''),
+			'cansplitthreads' => input::get('cansplitthreads', ''),
+			'canquintessence' => input::get('canquintessence', ''),
+			'caneditusers' => input::get('caneditusers', ''),
+			'caneditrule' => input::get('caneditrule', ''),
+			'cansetst' => input::get('cansetst', ''),
+			'canbanuser' => input::get('canbanuser', ''),
+			'canbanpost' => input::get('canbanpost', ''),
+			'modcancommend' => input::get('modcancommend', ''),
+			'bantimelimit' => $bantimelimit . input::get('bantimeunit', ''),
+			'sendbanmsg' => input::get('sendbanmsg', '')
 			);
 		$forumids = array();
-		$DB->query("SELECT id FROM " . TABLE_PREFIX . "forum WHERE id IN(" . $_INPUT['fid'] . ")");
+		$DB->query("SELECT id FROM " . TABLE_PREFIX . "forum WHERE id IN(" . input::get('fid', '') . ")");
 		while ($i = $DB->fetch_array())
 		{
 			$forumids[ $i['id'] ] = $i['id'];
 		}
-		if ($_INPUT['mtype'] == 'group')
+		if (input::str('mtype') == 'group')
 		{
-			if ($_INPUT['gid'] == "")
+			if (input::str('gid') == "")
 			{
 				$forums->admin->print_cp_error($forums->lang['groupnotmatch']);
 			}
-			if (! $group = $DB->query_first("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid='" . $_INPUT['gid'] . "'"))
+			if (! $group = $DB->query_first("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid='" . input::get('gid', '') . "'"))
 			{
 				$forums->admin->print_cp_error($forums->lang['groupnotmatch']);
 			}
-			$DB->query("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE forumid IN(" . $_INPUT['fid'] . ") AND usergroupid='" . $_INPUT['gid'] . "'");
+			$DB->query("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE forumid IN(" . input::get('fid', '') . ") AND usergroupid='" . input::get('gid', '') . "'");
 			while ($f = $DB->fetch_array())
 			{
 				unset($forumids[ $f['forumid'] ]);
@@ -191,16 +191,15 @@ class moderate
 		}
 		else
 		{
-			$_INPUT['userid'] = intval($_INPUT['userid']);
-			if (!$_INPUT['userid'])
+			if (!input::int('userid'))
 			{
 				$forums->admin->print_cp_error($forums->lang['selectmoduser']);
 			}
-			if (! $user = $DB->query_first("SELECT id, name, usergroupid FROM " . TABLE_PREFIX . "user WHERE id='" . $_INPUT['userid'] . "'"))
+			if (! $user = $DB->query_first("SELECT id, name, usergroupid FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('userid') . "'"))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
-			$DB->query("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE forumid IN(" . $_INPUT['fid'] . ") AND userid='" . $_INPUT['userid'] . "'");
+			$DB->query("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE forumid IN(" . input::get('fid', '') . ") AND userid='" . input::int('userid') . "'");
 			while ($f = $DB->fetch_array())
 			{
 				unset($forumids[ $f['forumid'] ]);
@@ -231,17 +230,17 @@ class moderate
 
 	function mod_form($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$group = array();
 		if ($type == 'add')
 		{
-			if ($_INPUT['fid'] == "")
+			if (input::str('fid') == "")
 			{
 				$forums->admin->print_cp_error($forums->lang['selectmodforum']);
 			}
 			$mod = $this->get_default_prms();
 			$names = array();
-			$DB->query("SELECT name FROM " . TABLE_PREFIX . "forum WHERE id IN(" . $_INPUT['fid'] . ")");
+			$DB->query("SELECT name FROM " . TABLE_PREFIX . "forum WHERE id IN(" . input::get('fid', '') . ")");
 			while ($r = $DB->fetch_array())
 			{
 				$names[] = $r['name'];
@@ -249,9 +248,9 @@ class moderate
 			$thenames = implode(", ", $names);
 			$button = $forums->lang['addmoderator'];
 			$form_code = 'doadd';
-			if ($_INPUT['mtype'] == 'group')
+			if (input::str('mtype') == 'group')
 			{
-				if (! $group = $DB->query_first("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid='" . $_INPUT['mod_group'] . "'"))
+				if (! $group = $DB->query_first("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid='" . input::get('mod_group', '') . "'"))
 				{
 					$forums->admin->print_cp_error($forums->lang['notfindmodgroup']);
 				}
@@ -261,13 +260,13 @@ class moderate
 			}
 			else
 			{
-				if ($_INPUT['userid'] == "")
+				if (input::str('userid') == "")
 				{
 					$forums->admin->print_cp_error($forums->lang['noids']);
 				}
 				else
 				{
-					if (! $user = $DB->query_first("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE id='" . intval($_INPUT['userid']) . "'"))
+					if (! $user = $DB->query_first("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('userid') . "'"))
 					{
 						$forums->admin->print_cp_error($forums->lang['noids']);
 					}
@@ -281,7 +280,7 @@ class moderate
 		}
 		else
 		{
-			if ($_INPUT['u'] == "")
+			if (input::str('u') == "")
 			{
 				$forums->admin->print_cp_error($forums->lang['selectmoderator']);
 			}
@@ -289,7 +288,7 @@ class moderate
 			$form_code = "doedit";
 			$pagetitle = $forums->lang['editmoderator'];
 			$detail = $forums->lang['editmoderatordesc'];
-			if (! $mod = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE moderatorid='" . intval($_INPUT['u']) . "'"))
+			if (! $mod = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE moderatorid='" . input::int('u') . "'"))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
@@ -302,9 +301,9 @@ class moderate
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->print_form_header(array(1 => array('do', $form_code),
 				2 => array('u', $mod['moderatorid']),
-				3 => array('fid', $_INPUT['fid']),
+				3 => array('fid', input::get('fid', '')),
 				4 => array('userid', $userid),
-				5 => array('mtype', $_INPUT['mtype']),
+				5 => array('mtype', input::get('mtype', '')),
 				6 => array('gid', $group['usergroupid']),
 				7 => array('gname', $forums->lang[ $group['grouptitle'] ]),
 				));
@@ -352,12 +351,12 @@ class moderate
 
 	function add_one()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$fid = "";
 		$forumids = array();
-		if (count($_INPUT['add']))
+		if (count(input::str('add')))
 		{
-			foreach ($_INPUT['add'] AS $value)
+			foreach (input::get('add', '') AS $value)
 			{
 				if ($value)
 				{
@@ -370,9 +369,9 @@ class moderate
 			$forums->admin->print_cp_error($forums->lang['mustselectforums']);
 		}
 		$fid = implode("," , $forumids);
-		if ($_INPUT['userid'])
+		if (input::str('userid'))
 		{
-			$_INPUT['fid'] = $fid;
+			input::set('fid', $fid);
 			$this->mod_form();
 			exit();
 		}
@@ -380,11 +379,11 @@ class moderate
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->print_form_header(array(1 => array('do' , 'add_two'),
 				2 => array('fid', $fid),
-				3 => array('mtype', $_INPUT['mtype']),
+				3 => array('mtype', input::get('mtype', '')),
 				));
 		$forums->admin->columns[] = array("&nbsp;", "40%");
 		$forums->admin->columns[] = array("&nbsp;", "60%");
-		if ($_INPUT['mtype'] == 'user')
+		if (input::str('mtype') == 'user')
 		{
 			$forums->admin->print_table_start($forums->lang['finduser']);
 			$forums->admin->print_cells_row(array("<strong>" . $forums->lang['inputusername'] . "</strong>" ,
@@ -411,17 +410,17 @@ class moderate
 
 	function add_two()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['mtype'] == 'group')
+		global $forums, $DB;
+		if (input::str('mtype') == 'group')
 		{
 			$this->mod_form();
 			exit();
 		}
-		if ($_INPUT['username'] == "")
+		if (input::str('username') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['selectmoduser']);
 		}
-		$DB->query("SELECT id, name FROM " . TABLE_PREFIX . "user WHERE LOWER(name) LIKE concat('" . strtolower($_INPUT['username']) . "','%') OR name LIKE concat('" . $_INPUT['username'] . "','%')");
+		$DB->query("SELECT id, name FROM " . TABLE_PREFIX . "user WHERE LOWER(name) LIKE concat('" . strtolower(input::str('username')) . "','%') OR name LIKE concat('" . input::get('username', '') . "','%')");
 		if (! $DB->num_rows())
 		{
 			$forums->admin->print_cp_error($forums->lang['notfindmoduser']);
@@ -434,7 +433,7 @@ class moderate
 		$pagetitle = $forums->lang['addmoderator'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->print_form_header(array(1 => array('do', 'add_final'),
-				2 => array('fid', $_INPUT['fid']),
+				2 => array('fid', input::get('fid', '')),
 				));
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
@@ -449,21 +448,21 @@ class moderate
 
 	function show_list()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['managemoderate'];
 		$detail = $forums->lang['managemoderatedesc'] . "<br />";
 		$detail .= $forums->lang['onlinestatusdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->print_form_header(array(1 => array('do' , 'add')));
-		if ($_INPUT['type'] == 'single')
+		if (input::str('type') == 'single')
 		{
-			echo "<input type='hidden' name='add[]' value='" . $_INPUT['f'] . "'>";
+			echo "<input type='hidden' name='add[]' value='" . input::get('f', '') . "'>";
 		}
 		else
 		{
-			if ($_INPUT['userid'])
+			if (input::str('userid'))
 			{
-				$user = $DB->query_first("SELECT id,name FROM " . TABLE_PREFIX . "user WHERE id=" . $_INPUT['userid'] . "");
+				$user = $DB->query_first("SELECT id,name FROM " . TABLE_PREFIX . "user WHERE id=" . input::int('userid') . "");
 				echo "<input type='hidden' name='userid' value='" . $user['id'] . "'>";
 				$forums->lang['setmodforum'] = sprintf($forums->lang['setmodforum'], $user['name']);
 				$title = $forums->lang['setmodforum'];
@@ -485,13 +484,13 @@ class moderate
 			$forums->adminforum->type = 'moderator';
 			$forums->adminforum->show_all = 1;
 			$forums->adminforum->forums_list_forums();
-			if ($_INPUT['userid'])
+			if (input::str('userid'))
 			{
 				$forums->admin->print_form_submit($forums->lang['addmoderatortoforum']);
 			}
 			$forums->admin->print_table_footer();
 		}
-		if (!$_INPUT['userid'])
+		if (!input::int('userid'))
 		{
 			$forums->admin->columns[] = array("&nbsp;" , "40%");
 			$forums->admin->columns[] = array("&nbsp;" , "60%");

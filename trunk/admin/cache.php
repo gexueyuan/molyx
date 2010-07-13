@@ -14,7 +14,7 @@ class cache
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditcaches'])
 		{
@@ -22,7 +22,7 @@ class cache
 		}
 
 		$forums->admin->nav[] = array('cache.php' , $forums->lang['managecache']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'cacheend':
 				$this->cacheend();
@@ -38,18 +38,18 @@ class cache
 
 	function viewcache()
 	{
-		global $forums, $DB, $_INPUT;
-		if (! $_INPUT['id'])
+		global $forums, $DB;
+		if (! input::get('id', ''))
 		{
 			$forums->main_msg = $forums->lang['noids'];
 			$this->cacheform();
 		}
-		if ($_INPUT['id'] == 'forum_cache')
+		if (input::str('id') == 'forum_cache')
 		{
-			$_INPUT['id'] = 'forum';
+			input::set('id', 'forum');
 		}
-		$forums->func->check_cache($_INPUT['id']);
-		$out = print_r($forums->cache[$_INPUT['id']], true);
+		$forums->func->check_cache(input::str('id'));
+		$out = print_r($forums->cache[input::get('id', '')], true);
 		$forums->admin->print_popup_header();
 		echo "<pre>" . $out . "</pre>";
 		$forums->admin->print_popup_footer();
@@ -57,9 +57,9 @@ class cache
 
 	function cacheend()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$action = "";
-		foreach($_INPUT AS $k => $v)
+		foreach($_REQUEST AS $k => $v)
 		{
 			if (strstr($k, 'update') AND $v != "")
 			{

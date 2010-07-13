@@ -14,14 +14,14 @@ class usergroup
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditusergroups'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$forums->admin->nav[] = array('usergroup.php', $forums->lang['manageusergroup']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'doadd':
 				$this->savegroup('add');
@@ -94,8 +94,8 @@ class usergroup
 
 	function userpromotion()
 	{
-		global $forums, $DB, $_INPUT;
-		$usergroupid = intval($_INPUT['usergroupid']);
+		global $forums, $DB;
+		$usergroupid = input::int('usergroupid');
 		$gquery = '';
 		if ($usergroupid)
 		{
@@ -212,7 +212,7 @@ class usergroup
 
 	function adduserpromotion($type = 'edit')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$DB->query("SELECT usergroupid, grouptitle
 			FROM " . TABLE_PREFIX . "usergroup
 			ORDER BY grouptitle");
@@ -230,7 +230,7 @@ class usergroup
 		{
 			$promotion = $DB->query_first("SELECT up.*, u.grouptitle
 				FROM " . TABLE_PREFIX . "userpromotion up, " . TABLE_PREFIX . "usergroup u
-				WHERE up.userpromotionid = " . $_INPUT['id'] . "
+				WHERE up.userpromotionid = " . input::get('id', '') . "
 					AND up.usergroupid = u.usergroupid"
 			);
 			$pagetitle = $forums->lang['editpromotions'];
@@ -288,37 +288,37 @@ class usergroup
 
 	function updatepromotion()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['joinusergroupid'] == -1)
+		global $forums, $DB;
+		if (input::int('joinusergroupid') == -1)
 		{
 			$forums->admin->print_cp_error($forums->lang['selectpromotiongroup']);
 		}
-		if ($_INPUT['usergroupid'] == 4)
+		if (input::int('usergroupid') == 4)
 		{
 			$forums->admin->print_cp_error($forums->lang['istoppromotion']);
 		}
-		if (!$group = $DB->query_first("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . intval($_INPUT['usergroupid']) . ""))
+		if (!$group = $DB->query_first("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::int('usergroupid') . ""))
 		{
 			$forums->admin->print_cp_error($forums->lang['promotiongroupnotfound']);
 		}
-		$promotion = array('usergroupid' => intval($_INPUT['usergroupid']),
-			'joinusergroupid' => intval($_INPUT['joinusergroupid']),
-			'date' => intval($_INPUT['date']),
-			'posts' => intval($_INPUT['posts']),
-			'reputation' => intval($_INPUT['reputation']),
-			'strategy' => intval($_INPUT['strategy']),
-			'type' => intval($_INPUT['type']),
+		$promotion = array('usergroupid' => input::int('usergroupid'),
+			'joinusergroupid' => input::int('joinusergroupid'),
+			'date' => input::int('date'),
+			'posts' => input::int('posts'),
+			'reputation' => input::int('reputation'),
+			'strategy' => input::int('strategy'),
+			'type' => input::int('type'),
 			'date_sign' => trim($_POST['date_sign']),
 			'posts_sign' => trim($_POST['posts_sign']),
 			'reputation_sign' => trim($_POST['reputation_sign']),
 		);
-		if ($_INPUT['usergroupid'] == $promotion['joinusergroupid'])
+		if (input::int('usergroupid') == $promotion['joinusergroupid'])
 		{
 			$forums->admin->print_cp_error($forums->lang['promotionnotsame']);
 		}
-		if (!empty($_INPUT['userpromotionid']))
+		if (!empty(input::str('userpromotionid')))
 		{
-			$DB->update(TABLE_PREFIX . 'userpromotion', $promotion, 'userpromotionid=' . intval($_INPUT['userpromotionid']));
+			$DB->update(TABLE_PREFIX . 'userpromotion', $promotion, 'userpromotionid=' . input::int('userpromotionid'));
 		}
 		else
 		{
@@ -331,10 +331,10 @@ class usergroup
 
 	function deletepromotion()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['update'])
+		global $forums, $DB;
+		if (input::str('update'))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "userpromotion WHERE userpromotionid = " . $_INPUT['userpromotionid'] . "");
+			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "userpromotion WHERE userpromotionid = " . input::get('userpromotionid', '') . "");
 			$forums->admin->save_log($forums->lang['deletepromotion']);
 			$forums->admin->redirect("usergroup.php?do=promotions", $forums->lang['userpromotion'], $forums->lang['promotiondeleted']);
 		}
@@ -344,7 +344,7 @@ class usergroup
 			$detail = $forums->lang['confirmdeletepromotion'];
 			$forums->admin->nav[] = array('', $forums->lang['deletepromotion']);
 			$forums->admin->print_cp_header($pagetitle, $detail);
-			$forums->admin->print_form_header(array(1 => array('do', 'deletepromotions'), 2 => array('userpromotionid', $_INPUT['id']), 3 => array('update', 1)));
+			$forums->admin->print_form_header(array(1 => array('do', 'deletepromotions'), 2 => array('userpromotionid', input::get('id', '')), 3 => array('update', 1)));
 			$forums->admin->print_table_start($forums->lang['confirmdeletepromotion']);
 			$forums->admin->print_cells_single_row($forums->lang['deletepromotiondesc'], "center");
 			$forums->admin->print_form_submit($forums->lang['confirmdelete']);
@@ -356,16 +356,16 @@ class usergroup
 
 	function previewforums()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'] == "")
+		global $forums, $DB;
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (! $perms = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . $_INPUT['id'] . ""))
+		if (! $perms = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . ""))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		switch ($_INPUT['t'])
+		switch (input::str('t'))
 		{
 			case 'start':
 				$type = $forums->lang['postnewthread'];
@@ -389,7 +389,7 @@ class usergroup
 				break;
 		}
 		$forums->admin->print_popup_header();
-		$forums->admin->print_form_header(array(1 => array('do', 'previewforums'), 2 => array('id', $_INPUT['id'])));
+		$forums->admin->print_form_header(array(1 => array('do', 'previewforums'), 2 => array('id', input::get('id', ''))));
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
 		$forums->admin->print_table_start($forums->lang['legendreference']);
@@ -402,7 +402,7 @@ class usergroup
 						2 => array('read' , $forums->lang['readforum']),
 						3 => array('show' , $forums->lang['viewboard']),
 						4 => array('upload', $forums->lang['uploadattach']),
-						), $_INPUT['t'])
+						), input::get('t', ''))
 				));
 		$forums->admin->print_form_submit($forums->lang['permissiontest']);
 		$forums->admin->print_table_footer();
@@ -410,7 +410,7 @@ class usergroup
 		$forums->admin->columns[] = array("$type" , "100%");
 		$forums->admin->print_table_start($forums->lang['viewpermsgroup'] . ": " . $forums->lang[ $perms['grouptitle'] ]);
 		$html = "";
-		$perm_id = intval($_INPUT['id']);
+		$perm_id = input::int('id');
 		$allforum = $forums->adminforum->forumcache;
 		foreach($allforum AS $key => $value)
 		{
@@ -468,12 +468,12 @@ class usergroup
 
 	function forumpermission()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'] == "")
+		global $forums, $DB;
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$group = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . $_INPUT['id'] . "");
+		$group = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . "");
 		$gid = $group['usergroupid'];
 		$gname = $forums->lang[ $group['grouptitle'] ];
 		$forums->lang['editgroupperms'] = sprintf($forums->lang['editgroupperms'], $gname);
@@ -552,17 +552,17 @@ class usergroup
 
 	function doforumpermission()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'] == "")
+		global $forums, $DB;
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$gid = $_INPUT['id'];
+		$gid = input::get('id', '');
 		$thisgroup = false;
 		$forumpermission = $DB->query("SELECT * FROM " . TABLE_PREFIX . "usergroup ORDER BY usergroupid");
 		while ($group = $DB->fetch_array($forumpermission))
 		{
-			if ($_INPUT['id'] == $group['usergroupid'])
+			if (input::int('id') == $group['usergroupid'])
 			{
 				$thisgroup = true;
 			}
@@ -605,7 +605,7 @@ class usergroup
 				$newperms[ $bit ] = '';
 				if ($perms['can' . $bit] == '*')
 				{
-					if ($_INPUT[ $bit . '_' . $row['id'] ] != 1)
+					if ($_REQUEST[ $bit . '_' . $row['id'] ] != 1)
 					{
 						foreach ($groupperms AS $g)
 						{
@@ -637,7 +637,7 @@ class usergroup
 							$bit_counts++;
 						}
 					}
-					if ($_INPUT[ $bit . '_' . $row['id'] ] == 1)
+					if ($_REQUEST[ $bit . '_' . $row['id'] ] == 1)
 					{
 						$newperms[ $bit ] .= $gid . ",";
 						$bit_counts++;
@@ -678,7 +678,7 @@ class usergroup
 							}
 						}
 					}
-					if ($_INPUT[ $bit . '_' . $row['id'] ] == 1)
+					if (input::int($bit . '_' . $row['id']) == 1)
 					{
 						$newperms[ $bit ] .= $gid . ",";
 						$bit_counts++;
@@ -722,22 +722,22 @@ class usergroup
 
 	function deleteform()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['id'] == "")
+		global $forums, $DB;
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if ($_INPUT['id'] < 7)
+		if (input::get('id', '') < 7)
 		{
 			$forums->admin->print_cp_error($forums->lang['cannotdeletepregroup']);
 		}
-		$black_adder = $DB->query_first("SELECT COUNT(id) as users FROM " . TABLE_PREFIX . "user WHERE usergroupid=" . $_INPUT['id'] . "");
+		$black_adder = $DB->query_first("SELECT COUNT(id) as users FROM " . TABLE_PREFIX . "user WHERE usergroupid=" . input::get('id', '') . "");
 		if ($black_adder['users'] < 1)
 		{
 			$black_adder['users'] = 0;
 		}
-		$group = $DB->query_first("SELECT grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . $_INPUT['id'] . "");
-		$DB->query("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid <> " . $_INPUT['id'] . "");
+		$group = $DB->query_first("SELECT grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . "");
+		$DB->query("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid <> " . input::get('id', '') . "");
 		$usergroup = array();
 		while ($r = $DB->fetch_array())
 		{
@@ -746,7 +746,7 @@ class usergroup
 		$pagetitle = $forums->lang['deleteusergroup'] . " - " . $forums->lang[ $group['grouptitle'] ];
 		$detail = $forums->lang['deleteusergroupdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		$forums->admin->print_form_header(array(1 => array('do', 'dodelete'), 2 => array('id', $_INPUT['id']), 3 => array('grouptitle', $forums->lang[ $group['grouptitle'] ])));
+		$forums->admin->print_form_header(array(1 => array('do', 'dodelete'), 2 => array('id', input::get('id', '')), 3 => array('grouptitle', $forums->lang[ $group['grouptitle'] ])));
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
 		$forums->admin->print_table_start($forums->lang['deleteusergroup'] . " - " . $forums->lang[ $group['grouptitle'] ]);
@@ -760,29 +760,28 @@ class usergroup
 
 	function dodeletegroup()
 	{
-		global $forums, $DB, $_INPUT;
-		$_INPUT['id'] = intval($_INPUT['id']);
-		$_INPUT['to_id'] = intval($_INPUT['to_id']);
-		if ($_INPUT['id'] == "")
+		global $forums, $DB;
+
+		if (0 == input::int('id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if ($_INPUT['to_id'] == "")
+		if (0 == input::int('to_id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['nodeletegroupid']);
 		}
-		if ($_INPUT['id'] == $_INPUT['to_id'])
+		if (input::int('id') == input::int('to_id'))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 
-		$DB->update(TABLE_PREFIX . 'user', array('usergroupid' => $_INPUT['to_id']), 'usergroupid = ' . $_INPUT['id']);
-		$DB->delete(TABLE_PREFIX . 'usergroup', 'usergroupid = ' . $_INPUT['id']);
-		$DB->delete(TABLE_PREFIX . 'moderator', 'isgroup = 1 AND usergroupid = ' . $_INPUT['id']);
+		$DB->update(TABLE_PREFIX . 'user', array('usergroupid' => input::get('to_id', '')), 'usergroupid = ' . input::get('id', ''));
+		$DB->delete(TABLE_PREFIX . 'usergroup', 'usergroupid = ' . input::get('id', ''));
+		$DB->delete(TABLE_PREFIX . 'moderator', 'isgroup = 1 AND usergroupid = ' . input::get('id', ''));
 
 		$result = $DB->query_first("SELECT grouptitle, groupranks
 				FROM " . TABLE_PREFIX . 'usergroup
-			WHERE usergroupid = ' . $_INPUT['id']);
+			WHERE usergroupid = ' . input::get('id', ''));
 
 		require_once ROOT_PATH . "includes/adminfunctions_language.php";
 		require ROOT_PATH . 'languages/list.php';
@@ -805,26 +804,26 @@ class usergroup
 			adminfunctions_language::writefile($file, $lang);
 		}
 
-		$forums->func->rmcache('usergroup_' . $_INPUT['id']);
+		$forums->func->rmcache('usergroup_' . input::get('id', ''));
 		$forums->func->recache('usergroup');
-		$forums->admin->save_log($forums->lang['usergroupedited'] . " - '{$forums->lang[ $_INPUT['grouptitle'] ]}'");
+		$forums->admin->save_log($forums->lang['usergroupedited'] . " - '{$forums->lang[ input::get('grouptitle', '') ]}'");
 		$forums->admin->redirect("usergroup.php", $forums->lang['manageusergroup'], $forums->lang['usergroupdeleted']);
 	}
 
 	function savegroup($type = 'edit')
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
-		if ($_INPUT['grouptitle'] == "")
+		global $forums, $DB, $bboptions;
+		if (input::str('grouptitle') == "")
 		{
 			$forums->admin->print_cp_error($forums->lang['requiregrouptitle']);
 		}
 		if ($type == 'edit')
 		{
-			if ($_INPUT['id'] == "")
+			if (0 == input::int('id'))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
-			if ($_INPUT['id'] == 4 AND $_INPUT['cancontrolpanel'] != 1)
+			if (input::int('id') == 4 AND input::get('cancontrolpanel', '') != 1)
 			{
 				$forums->admin->print_cp_error($forums->lang['cannotforbidadmincp']);
 			}
@@ -833,89 +832,89 @@ class usergroup
 		$opentag = preg_replace("/&lt;/" , "<" , $opentag);
 		$closetag = preg_replace("/&#39;/", "'" , convert_andstr($_POST['closetag']));
 		$closetag = preg_replace("/&lt;/" , "<" , $closetag);
-		if ($_INPUT['attachlimit'] != 0)
+		if (input::get('attachlimit', '') != 0)
 		{
-			if (isset($_INPUT['perpostattach']) AND $_INPUT['attachlimit'] != -1)
+			if (isset(input::str('perpostattach')) AND input::get('attachlimit', '') != -1)
 			{
-				if (($_INPUT['perpostattach'] > $_INPUT['attachlimit']) OR ($_INPUT['perpostattach'] == 0 AND $_INPUT['attachlimit'] > 0))
+				if ((input::get('perpostattach', '') > input::get('attachlimit', '')) OR (input::int('perpostattach') == 0 AND input::get('attachlimit', '') > 0))
 				{
 					$forums->main_msg = $forums->lang['postattachuplimit'];
 					$this->groupform('edit');
 				}
 			}
 		}
-		$_INPUT['p_width'] = str_replace(":", "", $_INPUT['p_width']);
-		$_INPUT['p_height'] = str_replace(":", "", $_INPUT['p_height']);
-		$usergroup = array('grouptitle' => trim($_INPUT['grouptitle']),
+		input::set('p_width', str_replace(":", "", input::get('p_width', '')));
+		input::set('p_height', str_replace(":", "", input::get('p_height', '')));
+		$usergroup = array('grouptitle' => trim(input::str('grouptitle')),
 			'groupicon' => trim(convert_andstr($_POST['groupicon'])),
 			'onlineicon' => trim(convert_andstr($_POST['onlineicon'])),
-			'canview' => intval($_INPUT['canview']),
-			'canshow' => intval($_INPUT['canshow']),
-			'canviewmember' => intval($_INPUT['canviewmember']),
-			'canviewothers' => intval($_INPUT['canviewothers']),
-			'cansearch' => intval($_INPUT['cansearch']),
-			'cansearchpost' => intval($_INPUT['cansearchpost']),
-			'cansignature' => intval($_INPUT['cansignature']),
-			'canemail' => intval($_INPUT['canemail']),
-			'caneditprofile' => intval($_INPUT['caneditprofile']),
-			'canpostnew' => intval($_INPUT['canpostnew']),
-			'cananonymous' => intval($_INPUT['cananonymous']),
-			'canreplyown' => intval($_INPUT['canreplyown']),
-			'canreplyothers' => intval($_INPUT['canreplyothers']),
-			'caneditpost' => intval($_INPUT['caneditpost']),
-			'edittimecut' => intval($_INPUT['edittimecut']),
-			'candeletepost' => intval($_INPUT['candeletepost']),
-			'canopenclose' => intval($_INPUT['canopenclose']),
-			'candeletethread' => intval($_INPUT['candeletethread']),
-			'canpostpoll' => intval($_INPUT['canpostpoll']),
-			'canvote' => intval($_INPUT['canvote']),
-			'candownload' => intval($_INPUT['candownload']),
-			'canuseflash' => intval($_INPUT['canuseflash']),
-			'cansigimg' => intval($_INPUT['cansigimg']),
-			'supermod' => intval($_INPUT['supermod']),
-			'cancontrolpanel' => intval($_INPUT['cancontrolpanel']),
-			'canappendedit' => intval($_INPUT['canappendedit']),
-			'canviewoffline' => intval($_INPUT['canviewoffline']),
-			'passmoderate' => intval($_INPUT['passmoderate']),
-			'passflood' => intval($_INPUT['passflood']),
-			'attachlimit' => intval($_INPUT['attachlimit']),
-			'canuseavatar' => intval($_INPUT['canuseavatar']),
-			'pmquota' => intval($_INPUT['pmquota']),
-			'pmsendmax' => intval($_INPUT['pmsendmax']),
-			'searchflood' => intval($_INPUT['searchflood']),
+			'canview' => input::int('canview'),
+			'canshow' => input::int('canshow'),
+			'canviewmember' => input::int('canviewmember'),
+			'canviewothers' => input::int('canviewothers'),
+			'cansearch' => input::int('cansearch'),
+			'cansearchpost' => input::int('cansearchpost'),
+			'cansignature' => input::int('cansignature'),
+			'canemail' => input::int('canemail'),
+			'caneditprofile' => input::int('caneditprofile'),
+			'canpostnew' => input::int('canpostnew'),
+			'cananonymous' => input::int('cananonymous'),
+			'canreplyown' => input::int('canreplyown'),
+			'canreplyothers' => input::int('canreplyothers'),
+			'caneditpost' => input::int('caneditpost'),
+			'edittimecut' => input::int('edittimecut'),
+			'candeletepost' => input::int('candeletepost'),
+			'canopenclose' => input::int('canopenclose'),
+			'candeletethread' => input::int('candeletethread'),
+			'canpostpoll' => input::int('canpostpoll'),
+			'canvote' => input::int('canvote'),
+			'candownload' => input::int('candownload'),
+			'canuseflash' => input::int('canuseflash'),
+			'cansigimg' => input::int('cansigimg'),
+			'supermod' => input::int('supermod'),
+			'cancontrolpanel' => input::int('cancontrolpanel'),
+			'canappendedit' => input::int('canappendedit'),
+			'canviewoffline' => input::int('canviewoffline'),
+			'passmoderate' => input::int('passmoderate'),
+			'passflood' => input::int('passflood'),
+			'attachlimit' => input::int('attachlimit'),
+			'canuseavatar' => input::int('canuseavatar'),
+			'pmquota' => input::int('pmquota'),
+			'pmsendmax' => input::int('pmsendmax'),
+			'searchflood' => input::int('searchflood'),
 			'opentag' => $opentag,
 			'closetag' => $closetag,
 			'groupranks' => convert_andstr($_POST['groupranks']),
-			'hidelist' => $_INPUT['hidelist'],
-			'canpostclosed' => intval($_INPUT['canpostclosed']),
-			'canposthtml' => intval($_INPUT['canposthtml']),
-			'caneditthread' => intval($_INPUT['caneditthread']),
-			'passbadword' => intval($_INPUT['passbadword']),
-			'canpmattach' => intval($_INPUT['canpmattach']),
-			'perpostattach' => $_INPUT['perpostattach'],
-			'canevaluation' => intval($_INPUT['canevaluation']),
-			'canevalsameuser' => intval($_INPUT['canevalsameuser']),
-			'attachnum' => intval($_INPUT['attachnum']),
-			'grouppower' => intval($_INPUT['grouppower']),
+			'hidelist' => input::get('hidelist', ''),
+			'canpostclosed' => input::int('canpostclosed'),
+			'canposthtml' => input::int('canposthtml'),
+			'caneditthread' => input::int('caneditthread'),
+			'passbadword' => input::int('passbadword'),
+			'canpmattach' => input::int('canpmattach'),
+			'perpostattach' => input::get('perpostattach', ''),
+			'canevaluation' => input::int('canevaluation'),
+			'canevalsameuser' => input::int('canevalsameuser'),
+			'attachnum' => input::int('attachnum'),
+			'grouppower' => input::int('grouppower'),
 		);
 		if ($type == 'edit')
 		{
-			$DB->update(TABLE_PREFIX . 'usergroup', $usergroup, 'usergroupid=' . $_INPUT['id']);
-			$DB->update(TABLE_PREFIX . 'moderator', array('usergroupname' =>trim($_INPUT['grouptitle'])), 'usergroupid =' . $_INPUT['id']);
-			$usergroupid = $_INPUT['id'];
-			$forums->admin->save_log($forums->lang['usergroupedited'] . " - '{$forums->lang[ $_INPUT['grouptitle'] ]}'");
+			$DB->update(TABLE_PREFIX . 'usergroup', $usergroup, 'usergroupid=' . input::get('id', ''));
+			$DB->update(TABLE_PREFIX . 'moderator', array('usergroupname' =>trim(input::str('grouptitle'))), 'usergroupid =' . input::get('id', ''));
+			$usergroupid = input::get('id', '');
+			$forums->admin->save_log($forums->lang['usergroupedited'] . " - '{$forums->lang[ input::get('grouptitle', '') ]}'");
 		}
 		else
 		{
 			$DB->insert(TABLE_PREFIX . 'usergroup', $usergroup);
 			$usergroupid = $DB->insert_id();
 			$DB->query_unbuffered('UPDATE ' . TABLE_PREFIX . 'usergroup SET displayorder = ' . $usergroupid . ' WHERE usergroupid = ' . $usergroupid);
-			$forums->admin->save_log($forums->lang['usergroupadded'] . " - '{$forums->lang[ $_INPUT['grouptitle'] ]}'");
+			$forums->admin->save_log($forums->lang['usergroupadded'] . " - '{$forums->lang[ input::get('grouptitle', '') ]}'");
 		}
 
 		$langvar = $groupvar = array();
 		$name = 'fieldusergroup' . $usergroupid;
-		$langvar[$name . '_title'] = trim($_INPUT['grouptitle']);
+		$langvar[$name . '_title'] = trim(input::str('grouptitle'));
 		$groupvar['grouptitle'] = $name . '_title';
 		if ($_POST['groupranks'])
 		{
@@ -943,15 +942,15 @@ class usergroup
 
 	function groupform($type = 'edit')
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo, $bboptions;
+		global $forums, $DB, $bbuserinfo, $bboptions;
 
 		if ($type == 'edit')
 		{
-			if ($_INPUT['id'] == "")
+			if (0 == input::int('id'))
 			{
 				$forums->admin->print_cp_error($forums->lang['usergroupnotselect']);
 			}
-			if ($_INPUT['id'] == 4)
+			if (input::str('id') == 4)
 			{
 				if ($bbuserinfo['usergroupid'] != 4)
 				{
@@ -967,9 +966,9 @@ class usergroup
 			$button = $forums->lang['addusergroup'];
 		}
 		$group = array();
-		if ($_INPUT['id'] != "")
+		if (input::get('id', '') != "")
 		{
-			$group = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . $_INPUT['id'] . "");
+			$group = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . "");
 		}
 
 		$translatetitle = $translaterank = '';
@@ -1027,7 +1026,7 @@ class usergroup
 		echo "}\n";
 		echo "//-->\n";
 		echo "</script>\n";
-		$forums->admin->print_form_header(array(1 => array('do', $form_code), 2 => array('id', $_INPUT['id'])) , 'adform', "onSubmit='return checkform()'");
+		$forums->admin->print_form_header(array(1 => array('do', $form_code), 2 => array('id', input::get('id', ''))) , 'adform', "onSubmit='return checkform()'");
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
 		$opentag = str_replace("'", '&#39;', $group['opentag']);
@@ -1203,15 +1202,15 @@ class usergroup
 
 	function doreorder()
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$ids = array();
-		foreach ($_INPUT AS $key => $value)
+		foreach ($_REQUEST AS $key => $value)
 		{
 			if (preg_match("/^ug_(\d+)$/", $key, $match))
 			{
-				if ($_INPUT[$match[0]])
+				if ($_REQUEST[$match[0]])
 				{
-					$ids[$match[1]] = intval($_INPUT[$match[0]]);
+					$ids[$match[1]] = intval($_REQUEST[$match[0]]);
 				}
 			}
 		}

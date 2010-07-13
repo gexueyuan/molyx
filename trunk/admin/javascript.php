@@ -14,7 +14,7 @@ class javascript
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo, $DB;
+		global $forums, $bbuserinfo, $DB;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditjs'])
 		{
@@ -25,7 +25,7 @@ class javascript
 		$this->lib = new adminfunctions_javascript();
 		$forums->admin->nav[] = array('javascript.php' , $forums->lang['jsmanage']);
 
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'edit':
 				$this->doform('edit');
@@ -59,7 +59,7 @@ class javascript
 
 	function jslist()
 	{
-		global $forums, $_INPUT, $DB, $bboptions;
+		global $forums, $DB, $bboptions;
 		$pagetitle = $forums->lang['jslist'];
 		$detail = "";
 		$forums->admin->print_cp_header($pagetitle, $detail);
@@ -119,9 +119,9 @@ class javascript
 
 	function doform($action = 'edit')
 	{
-		global $forums, $_INPUT, $DB, $bboptions;
-		$type = intval($_INPUT['type']);
-		$id = intval($_INPUT['id']);
+		global $forums, $DB, $bboptions;
+		$type = input::int('type');
+		$id = input::int('id');
 		if ($action == 'edit')
 		{
 			$pagetitle = $forums->lang['editjs'];
@@ -157,7 +157,7 @@ class javascript
 		</script>\n";
 		$forums->admin->print_table_start($pagetitle);
 
-		if ($js['type'] OR $_INPUT['type'])
+		if ($js['type'] OR input::get('type', ''))
 		{
 			$member_type = "";
 			$thread_type = "none";
@@ -168,16 +168,16 @@ class javascript
 			$thread_type = "";
 		}
 
-		$type = $_INPUT['type'] ? $_INPUT['type'] : $js['type'];
+		$type = input::get('type', $js['type']);
 
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jstype']}</strong>",
 				$forums->admin->print_input_select_row("type", array(0 => array(0, $forums->lang['threadlist']),
 						1 => array(1, $forums->lang['memberlist']),
 						), $type, " onchange='Checkwild()'")));
 
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jstitle']}</strong>", $forums->admin->print_input_row("name", $_INPUT['name'] ? $_INPUT['name'] : $js['name'])));
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jsdescription']}</strong>", $forums->admin->print_textarea_row("description", $_INPUT['description'] ? $_INPUT['description'] : $js['description'])));
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jsfilename']}</strong><div class='description'>{$forums->lang['jsfilenamedesc']}</div>", $bboptions['bburl'] . "/data/" . $forums->admin->print_input_row("jsname", $_INPUT['jsname'] ? $_INPUT['jsname'] : $js['jsname'])));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jstitle']}</strong>", $forums->admin->print_input_row("name", input::get('name', $js['name']))));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jsdescription']}</strong>", $forums->admin->print_textarea_row("description", input::get('description', $js['description']))));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jsfilename']}</strong><div class='description'>{$forums->lang['jsfilenamedesc']}</div>", $bboptions['bburl'] . "/data/" . $forums->admin->print_input_row("jsname", input::get('jsname', $js['jsname']))));
 
 		$forums->admin->print_table_footer();
 
@@ -191,22 +191,22 @@ class javascript
 		{
 			$catelist[] = array($forum[id], depth_mark($forum['depth'], '--') . $forum[name]);
 		}
-		$inids = $_INPUT['inids'] ? $_INPUT['inids'] : explode(",", $js['inids']);
+		$inids = input::get('inids', explode(",", $js['inids']));
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['inforums']}</strong><div class='description'>{$forums->lang['inforumsdesc']}</div>", $forums->admin->print_multiple_select_row('inids[]', $catelist, $inids ? $inids : array(-1))));
 
-		$numbers = $_INPUT['numbers'] ? $_INPUT['numbers'] : $js['numbers'];
+		$numbers = input::get('numbers', $js['numbers']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jslistnums']}</strong><div class='description'>{$forums->lang['jslistnumsdesc']}</div>", $forums->admin->print_input_row("numbers", $numbers ? $numbers : 5)));
 
-		$perline = $_INPUT['perline'] ? $_INPUT['perline'] : $js['perline'];
+		$perline = input::get('perline', $js['perline']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jsperline']}</strong><div class='description'>{$forums->lang['jsperlinedesc']}</div>", $forums->admin->print_input_row("perline", $perline ? $perline : 1)));
 
-		$selecttype = $_INPUT['selecttype'] ? $_INPUT['selecttype'] : $js['selecttype'];
+		$selecttype = input::get('selecttype', $js['selecttype']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['selecttype']}</strong><div class='description'>{$forums->lang['selecttypedesc']}</div>", $forums->admin->print_input_select_row("selecttype", array(array(0, $forums->lang['newthread']), array(1, $forums->lang['quinthread'])), $selecttype)));
 
-		$daylimit = $_INPUT['daylimit'] ? $_INPUT['daylimit'] : $js['daylimit'];
+		$daylimit = input::get('daylimit', $js['daylimit']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['daylimit']}</strong><div class='description'>{$forums->lang['daylimitdesc']}</div>", $forums->admin->print_input_row("daylimit", $daylimit ? $daylimit : 0)));
 
-		$orderby = $_INPUT['orderby'] ? $_INPUT['orderby'] : $js['orderby'];
+		$orderby = input::get('orderby', $js['orderby']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['orderby']}</strong><div class='description'>{$forums->lang['orderbydesc']}</div>", $forums->admin->print_input_select_row("orderby", array(0 => array(0, $forums->lang['threadtime']),
 						1 => array(1, $forums->lang['threadids']),
 						2 => array(2, $forums->lang['posts']),
@@ -214,22 +214,22 @@ class javascript
 						4 => array(4, $forums->lang['posttime']),
 						), $orderby)));
 
-		$trimtitle = $_INPUT['trimtitle'] ? $_INPUT['trimtitle'] : $js['trimtitle'];
+		$trimtitle = input::get('trimtitle', $js['trimtitle']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['trimtitle']}</strong><div class='description'>{$forums->lang['trimtitledesc']}</div>", $forums->admin->print_input_row("trimtitle", $trimtitle ? $trimtitle : 50)));
 
-		$trimdesc = $_INPUT['trimdescription'] ? $_INPUT['trimdescription'] : $js['trimdescription'];
+		$trimdesc = input::get('trimdescription', $js['trimdescription']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['trimdesc']}</strong><div class='description'>{$forums->lang['trimdescdesc']}</div>", $forums->admin->print_input_row("trimdescription", $trimdesc ? $trimdesc : 50)));
 
-		$trimpagetext = $_INPUT['trimpagetext'] ? $_INPUT['trimpagetext'] : $js['trimpagetext'];
+		$trimpagetext = input::get('trimpagetext', $js['trimpagetext']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['trimpagetext']}</strong><div class='description'>{$forums->lang['trimpagetextdesc']}</div>", $forums->admin->print_input_row("trimpagetext", $trimpagetext ? $trimpagetext : -1)));
 
-		$refresh = $_INPUT['refresh'] ? $_INPUT['refresh'] : $js['refresh'];
+		$refresh = input::get('refresh', $js['refresh']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['refreshtime']}</strong><div class='description'>{$forums->lang['refreshtimedesc']}</div>", sprintf($forums->lang['setrefreshtime'], $forums->admin->print_input_row("refresh", (isset($refresh) ? $refresh : 10), "", "", 5))));
 
-		$export = $_INPUT['export'] ? $_INPUT['export'] : $js['export'];
+		$export = input::get('export', $js['export']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['export']}</strong><div class='description'>{$forums->lang['exportdesc']}</div>", $forums->admin->print_input_select_row("export", array(array(0, "UTF-8 ({$forums->lang['nochange']})"), array(1, "GB2312"), array(2, "BIG5")), $export)));
 
-		$htmlcode = $_INPUT['htmlcode'] ? $_INPUT['htmlcode'] : $js['htmlcode'];
+		$htmlcode = input::get('htmlcode', $js['htmlcode']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['htmlcode']}</strong><div class='description'>{$forums->lang['htmlcodedesc']}</div>", $forums->admin->print_textarea_row("htmlcode", $htmlcode, '', 15)));
 
 		$forums->admin->print_table_footer();
@@ -241,10 +241,10 @@ class javascript
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
 		$forums->admin->print_table_start($forums->lang['jssettings']);
 
-		$m_numbers = $_INPUT['m_numbers'] ? $_INPUT['m_numbers'] : $js['numbers'];
+		$m_numbers = input::get('m_numbers', $js['numbers']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jslistnums']}</strong><div class='description'>{$forums->lang['jslistnumsdesc']}</div>", $forums->admin->print_input_row("m_numbers", $m_numbers ? $m_numbers : 5)));
 
-		$m_perline = $_INPUT['m_perline'] ? $_INPUT['m_perline'] : $js['perline'];
+		$m_perline = input::get('m_perline', $js['perline']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['jsperline']}</strong><div class='description'>{$forums->lang['jsperlinedesc']}</div>", $forums->admin->print_input_row("m_perline", $m_perline ? $m_perline : 1)));
 
 		$s_type[] = array(0, $forums->lang['type_posts']);
@@ -260,21 +260,21 @@ class javascript
 				$c_ex_desc .= "<br />{{$v['tag']}} => {$v['name']}";
 			}
 		}
-		$m_selecttype = $_INPUT['m_selecttype'] ? $_INPUT['m_selecttype'] : $js['selecttype'];
+		$m_selecttype = input::get('m_selecttype', $js['selecttype']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['selecttype']}</strong><div class='description'>{$forums->lang['selecttypedesc']}</div>", $forums->admin->print_input_select_row("m_selecttype", $s_type, $m_selecttype)));
 
-		$m_order = $_INPUT['m_order'] ? $_INPUT['m_order'] : $js['orderby'];
+		$m_order = input::get('m_order', $js['orderby']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['orderby']}</strong><div class='description'>{$forums->lang['orderbydesc']}</div>", $forums->admin->print_input_select_row("m_order", array(0 => array(0, $forums->lang['ascending']),
 						1 => array(1, $forums->lang['descending']),
 						), $m_order)));
 
-		$m_refresh = $_INPUT['m_refresh'] ? $_INPUT['m_refresh'] : $js['refresh'];
+		$m_refresh = input::get('m_refresh', $js['refresh']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['refreshtime']}</strong><div class='description'>{$forums->lang['refreshtimedesc']}</div>", sprintf($forums->lang['setrefreshtime'], $forums->admin->print_input_row("m_refresh", (isset($m_refresh) ? $m_refresh : 10), "", "", 5))));
 
-		$m_export = $_INPUT['m_export'] ? $_INPUT['m_export'] : $js['export'];
+		$m_export = input::get('m_export', $js['export']);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['export']}</strong><div class='description'>{$forums->lang['exportdesc']}</div>", $forums->admin->print_input_select_row("m_export", array(array(0, "UTF-8 ({$forums->lang['nochange']})"), array(1, "GB2312"), array(2, "BIG5")), $export)));
 
-		$m_htmlcode = $_INPUT['m_htmlcode'] ? $_INPUT['m_htmlcode'] : $js['htmlcode'];
+		$m_htmlcode = input::get('m_htmlcode', $js['htmlcode']);
 		$forums->lang['mhtmlcodedesc'] = sprintf($forums->lang['mhtmlcodedesc'], $c_ex_desc);
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['htmlcode']}</strong><div class='description'>{$forums->lang['mhtmlcodedesc']}</div>", $forums->admin->print_textarea_row("m_htmlcode", $m_htmlcode, '', 15)));
 		$forums->admin->print_table_footer();
@@ -286,8 +286,8 @@ class javascript
 
 	function previewjs()
 	{
-		global $forums, $_INPUT, $DB, $bboptions;
-		$id = intval($_INPUT['id']);
+		global $forums, $DB, $bboptions;
+		$id = input::int('id');
 		if (!$id OR !$js = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . ""))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -306,8 +306,8 @@ class javascript
 
 	function refreshjs()
 	{
-		global $forums, $_INPUT, $DB, $bboptions;
-		$id = intval($_INPUT['id']);
+		global $forums, $DB, $bboptions;
+		$id = input::int('id');
 		$js = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . "");
 		if (!$js['id'])
 		{
@@ -320,8 +320,8 @@ class javascript
 
 	function refreshalljs()
 	{
-		global $forums, $_INPUT, $DB, $bboptions;
-		$id = intval($_INPUT['id']);
+		global $forums, $DB, $bboptions;
+		$id = input::int('id');
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "javascript");
 		if ($DB->num_rows())
 		{
@@ -355,8 +355,8 @@ class javascript
 
 	function removejs()
 	{
-		global $forums, $_INPUT, $DB, $bboptions;
-		$id = intval($_INPUT['id']);
+		global $forums, $DB, $bboptions;
+		$id = input::int('id');
 		$js = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . "");
 		if (!$js['id'])
 		{
@@ -370,25 +370,25 @@ class javascript
 
 	function updatejs()
 	{
-		global $forums, $_INPUT, $DB;
-		$type = intval($_INPUT['type']);
-		$id = intval($_INPUT['id']);
-		$oldname = trim($_INPUT['oldname']);
-		$name = trim($_INPUT['name']);
-		$description = trim($_INPUT['description']);
-		$jsname = trim($_INPUT['jsname']);
-		$inids = $_INPUT['inids'];
-		$numbers = $_INPUT['type'] ? intval($_INPUT['m_numbers']) : intval($_INPUT['numbers']);
-		$perline = $_INPUT['type'] ? intval($_INPUT['m_perline']) : intval($_INPUT['perline']);
-		$selecttype = $_INPUT['type'] ? trim($_INPUT['m_selecttype']) : trim($_INPUT['selecttype']);
-		$daylimit = intval($_INPUT['daylimit']);
-		$orderby = $_INPUT['type'] ? intval($_INPUT['m_order']) : intval($_INPUT['orderby']);
-		$trimtitle = intval($_INPUT['trimtitle']);
-		$trimdescription = intval($_INPUT['trimdescription']);
-		$trimpagetext = intval($_INPUT['trimpagetext']);
-		$refresh = $_INPUT['type'] ? intval($_INPUT['m_refresh']) : intval($_INPUT['refresh']);
-		$export = $_INPUT['type'] ? intval($_INPUT['m_export']) : intval($_INPUT['export']);
-		$htmlcode = $_INPUT['type'] ? trim(convert_andstr($_POST['m_htmlcode'])) : trim(convert_andstr($_POST['htmlcode']));
+		global $forums, $DB;
+		$type = input::int('type');
+		$id = input::int('id');
+		$oldname = trim(input::str('oldname'));
+		$name = trim(input::str('name'));
+		$description = trim(input::str('description'));
+		$jsname = trim(input::str('jsname'));
+		$inids = input::get('inids', '');
+		$numbers = input::get('type', '') ? input::int('m_numbers') : input::int('numbers');
+		$perline = input::get('type', '') ? input::int('m_perline') : input::int('perline');
+		$selecttype = input::get('type', '') ? trim(input::str('m_selecttype')) : trim(input::str('selecttype'));
+		$daylimit = input::int('daylimit');
+		$orderby = input::get('type', '') ? input::int('m_order') : input::int('orderby');
+		$trimtitle = input::int('trimtitle');
+		$trimdescription = input::int('trimdescription');
+		$trimpagetext = input::int('trimpagetext');
+		$refresh = input::get('type', '') ? input::int('m_refresh') : input::int('refresh');
+		$export = input::get('type', '') ? input::int('m_export') : input::int('export');
+		$htmlcode = input::get('type', '') ? trim(convert_andstr($_POST['m_htmlcode'])) : trim(convert_andstr($_POST['htmlcode']));
 
 		if ($refresh > 0)
 		{
@@ -455,7 +455,7 @@ class javascript
 			"htmlcode" => $htmlcode,
 			"nextrun" => $nextrun,
 			);
-		if ($_INPUT['preview'])
+		if (input::str('preview'))
 		{
 			$preview = $this->preview($js);
 			$forums->main_msg = $preview;

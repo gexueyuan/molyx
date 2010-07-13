@@ -14,9 +14,9 @@ class iptools
 {
 	function show()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$forums->admin->nav[] = array('iptools.php', $forums->lang['manageips']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'showallips':
 				$this->show_ips();
@@ -32,13 +32,13 @@ class iptools
 
 	function learn_ip()
 	{
-		global $forums, $DB, $_INPUT;
-		if ($_INPUT['ip'] == "")
+		global $forums, $DB;
+		if (input::str('ip') == "")
 		{
 			$forums->main_msg = $forums->lang['inputips'];
 			$this->show_index();
 		}
-		$ip = trim($_INPUT['ip']);
+		$ip = trim(input::str('ip'));
 		$resolved = $forums->lang['resolvedips'];
 		$exact = false;
 		if (substr_count($ip, '.') == 3)
@@ -65,7 +65,7 @@ class iptools
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
-		$forums->lang['ipnamehost'] = sprintf($forums->lang['ipnamehost'], $_INPUT['ip']);
+		$forums->lang['ipnamehost'] = sprintf($forums->lang['ipnamehost'], input::get('ip', ''));
 		echo "<script type='text/javascript'>\n";
 		echo "function js_user_jump(userid,username)\n";
 		echo "{\n";
@@ -193,15 +193,15 @@ class iptools
 
 	function show_ips()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
-		if ($_INPUT['name'] == "" AND $_INPUT['userid'] == "")
+		global $forums, $DB, $bbuserinfo;
+		if (input::str('name') == "" AND input::str('userid') == "")
 		{
 			$forums->main_msg = $forums->lang['inputsearchuser'];
 			$this->show_index();
 		}
-		if ($_INPUT['userid'])
+		if (input::str('userid'))
 		{
-			$id = intval($_INPUT['userid']);
+			$id = input::int('userid');
 			if (! $user = $DB->query_first("SELECT id, name, email, host FROM " . TABLE_PREFIX . "user WHERE id='" . $id . "'"))
 			{
 				$forums->main_msg = $forums->lang['cannotfinduser'] . " " . $id;
@@ -211,7 +211,7 @@ class iptools
 		}
 		else
 		{
-			$username = trim($_INPUT['name']);
+			$username = trim(input::str('name'));
 			if (! $user = $DB->query_first("SELECT id, name, email, host FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
 			{
 				$forums->main_msg = $forums->lang['cannotfindusername'];
@@ -220,7 +220,7 @@ class iptools
 			}
 		}
 		$count = $DB->query_first("SELECT count(distinct(host)) as cnt FROM " . TABLE_PREFIX . "post WHERE userid='" . $user['id'] . "'");
-		$curpage = intval($_INPUT['pp']);
+		$curpage = input::int('pp');
 		$end = 50;
 		$links = $forums->func->build_pagelinks(array('totalpages' => $count['cnt'],
 				'perpage' => $end,
@@ -276,7 +276,7 @@ class iptools
 
 	function show_index($username = "")
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		$pagetitle = $forums->lang['manageips'];
 		$detail = $forums->lang['manageipsdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
@@ -286,7 +286,7 @@ class iptools
 		$forums->admin->print_table_start($forums->lang['userpostips']);
 		if ($username == "")
 		{
-			$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bynamesearchips'] . "</strong>" , $forums->admin->print_input_row("name", $_INPUT['name'])));
+			$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bynamesearchips'] . "</strong>" , $forums->admin->print_input_row("name", input::get('name', ''))));
 		}
 		else
 		{
@@ -313,7 +313,7 @@ class iptools
 		$forums->admin->columns[] = array("&nbsp;" , "30%");
 		$forums->admin->columns[] = array("&nbsp;" , "70%");
 		$forums->admin->print_table_start($forums->lang['manageips']);
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['findips'] . "</strong>", $forums->admin->print_input_row("ip", $_INPUT['ip'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['findips'] . "</strong>", $forums->admin->print_input_row("ip", input::get('ip', ''))));
 		$forums->admin->print_form_submit($forums->lang['viewipinfo']);
 		$forums->admin->print_table_footer();
 		$forums->admin->print_form_end();

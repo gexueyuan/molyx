@@ -14,14 +14,14 @@ class bbcode
 {
 	function show()
 	{
-		global $forums, $_INPUT, $bbuserinfo;
+		global $forums, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin) && !$forums->adminperms['caneditbbcodes'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
 		$forums->admin->nav[] = array('bbcode.php', $forums->lang['managebbcode']);
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'add':
 				$this->bbcode_form('add');
@@ -49,13 +49,13 @@ class bbcode
 
 	function dodelete()
 	{
-		global $forums, $DB, $_INPUT;
-		if (! $_INPUT['id'])
+		global $forums, $DB;
+		if (!input::int('id'))
 		{
 			$forums->main_msg = $forums->lang['noids'];
 			$this->showcode();
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "bbcode WHERE bbcodeid=" . $_INPUT['id'] . "");
+		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "bbcode WHERE bbcodeid=" . input::int('id') . "");
 		$forums->func->recache('bbcode');
 		$this->showcode();
 	}
@@ -103,38 +103,38 @@ class bbcode
 
 	function save($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == 'edit')
 		{
-			if (! $_INPUT['id'])
+			if (! input::int('id'))
 			{
 				$forums->main_msg = $forums->lang['noids'];
 				$this->bbcode_form($type);
 			}
 		}
-		if (! $_INPUT['title'] OR ! $_INPUT['bbcodetag'] OR ! $_INPUT['bbcodereplacement'])
+		if (! input::int('id') OR ! input::str('bbcodetag') OR ! input::str('ibbcodereplacementd'))
 		{
 			$forums->main_msg = $forums->lang['inputallforms'];
 			$this->bbcode_form($type);
 		}
-		if (! strstr($_INPUT['bbcodereplacement'], '{content}'))
+		if (! strstr(input::str('ibbcodereplacementd'), '{content}'))
 		{
 			$forums->main_msg = $forums->lang['requirecontents'];
 			$this->bbcode_form($type);
 		}
-		if (! strstr($_INPUT['bbcodereplacement'], '{option}') AND $_INPUT['twoparams'])
+		if (! strstr(input::str('ibbcodereplacementd'), '{option}') AND input::get('twoparams', '', false))
 		{
 			$forums->main_msg = $forums->lang['requireoption'];
 			$this->bbcode_form($type);
 		}
 		$bbcode = array(
-			'title' => convert_andstr($_POST['title']),
-			'description' => convert_andstr($_POST['description']),
-			'bbcodetag' => $_INPUT['bbcodetag'],
-			'bbcodereplacement' => convert_andstr($_POST['bbcodereplacement']),
-			'bbcodeexample' => convert_andstr($_POST['bbcodeexample']),
-			'twoparams' => convert_andstr($_POST['twoparams']),
-			'imagebutton' => convert_andstr($_POST['imagebutton'])
+			'title' => input::get('title', '', false),
+			'description' => input::get('description', '', false),
+			'bbcodetag' => input::get('bbcodetag', ''),
+			'bbcodereplacement' => input::get('bbcodereplacement', '', false),
+			'bbcodeexample' => input::get('bbcodeexample', '', false),
+			'twoparams' => input::get('twoparams', '', false),
+			'imagebutton' => input::get('imagebutton', '', false)
 		);
 		if ($type == 'add')
 		{
@@ -143,7 +143,7 @@ class bbcode
 		}
 		else
 		{
-			$DB->update(TABLE_PREFIX . 'bbcode', $bbcode, 'bbcodeid=' . $_INPUT['id']);
+			$DB->update(TABLE_PREFIX . 'bbcode', $bbcode, 'bbcodeid=' . input::int('id'));
 			$forums->main_msg = $forums->lang['bbcodeedited'];
 		}
 		$forums->func->recache('bbcode');
@@ -152,15 +152,15 @@ class bbcode
 
 	function bbcode_form($type = 'add')
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 		if ($type == 'edit')
 		{
-			if (! $_INPUT['id'])
+			if (! input::int('id'))
 			{
 				$forums->main_msg = $forums->lang['noids'];
 				$this->showcode();
 			}
-			$bbcode = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "bbcode WHERE bbcodeid='" . $_INPUT['id'] . "'");
+			$bbcode = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "bbcode WHERE bbcodeid='" . input::int('id') . "'");
 			$button = $forums->lang['editbbcode'];
 			$code = 'doedit';
 			$pagetitle = $forums->lang['editbbcode'] . ": " . $bbcode['title'];
@@ -175,17 +175,17 @@ class bbcode
 			$forums->admin->nav[] = array('' , $forums->lang['addbbcode']);
 		}
 		$forums->admin->print_cp_header($pagetitle);
-		$forums->admin->print_form_header(array(1 => array('do' , $code), 2 => array('id', $_INPUT['id'])));
+		$forums->admin->print_form_header(array(1 => array('do' , $code), 2 => array('id', input::int('id'))));
 		$forums->admin->columns[] = array("&nbsp;", "40%");
 		$forums->admin->columns[] = array("&nbsp;", "60%");
 		$forums->admin->print_table_start($pagetitle);
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodetitle'] . "</strong><div class='description'>" . $forums->lang['bbcodetitledesc'] . "</div>", $forums->admin->print_input_row('title', $_INPUT['title'] ? $_INPUT['title'] : $bbcode['title'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodedesc'] . "</strong>", $forums->admin->print_textarea_row('description', $_INPUT['description'] ? $_INPUT['description'] : $bbcode['description'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodeexample'] . "</strong><div class='description'>" . $forums->lang['bbcodeexampledesc'] . "</div>", $forums->admin->print_textarea_row('bbcodeexample', $_INPUT['bbcodeexample'] ? $_INPUT['bbcodeexample'] : $bbcode['bbcodeexample'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodetag'] . "</strong><div class='description'>" . $forums->lang['bbcodetagdesc'] . "</div>", '[ ' . $forums->admin->print_input_row('bbcodetag', $_INPUT['bbcodetag'] ? $_INPUT['bbcodetag'] : $bbcode['bbcodetag'], '', '', 10) . ' ]'));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['twoparams'] . "</strong><div class='description'>" . $forums->lang['twoparamsdesc'] . "</div>", $forums->admin->print_yes_no_row('twoparams', $_INPUT['twoparams'] ? $_INPUT['twoparams'] : $bbcode['twoparams'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodereplacement'] . "</strong><div class='description'>&lt;tag&gt;{content}&lt;/tag&gt;<br />&lt;tag='{option}'&gt;{content}&lt;/tag&gt;</div>", $forums->admin->print_textarea_row('bbcodereplacement', $_INPUT['bbcodereplacement'] ? $_INPUT['bbcodereplacement'] : utf8_htmlspecialchars($bbcode['bbcodereplacement']))));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodeimage'] . "</strong><div class='description'>" . $forums->lang['bbcodeimagedesc'] . "</div>", $forums->admin->print_yes_no_row('imagebutton', $_INPUT['imagebutton'] ? $_INPUT['imagebutton'] : $bbcode['imagebutton'])));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodetitle'] . "</strong><div class='description'>" . $forums->lang['bbcodetitledesc'] . "</div>", $forums->admin->print_input_row('title', input::get('title', $bbcode['title']))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodedesc'] . "</strong>", $forums->admin->print_textarea_row('description', input::get('description', $bbcode['description']))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodeexample'] . "</strong><div class='description'>" . $forums->lang['bbcodeexampledesc'] . "</div>", $forums->admin->print_textarea_row('bbcodeexample', input::get('bbcodeexample', $bbcode['bbcodeexample']))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodetag'] . "</strong><div class='description'>" . $forums->lang['bbcodetagdesc'] . "</div>", '[ ' . $forums->admin->print_input_row('bbcodetag', input::get('bbcodetag', $bbcode['bbcodetag']), '', '', 10) . ' ]'));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['twoparams'] . "</strong><div class='description'>" . $forums->lang['twoparamsdesc'] . "</div>", $forums->admin->print_yes_no_row('twoparams', input::get('twoparams', $bbcode['twoparams']))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodereplacement'] . "</strong><div class='description'>&lt;tag&gt;{content}&lt;/tag&gt;<br />&lt;tag='{option}'&gt;{content}&lt;/tag&gt;</div>", $forums->admin->print_textarea_row('bbcodereplacement', input::get('bbcodereplacement', utf8_htmlspecialchars($bbcode['bbcodereplacement'])))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['bbcodeimage'] . "</strong><div class='description'>" . $forums->lang['bbcodeimagedesc'] . "</div>", $forums->admin->print_yes_no_row('imagebutton', input::get('imagebutton', $bbcode['imagebutton']))));
 		$forums->admin->print_form_submit($button);
 		$forums->admin->print_table_footer();
 		$forums->admin->print_form_end();
@@ -231,7 +231,7 @@ class bbcode
 		$forums->admin->columns[] = array("&nbsp;", "40%");
 		$forums->admin->columns[] = array("&nbsp;", "60%");
 		$forums->admin->print_table_start($forums->lang['testbbcode']);
-		$forums->admin->print_cells_row(array($forums->lang['testbbcode'], $forums->admin->print_textarea_row('bbtest', $_INPUT['bbtest'])));
+		$forums->admin->print_cells_row(array($forums->lang['testbbcode'], $forums->admin->print_textarea_row('bbtest', input::get('bbtest', ''))));
 		$forums->admin->print_form_submit($forums->lang['testbbcode']);
 		$forums->admin->print_table_footer();
 		$forums->admin->print_form_end();

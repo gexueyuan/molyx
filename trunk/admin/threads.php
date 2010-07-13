@@ -15,12 +15,12 @@ class threads
 	var $thread = array();
 	function show()
 	{
-		global $forums, $_INPUT;
+		global $forums;
 		$this->admin = explode(',', SUPERADMIN);
 		$forums->admin->nav[] = array('threads.php', $forums->lang['managethreads']);
 		require_once(ROOT_PATH . "includes/functions_moderate.php");
 		$this->mod = new modfunctions();
-		switch ($_INPUT['do'])
+		switch (input::get('do', ''))
 		{
 			case 'massprune':
 				$this->massoperate('prune');
@@ -62,7 +62,7 @@ class threads
 
 	function massoperate($type = 'move')
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
+		global $forums, $DB, $bbuserinfo;
 		if ($type == 'move')
 		{
 			if (!in_array($bbuserinfo['id'], $this->admin) && !$forums->adminperms['canmassmovethreads'])
@@ -143,13 +143,13 @@ class threads
 
 	function dopruneuser()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
-		$username = trim($_INPUT['username']);
+		global $forums, $DB, $bbuserinfo;
+		$username = trim(input::str('username'));
 		if (!in_array($bbuserinfo['id'], $this->admin) && !$forums->adminperms['canmassprunethreads'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
-		if ($username == "" OR $_INPUT['forum_id'] == -2)
+		if ($username == "" OR input::int('forum_id') == -2)
 		{
 			$forums->admin->print_cp_error($forums->lang['requirepruneoptions']);
 		}
@@ -157,15 +157,15 @@ class threads
 		{
 			$forums->admin->print_cp_error($forums->lang['cannotfindstarter']);
 		}
-		if (!$_INPUT['finishprune'])
+		if (!input::get('finishprune', ''))
 		{
 			$pagetitle = $forums->lang['batchdeletethread'];
 			$detail = $forums->lang['batchdeletethreaddesc'];
 			$forums->admin->nav[] = array('' , $forums->lang['batchdeletethread']);
 			$forums->admin->print_cp_header($pagetitle, $detail);
-			if ($_INPUT['forum_id'] != -1)
+			if (input::get('forum_id', '') != -1)
 			{
-				$forum = $DB->query_first("SELECT name FROM " . TABLE_PREFIX . "forum WHERE id=" . $_INPUT['forum_id'] . "");
+				$forum = $DB->query_first("SELECT name FROM " . TABLE_PREFIX . "forum WHERE id=" . input::get('forum_id', '') . "");
 				$forums->lang['deleteuserthreads'] = sprintf($forums->lang['deleteuserthreads'], $user['user'], $forum['name']);
 				$forumtitle = $forums->lang['deleteuserthreads'];
 			}
@@ -174,13 +174,13 @@ class threads
 				$forums->lang['deleteuserallthreads'] = sprintf($forums->lang['deleteuserallthreads'], $user['user']);
 				$forumtitle = $forums->lang['deleteuserallthreads'];
 			}
-			$forums->admin->print_form_header(array(1 => array('do', 'pruneuserthread'), 2 => array('finishprune', 1), 3 => array('subforums', $_INPUT['subforums']), 4 => array('username', $_INPUT['username']), 5 => array('forum_id', $_INPUT['forum_id'])), 'automatic');
+			$forums->admin->print_form_header(array(1 => array('do', 'pruneuserthread'), 2 => array('finishprune', 1), 3 => array('subforums', input::get('subforums', '')), 4 => array('username', input::get('username', '')), 5 => array('forum_id', input::get('forum_id', ''))), 'automatic');
 			$forums->admin->print_table_start($forums->lang['automatic'] . $forumtitle);
 			$forums->admin->print_cells_single_row($forums->lang['clickautomatic'] . $forumtitle);
 			$forums->admin->print_form_submit($forums->lang['automatic'] . $forumtitle);
 			$forums->admin->print_table_footer();
 			$forums->admin->print_form_end();
-			$forums->admin->print_form_header(array(1 => array('do', 'pruneuserselect'), 2 => array('subforums', $_INPUT['subforums']), 3 => array('username', $_INPUT['username']), 4 => array('forum_id', $_INPUT['forum_id'])), 'selectable');
+			$forums->admin->print_form_header(array(1 => array('do', 'pruneuserselect'), 2 => array('subforums', input::get('subforums', '')), 3 => array('username', input::get('username', '')), 4 => array('forum_id', input::get('forum_id', ''))), 'selectable');
 			$forums->admin->print_table_start($forums->lang['selectable'] . $forumtitle);
 			$forums->admin->print_cells_single_row($forums->lang['clickselectable'] . $forumtitle);
 			$forums->admin->print_form_submit($forums->lang['selectable'] . $forumtitle);
@@ -190,15 +190,15 @@ class threads
 		}
 		else
 		{
-			if ($_INPUT['forum_id'] != -1)
+			if (input::get('forum_id', '') != -1)
 			{
-				if ($_INPUT['subforums'])
+				if (input::str('subforums'))
 				{
-					$forumcheck = "(t.forumid = " . $_INPUT['forum_id'] . " OR f.parentlist LIKE '%," . $_INPUT['forum_id'] . ",%' OR f.parentlist LIKE '" . $_INPUT['forum_id'] . ",%' OR f.parentlist LIKE '%," . $_INPUT['forum_id'] . "') AND ";
+					$forumcheck = "(t.forumid = " . input::get('forum_id', '') . " OR f.parentlist LIKE '%," . input::get('forum_id', '') . ",%' OR f.parentlist LIKE '" . input::get('forum_id', '') . ",%' OR f.parentlist LIKE '%," . input::get('forum_id', '') . "') AND ";
 				}
 				else
 				{
-					$forumcheck = "t.forumid = " . $_INPUT['forum_id'] . " AND ";
+					$forumcheck = "t.forumid = " . input::get('forum_id', '') . " AND ";
 				}
 			}
 			else
@@ -212,7 +212,7 @@ class threads
 				$threadids[] = $thread['tid'];
 			}
 			$this->mod->thread_delete($threadids);
-			$this->recount($_INPUT['forum_id']);
+			$this->recount(input::str('forum_id'));
 			$forums->admin->recount_stats();
 			$forums->lang['batchdeluserthreads'] = sprintf($forums->lang['batchdeluserthreads'], $user['name']);
 			$forums->lang['utbatchdeleted'] = sprintf($forums->lang['utbatchdeleted'], $user['name']);
@@ -223,13 +223,13 @@ class threads
 
 	function pruneuserselect()
 	{
-		global $forums, $DB, $_INPUT, $bbuserinfo;
-		$username = trim($_INPUT['username']);
+		global $forums, $DB, $bbuserinfo;
+		$username = trim(input::str('username'));
 		if (!in_array($bbuserinfo['id'], $this->admin) && !$forums->adminperms['canmassprunethreads'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
-		if ($username == "" OR $_INPUT['forum_id'] == -2)
+		if ($username == "" OR input::int('forum_id') == -2)
 		{
 			$forums->admin->print_cp_error($forums->lang['requirepruneoptions']);
 		}
@@ -237,25 +237,25 @@ class threads
 		{
 			$forums->admin->print_cp_error($forums->lang['cannotfindstarter']);
 		}
-		if (!$_INPUT['finishprune'])
+		if (!input::get('finishprune', ''))
 		{
 			$pagetitle = $forums->lang['batchdeletethread'];
 			$detail = $forums->lang['batchdeletethreaddesc'];
 			$forums->admin->nav[] = array('' , $forums->lang['batchdeletethread']);
 			$forums->admin->print_cp_header($pagetitle, $detail);
-			$forums->admin->print_form_header(array(1 => array('do', 'pruneuserselect'), 2 => array('finishprune', 1), 3 => array('subforums', $_INPUT['subforums']), 4 => array('username', $_INPUT['username']), 5 => array('forum_id', $_INPUT['forum_id'])));
+			$forums->admin->print_form_header(array(1 => array('do', 'pruneuserselect'), 2 => array('finishprune', 1), 3 => array('subforums', input::get('subforums', '')), 4 => array('username', input::get('username', '')), 5 => array('forum_id', input::get('forum_id', ''))));
 			$forums->admin->columns[] = array($forums->lang['thread'], "90%");
 			$forums->admin->columns[] = array($forums->lang['delete'], "10%");
 			$forums->admin->print_table_start($forums->lang['deletethread']);
-			if ($_INPUT['forum_id'] != -1)
+			if (input::get('forum_id', '') != -1)
 			{
-				if ($_INPUT['subforums'])
+				if (input::str('subforums'))
 				{
-					$forumcheck = "(t.forumid = " . $_INPUT['forum_id'] . " OR f.parentlist LIKE '%," . $_INPUT['forum_id'] . ",%') AND ";
+					$forumcheck = "(t.forumid = " . input::get('forum_id', '') . " OR f.parentlist LIKE '%," . input::get('forum_id', '') . ",%') AND ";
 				}
 				else
 				{
-					$forumcheck = "t.forumid = " . $_INPUT['forum_id'] . " AND ";
+					$forumcheck = "t.forumid = " . input::get('forum_id', '') . " AND ";
 				}
 			}
 			else
@@ -307,7 +307,7 @@ class threads
 				}
 				$this->mod->post_delete($postids);
 			}
-			$this->recount($_INPUT['forum_id']);
+			$this->recount(input::str('forum_id'));
 			$forums->admin->recount_stats();
 			$forums->lang['batchdeluserthreads'] = sprintf($forums->lang['batchdeluserthreads'], $user['name']);
 			$forums->lang['utbatchdeleted'] = sprintf($forums->lang['utbatchdeleted'], $user['name']);
@@ -318,12 +318,12 @@ class threads
 
 	function domassoperate($type = 'move')
 	{
-		global $DB, $_INPUT, $forums, $bbuserinfo;
-		if ($_INPUT['forum_id'] == -2)
+		global $DB, $forums, $bbuserinfo;
+		if (input::int('forum_id') == -2)
 		{
 			$forums->admin->print_cp_error($forums->lang['selectbatchdelforum']);
 		}
-		$this->thread = $_INPUT['thread'];
+		$this->thread = input::get('thread', '');
 		$this->fetch_thread_move_prune_sql();
 		$forum_id = intval($this->thread['forum_id']);
 		$move_id = intval($this->thread['move_id']);
@@ -390,7 +390,7 @@ class threads
 
 	function finishoperate()
 	{
-		global $DB, $_INPUT, $forums, $bbuserinfo;
+		global $DB, $forums, $bbuserinfo;
 		$this->thread = unserialize($_POST['contains']);
 		$this->fetch_thread_move_prune_sql();
 		$fullquery = "
@@ -400,7 +400,7 @@ class threads
 			WHERE $this->query
 		";
 		$threads = $DB->query($fullquery);
-		if ($_INPUT['type'] == 'prune')
+		if (input::str('type') == 'prune')
 		{
 			if (!in_array($bbuserinfo['id'], $this->admin) && !$forums->adminperms['canmassprunethreads'])
 			{
@@ -419,7 +419,7 @@ class threads
 			$forums->admin->save_log($forums->lang['batchdelforumthreads']);
 			$forums->admin->redirect("threads.php?do=massprune", $forums->lang['batchdeletethread'], $forums->lang['ftbatchdeleted']);
 		}
-		else if ($_INPUT['type'] == 'move')
+		else if (input::str('type') == 'move')
 		{
 			if (!in_array($bbuserinfo['id'], $this->admin) && !$forums->adminperms['canmassmovethreads'])
 			{
@@ -443,7 +443,7 @@ class threads
 
 	function operateselect()
 	{
-		global $DB, $_INPUT, $forums, $bbuserinfo;
+		global $DB, $forums, $bbuserinfo;
 		$this->thread = unserialize($_POST['contains']);
 		$this->fetch_thread_move_prune_sql();
 		$fullquery = "
@@ -453,7 +453,7 @@ class threads
 			WHERE $this->query
 		";
 		$threads = $DB->query($fullquery);
-		if ($_INPUT['type'] == 'prune')
+		if (input::str('type') == 'prune')
 		{
 			if (!in_array($bbuserinfo['id'], $this->admin) && !$forums->adminperms['canmassprunethreads'])
 			{
@@ -463,7 +463,7 @@ class threads
 			$detail = $forums->lang['batchdeletethreaddesc'];
 			$forums->admin->nav[] = array('' , $forums->lang['batchdeletethread']);
 			$forums->admin->print_cp_header($pagetitle, $detail);
-			$forums->admin->print_form_header(array(1 => array('do', 'dooperateselect'), 2 => array('type', $_INPUT['type']), 3 => array('forum_id', $this->thread['forum_id'])));
+			$forums->admin->print_form_header(array(1 => array('do', 'dooperateselect'), 2 => array('type', input::get('type', '')), 3 => array('forum_id', $this->thread['forum_id'])));
 			$forums->admin->columns[] = array($forums->lang['threadtitle'], "50%");
 			$forums->admin->columns[] = array($forums->lang['threadstarter'], "13%");
 			$forums->admin->columns[] = array($forums->lang['replies'], "10%");
@@ -479,7 +479,7 @@ class threads
 			$forums->admin->print_form_end();
 			$forums->admin->print_cp_footer();
 		}
-		else if ($_INPUT['type'] == 'move')
+		else if (input::str('type') == 'move')
 		{
 			if (!in_array($bbuserinfo['id'], $this->admin) && !$forums->adminperms['canmassmovethreads'])
 			{
@@ -489,7 +489,7 @@ class threads
 			$detail = $forums->lang['batchmovethreaddesc'];
 			$forums->admin->nav[] = array('' , $forums->lang['batchmovethread']);
 			$forums->admin->print_cp_header($pagetitle, $detail);
-			$forums->admin->print_form_header(array(1 => array('do', 'dooperateselect'), 2 => array('type', $_INPUT['type']), 3 => array('move_id', $this->thread['move_id']), 4 => array('forum_id', $this->thread['forum_id'])));
+			$forums->admin->print_form_header(array(1 => array('do', 'dooperateselect'), 2 => array('type', input::get('type', '')), 3 => array('move_id', $this->thread['move_id']), 4 => array('forum_id', $this->thread['forum_id'])));
 			$forums->admin->columns[] = array($forums->lang['threadtitle'], "50%");
 			$forums->admin->columns[] = array($forums->lang['threadstarter'], "13%");
 			$forums->admin->columns[] = array($forums->lang['replies'], "10%");
@@ -509,10 +509,10 @@ class threads
 
 	function dooperateselect()
 	{
-		global $DB, $_INPUT, $forums, $bbuserinfo;
+		global $DB, $forums, $bbuserinfo;
 		if (is_array($_POST['thread']))
 		{
-			if ($_INPUT['type'] == 'prune')
+			if (input::str('type') == 'prune')
 			{
 				if (!in_array($bbuserinfo['id'], $this->admin) && !$forums->adminperms['canmassprunethreads'])
 				{
@@ -527,12 +527,12 @@ class threads
 					}
 				}
 				$this->mod->thread_delete($threadids);
-				$this->recount($_INPUT['forum_id']);
+				$this->recount(input::str('forum_id'));
 				$forums->admin->recount_stats();
 				$forums->admin->save_log($forums->lang['batchdeletethread']);
 				$forums->admin->redirect("threads.php?do=massprune", $forums->lang['batchdeletethread'], $forums->lang['forumthreaddeleted']);
 			}
-			if ($_INPUT['type'] == 'move')
+			if (input::str('type') == 'move')
 			{
 				if (!in_array($bbuserinfo['id'], $this->admin) && !$forums->adminperms['canmassmovethreads'])
 				{
@@ -545,9 +545,9 @@ class threads
 						$threadids[] = $threadid;
 					}
 				}
-				$this->mod->thread_move($threadids, $_INPUT['forum_id'], $_INPUT['move_id']);
-				$this->recount($_INPUT['forum_id']);
-				$this->recount($_INPUT['move_id']);
+				$this->mod->thread_move($threadids, input::get('forum_id', ''), input::get('move_id', ''));
+				$this->recount(input::str('forum_id'));
+				$this->recount(input::str('move_id'));
 				$forums->admin->save_log($forums->lang['batchmovethread']);
 				$forums->admin->redirect("threads.php?do=massmove", $forums->lang['batchmovethread'], $forums->lang['forumthreadmoved']);
 			}
