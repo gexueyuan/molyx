@@ -70,7 +70,7 @@ if (preg_match('/mozilla/i', $_SERVER['HTTP_USER_AGENT']))
 	$message = $forums->lang['wapusemobile'];
 	$message = sprintf($message, $bboptions['bburl'] . '/wap/index.php');
 	list($user, $domain) = explode('@', $bboptions['emailreceived']);
-	$safe_string = str_replace('&amp;', '&', clean_value(SCRIPT));
+	$safe_string = str_replace('&amp;', '&', input::clean_value(SCRIPT));
 	$nav = array($forums->lang['errorsinfo']);
 	$pagetitle = $forums->lang['errorsinfo'] . ' - ' . $bboptions['bbtitle'];
 	include $forums->func->load_template('errors_index');

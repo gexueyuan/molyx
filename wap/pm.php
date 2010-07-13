@@ -522,7 +522,7 @@ class newprivate
 			$val = trim($val);
 			if ($val)
 			{
-				$touser[] = strtolower(clean_value($val));
+				$touser[] = strtolower(input::clean_value($val));
 			}
 		}
 		$touser = array_unique($touser);

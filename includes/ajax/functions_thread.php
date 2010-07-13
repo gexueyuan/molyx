@@ -342,8 +342,7 @@ function change_thread_title($tid, $title, $oldthreadhtml = '')
 	}
 	if ($title && $title != strip_tags($thread['title']))
 	{
-		$title = init_input(array($title));
-		$title = $title[0];
+		$title = input::clean_value($title);
 		if (strlen($title) < 2 || strlen($title) > 250)
 		{
 			show_processinfo($forums->lang['titletoolongorshort']);
