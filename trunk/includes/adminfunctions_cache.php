@@ -620,11 +620,11 @@ info;
 						{
 							$value["column_regular"] = input::unclean($value["column_regular"]);
 							$check_regular=<<<str
- && !preg_match("/{$value['column_regular']}/",\$_INPUT['{$value["column_name"]}'])
+ && !preg_match("/{$value['column_regular']}/",input::str('{$value["column_name"]}'))
 str;
 							$not_mustfill_code.=<<<register_php
 \n
-if(\$_INPUT['{$value["column_name"]}']{$check_regular})
+if(input::str('{$value["column_name"]}'){$check_regular})
 {
 \n	\$forums->lang['error{$value["column_name"]}_style_notmustfill'] = "{$value['column_title']}{\$forums->lang['cache_style_notmustfill']}";
 \n  callback_error("error{$value['column_name']}style_notmustfill");
@@ -640,7 +640,7 @@ register_php;
 						{
 							$value["column_regular"] = input::unclean($value["column_regular"]);
 							$check_regular=<<<str
-||!preg_match("/{$value['column_regular']}/",\$_INPUT['{$value["column_name"]}'])
+||!preg_match("/{$value['column_regular']}/",input::str('{$value["column_name"]}'))
 str;
 						}
 						else
@@ -650,7 +650,7 @@ str;
 
 						$mustfill_code.=<<<register_php
 \n
-if(empty(\$_INPUT['{$value["column_name"]}']){$check_regular})
+if(empty(input::str('{$value["column_name"]}')){$check_regular})
 {
 \n	\$forums->lang['error{$value["column_name"]}_style_mustfill'] = "{$value['column_title']}{\$forums->lang['cache_style_mustfill']}";
 \n	callback_error("error{$value['column_name']}_style_mustfill");
@@ -663,7 +663,7 @@ register_php;
 					{
 						$confirmation_code.=<<<register_php
 \n
-if(trim(\$_INPUT['{$value["column_name"]}'])!= \$_INPUT['{$value["column_name"]}_confirmation'])
+if(input::str('{$value["column_name"]}')!= input::str('{$value["column_name"]}_confirmation'))
 {
 \n	\$forums->lang['error{$value["column_name"]}_confirmation'] = "{$value['column_title']}{\$forums->lang['cache_confirmation']}";
 \n	callback_error("error{$value['column_name']}_confirmation");
@@ -675,7 +675,7 @@ register_php;
 					{
 						$strlen_code.=<<<register_php
 \n
-if(\$_INPUT['{$value["column_name"]}'] && utf8_strlen(\$_INPUT['{$value["column_name"]}']) > {$value["column_length"]})
+if(input::str('{$value["column_name"]}') && utf8_strlen(input::str('{$value["column_name"]}')) > {$value["column_length"]})
 {
 \n	\$forums->lang['error{$value["column_name"]}_length'] = "{$value['column_title']}{\$forums->lang['cache_length']}";
 \n	callback_error("error{$value['column_name']}_length");
@@ -692,21 +692,21 @@ register_php;
 							$trim_data_str .= <<<str
 \n
 //checkbox value
-if(is_array(\$_INPUT['{$value["column_name"]}']))
-{\n	\$_INPUT['{$value["column_name"]}'] = serialize(\$_INPUT['{$value["column_name"]}']);
+if(is_array(input::str('{$value["column_name"]}')))
+{\n	input::str('{$value["column_name"]}') = serialize(input::str('{$value["column_name"]}'));
 \n}
 else
-{\n	\$_INPUT['{$value["column_name"]}'] = '';
+{\n	input::str('{$value["column_name"]}') = '';
 \n}\n
 str;
 						   if($value['confirmation'])
 							{
 							   $trim_data_str .= <<<str
-if(is_array(\$_INPUT['{$value["column_name"]}_confirmation']))
-{\n	\$_INPUT['{$value["column_name"]}_confirmation'] = serialize(\$_INPUT['{$value["column_name"]}_confirmation']);
+if(is_array(\input::str('{$value["column_name"]}_confirmation')))
+{\n	\input::str('{$value["column_name"]}_confirmation') = serialize(input::str('{$value["column_name"]}_confirmation'));
 \n}
 else
-{\n	\$_INPUT['{$value["column_name"]}_confirmation'] = '';
+{\n	input::str('{$value["column_name"]}_confirmation') = '';
 \n}
 str;
 							}
@@ -715,11 +715,11 @@ str;
 						}
 						else
 						{
-							$trim_data_str .= "\$_INPUT['".$value["column_name"]."'] = addslashes(trim(\$_INPUT['".$value["column_name"]."']));\n";
+							$trim_data_str .= "\input::str('".$value["column_name"]."') = addslashes(input::str('".$value["column_name"]."'));\n";
 
 						}
 						$user_array_code .= <<<register_php
-\n\$user_data['{$value["tablename"]}']['{$value["column_name"]}'] = (\$_INPUT['{$value["column_name"]}']);
+\n\$user_data['{$value["tablename"]}']['{$value["column_name"]}'] = input::str('{$value["column_name"]}');
 register_php;
 					}
 
@@ -727,9 +727,9 @@ register_php;
 				if($value["is_only"])
 				{
 					$is_only_code.=<<<register_php
-\nif(!empty(\$_INPUT['{$value["column_name"]}']))
+\nif(!empty(input::str('{$value["column_name"]}')))
 {
-\n	\$DB->query("SELECT {$value['column_name']} FROM " . TABLE_PREFIX . "{$value['tablename']} WHERE {$value['column_name']} = '" . \$_INPUT['{$value["column_name"]}'] . "'");
+\n	\$DB->query("SELECT {$value['column_name']} FROM " . TABLE_PREFIX . "{$value['tablename']} WHERE {$value['column_name']} = '" . input::str('{$value["column_name"]}') . "'");
 \n	if (\$DB->num_rows() != 0)
 	{
 \n		\$forums->lang['error{$value["column_name"]}_exists'] = "{$value['column_title']}{\$forums->lang['cache_exists']}";
@@ -774,7 +774,7 @@ register_php;
 			//错误函数
 			$error_function_code.=<<<function_php
 \nfunction callback_error(\$errstr)
-{\n	global \$forums, \$_INPUT;
+{\n	global \$forums;
 \n	switch(THIS_SCRIPT)
 	{
 \n		case "register":
@@ -790,7 +790,7 @@ register_php;
 \n		default:
 \n			\$tempobj = new user();
 \n			\$forums->main_msg = \$forums->lang[\$errstr];
-\n			if (\$_INPUT['do'] == 'doedit')
+\n			if (input::str('do') == 'doedit')
 			{
 \n				\$tempobj->useredit('edit');
 			}
@@ -1005,7 +1005,7 @@ str;
 			if ($r['checkregular'])
 			{
 				//需检测正则的项目
-				$forums->cache['userextrafield']['r'][$r['fieldtag']] = array($r['fieldname'], unclean_value($r['checkregular']));
+				$forums->cache['userextrafield']['r'][$r['fieldtag']] = array($r['fieldname'], input::unclean($r['checkregular']));
 			}
 			if ($r['isonly'])
 			{
@@ -1018,14 +1018,14 @@ str;
 
 	function forum_commend_thread_recache()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		$forums->cache['forum_commend_thread'] = array();
-		$_INPUT['f'] = intval($_INPUT['f']);
+		$f = input::int('f');
 		$sql = 'SELECT u.avatar, t.tid, t.mod_commend, t.title, t.postusername, t.postuserid, t.dateline
 				FROM ' . TABLE_PREFIX . 'thread t
 					LEFT JOIN ' . TABLE_PREFIX . 'user u
 						ON u.id = t.postuserid
-				WHERE t.forumid = ' . $_INPUT['f'] . '
+				WHERE t.forumid = ' . $f . '
 					AND t.mod_commend > 0
 					AND t.visible = 1
 				ORDER BY t.mod_commend DESC, t.dateline DESC
@@ -1036,19 +1036,19 @@ str;
 		{
 			$thread[$r['tid']] = $r;
 		}
-		$forums->func->update_cache(array('name' => 'forum_commend_thread_' . $_INPUT['f'], 'value' => $thread));
+		$forums->func->update_cache(array('name' => 'forum_commend_thread_' . $f, 'value' => $thread));
 	}
 
 	function forum_active_user_recache($fid = 0)
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		$forums->cache['forum_active_user'] = array();
-		$_INPUT['f'] = $fid ? $fid : intval($_INPUT['f']);
+		$f = $fid ? $fid : input::int('f');
 		$sql = 'SELECT u.avatar, u.id, u.name, count(tid) AS threads
 				FROM ' . TABLE_PREFIX . 'thread t
 					LEFT JOIN ' . TABLE_PREFIX . 'user u
 						ON u.id = t.postuserid
-				WHERE t.forumid = ' . $_INPUT['f'] . '
+				WHERE t.forumid = ' . $f . '
 					AND t.visible = 1
 					AND t.postuserid > 0
 				GROUP BY u.id
@@ -1060,17 +1060,17 @@ str;
 		{
 			$user[$r['id']] = $r;
 		}
-		$forums->func->update_cache(array('name' => 'forum_active_user_' . $_INPUT['f'], 'value' => $user));
+		$forums->func->update_cache(array('name' => 'forum_active_user_' . $f, 'value' => $user));
 	}
 
 	function forum_area_recache()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		$forums->cache['forum_area'] = array();
-		$_INPUT['f'] = $fid ? $fid : intval($_INPUT['f']);
+		$f = $fid ? $fid : input::int('f');
 		$sql = 'SELECT *
 				FROM ' . TABLE_PREFIX . 'area
-				WHERE forumid IN (0,' . $_INPUT['f'] . ')
+				WHERE forumid IN (0,' . $f . ')
 				ORDER BY orderid ASC';
 		$area = array();
 		$q = $DB->query($sql);
@@ -1104,12 +1104,12 @@ str;
 				}
 			}
 		}
-		$forums->func->update_cache(array('name' => 'forum_area_' . $_INPUT['f'], 'value' => $area_content));
+		$forums->func->update_cache(array('name' => 'forum_area_' . $f, 'value' => $area_content));
 	}
 
 	function top_digg_thread_recache()
 	{
-		global $forums, $DB, $_INPUT, $bboptions;
+		global $forums, $DB, $bboptions;
 		$q = $DB->query('SELECT value, defaultvalue, varname
 									FROM ' . TABLE_PREFIX . "setting
 									WHERE varname IN ('diggshowtype', 'diggshowcondition')");
@@ -1159,4 +1159,3 @@ str;
 		$forums->func->update_cache(array('name' => 'top_digg_thread'));
 	}
 }
-?>

@@ -53,10 +53,10 @@ class adminfunctions
 
 	function save_log($action = '')
 	{
-		global $DB, $bbuserinfo, $_INPUT;
+		global $DB, $bbuserinfo;
 		$DB->insert(TABLE_PREFIX . 'adminlog', array(
 			'script' => SCRIPT,
-			'action' => $_INPUT['do'],
+			'action' => input::str('do'),
 			'userid' => $bbuserinfo['id'],
 			'dateline' => TIMENOW,
 			'note' => $action,
@@ -111,14 +111,14 @@ class adminfunctions
 
 	function compile_forum_permission()
 	{
-		global $DB, $forums, $_INPUT;
+		global $DB, $forums;
 		$r_array = array('read' => '', 'reply' => '', 'start' => '', 'upload' => '', 'show' => '');
 		$DB->query("SELECT usergroupid, grouptitle, canshow, canviewothers, canpostnew, canreplyothers, attachlimit FROM " . TABLE_PREFIX . "usergroup ORDER BY usergroupid");
 		while ($data = $DB->fetch_array())
 		{
 			foreach(array('read', 'reply', 'start', 'upload', 'show') AS $bit)
 			{
-				if ($_INPUT[ $bit . '_' . $data['usergroupid'] ] == 1)
+				if (input::int($bit . '_' . $data['usergroupid']) == 1)
 				{
 					$r_array[ $bit ] .= $data['usergroupid'] . ",";
 				}
@@ -288,7 +288,7 @@ class adminfunctions
 
 	function print_cp_header($title = "", $desc = "", $js = "", $notable = "", $redirect = "")
 	{
-		global $forums, $bboptions, $_INPUT;
+		global $forums, $bboptions;
 		$navigation = "<a href='index.php?s=" . $forums->sessionid . "' target='body'><img src='" . $forums->imageurl . "/nav001.gif' border='0' alt='' /><font color='#C8DBF0'>" . $forums->lang['admincphome'] . "</font></a>";
 		if (count($this->nav) > 0)
 		{
@@ -319,7 +319,7 @@ class adminfunctions
 		echo "<link rel=\"stylesheet\" type=\"text/css\" media=\"all\" href=\"" . $forums->imageurl . "/controlpanel.css\" />\n";
 		echo "<script type=\"text/javascript\">\n";
 		echo "<!--\n";
-		echo "var current_page = \"{$_INPUT['pp']}\";\n";
+		echo "var current_page = \"" . input::int('pp') . "\";\n";
 		echo "var cookie_id = \"{$bboptions['cookieprefix']}\";\n";
 		echo "var cookie_domain = \"{$bboptions['cookiedomain']}\";\n";
 		echo "var cookie_path   = \"{$bboptions['cookiepath']}\";\n";
@@ -448,9 +448,14 @@ class adminfunctions
 
 	function menu()
 	{
-		global $forums, $options, $bboptions, $bbuserinfo, $_INPUT;
+		global $forums, $options, $bboptions, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
-		$thispanel = $_INPUT['panellist'] ? trim($_INPUT['panellist']) : 'forum';
+		$thispanel = input::str('panellist');
+		if (empty($thispanel))
+		{
+			$thispanel = 'forum';
+		}
+
 		echo "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
 		echo "<html xmlns=\"http://www.w3.org/1999/xhtml\">\n";
 		echo "<head><title>" . $forums->lang['admincpmenu'] . "</title>\n";
@@ -538,7 +543,7 @@ class adminfunctions
 
 	function nav()
 	{
-		global $forums, $options, $bboptions, $bbuserinfo, $_INPUT;
+		global $forums, $options, $bboptions, $bbuserinfo;
 		$admin = explode(',', SUPERADMIN);
 		$panellist = array();
 		$handle = @opendir(ROOT_PATH . 'includes');
@@ -560,7 +565,13 @@ class adminfunctions
 			}
 		}
 		closedir($handle);
-		$thispanel = $_INPUT['panellist'] ? trim($_INPUT['panellist']) : 'forum';
+
+		$thispanel = input::str('panellist');
+		if (empty($thispanel))
+		{
+			$thispanel = 'forum';
+		}
+
 		echo "<html>\n";
 		echo '<head><title>' . $forums->lang['admincp'] . "</title>\n";
 		echo "<link rel=\"stylesheet\" type=\"text/css\" media=\"all\" href=\"{$forums->imageurl}/controlpanel.css\" />\n";
@@ -583,11 +594,12 @@ class adminfunctions
 
 	function print_frame_set()
 	{
-		global $forums, $_INPUT;
-		$_GET['reffer_url'] = preg_replace("#(.*)(^|\.php)#", '\\1\\2?' . $forums->sessionurl, str_replace("?", '', rawurldecode($_GET['reffer_url'])));
-		if (preg_match("#(reffer_url|logout)#", $_GET['reffer_url']))
+		global $forums;
+		$url = input::str('reffer_url', false);
+		$url = preg_replace("#(.*)(^|\.php)#", '\\1\\2?' . $forums->sessionurl, str_replace("?", '', rawurldecode($url)));
+		if (preg_match("#(reffer_url|logout)#", $url))
 		{
-			$_GET['reffer_url'] = "index.php?{$forums->sessionurl}";
+			$url = "index.php?{$forums->sessionurl}";
 		}
 		echo "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n";
 		echo "<html xml:lang=\"en\" lang=\"en\" xmlns=\"http://www.w3.org/1999/xhtml\">\n";
@@ -597,7 +609,7 @@ class adminfunctions
 		echo "<frame src='index.php?s=" . $forums->sessionid . "&amp;do=menu' name='mainFrame' frameborder='0' noresize='noresize' />\n";
 		echo "<frame src='index.php?s=" . $forums->sessionid . "&amp;do=nav' name='bottomFrame' scrolling='no' noresize='noresize' frameborder='0' />\n";
 		echo "</frameset>\n";
-		echo "<frame name='body' noresize='noresize' scrolling='auto' src='" . $_GET['reffer_url'] . "' frameborder='0' />\n";
+		echo "<frame name='body' noresize='noresize' scrolling='auto' src='" . $url . "' frameborder='0' />\n";
 		echo "</frameset>\n";
 		echo "</html>";
 		exit();
@@ -966,10 +978,10 @@ class adminfunctions
 
 	function recount_stats($cache = 1)
 	{
-		global $forums, $DB, $_INPUT;
+		global $forums, $DB;
 
 		$stats = array();
-		if ($_INPUT['users'] || $cache)
+		if (input::int('users') || $cache)
 		{
 			$row = $DB->query_first('SELECT COUNT(id) AS users
 				FROM ' . TABLE_PREFIX . 'user
@@ -977,7 +989,7 @@ class adminfunctions
 			$stats[] = array('numbermembers', intval($row['users']));
 		}
 
-		if ($_INPUT['lastreg'] || $cache)
+		if (input::int('lastreg') || $cache)
 		{
 			$row = $DB->query_first('SELECT id, name
 				FROM ' . TABLE_PREFIX . 'user
@@ -988,7 +1000,7 @@ class adminfunctions
 			$stats[] = array('newuserid', $row['id']);
 		}
 
-		if ($_INPUT['online'] && 0)
+		if (input::int('online') && 0)
 		{
 			$stats[] = array('maxonlinedate', TIMENOW);
 			$stats[] = array('maxonline', 1);
@@ -999,18 +1011,18 @@ class adminfunctions
 
 	function mkuserfield($field, $value = array())
 	{
+		$tag = input::str($field['fieldtag']);
 		switch ($field['showtype'])
 		{
 			case 'text':
-				$this->print_cells_row(array("<strong>" . $field['fieldname'] . "</strong>", $this->print_input_row($field['fieldtag'], $_INPUT[$field['fieldtag']] ? $_INPUT[$field['fieldtag']] : $value[$field['fieldtag']])));
+				$this->print_cells_row(array("<strong>" . $field['fieldname'] . "</strong>", $this->print_input_row($field['fieldtag'], $tag ? $tag : $value[$field['fieldtag']])));
 			break;
 			case 'textarea':
 				$this->print_cells_row(array("<strong>" . $field['fieldname'] . "</strong>", $this->print_textarea_row($field['fieldtag'], $value[$field['fieldtag']])));
 			break;
 			case 'select':
-				$this->print_cells_row(array("<strong>" . $field['fieldname'] . "</strong>", $this->print_input_select_row($field['fieldtag'], $field['listcontent'], $_INPUT[$field['fieldtag']] ? $_INPUT[$field['fieldtag']] : $value[$field['fieldtag']]), ''));
+				$this->print_cells_row(array("<strong>" . $field['fieldname'] . "</strong>", $this->print_input_select_row($field['fieldtag'], $field['listcontent'], $tag ? $tag : $value[$field['fieldtag']]), ''));
 			break;
 		}
 	}
 }
-?>

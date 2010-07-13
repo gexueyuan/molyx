@@ -17,8 +17,7 @@
 function changemedo($do = '')
 {
 	global $forums, $DB, $bbuserinfo, $bboptions, $response;
-	$do = init_input(array('d' => $do));
-	$do = $do['d'];
+	$do = input::clean_value($do);
 	$userdo = str_replace(array("\n", '<br />'), ' ', trim($do));
 	if (!$bbuserinfo['id'])
 	{
