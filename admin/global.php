@@ -155,7 +155,8 @@ else
 	{
 		$forums->admin->print_cp_login($forums->lang['requireusername']);
 	}
-	if (empty(input::str('password')))
+	$password = input::str('password');
+	if (empty($password))
 	{
 		$forums->admin->print_cp_login($forums->lang['requirepassword']);
 	}
@@ -171,7 +172,7 @@ else
 	{
 		$forums->admin->print_cp_login($forums->lang['usernotexist']);
 	}
-	$password = md5(input::str('password'));
+	$password = md5($password);
 	if ($user['password'] != md5($password . $user['salt']))
 	{
 		$forums->admin->print_cp_login($forums->lang['passwordwrong']);
