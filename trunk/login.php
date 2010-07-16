@@ -105,7 +105,7 @@ class login
 				$username = convert_encoding($username, $charset, 'utf-8');
 			}
 
-			$check_name = input::for_textarea($username);
+			$check_name = input::unclean($username);
 			if (utf8_strlen($check_name) > 32)
 			{
 				$forums->func->standard_error('nametoolong');
