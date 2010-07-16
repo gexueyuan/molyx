@@ -71,7 +71,7 @@ class credit
 	{
 		global $forums, $DB;
 
-		$pp = isset(input::str('pp')) ? input::int('pp') : 0;
+		$pp = input::int('pp');
 
 		$pagetitle = $forums->lang['managecredit'];
 		$forums->admin->nav[] = array('credit.php' , $forums->lang['creditlist']);

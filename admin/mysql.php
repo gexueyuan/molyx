@@ -47,8 +47,8 @@ class mysql
 		$one = (!isset($no_array) || !isset($no_array[0])) ? 3 : $no_array[0];
 		$two = (!isset($no_array[1])) ? 21 : $no_array[1];
 		$three = (!isset($no_array[2])) ? 0 : $no_array[2];
-		$this->savedate = isset(input::str('savedate')) ? input::int('savedate') : date('Ymd', TIMENOW);
-		$this->md5_check = isset(input::str('check')) ? trim(input::str('check')) : md5(TIMENOW . IPADDRESS);
+		$this->savedate = input::get('savedate', date('Ymd', TIMENOW));
+		$this->md5_check = input::get('check', md5(TIMENOW . IPADDRESS));
 		$this->mysql_version = (int) sprintf('%d%02d%02d', $one, $two, intval($three));
 		switch (input::get('do', ''))
 		{
@@ -337,8 +337,8 @@ class mysql
 	{
 		global $DB, $forums;
 		$this->dbblocksize = input::int('dbblocksize');
-		$this->tableid = isset(input::str('tableid')) ? input::int('tableid') : 0;
-		$this->offset = isset(input::str('offset')) ? input::int('offset') : 0;
+		$this->tableid = input::int('tableid');
+		$this->offset = input::int('offset');
 		$this->dbexportfolder = preg_replace('/[^a-zA-Z0-9\-_]/', '', input::get('dbexportfolder', ''));
 
 		if ($this->dbexportfolder == '')
@@ -355,7 +355,7 @@ class mysql
 
 		$tmp_tbl = $DB->get_table_names();
 		$t = 0;
-		$this->step = (isset(input::str('step')) && input::get('step', '')) ? input::int('step') : 1;
+		$this->step = input::get('step', 1);
 		foreach ($tmp_tbl as $tbl)
 		{
 			$this->noshow = false;
@@ -1030,8 +1030,8 @@ class mysql
 	function dorestore()
 	{
 		global $forums, $DB;
-		$type = (isset(input::str('type')) && input::get('type', '')) ? 1 : 0;
-		$pp = (isset(input::str('pp')) && input::get('pp', '')) ? input::int('pp') : 1;
+		$type = input::str('type') ? 1 : 0;
+		$pp = input::get('pp', 1);
 		$file = trim(rawurldecode(input::str('file')));
 		$filepath = trim(input::str('filepath'));
 		if ($type || SAFE_MODE)
@@ -1054,12 +1054,12 @@ class mysql
 		{
 			$info = explode(',', base64_decode(preg_replace('/^# key:\s*(\w+).*/s', '\\1', fgets($fp, 256))));
 			$filesize = @filesize($urlfile);
-			$offset = isset(input::str('offset')) ? input::int('offset') : 0;
+			$offset = input::int('offset');
 			if ($offset <= $filesize && fseek($fp, $offset) == 0)
 			{
 				$sql = '';
 				$in_parents = false;
-				$line_number = isset(input::str('begin')) ? input::int('begin') : 0;
+				$line_number = input::int('begin');
 				$end = $line_number + 3000;
 				while ($line_number < $end || $sql != '')
 				{
