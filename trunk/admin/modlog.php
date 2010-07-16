@@ -1,4 +1,4 @@
-<?php 
+<?php
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
@@ -38,7 +38,7 @@ class modlog
 	function view()
 	{
 		global $forums, $DB;
-		$start = isset(input::str('pp')) ? input::int('pp') : 0;
+		$start = input::int('pp');
 		$pagetitle = $forums->lang['modlog'];
 		$detail = $forums->lang['viewallmodlog'];
 		$forums->admin->nav[] = array("modlog.php?do=view", $forums->lang['viewmodlog']);

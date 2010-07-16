@@ -832,15 +832,15 @@ class usergroup
 		$opentag = preg_replace("/&lt;/" , "<" , $opentag);
 		$closetag = preg_replace("/&#39;/", "'" , convert_andstr($_POST['closetag']));
 		$closetag = preg_replace("/&lt;/" , "<" , $closetag);
-		if (input::get('attachlimit', '') != 0)
+
+		$attachlimit = input::int('attachlimit');
+		$perpostattach = input::int('perpostattach')
+		if ($attachlimit != 0 && $attachlimit != -1)
 		{
-			if (isset(input::str('perpostattach')) AND input::get('attachlimit', '') != -1)
+			if (($perpostattach > $attachlimit) OR ($perpostattach == 0 AND $attachlimit > 0))
 			{
-				if ((input::get('perpostattach', '') > input::get('attachlimit', '')) OR (input::int('perpostattach') == 0 AND input::get('attachlimit', '') > 0))
-				{
-					$forums->main_msg = $forums->lang['postattachuplimit'];
-					$this->groupform('edit');
-				}
+				$forums->main_msg = $forums->lang['postattachuplimit'];
+				$this->groupform('edit');
 			}
 		}
 		input::set('p_width', str_replace(":", "", input::get('p_width', '')));

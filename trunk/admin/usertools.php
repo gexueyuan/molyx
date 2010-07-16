@@ -318,7 +318,7 @@ class usertools
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
 		$forums->admin->print_table_start($forums->lang['listseparator']);
-		$forums->admin->print_cells_row(array("<strong>{$forums->lang['listseparator']}</strong><div class='description'>{$forums->lang['listseparatordesc']}</div>", $forums->admin->print_input_row("separate", isset(input::str('separate')) ? input::get('separate', '') : " ")));
+		$forums->admin->print_cells_row(array("<strong>{$forums->lang['listseparator']}</strong><div class='description'>{$forums->lang['listseparatordesc']}</div>", $forums->admin->print_input_row("separate", input::get('separate', ' '))));
 		$forums->admin->print_table_footer();
 		echo "</div>\n";
 

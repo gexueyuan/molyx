@@ -543,7 +543,7 @@ class language
 	function addlanguage($type = 'add')
 	{
 		global $forums;
-		$language = isset(input::str('languageid')) ? trim(input::str('languageid')) : '';
+		$language = input::str('languageid');
 		if($type == 'edit')
 		{
 			require($this->root . 'list.php');
@@ -628,9 +628,9 @@ class language
 	function deletevar()
 	{
 		global $forums;
-		$vname = isset(input::str('vid')) ? trim(input::str('vid')) : '';
-		$fname = isset(input::str('fid')) ? trim(input::str('fid')) : '';
-		$deltype = isset(input::str('deltype')) ? trim(input::str('deltype')) : '';
+		$vname = input::str('vid');
+		$fname = input::str('fid');
+		$deltype = input::str('deltype');
 
 		require($this->root . 'list.php');
 		if ($deltype == 'mutivar')
@@ -744,7 +744,7 @@ class language
 	function editfile()
 	{
 		global $forums;
-		$fname = isset(input::str('fid')) ? trim(input::str('fid')) : '';
+		$fname = input::str('fid');
 		$array_name = 'lang';
 		$ext = strrchr($fname, '.');
 		if ($ext == '.js')
@@ -819,7 +819,7 @@ class language
 	function modifyvar()
 	{
 		global $forums, $bboptions;
-		$fname = isset(input::str('fid')) ? trim(input::str('fid')) : '';
+		$fname = input::str('fid');
 		$searchkey = trim(urldecode(input::str('searchkey')));
 
 		$dir = $this->root . $bboptions['default_lang'] . '/';
@@ -955,7 +955,7 @@ class language
 			$pagetitle = $forums->lang['addlangvar'];
 		}
 
-		$language = isset(input::str('languageid')) ? trim(input::str('languageid')) : '';
+		$language = input::str('languageid');
 		if ($language)
 		{
 			$forums->admin->nav[] =  array("language.php?{$forums->sessionurl}do=translate&amp;fid=$fname&amp;languageid=$language", $forums->lang['languagetranslate']);
@@ -1023,14 +1023,23 @@ class language
 	function do_editmutivar($type = 'edit')
 	{
 		global $forums;
-		$fname = isset(input::str('fileid')) ? trim(input::str('fileid')) : trim(input::str('fid'));
+		$fname = input::str('fileid');
+		if (empty($fname))
+		{
+			$fname = input::str('fid');
+		}
 		if (empty($fname))
 		{
 			$forums->admin->print_cp_error($forums->lang['sellangvarinfile']);
 		}
 		$is_js = (strrchr($fname, '.') == '.js');
 
-		$varname = isset(input::str('varname')) ? trim(input::str('varname')) : trim(input::str('vid'));
+		$varname = input::str('varname');
+		if (empty($varname))
+		{
+			$varname = input::str('vid');
+		}
+
 		if (empty($varname))
 		{
 			$forums->admin->print_cp_error($forums->lang['inputlangvarname']);
@@ -1070,7 +1079,7 @@ class language
 			}
 		}
 
-		$language = isset(input::str('languageid')) ? trim(input::str('languageid')) : '';
+		$language = input::str('languageid');
 		if ($language)
 		{
 			$url = "language.php?{$forums->sessionurl}do=translate&amp;fid=$fname&amp;languageid=$language";

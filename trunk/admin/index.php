@@ -29,7 +29,7 @@ class index
 	function showindex()
 	{
 		global $DB, $forums, $bbuserinfo, $bboptions;
-		if (isset(input::str('adminnews')))
+		if (input::is_set('adminnews'))
 		{
 			switch (input::str('adminnews'))
 			{

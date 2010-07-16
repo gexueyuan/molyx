@@ -201,16 +201,17 @@ class league
 	function reorder()
 	{
 		global $forums, $DB;
-		if (is_array(input::str('order')))
+		$order = input::arr('order');
+		if (!empty($order))
 		{
 			$leagues = $DB->query("SELECT leagueid,displayorder FROM " . TABLE_PREFIX . "league");
 			while ($league = $DB->fetch_array($leagues))
 			{
-				if (!isset(input::get('order', '')[$league['leagueid']]))
+				if (!isset($order[$league['leagueid']]))
 				{
 					continue;
 				}
-				$displayorder = intval(input::get('order', '')[$league['leagueid']]);
+				$displayorder = intval($order[$league['leagueid']]);
 				if ($league['displayorder'] != $displayorder)
 				{
 					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "league SET displayorder = $displayorder WHERE leagueid = " . $league['leagueid'] . "");

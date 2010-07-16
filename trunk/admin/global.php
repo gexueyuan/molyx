@@ -29,21 +29,16 @@ $forums->forum_read = $forums->lang = array();
 require_once(ROOT_PATH . 'includes/functions.php');
 $forums->func = new functions();
 
-if (empty(input::str('url')))
+$url = input::str('url');
+if (empty($url))
 {
 	$url = REFERRER;
 }
-else
+else if ($url == REFERRER)
 {
-	if (input::str('url') == REFERRER)
-	{
-		$url = 'index.php';
-	}
-	else
-	{
-		$url = input::get('url', '');
-	}
+	$url = 'index.php';
 }
+
 if ($url == SCRIPTPATH || empty($url))
 {
 	$url = 'index.php';

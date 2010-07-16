@@ -249,7 +249,7 @@ class adminlog
 	function finish()
 	{
 		global $forums, $DB;
-		
+
 		input::set('id', input::int('id'));
 		input::set('type', trim(input::str('type')));
 		input::set('name', trim(input::str('name')));
@@ -548,16 +548,17 @@ class adminlog
 	function reorder()
 	{
 		global $forums, $DB;
-		if (is_array(input::str('order')))
+		$array = input::arr('order')
+		if (!empty($array))
 		{
 			$ads = $DB->query("SELECT id,displayorder FROM " . TABLE_PREFIX . "ad");
 			while ($ad = $DB->fetch_array($ads))
 			{
-				if (!isset(input::get('order', '')[$ad['id']]))
+				if (!isset($array[$ad['id']]))
 				{
 					continue;
 				}
-				$displayorder = intval(input::get('order', '')[$ad['id']]);
+				$displayorder = intval($array[$ad['id']]);
 				if ($ad['displayorder'] != $displayorder)
 				{
 					$DB->update(TABLE_PREFIX . 'ad', array('displayorder' => $displayorder), 'id = ' . $ad['id']);
