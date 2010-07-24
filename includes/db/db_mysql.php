@@ -165,14 +165,7 @@ class db extends db_base
 
 	function escape_string($str)
 	{
-		if ($this->connect_id)
-		{
-			return mysql_real_escape_string($str, $this->connect_id);
-		}
-		else
-		{
-			return mysql_real_escape_string($str);
-		}
+		return "'" . mysql_real_escape_string($str, $this->connect_id) . "'";
 	}
 
 	function free_result($query_id = '')

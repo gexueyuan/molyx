@@ -176,7 +176,7 @@ class db extends db_base
 
 	function escape_string($str)
 	{
-		return substr($this->pdo->quote($str), 1, -1);
+		return $this->pdo->quote($str);
 	}
 
 	function free_result($query_id = '')
@@ -248,21 +248,4 @@ class db extends db_base
 		$info = ($this->stmt) ? $this->stmt->errorInfo() : $this->pdo->errorInfo();
 		return $info[2];
 	}
-
-	/**
-	 * 重定义 for PDO
-	 */
-	function validate($var)
-	{
-		if (is_numeric($var))
-		{
-			return $var;
-		}
-		else if (is_bool($var))
-		{
-			return intval($var);
-		}
-		return $this->pdo->quote($var);
-	}
 }
-?>
