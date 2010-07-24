@@ -95,7 +95,7 @@ class login
 			{
 				$forums->func->standard_error('erroremail');
 			}
-			$where = "email = '" . strtolower($username) . "'";
+			$where = 'email = ' . $DB->validate($username);
 		}
 		else
 		{
