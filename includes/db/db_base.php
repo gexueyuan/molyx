@@ -289,7 +289,7 @@ class db_base
 			$var = serialize($var);
 		}
 
-		return "'" . $this->escape_string($var) . "'";
+		return $this->escape_string($var);
 	}
 
 	function halt($message = '')
