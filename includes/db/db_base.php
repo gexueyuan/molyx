@@ -280,11 +280,7 @@ class db_base
 		{
 			return intval($var);
 		}
-		else if (is_string($var))
-		{
-			$var = serialize($var);
-		}
-		else
+		else if (is_array($var))
 		{
 			$var = serialize($var);
 		}
