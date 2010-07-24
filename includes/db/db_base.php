@@ -278,7 +278,7 @@ class db_base
 		}
 		else if (is_bool($var))
 		{
-			return intval($var);
+			return (int) $var;
 		}
 		else if (is_array($var))
 		{
