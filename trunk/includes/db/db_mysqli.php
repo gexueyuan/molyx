@@ -47,7 +47,7 @@ class db extends db_base
 	{
 		$return_die = $this->return_die;
 		$this->return_die = 1;
-		@mysqli_query($this->connect_id, "SET @@sql_mode = '" . $this->escape_string($mode) . "'");
+		mysqli_query($this->connect_id, "SET @@sql_mode = '" . $this->escape_string($mode) . "'");
 		$this->return_die = $return_die;
 	}
 
@@ -122,7 +122,7 @@ class db extends db_base
 		}
 		else
 		{
-			return @mysqli_fetch_assoc($query_id);
+			return mysqli_fetch_assoc($query_id);
 		}
 	}
 
@@ -144,7 +144,7 @@ class db extends db_base
 		}
 		else
 		{
-			return @mysqli_num_rows($query_id);
+			return mysqli_num_rows($query_id);
 		}
 	}
 
@@ -161,7 +161,7 @@ class db extends db_base
 
 	function escape_string($str)
 	{
-		return @mysqli_real_escape_string($this->connect_id, $str);
+		return "'" . mysqli_real_escape_string($this->connect_id, $str) . "'";
 	}
 
 	function free_result($query_id = '')
@@ -180,14 +180,14 @@ class db extends db_base
 		if (isset($this->open_queries[(int) $query_id]))
 		{
 			unset($this->open_queries[(int) $query_id]);
-			return @mysqli_free_result($query_id);
+			return mysqli_free_result($query_id);
 		}
 		return false;
 	}
 
 	function _close_db()
 	{
-		$return = $this->connect_id ? @mysqli_close($this->connect_id) : false;
+		$return = $this->connect_id ? mysqli_close($this->connect_id) : false;
 		$this->connect_id = null;
 		return $return;
 	}
@@ -231,7 +231,6 @@ class db extends db_base
 
 	function get_error()
 	{
-		return @mysqli_error($this->connect_id);
+		return mysqli_error($this->connect_id);
 	}
 }
-?>
