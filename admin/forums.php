@@ -164,7 +164,7 @@ class forums
 		{
 			$forumlist[] = array($value[id], depth_mark($value['depth'], '--') . $value[name]);
 		}
-		
+
 		$post = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE forumid=" . input::int('f'));
 		$children = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "forum WHERE parentid=" . input::int('f'));
 		$pagetitle = $forums->lang['deleteforum'] . " - '$name'";
@@ -356,7 +356,9 @@ class forums
 			$childlist = $forumid;
 		}
 		$DB->update(TABLE_PREFIX . 'forum', array('parentlist' => "$forumid,$parentlist", 'childlist' => $forumid), "id = $forumid");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET childlist = concat(childlist,'," . $forumid . "') WHERE id IN(" . $DB->escape_string($parentlist) . ")");
+		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum
+			SET childlist = concat(childlist,'," . $forumid . "')
+			WHERE " . $DB->sql_in('id', $parentlist));
 		$this->update_specialtopic(input::get('st', ''), $forumid);
 		$forums->func->recache('forum');
 		$forums->lang['forumcreated'] = sprintf($forums->lang['forumcreated'], input::get('name', ''));
