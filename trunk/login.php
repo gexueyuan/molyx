@@ -110,8 +110,8 @@ class login
 			{
 				$forums->func->standard_error('nametoolong');
 			}
-			$username = $DB->escape_string(str_replace('|', '&#124;', $username));
-			$where = "LOWER(name)='" . strtolower($username) . "' OR  name='" . $username . "'";
+			$username = str_replace('|', '&#124;', $username);
+			$where = 'name = ' . $DB->validate($username);
 		}
 		$check_password = preg_replace('/&#([0-9]+);/', '-', $password);
 		if (strlen($check_password) > 32)

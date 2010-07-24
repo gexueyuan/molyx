@@ -189,7 +189,7 @@ class pms
 			$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "pmtext
 								(dateline, message, deletedcount, savedcount)
 							VALUES
-								(" . TIMENOW . ", '" . $DB->escape_string($message) . "', 0, 1)"
+								(" . TIMENOW . ", '" . $DB->validate($message) . "', 0, 1)"
 				);
 			$pmtextid = $DB->insert_id();
 			$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "pm

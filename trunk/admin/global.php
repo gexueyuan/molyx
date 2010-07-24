@@ -150,7 +150,7 @@ else if (input::get('login', '') != 'yes')
 else
 {
 	$username = trim(input::str('username'));
-	$username = $DB->escape_string(str_replace('|', '&#124;', $username));
+	$username = str_replace('|', '&#124;', $username);
 	if (empty($username))
 	{
 		$forums->admin->print_cp_login($forums->lang['requireusername']);
@@ -162,8 +162,7 @@ else
 	}
 	$user = $DB->query_first('SELECT u.*, g.*
 		FROM ' . TABLE_PREFIX . 'user u, ' . TABLE_PREFIX . "usergroup g
-		WHERE (LOWER(u.name)='" . strtolower($username) . "'
-		OR u.name='$username')
+		WHERE u.name = " . $DB->validate($username) . "
 			AND u.usergroupid=g.usergroupid");
 	$session->user = $user;
 	$session->build_group_permissions();
