@@ -197,43 +197,46 @@ class register
 		$forums->func->check_cache('userextrafield');
 
 		$return = array('must' => array(), 'other' => array());
-		foreach ($forums->cache['userextrafield']['a'] as $k => $v)
+		if (!empty($forums->cache['userextrafield']['a']))
 		{
-			$_k = input::get($k, '');
-			$form = '';
-			$type = isset($forums->cache['userextrafield']['f'][$k]) ? 'must' : 'other';
-			switch ($v['showtype'])
+			foreach ($forums->cache['userextrafield']['a'] as $k => $v)
 			{
-				case 'text':
-					$form = '<input type="text" size="25" value="' . $_k . '" name="' . $k . '" class="input_normal"';
-					$form .= ($type == 'must') ? ' tabindex="%s"' : '';
-					$form .= ' />';
-				break;
+				$_k = input::get($k, '');
+				$form = '';
+				$type = isset($forums->cache['userextrafield']['f'][$k]) ? 'must' : 'other';
+				switch ($v['showtype'])
+				{
+					case 'text':
+						$form = '<input type="text" size="25" value="' . $_k . '" name="' . $k . '" class="input_normal"';
+						$form .= ($type == 'must') ? ' tabindex="%s"' : '';
+						$form .= ' />';
+					break;
 
-				case 'select':
-					$form = '<select name="' . $k . '"';
-					$form .= ($type == 'must') ? ' tabindex="%s"' : '';
-					$form .= '>';
-					foreach ($v['listcontent'] as $list)
-					{
-						$form .= '<option value="' . $list[0] . '"';
-						$form .= ($_k == $list[0]) ? ' selected="selected"' : '';
-						$form .= '>' . $list[1] . '</option>';
-					}
-					$form .= '</select>';
-				break;
+					case 'select':
+						$form = '<select name="' . $k . '"';
+						$form .= ($type == 'must') ? ' tabindex="%s"' : '';
+						$form .= '>';
+						foreach ($v['listcontent'] as $list)
+						{
+							$form .= '<option value="' . $list[0] . '"';
+							$form .= ($_k == $list[0]) ? ' selected="selected"' : '';
+							$form .= '>' . $list[1] . '</option>';
+						}
+						$form .= '</select>';
+					break;
 
-				case 'textarea':
-					$form = '<textarea cols="40" rows="5" name="' . $k . '"';
-					$form .= ($type == 'must') ? ' tabindex="%s"' : '';
-					$form .= '>' . $_k . '</textarea>';
-				break;
+					case 'textarea':
+						$form = '<textarea cols="40" rows="5" name="' . $k . '"';
+						$form .= ($type == 'must') ? ' tabindex="%s"' : '';
+						$form .= '>' . $_k . '</textarea>';
+					break;
+				}
+				$return[$type][] = array(
+					'name' => $v['fieldname'],
+					'desc' => $v['fielddesc'],
+					'html' => $form
+				);
 			}
-			$return[$type][] = array(
-				'name' => $v['fieldname'],
-				'desc' => $v['fielddesc'],
-				'html' => $form
-			);
 		}
 		return $return;
 	}
