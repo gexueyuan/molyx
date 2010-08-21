@@ -261,17 +261,19 @@ class forums
 		{
 			$threadprefix = str_replace("\r\n", "||", convert_andstr($_POST['threadprefix']));
 		}
-		if (is_array(input::str('st')))
+		$st = input::arr('st');
+		if (is_array($st))
 		{
-			foreach (input::get('st', '') as $key => $val)
+			$storder = input::arr('storder');
+			foreach ($st as $key => $val)
 			{
 				if ($val)
 				{
-					$specialtopic[input::get('storder', '')[$key]] = $val;
+					$specialtopic[$storder[$key]] = $val;
 				}
 				else
 				{
-					unset(input::get('st', '')[$key]);
+					unset($st[$key]);
 				}
 			}
 			ksort($specialtopic);
@@ -641,17 +643,20 @@ class forums
 				$forums->admin->print_cp_error($forums->lang['cachefoldererror']);
 			}
 		}
-		if (is_array(input::str('st')))
+
+		$st = input::arr('st');
+		if (is_array($st))
 		{
-			foreach (input::get('st', '') as $key => $val)
+			$storder = input::arr('storder');
+			foreach ($st as $key => $val)
 			{
 				if ($val)
 				{
-					$specialtopic[input::get('storder', '')[$key]] = $val;
+					$specialtopic[$storder[$key]] = $val;
 				}
 				else
 				{
-					unset(input::get('st', '')[$key]);
+					unset($st[$key]);
 				}
 			}
 			ksort($specialtopic);
