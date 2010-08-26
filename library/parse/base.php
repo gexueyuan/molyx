@@ -9,14 +9,13 @@ abstract class parse_base
 	protected $tag_list = array();
 	protected $error_message = '';
 	protected $smilies = array();
+	protected $include_code = array();
 	protected $current_tag;
 
 	private $stack;
-	private $class_name;
 
-	public function __construct($class_name)
+	public function __construct()
 	{
-		$this->class_name = $class_name;
 		$this->init();
 	}
 
@@ -28,7 +27,8 @@ abstract class parse_base
 	private function init()
 	{
 		$this->smilies = &cache::get('smilies');
-		$this->tag_list = ($this->is_html) ? parse_htmltag::get_tag_list() : parse_bbcodetag::get_tag_list();
+		include ROOT_DIR . 'library/parse/' . ($this->is_html ? 'html' : 'bbcode') . 'tag.php';
+		$this->tag_list = $tag_list;
 	}
 
 	public function convert($text)
@@ -489,10 +489,7 @@ abstract class parse_base
 					$pending_text = $this->do_entity($pending_text);
 				}
 
-				if ($this->class_name === 'bbcode')
-				{
-					$pending_text = str_replace('<br>', '<br />', nl2br($pending_text));
-				}
+				$pending_text = $this->convert_br($pending_text);
 			}
 			else if ($node['closing'] == false)
 			{
@@ -511,11 +508,11 @@ abstract class parse_base
 					// setup tag options
 					if (!empty($tag_info['stop_parse']))
 					{
-						$parse_options['no_parse'] = 0;
+						$parse_options['no_parse'] = 1;
 					}
 					if (!empty($tag_info['disable_entity']))
 					{
-						$parse_options['do_entity'] = 0;
+						$parse_options['do_entity'] = 1;
 					}
 					if (!empty($tag_info['disable_smilies']))
 					{
@@ -639,11 +636,11 @@ abstract class parse_base
 	}
 
 	/**
-	 * 找到数组中第一个 Tag
+	 * Find the first instance of a tag in an array
 	 *
-	 * @param string $tag_name Tag 名
-	 * @param array $stack 要搜索的数组
-	 * @return integer/false 第一个 Tag 的 key 值; 不存在返回 false
+	 * @param string Name of tag
+	 * @param array Array to search
+	 * @return int/false Array key of first instance; false if it does not exist
 	 */
 	private function find_first_tag($tag_name, &$stack)
 	{
@@ -793,12 +790,12 @@ abstract class parse_base
 	}
 
 	/**
-	 * 删除开头 和/或 结尾换行, 包括 HTML 换行标签
+	 * 删除开头和结尾空白符，包括HTML的换行
 	 *
-	 * @param string $text 文本
-	 * @param integer $max_amount 移除换行的最大数量
-	 * @param boolean $strip_front 是否处理开头
-	 * @param boolwan $strip_back 是否处理末尾
+	 * @param string	处理的文本
+	 * @param int 删除的数量
+	 * @param bool 是否处理开头部分
+	 * @param bool 是否处理结尾部分
 	 */
 	function strip_front_back_whitespace($text, $max_amount = 1, $strip_front = true, $strip_back = true)
 	{
@@ -817,7 +814,7 @@ abstract class parse_base
 		return $text;
 	}
 
+	abstract protected function convert_br($text);
 	abstract protected function is_valid_tag($tag_name);
 	abstract protected function is_valid_option($tag_name, &$tag_option);
 }
-?>

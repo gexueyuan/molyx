@@ -4,7 +4,7 @@ class parse_bbcode extends parse_base
 	public function __construct()
 	{
 		$this->is_html = false;
-		parent::__construct('bbcode');
+		parent::__construct();
 	}
 
 	public function convert($text)
@@ -223,25 +223,18 @@ class parse_bbcode extends parse_base
 			array('&#96;', '&quot;', '&#39;', '&#91;'),
 			$this->strip_smilies($rightlink)
 		);
-		// remove double spaces -- fixes issues with wordwrap
-		$rightlink = str_replace('  ', '', $rightlink);
 
 		if (!preg_match('#^[a-z0-9]+(?<!about|javascript|vbscript|data):#si', $rightlink))
 		{
 			$rightlink = "http://$rightlink";
 		}
 
-		if (!trim($link) || str_replace('  ', '', $text) == $rightlink)
+		if (!trim($link) || $text === $rightlink)
 		{
 			$tmp = utf8_unhtmlspecialchars($rightlink);
 			if (mb_strlen($tmp) > 55)
 			{
 				$text = utf8_htmlspecialchars(substr($tmp, 0, 36) . '...' . substr($tmp, -14));
-			}
-			else
-			{
-				// under the 55 chars length, don't wordwrap this
-				$text = str_replace('  ', '', $text);
 			}
 		}
 
@@ -286,8 +279,19 @@ class parse_bbcode extends parse_base
 
 	protected function handle_code($text, $type)
 	{
-		$type = parse_command::code($type);
+		$type = strtolower(trim($type));
+		$code = check_code_type($type);
+		if (!$code)
+		{
+			$type = 'php';
+			$code = 'Php';
+		}
+		$this->include_code[] = $code;
 		return '<pre name="code" class="' . $type . '">' . $text . '</pre>';
 	}
+
+	protected function convert_br($text)
+	{
+		return str_replace('<br>', '<br />', nl2br($text));
+	}
 }
-?>

@@ -4,7 +4,7 @@ class parse_html2bbcode extends parse_base
 	private $block = array();
 	public function __construct()
 	{
-		parent::__construct('html2bbcode');
+		parent::__construct();
 	}
 
 	public function convert($text)
@@ -255,22 +255,15 @@ class parse_html2bbcode extends parse_base
 		}
 	}
 
-	private function block2bbcode($block_name, &$option)
+	protected function block2bbcode($block_name, &$option)
 	{
 		if (isset($option['class']) && strpos(" {$option['class']} ", " $block_name ") !== false)
 		{
-			$attribute = 'name';
-			switch ($block_name)
-			{
-				case 'quote':
-					$attribute = 'title';
-			}
-
 			$block_option = '';
-			if (isset($option[$attribute]))
+			if (isset($option[$block_name]))
 			{
-				$block_option = $option[$attribute];
-				unset($option[$attribute]);
+				$block_option = $option[$block_name];
+				unset($option[$block_name]);
 			}
 			array_unshift($this->block, array(
 				'name' => $block_name,
@@ -288,10 +281,8 @@ class parse_html2bbcode extends parse_base
 		}
 	}
 
-	private function quote(&$option)
+	protected function convert_br($text)
 	{
-
-		return $block_option;
+		return $text;
 	}
 }
-?>
