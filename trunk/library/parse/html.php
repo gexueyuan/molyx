@@ -1,10 +1,9 @@
 <?php
 class parse_html extends parse_base
 {
-	private $is_block = false;
 	public function __construct()
 	{
-		parent::__construct('html');
+		parent::__construct();
 	}
 
 	/**
@@ -39,20 +38,11 @@ class parse_html extends parse_base
 	{
 		if (is_array($tag_option))
 		{
-			$novalue_attribute = array('noshade' => true, 'checked' => true, 'selected' => true, 'disabled' => true, 'readonly' => true, 'alt' => true, 'multiple' => true, 'nowrap' => true);
 			foreach ($tag_option as $k => $v)
 			{
-				parse_command::option($tag_name, $k, $v);
-
 				if ($k === 'style' || $k === 'color')
 				{
 					$v = $this->rgb2hex($v);
-				}
-
-				if (empty($v) && !isset($novalue_attribute[$k]))
-				{
-					unset($tag_option[$k]);
-					continue;
 				}
 
 				if (isset($this->tag_list['option'][$k]))
@@ -86,27 +76,32 @@ class parse_html extends parse_base
 	/**
 	 * pre 解析
 	 *
-	 * @param unknown_type $text
-	 * @param unknown_type $option
-	 * @return unknown
+	 * @param string $text
+	 * @param array $option
 	 */
 	protected function handle_pre($text, $option)
 	{
-		if (!empty($text))
+		// 如果 name="code" class="语言" 不能同时匹配则去掉这些属性
+		if (isset($option['name']) && $option['name'] === 'code')
 		{
-			// 如果 name="code" class="语言" 不能同时匹配则去掉这些属性
-			if (isset($option['name']) && $option['name'] === 'code')
+			if (!empty($option['class']))
 			{
-				if (!isset($option['class']))
+				$code = check_code_type($option['class']);
+				if (!$code)
 				{
 					$option['class'] = 'php';
+					$code = 'Php';
 				}
-				$option['class'] = parse_command::code($option['class']);
+				$this->include_code[] = $code;
 			}
-			$text = $this->do_entity(preg_replace('/<br>|<br[ ]+\/>/', "\n", $text));
-			$text = $this->fetch_node('pre', $text, $option);
+			else
+			{
+				unset($option['name']);
+			}
 		}
-		return $text;
+		$text = $this->do_entity(preg_replace('/<br>|<br[ ]+\/>/', "\n", $text));
+
+		return $this->fetch_node('pre', $text, $option);
 	}
 
 	protected function handle_url($text, $option)
@@ -184,81 +179,53 @@ class parse_html extends parse_base
 
 	protected function handle_div($text, $option)
 	{
-		if (!empty($text))
-		{
-			$this->is_block = false;
-			$text = $this->fetch_block('div', 'quote', $option, $text);
-			$text = $this->fetch_block('div', 'attach_left', $option, $text);
-			$text = $this->fetch_block('div', 'attach_center', $option, $text);
-			$text = $this->fetch_block('div', 'attach_right', $option, $text);
-			if (!$this->is_block || ($this->is_block && !empty($option)))
-			{
-				$text = $this->fetch_node('div', $text, $option);
-			}
-		}
+		$text = $this->fetch_block('div', 'quote', $option, $text);
 		return $text;
 	}
 
 	protected function handle_span($text, $option)
 	{
-		if (!empty($text))
-		{
-			$text = $this->fetch_block('span', 'quote', $option, $text);
-			if (!empty($option))
-			{
-				$text = $this->fetch_node('span', $text, $option);
-			}
-		}
+		$text = $this->fetch_block('span', 'quote', $option, $text);
 		return $text;
 	}
 
 	protected function handle_p($text, $option)
 	{
-		if (!empty($text))
-		{
-			$this->is_block = false;
-			$text = $this->fetch_block('p', 'quote', $option, $text);
-			if (!$this->is_block || ($this->is_block && !empty($option)))
-			{
-				$text = $this->fetch_node('p', $text, $option);
-			}
-		}
+		$text = $this->fetch_block('p', 'quote', $option, $text);
 		return $text;
 	}
 
-	protected function fetch_block($tag_name, $block_name, &$option, $text)
+	protected function fetch_block($tag_name, $block_name, $option, $text)
 	{
 		if (isset($option['class']) && strpos(" {$option['class']} ", " $block_name ") !== false)
 		{
-			$class = trim(str_replace(" $block_name ", '', " {$option['class']} "));
-			if (!empty($class))
+			$block_option = array('class' => $block_name);
+			if (isset($option[$block_name]))
 			{
-				$block_option = array('class' => $block_name);
+				$block_option[$block_name] = $option[$block_name];
+				unset($option[$block_name]);
+			}
+			$text = $this->fetch_node($tag_name, $text, $block_option);
 
-				$attribute = 'name';
-				switch ($block_name)
-				{
-					case 'quote':
-						$attribute = 'title';
-				}
-
-				if (isset($option[$attribute]))
-				{
-					$block_option[$attribute] = $option[$attribute];
-					unset($option[$attribute]);
-				}
-
-				$text = $this->fetch_node($tag_name, $text, $block_option);
-				$this->is_block = true;
-				$option['class'] = $class;
+			if ($option['class'] === $block_name)
+			{
+				unset($option['class']);
 			}
 			else
 			{
-				unset($block_option['class']);
+				$option['class'] = trim(str_replace(" $block_name ", '', " {$option['class']} "));
 			}
 		}
 
+		if (!empty($option))
+		{
+			$text = $this->fetch_node($tag_name, $text, $option);
+		}
+		return $text;
+	}
+
+	protected function convert_br($text)
+	{
 		return $text;
 	}
 }
-?>
