@@ -834,7 +834,7 @@ class usergroup
 		$closetag = preg_replace("/&lt;/" , "<" , $closetag);
 
 		$attachlimit = input::int('attachlimit');
-		$perpostattach = input::int('perpostattach')
+		$perpostattach = input::int('perpostattach');
 		if ($attachlimit != 0 && $attachlimit != -1)
 		{
 			if (($perpostattach > $attachlimit) OR ($perpostattach == 0 AND $attachlimit > 0))

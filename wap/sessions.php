@@ -395,7 +395,7 @@ class session
 					'lastactivity' => TIMENOW
 				), 'id = ' . $this->user['id']);
 				input::set('lastvisit', $this->user['lastactivity']);
-				input::set('lastactivity'], TIMENOW);
+				input::set('lastactivity', TIMENOW);
 			}
 		}
 		else

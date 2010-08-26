@@ -548,7 +548,7 @@ class adminlog
 	function reorder()
 	{
 		global $forums, $DB;
-		$array = input::arr('order')
+		$array = input::arr('order');
 		if (!empty($array))
 		{
 			$ads = $DB->query("SELECT id,displayorder FROM " . TABLE_PREFIX . "ad");

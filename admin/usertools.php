@@ -474,11 +474,11 @@ class usertools
 		{
 			input::set($bit, rawurldecode(trim(input::get($bit, ''))));
 			$page_query .= '&amp;' . $bit . '=' . urlencode(input::get($bit, ''));
-			if (input::get($bit, ''))
+			if (input::str($bit))
 			{
 				if (in_array($bit, $date_keys))
 				{
-					list($year, $month, $day) = explode('-'[ $bit ]);
+					list($year, $month, $day) = explode('-', input::str($bit));
 					if (! checkdate($month, $day, $year))
 					{
 						$forums->lang['inputdateerror'] = sprintf($forums->lang['inputdateerror'], $year, $month, $day);

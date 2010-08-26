@@ -215,7 +215,7 @@ class settings
 		{
 			if (is_array($_REQUEST[$key]))
 			{
-				$_REQUEST[$key] = implode(","[$key]);
+				$_REQUEST[$key] = implode(",", $_REQUEST[$key]);
 			}
 			if (($_REQUEST[$key] != $data['defaultvalue']))
 			{
@@ -251,7 +251,7 @@ class settings
 			{
 				$params['bankruptcy'] = $row['c_limit'];
 			}
-			else 
+			else
 			{
 				if ($params['bankruptcy'] == $row['c_limit'])
 				{
@@ -263,7 +263,7 @@ class settings
 
 		$forums->func->recache('credit');
 	}*/
-	
+
 	function setting_revert()
 	{
 		global $forums, $DB;
