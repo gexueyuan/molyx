@@ -1015,7 +1015,7 @@ class user
 			{
 				if (in_array($bit, $date_keys))
 				{
-					list($year, $month, $day) = explode('-'[ $bit ]);
+					list($year, $month, $day) = explode('-', $_REQUEST[ $bit ]);
 					if (! checkdate($month, $day, $year))
 					{
 						$forums->lang['inputdateerror'] = sprintf($forums->lang['inputdateerror'], $year, $month, $day);
