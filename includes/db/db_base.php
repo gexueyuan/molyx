@@ -391,20 +391,13 @@ class db_base
 			foreach ($array as $key => $var)
 			{
 				$fields .= ', `' . $key . '`';
-
-				if (is_array($var) && is_string($var[0]))
-				{
-					// INSERT SELECT
-					$values .= ', ' . $var[0];
-				}
-				else
-				{
-					$values .= ', ' . $this->validate($var);
-				}
+				$values .= ($query == 'INSERT') ? ', ' . $this->validate($var) : ', `' . $var . '`';
 			}
 			$fields = substr($fields, 2);
 			$values = substr($values, 2);
-			$query = ($query == 'INSERT') ? ' (' . $fields . ') VALUES (' . $values . ')' : ' (' . $fields . ') SELECT ' . $values . ' ';
+			$query = ($query == 'INSERT') ?
+				' (' . $fields . ') VALUES (' . $values . ')' :
+				' (' . $fields . ') SELECT ' . $values . ' ';
 		}
 		else if ($query == 'MULTI_INSERT')
 		{
@@ -434,6 +427,10 @@ class db_base
 			$sep = ($query == 'UPDATE') ? ',' : ' AND';
 			foreach ($array as $key => $var)
 			{
+				if (strpos($key, '.') !== false)
+				{
+					$key = str_replace('.', '`.`', $key);
+				}
 				$values .= "$sep `$key` = " . $this->validate($var, $key);
 			}
 			$query = substr($values, strlen($sep));
