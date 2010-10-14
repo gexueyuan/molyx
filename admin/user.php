@@ -1458,7 +1458,7 @@ class user
 			}
 			$user['userid'] = $user['id'];
 			$olduserinfo = $forums->func->fetch_user($user);
-			$user['options'] = $forums->func->convert_array_to_bits(array_merge($olduserinfo, input::get('options', '')));
+			$user['options'] = $forums->func->convert_array_to_bits(array_merge($olduserinfo, input::get('options', array(''))));
 			if (input::get('email', '') != input::get('curemail', ''))
 			{
 				if ($DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE email='" . input::get('email', '') . "' AND id <> " . input::get('u', '') . ""))
@@ -1747,7 +1747,9 @@ class user
 		}
 		else
 		{
-			if (empty(input::str('avatarurl')))
+			//Can't use function return value in write context
+			$tmpavatarurl = input::str('avatarurl');
+			if (empty($tmpavatarurl))
 			{
 				if ($_FILES['upload_avatar0']['name'] != "" AND ($_FILES['upload_avatar0']['name'] != "none"))
 				{

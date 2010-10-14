@@ -316,7 +316,8 @@ class usergroup
 		{
 			$forums->admin->print_cp_error($forums->lang['promotionnotsame']);
 		}
-		if (!empty(input::str('userpromotionid')))
+		$tempuserpromotionid = input::str('userpromotionid');
+		if (!empty($tempuserpromotionid))
 		{
 			$DB->update(TABLE_PREFIX . 'userpromotion', $promotion, 'userpromotionid=' . input::int('userpromotionid'));
 		}

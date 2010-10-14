@@ -278,7 +278,8 @@ class adminlog
 		{
 			$forums->admin->print_cp_error($forums->lang['no_select_name']);
 		}
-		if (empty(input::str('ad_in', array())))
+		$tmpad_in = input::str('ad_in', array());
+		if (empty($tmpad_in))
 		{
 			$forums->admin->print_cp_error($forums->lang['no_select_forumlist']);
 		}

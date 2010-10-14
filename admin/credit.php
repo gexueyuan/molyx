@@ -531,7 +531,9 @@ class credit
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		//判断选择的版面或用户组是否在其他规则中已定义
-		if (!empty(input::str('lists')) && $type)
+		$tmplists = input::str('lists');
+		
+		if (!empty($tmplists) && $type)
 		{
 			$result = $DB->query('SELECT lists
 				FROM ' . TABLE_PREFIX . "creditrule
