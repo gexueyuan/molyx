@@ -25,7 +25,7 @@ $pagenav = $forums->func->build_pagelinks(array(
 	'totalpages' => $sqlcount['count'],
 	'perpage' => $perpage,
 	'curpage' => $firstpost,
-	'pagelink' => "alldo.php{$forums->sessionurl}{$this->extra}",
+	'pagelink' => "alldo.php{$forums->sessionurl}",
 ));
 $userjourney = array();
 $sql = 'SELECT id, name, avatar, usercurdo, userdotime FROM ' . TABLE_PREFIX . 'user
