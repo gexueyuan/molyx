@@ -209,7 +209,8 @@ class attachment
 	function massremove()
 	{
 		global $forums, $DB, $bboptions;
-		if (!empty(input::get('attach', array())))
+		$tmpattach = input::get('attach', array());
+		if (!empty($tmpattach))
 		{
 			foreach (input::get('attach', array()) AS $value)
 			{
