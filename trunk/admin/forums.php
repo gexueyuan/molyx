@@ -276,6 +276,7 @@ class forums
 					unset($st[$key]);
 				}
 			}
+			if(!count($specialtopic)) $specialtopic = array();
 			ksort($specialtopic);
 			$specialtopic = implode(',', $specialtopic);
 		}

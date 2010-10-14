@@ -215,23 +215,23 @@ class sptopic
 		global $forums, $DB;
 		$id = input::int('id');
 		$name = trim(input::str('name'));
-		if (!$name OR !is_array(input::str('forum_list')))
+		if (!$name OR !is_array(input::arr('forum_list')))
 		{
 			$forums->admin->print_cp_error($forums->lang['require_fields']);
 		}
-		if (in_array("-1", input::get('forum_list', '')))
+		if (in_array("-1", input::get('forum_list', array())))
 		{
 			$allids = array_keys($this->allforum);
 			$update_ids = "-1";
 		}
-		else if (count(input::str('forum_list')) == count($this->allforum))
+		else if (count(input::arr('forum_list')) == count($this->allforum))
 		{
 			$allids = array_keys($this->allforum);
 			$update_ids = "-1";
 		}
 		else
 		{
-			$allids = input::get('forum_list', '');
+			$allids = input::get('forum_list', array());
 			$update_ids = implode(',', $allids);
 		}
 		$data = array(
