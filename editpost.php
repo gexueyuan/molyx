@@ -375,7 +375,7 @@ class editpost
 
 		if (!empty($uptitle))
 		{
-			$DB->update(TABLE_PREFIX . 'thread', $uptitle. "tid=" . $this->thread['tid']);
+			$DB->update(TABLE_PREFIX . 'thread', $uptitle, "tid=" . $this->thread['tid']);
 		}
 
 		//记录最后更新人
