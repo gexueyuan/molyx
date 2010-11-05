@@ -433,7 +433,7 @@ class usertools
 				require_once(ROOT_PATH . "includes/functions_codeparse.php");
 				$parse = new functions_codeparse();
 				$email_contents = $parse->convert(array(
-					'text' => utf8_htmlspecialchars($email_contents),
+					'text' => utf8::htmlspecialchars($email_contents),
 					'allowsmilies' => 1,
 					'allowcode' => 1,
 				));

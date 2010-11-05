@@ -16,12 +16,11 @@
  */
 class encoding
 {
-	private $table_path = '';
-	private $from_encoding = '';
-	private $to_encoding = '';
-	private $type = 'table';
-	private $ncr = false;
-	private $pinyin = true;
+	private static $table_path = '';
+	private static $from_encoding = '';
+	private static $to_encoding = '';
+	private static $type = 'table';
+	private static $pinyin = true;
 
 	private static $support = array(
 		'utf-8',
@@ -49,37 +48,37 @@ class encoding
 	 * @param string $from 初始化源编码, 可以为空
 	 * @param string $to 初始化目的编码, 可以为空
 	 */
-	function __construct($from = '', $to = '')
+	public static function init($from = '', $to = '')
 	{
 		if (!empty($from) || !empty($to))
 		{
-			$this->set($from, $to);
+			self::set($from, $to);
 		}
-		$this->table_path = format_path(dirname(__FILE__) . '/encoding/');
+		self::$table_path = format_path(dirname(__FILE__) . '/encoding/');
 
 		switch (true)
 		{
 			case function_exists('mb_convert_encoding'):
-				$this->type = 'mbstring';
+				self::$type = 'mbstring';
 				break;
 
 			case function_exists('iconv'):
-				$this->type = 'iconv';
+				self::$type = 'iconv';
 				break;
 
 			default:
-				$this->type = 'table';
+				self::$type = 'table';
 		}
 	}
 
 	/**
 	 * 设置转换编码
 	 */
-	function set($from = '', $to = '')
+	public static function set($from = '', $to = '')
 	{
-		$this->from_encoding = $this->check_encoding($from, 'from');
-		$this->to_encoding = $this->check_encoding($to, 'to');
-		return ($this->from_encoding && $this->to_encoding);
+		self::$from_encoding = self::check_encoding($from, 'from');
+		self::$to_encoding = self::check_encoding($to, 'to');
+		return (self::$from_encoding && self::$to_encoding);
 	}
 
 	/**
@@ -97,66 +96,65 @@ class encoding
 	 * @param string $to 不填写将直接使用属性 to_encoding
 	 * @return string 转换后的字符串
 	 */
-	function convert($str, $from = '', $to = '')
+	public static function convert($str, $from = '', $to = '')
 	{
-		if($this->set($from, $to) && !empty($str) && $this->from_encoding != $this->to_encoding)
+		if(self::set($from, $to) && !empty($str) && self::$from_encoding != self::$to_encoding)
 		{
-			if (in_array($this->from_encoding, array('traditional', 'simplified')) || in_array($this->to_encoding, array('traditional', 'simplified')))
+			if (in_array(self::$from_encoding, array('traditional', 'simplified')) || in_array(self::$to_encoding, array('traditional', 'simplified')))
 			{
-				if (utf8_check($str))
+				if (utf8::check($str))
 				{
-					if ($this->from_encoding == 'simplified' && $this->to_encoding == 'traditional')
+					if (self::$from_encoding == 'simplified' && self::$to_encoding == 'traditional')
 					{
-						return utf8_traditional_zh($str);
+						return self::simp2trad($str);
 					}
-					else if ($this->from_encoding == 'traditional' && $this->to_encoding == 'simplified')
+					else if (self::$from_encoding == 'traditional' && self::$to_encoding == 'simplified')
 					{
-						return utf8_simplified_zh($str);
+						return self::trad2simp($str);
 					}
 				}
+
 				return $str;
 			}
 
-			if ($this->to_encoding == 'pinyin')
+			if (self::$to_encoding == 'pinyin')
 			{
-				if ($this->from_encoding != 'gbk')
+				if (self::$from_encoding != 'gbk')
 				{
-					$from_encoding = $this->from_encoding;
-					$str = $this->convert($str, $this->from_encoding, 'gbk');
-					$this->from_encoding = $from_encoding;
-					$this->to_encoding = 'pinyin';
+					$str = self::convert($str, self::$from_encoding, 'gbk');
+					self::$to_encoding = 'pinyin';
 				}
-				return $this->gbk2pin($str);
+				return self::gbk2pin($str);
 			}
 
-			switch ($this->type)
+			switch (self::type)
 			{
 				case 'mbstring':
-					return mb_convert_encoding($str, $this->to_encoding, $this->from_encoding);
+					return mb_convert_encoding($str, self::$to_encoding, self::$from_encoding);
 
 				case 'iconv':
-					if ($this->to_encoding == 'html-entities')
+					if (self::$to_encoding == 'html-entities')
 					{
-						$str = iconv($this->from_encoding, 'utf-16be', $str);
-						return $this->unicode2htm($str);
+						$str = iconv(self::$from_encoding, 'utf-16be', $str);
+						return self::unicode2htm($str);
 					}
-					else if ($this->from_encoding != 'html-entities')
+					else if (self::$from_encoding != 'html-entities')
 					{
-						return iconv($this->from_encoding, $this->to_encoding . '//IGNORE', $str);
+						return iconv(self::$from_encoding, self::$to_encoding . '//IGNORE', $str);
 					}
 
 				default:
-					if ($this->from_encoding == 'utf-8' && $this->to_encoding == 'html-entities')
+					if (self::$from_encoding == 'utf-8' && self::$to_encoding == 'html-entities')
 					{
-						return utf8_to_ncr($str);
+						return self::utf2ncr($str);
 					}
-					else if ($this->from_encoding == 'html-entities')
+					else if (self::$from_encoding == 'html-entities')
 					{
-						$str = utf8_from_ncr($str);
-						if ($this->to_encoding != 'utf-8')
+						$str = self::ncr2utf($str);
+						if (self::$to_encoding != 'utf-8')
 						{
-							$str = $this->convert($str, 'utf-8', $this->to_encoding);
-							$this->from_encoding = 'html-entities';
+							$str = self::convert($str, 'utf-8', self::$to_encoding);
+							self::$from_encoding = 'html-entities';
 						}
 						return $str;
 					}
@@ -166,25 +164,25 @@ class encoding
 						$tag = array('<|n|>', '<|r|>', '<|t|>');
 						$str = str_replace($space, $tag, $str);
 
-						$method_name = substr($this->from_encoding, 0, 3);
+						$method_name = substr(self::$from_encoding, 0, 3);
 						$to_unicode = $method_name . '2unicode';
-						if ($this->from_encoding == 'utf-16le')
+						if (self::$from_encoding == 'utf-16le')
 						{
-							$str = $this->change_byte($str);
+							$str = self::change_byte($str);
 						}
-						else if ($this->from_encoding != 'utf-16be' && method_exists($this, $to_unicode))
+						else if (self::$from_encoding != 'utf-16be' && method_exists(__CLASS__, $to_unicode))
 						{
-							$str = $this->$to_unicode($str);
+							$str = self::$to_unicode($str);
 						}
 
 						$from_unicode = 'unicode2' . $method_name;
-						if ($this->to_encoding == 'utf-16le')
+						if (self::$to_encoding == 'utf-16le')
 						{
-							$str = $this->change_byte($str);
+							$str = self::change_byte($str);
 						}
-						else if ($this->to_encoding != 'utf-16be' && method_exists($this, $from_unicode))
+						else if (self::$to_encoding != 'utf-16be' && method_exists(__CLASS__, $from_unicode))
 						{
-							$str = $this->$from_unicode($str);
+							$str = self::$from_unicode($str);
 						}
 
 						return str_replace($tag, $space, $str);
@@ -200,13 +198,9 @@ class encoding
 	/**
 	 * GBK to UTF-16BE
 	 */
-	function gbk2unicode(&$str)
+	private static function gbk2unicode(&$str)
 	{
-		static $table = array();
-		if (empty($table))
-		{
-			$table = $this->read_table('gbkunicode');
-		}
+		$table = self::read_table('gbkunicode');
 
 		$return = $p = $q = '';
 		$str_len = strlen($str);
@@ -242,18 +236,18 @@ class encoding
 				}
 			}
 		}
-		return $this->hex2bin($return);
+		return self::hex2bin($return);
 	}
 
 	/**
 	 * BIG-5 to UTF-16BE
 	 */
-	function big2unicode(&$str)
+	private static function big2unicode(&$str)
 	{
 		static $table = array();
 		if (empty($table))
 		{
-			$table = $this->read_table('bigunicode');
+			$table = self::read_table('bigunicode');
 		}
 
 		$return = $p = $q = '';
@@ -283,18 +277,18 @@ class encoding
 				$return .= dechex($p);
 			}
 		}
-		return $this->hex2bin($return);
+		return self::hex2bin($return);
 	}
 
 	/**
 	 * UTF-16BE to GBK
 	 */
-	function unicode2gbk(&$str)
+	private static function unicode2gbk(&$str)
 	{
 		static $table = array();
 		if (empty($table))
 		{
-			$table = $this->read_table('unicodegbk');
+			$table = self::read_table('unicodegbk');
 		}
 
 		$return = $p = $q = $temp = '';
@@ -343,18 +337,18 @@ class encoding
 				$return .= $temp . substr($table[$p], $q + 6, 2);
 			}
 		}
-		return $this->hex2bin($return);
+		return self::hex2bin($return);
 	}
 
 	/**
 	 * UTF-16BE to BIG-5
 	 */
-	function unicode2big(&$str)
+	private static function unicode2big(&$str)
 	{
 		static $table = array();
 		if (empty($table))
 		{
-			$table = $this->read_table('unicodebig');
+			$table = self::read_table('unicodebig');
 		}
 
 		$return = $p = $q = $temp = '';
@@ -402,13 +396,13 @@ class encoding
 				$return .= $temp . substr($table[$p], $q + 6, 2);
 			}
 		}
-		return $this->hex2bin($return);
+		return self::hex2bin($return);
 	}
 
 	/**
 	 * UTF-16BE to UTF-8
 	 */
-	function unicode2utf(&$str)
+	private static function unicode2utf(&$str)
 	{
 		$str_len = strlen($str);
 		$return = '';
@@ -443,7 +437,7 @@ class encoding
 			}
 			$return .= $temp;
 		}
-		return $this->hex2bin($return);
+		return self::hex2bin($return);
 	}
 
 	/**
@@ -452,7 +446,7 @@ class encoding
 	 * @param string $str
 	 * @return string
 	 */
-	function utf2unicode(&$str)
+	private static function utf2unicode(&$str)
 	{
 		$str_len = strlen($str);
 		$x = $y = $z = $return = '';
@@ -488,13 +482,13 @@ class encoding
 				$return .= dechex($x);
 			}
 		}
-		return $this->hex2bin($return);
+		return self::hex2bin($return);
 	}
 
 	/**
 	 * UTF-16LE 和 BE 相互转换, 字符两个字节交换位置
 	 */
-	function change_byte(&$str)
+	private static function change_byte(&$str)
 	{
 		$str_len = strlen($str);
 		$return = '';
@@ -515,7 +509,7 @@ class encoding
 	/**
 	 * UTF-16BE to NCR
 	 */
-	function unicode2htm(&$str)
+	private static function unicode2htm(&$str)
 	{
 		$return = '';
 		for ($i = 0, $n = strlen($str); $i < $n; $i += 2)
@@ -533,9 +527,9 @@ class encoding
 		return $return;
 	}
 
-	function gbk2pin(&$str)
+	private static function gbk2pin(&$str)
 	{
-		$table = $this->table_path . 'gbkpinyin.data';
+		$table = self::table_path . 'gbkpinyin.data';
 		$len = strlen($str);
 		$return = '';
 		$fp = @fopen($table, 'rb');
@@ -563,7 +557,7 @@ class encoding
 				fseek($fp, $off * 8, SEEK_SET);
 				$c = fread($fp, 8);
 				$c = unpack('a8py', $c);
-				$c = ($this->pinyin) ? substr($c['py'], 0, -1) : $c['py'];
+				$c = (self::$pinyin) ? substr($c['py'], 0, -1) : $c['py'];
 
 				$return .= ($c ? $c . ' ' : substr($str, $i, 2));
 				$i++;
@@ -578,11 +572,67 @@ class encoding
 	}
 
 	/**
+	 * UTF-8 下中文简体转换到繁体
+	 */
+	private static function simp2trad($str)
+	{
+		$table = self::read_table('simp2trad');
+		return strtr($str, $table);
+	}
+
+	/**
+	 * UTF-8 下中文繁体转换到简体
+	 */
+	private static function trad2simp($str)
+	{
+		$table = self::read_table('trad2simp');
+		return strtr($str, $table);
+	}
+
+	/**
+	 * 将所有的非 ASCII UTF-8 字符转换为 NCR
+	 */
+	private static function utf2ncr($text)
+	{
+		return preg_replace_callback('#[\\xC2-\\xF4][\\x80-\\xBF]{1,3}#', array(__CLASS__, 'utf2ncr_callback'), $text);
+	}
+
+	/**
+	 * 用于 encode_ncr() 的回调函数
+	 */
+	public static function utf2ncr_callback($m)
+	{
+		return '&#' . utf8::ord($m[0]) . ';';
+	}
+
+	/**
+	 * 转换 NCR 到 UTF-8 字符
+	 *
+	 * 说明:
+	 *	- 函数不会进行递归的转换, 如果你传入 &#38;#38; 将返回 &#38;
+	 *	- 函数不检查 Unicode 字符的正确性, 因此实体可能会被转换为不存在的字符
+	 */
+	private static function ncr2utf($text)
+	{
+		return preg_replace_callback('/&#([0-9]{1,6}|x[0-9A-F]{1,5});/i', array(__CLASS__, 'ncr2utf_callback'), $text);
+	}
+
+	/**
+	 * decode_ncr() 回调函数
+	 * 函数会忽略大部分 (不是全部) 错误的 NCR
+	 */
+	public static function ncr2utf_callback($m)
+	{
+		$cp = (strncasecmp($m[1], 'x', 1)) ? $m[1] : hexdec(substr($m[1], 1));
+		return utf8::chr($cp);
+	}
+
+	/**
 	 * 检查编码是否支持
 	 *
 	 * @return mixed 有初始化编码或者支持该编码返回编码名称, 否则为 false
 	 */
-	function check_encoding($encoding, $type = '')
+	private static function check_encoding($encoding, $type = '')
 	{
 		$encoding = strtolower($encoding);
 		if ($encoding == 'pinyin' && $type == 'from')
@@ -611,13 +661,13 @@ class encoding
 			}
 		}
 
-		if ($this->from_encoding && $type == 'from')
+		if (self::$from_encoding && $type == 'from')
 		{
-			return $this->from_encoding;
+			return self::$from_encoding;
 		}
-		else if ($this->to_encoding && $type == 'to')
+		else if (self::$to_encoding && $type == 'to')
 		{
-			return $this->to_encoding;
+			return self::$to_encoding;
 		}
 		else
 		{
@@ -625,7 +675,7 @@ class encoding
 		}
 	}
 
-	function hex2bin(&$str)
+	private static function hex2bin(&$str)
 	{
 		$return = '';
 		$str_len = strlen($str);
@@ -636,101 +686,10 @@ class encoding
 		return $return;
 	}
 
-	function read_table($name)
+	private static function read_table($name)
 	{
-		return read_serialize_file($this->table_path . $name . '.data');
+		return read_serialize_file(self::table_path . $name . '.data');
 	}
 }
 
-/**
- * 将 UTF-8 转换成 UNICODE 码点
- */
-function utf8_ord($chr)
-{
-	switch (strlen($chr))
-	{
-		case 1:
-			return ord($chr);
-		break;
-
-		case 2:
-			return ((ord($chr[0]) & 0x1F) << 6) | (ord($chr[1]) & 0x3F);
-		break;
-
-		case 3:
-			return ((ord($chr[0]) & 0x0F) << 12) | ((ord($chr[1]) & 0x3F) << 6) | (ord($chr[2]) & 0x3F);
-		break;
-
-		case 4:
-			return ((ord($chr[0]) & 0x07) << 18) | ((ord($chr[1]) & 0x3F) << 12) | ((ord($chr[2]) & 0x3F) << 6) | (ord($chr[3]) & 0x3F);
-		break;
-
-		default:
-			return $chr;
-	}
-}
-
-/**
- * 将所有的非 ASCII UTF-8 字符转换为 NCR
- */
-function utf8_to_ncr($text)
-{
-	return preg_replace_callback('#[\\xC2-\\xF4][\\x80-\\xBF]{1,3}#', 'utf8_to_ncr_callback', $text);
-}
-
-/**
- * 用于 encode_ncr() 的回调函数
- */
-function utf8_to_ncr_callback($m)
-{
-	return '&#' . utf8_ord($m[0]) . ';';
-}
-
-/**
-* 转换 NCR 到 UTF-8 字符
-*
-* 说明:
-*	- 函数不会进行递归的转换, 如果你传入 &#38;#38; 将返回 &#38;
-*	- 函数不检查 Unicode 字符的正确性, 因此实体可能会被转换为不存在的字符
-*/
-function utf8_from_ncr($text)
-{
-	return preg_replace_callback('/&#([0-9]{1,6}|x[0-9A-F]{1,5});/i', 'utf8_from_ncr_callback', $text);
-}
-
-/**
- * decode_ncr() 回调函数
- * 函数会忽略大部分 (不是全部) 错误的 NCR
- */
-function utf8_from_ncr_callback($m)
-{
-	$cp = (strncasecmp($m[1], 'x', 1)) ? $m[1] : hexdec(substr($m[1], 1));
-
-	return utf8_chr($cp);
-}
-
-/**
- * UTF-8 下中文简体转换到繁体
- */
-function utf8_traditional_zh($str)
-{
-	static $table = null;
-	if (is_null($table))
-	{
-		$table = read_serialize_file(ROOT_PATH . 'includes/encoding/simp2trad.data');
-	}
-	return strtr($str, $table);
-}
-
-/**
- * UTF-8 下中文繁体转换到简体
- */
-function utf8_simplified_zh($str)
-{
-	static $table = null;
-	if (is_null($table))
-	{
-		$table = read_serialize_file(ROOT_PATH . 'includes/encoding/trad2simp.data');
-	}
-	return strtr($str, $table);
-}
+encoding::init();

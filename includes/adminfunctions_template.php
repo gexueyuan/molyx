@@ -667,7 +667,7 @@ class adminfunctions_template
 	 */
 	function optimize_css($content)
 	{
-		$content = utf8_unhtmlspecialchars($content);
+		$content = utf8::unhtmlspecialchars($content);
 		$content = str_replace(array("\r\n", "\r", "\n\n"), "\n", $content);
 		$match = $parsed = array();
 		$content = preg_replace('#/\*(.+?)\*/#s', '', $content);

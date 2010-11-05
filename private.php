@@ -333,7 +333,7 @@ class newprivate
 		foreach ($folder AS $folderid => $foldername)
 		{
 			$folderid = intval($folderid);
-			$foldername = utf8_htmlspecialchars(trim($foldername));
+			$foldername = utf8::htmlspecialchars(trim($foldername));
 			if ($foldername != '')
 			{
 				$pmfolders[$folderid] = array('pmcount' => $bbuserinfo['pmfolders'][$folderid]['pmcount'] ? $bbuserinfo['pmfolders'][$folderid]['pmcount'] : 0, 'foldername' => $foldername);

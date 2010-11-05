@@ -80,12 +80,12 @@ class register
 		$password = input::str('password');
 		$email = strtolower(input::str('email'));
 		$check = input::unclean($username);
-		$len_u = utf8_strlen($check);
+		$len_u = utf8::strlen($check);
 		if ((empty($username)) || strstr($check, ';') || $len_u < $bboptions['usernameminlength'] || $len_u > $bboptions['usernamemaxlength'] || strlen($username) > 60)
 		{
 			return $this->start_register('errorusername');
 		}
-		if (empty($password) || (utf8_strlen($password) < 3) || (strlen($password) > 32))
+		if (empty($password) || (utf8::strlen($password) < 3) || (strlen($password) > 32))
 		{
 			return $this->start_register('passwordtooshort');
 		}

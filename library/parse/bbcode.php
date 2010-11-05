@@ -124,10 +124,10 @@ class parse_bbcode extends parse_base
 
 		if (!trim($link) || $text == $rightlink)
 		{
-			$tmp = utf8_unhtmlspecialchars($rightlink);
+			$tmp = utf8::unhtmlspecialchars($rightlink);
 			if (mb_strlen($tmp) > 55)
 			{
-				$text = utf8_htmlspecialchars(substr($tmp, 0, 36) . '...' . substr($tmp, -14));
+				$text = utf8::htmlspecialchars(substr($tmp, 0, 36) . '...' . substr($tmp, -14));
 			}
 		}
 		$rightlink = validate_var($rightlink, 'email');
@@ -231,10 +231,10 @@ class parse_bbcode extends parse_base
 
 		if (!trim($link) || $text === $rightlink)
 		{
-			$tmp = utf8_unhtmlspecialchars($rightlink);
+			$tmp = utf8::unhtmlspecialchars($rightlink);
 			if (mb_strlen($tmp) > 55)
 			{
-				$text = utf8_htmlspecialchars(substr($tmp, 0, 36) . '...' . substr($tmp, -14));
+				$text = utf8::htmlspecialchars(substr($tmp, 0, 36) . '...' . substr($tmp, -14));
 			}
 		}
 

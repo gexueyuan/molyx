@@ -448,12 +448,12 @@ class announce
 		}
 		$save_array = array(
 			'title' => $parser->convert(array(
-				'text' => utf8_htmlspecialchars($title),
+				'text' => utf8::htmlspecialchars($title),
 				'allowsmilies' => 0,
 				'allowcode' => 1
 			)),
 			'pagetext' => $parser->convert(array(
-				'text' => $bbuserinfo['usewysiwyg'] ? $post : utf8_htmlspecialchars($post),
+				'text' => $bbuserinfo['usewysiwyg'] ? $post : utf8::htmlspecialchars($post),
 				'allowsmilies' => input::get('allowsmile', 0),
 				'allowcode' => input::get('allowbbcode', 0),
 			)),

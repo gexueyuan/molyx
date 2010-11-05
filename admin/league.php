@@ -139,7 +139,7 @@ class league
 		$forums->admin->columns[] = array("&nbsp;" , "60%");
 		$forums->admin->print_form_header(array(1 => array('do' , 'updateleague'), 2 => array('id' , $leagueid)));
 		$forums->admin->print_table_start($pagetitle);
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['sitename'] . "</strong>", $forums->admin->print_input_row("sitename", utf8_htmlspecialchars($league['sitename']))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['sitename'] . "</strong>", $forums->admin->print_input_row("sitename", utf8::htmlspecialchars($league['sitename']))));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['siteurl'] . "</strong>", $forums->admin->print_input_row("siteurl", $league['siteurl'])));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['siteimage'] . "</strong>", $forums->admin->print_input_row("siteimage", $league['siteimage'])));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['siteinfo'] . "</strong>", $forums->admin->print_textarea_row("siteinfo", $league['siteinfo'])));

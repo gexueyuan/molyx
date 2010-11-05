@@ -79,8 +79,8 @@ class newreply
 				'change_editor' => 1
 			));
 		}
-		$content = utf8_htmlspecialchars($content);
-		$content = preg_replace("#\[code\](.+?)\[/code\]#ies" , "utf8_unhtmlspecialchars('[code]\\1[/code]')", $content);
+		$content = utf8::htmlspecialchars($content);
+		$content = preg_replace("#\[code\](.+?)\[/code\]#ies" , "utf8::unhtmlspecialchars('[code]\\1[/code]')", $content);
 		$forums->func->check_cache('usergroup');
 		$usergrp = $forums->cache['usergroup'];
 		$forums->func->check_cache('creditlist');

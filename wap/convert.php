@@ -46,8 +46,8 @@ class convert
 
 	function fetch_trimmed_title($text, $limit = 200, $post_set = 0)
 	{
-		$more = (utf8_strlen($text) > $limit) ? true : false;
-		$text = $more ? utf8_substr($text, $post_set, $limit - 1) . '...' : $text;
+		$more = (utf8::strlen($text) > $limit) ? true : false;
+		$text = $more ? utf8::substr($text, $post_set, $limit - 1) . '...' : $text;
 		return $text;
 	}
 }

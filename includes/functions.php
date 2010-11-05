@@ -386,8 +386,8 @@ class functions
 		}
 		$text = strip_tags(preg_replace('/\"javascript:.*[^>|^<].*\"/si', '', $text), '<br /><br>');
 
-		$more = (utf8_strlen($text) > $limit) ? true : false;
-		$text = $more ? utf8_substr($text, 0, $limit - 1) . '…' : $text;
+		$more = (utf8::strlen($text) > $limit) ? true : false;
+		$text = $more ? utf8::substr($text, 0, $limit - 1) . '…' : $text;
 		if ($title)
 		{
 			if ($color)
@@ -1347,7 +1347,7 @@ class functions
 		$ret = array();
 		foreach ($userextrafield['a'] as $k => $v)
 		{
-			$len = utf8_strlen(input::str($k));
+			$len = utf8::strlen(input::str($k));
 			if (($v['minlength'] && $len < $v['minlength']) || ($v['maxlength'] && $len > $v['maxlength']))
 			{
 				$forums->lang['error_length'] = sprintf($forums->lang['error_length'], $v['fieldname'], $v['minlength'], $v['maxlength']);
@@ -1395,25 +1395,6 @@ class functions
 		$exp = $exp > 0 ? $exp : 0;
 		return floatval($exp);
 	}
-}
-
-/**
- * 编码转换
- *
- * @param string $str 要转换的字符串
- * @param string $from 原编码
- * @param string $to 目的编码
- * @return string 转换结果
- */
-function convert_encoding($str, $from = '', $to = '')
-{
-	static $convert = NULL;
-	if ($convert === NULL)
-	{
-		$convert = new encoding();
-	}
-
-	return $convert->convert($str, $from, $to);
 }
 
 /**
@@ -1895,7 +1876,7 @@ function update_user_view($user)
 
 	$uinfo = array(
 		'UserID'  => $user['id'],
-		'UserName'  => convert_encoding($user['name'], 'utf-8', 'gbk'),
+		'UserName'  => encoding::convert($user['name'], 'utf-8', 'gbk'),
 		'UserSex'  => intval($user['gender']),
 		'UserOicq'  => intval($user['qq']),
 		//'UserResume'  => $user['UserResume'],
@@ -1978,7 +1959,7 @@ function duality_word($str, $return = 0)
 			{
 				if (!$return)
 				{
-					$new_ar[$i] = utf8_unicode($ar[$k]) . utf8_unicode($ar[($k + 1)]);
+					$new_ar[$i] = utf8::ord($ar[$k]) . utf8::ord($ar[($k + 1)]);
 				}
 				elseif ($return == 1)
 				{
@@ -1988,37 +1969,6 @@ function duality_word($str, $return = 0)
 		}
 	}
 	return filter_arr_null_ele($new_ar);
-}
-
-/**
-* 将utf8字符转换为unicode编码
-* $c 需要转换的字符
-* 返回转换后的编码
-*/
-function utf8_unicode($c)
-{
-	switch(strlen($c))
-	{
-		case 1:
-			$n = ord($c);
-		break;
-		case 2:
-			$n = (ord($c[0]) & 0x3f) << 6;
-			$n += ord($c[1]) & 0x3f;
-		break;
-		case 3:
-			$n = (ord($c[0]) & 0x1f) << 12;
-			$n += (ord($c[1]) & 0x3f) << 6;
-			$n += ord($c[2]) & 0x3f;
-		break;
-		case 4:
-			$n = (ord($c[0]) & 0x0f) << 18;
-			$n += (ord($c[1]) & 0x3f) << 12;
-			$n += (ord($c[2]) & 0x3f) << 6;
-			$n += ord($c[3]) & 0x3f;
-		break;
-	}
-	return dechex($n);
 }
 
 function split_todir($userid, $subfolder = '')
@@ -2075,19 +2025,39 @@ function is_xml_character($c)
 {
 	if ($c <= 0xD7FF)
 	{
-		if ($c >= 0x20) return true;
+		if ($c >= 0x20)
+		{
+			return true;
+		}
 		else
 		{
-			if ($c == '\n') return true;
-			if ($c == '\r') return true;
-			if ($c == '\t') return true;
+			if ($c == "\n" || $c == "\r" || $c == "\t")
+			{
+				return true;
+			}
 			return false;
 		}
 	}
-	if ($c < 0xE000) return false;
-	if ($c <= 0xFFFD) return true;
-	if ($c < 0x10000) return false;
-	if ($c <= 0x10FFFF) return true;
+
+	if ($c < 0xE000)
+	{
+		return false;
+	}
+
+	if ($c <= 0xFFFD)
+	{
+		return true;
+	}
+
+	if ($c < 0x10000)
+	{
+		return false;
+	}
+
+	if ($c <= 0x10FFFF)
+	{
+		return true;
+	}
 	return false;
 }
 
@@ -2097,7 +2067,7 @@ function xml_safe_str($str, $replace = true)
 	for ($i = 0, $len = mb_strlen($str); $i < $len; ++$i)
 	{
 		$s = mb_substr($str, $i, 1);
-		if (is_xml_character(utf8_ord($s)))
+		if (is_xml_character(utf8::ord($s)))
 		{
 			if ($replace)
 			{

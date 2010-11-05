@@ -27,7 +27,7 @@ class input
 
 	static public function init()
 	{
-		self::$empty = array(utf8_chr(173), utf8_chr(127), chr(0xCA), '%00', '/\\\0/', '/\\x00/');
+		self::$empty = array(utf8::chr(173), utf8::chr(127), chr(0xCA), '%00', '/\\\0/', '/\\x00/');
 	}
 
 	/**

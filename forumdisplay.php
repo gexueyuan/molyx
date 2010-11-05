@@ -686,7 +686,7 @@ class forum
 			$thread['info'] .= $forums->lang['views'] . ': ' . $thread['views'] . "\n";
 			$text = ($bboptions['threadpreview'] == 1) ? $forums->lang['threadinfo'] . ': ' : $forums->lang['replyinfo'] . ': ';
 			$thread['preview'] = $thread['hidepost'] ? $forums->lang['_posthidden'] : strip_tags($thread['info'] . $text . $thread['preview']);
-			$thread['preview'] = utf8_htmlspecialchars($forums->func->fetch_trimmed_title($thread['preview'], 200));
+			$thread['preview'] = utf8::htmlspecialchars($forums->func->fetch_trimmed_title($thread['preview'], 200));
 		}
 
 		$thread['open'] = intval($thread['open']);

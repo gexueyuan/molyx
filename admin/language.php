@@ -1180,7 +1180,7 @@ class language
 			$xml .= "\t" . '<languagefile name="' . $v . '" arrname="' . $array_name . '">' . "\r\n";
 			foreach ($lang as $varname => $text)
 			{
-				$xml .= "\t\t" . '<languagevar varname="' . utf8_htmlspecialchars($varname) . '"><![CDATA[' . $text . ']]></languagevar>' . "\r\n";
+				$xml .= "\t\t" . '<languagevar varname="' . utf8::htmlspecialchars($varname) . '"><![CDATA[' . $text . ']]></languagevar>' . "\r\n";
 			}
 			$xml .= "\t" . '</languagefile>' . "\r\n\r\n";
 		}

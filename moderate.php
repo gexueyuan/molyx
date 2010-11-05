@@ -381,7 +381,7 @@ class moderate
 		}
 		else
 		{
-			$signature = utf8_htmlspecialchars(input::get('signature', '', false));
+			$signature = utf8::htmlspecialchars(input::get('signature', '', false));
 			$signature = $parser->convert(array('text' => $signature,
 				'allowsmilies' => 1,
 				'allowcode' => $bboptions['signatureallowbbcode'],
@@ -2134,12 +2134,12 @@ class moderate
 		$parser = new functions_codeparse();
 		$save_array = array(
 			'title' => $parser->convert(array(
-				'text' => utf8_htmlspecialchars($title),
+				'text' => utf8::htmlspecialchars($title),
 				'allowsmilies' => 0,
 				'allowcode' => 1
 			)),
 			'pagetext' => $parser->convert(array(
-				'text' => utf8_htmlspecialchars($post),
+				'text' => utf8::htmlspecialchars($post),
 				'allowsmilies' => input::int('allowsmile'),
 				'allowcode' => input::int('allowbbcode')
 			)),

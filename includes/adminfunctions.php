@@ -558,7 +558,7 @@ class adminfunctions
 				}
 				$panelfile = fopen(ROOT_PATH . "includes/$file", 'r');
 				fseek($panelfile, 9);
-				$name = utf8_htmlspecialchars(str_replace('// ', '', trim(fgets($panelfile, 255))));
+				$name = utf8::htmlspecialchars(str_replace('// ', '', trim(fgets($panelfile, 255))));
 				fclose($panelfile);
 				$panellist[] = array($regs[1], $forums->lang[$name]);
 				flush();

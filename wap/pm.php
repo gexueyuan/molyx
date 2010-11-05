@@ -276,7 +276,7 @@ class newprivate
 		$username = convert($pm['username']);
 		$pm_title = convert($pm['title']);
 
-		$pm['message'] = utf8_unhtmlspecialchars($pm['message']);
+		$pm['message'] = utf8::unhtmlspecialchars($pm['message']);
 		$pm['message'] = textparse::convert_text($pm['message'], $bboptions['pmallowhtml']);
 		$pm['message'] = $this->con->convert_text($pm['message']);
 
@@ -488,7 +488,7 @@ class newprivate
 		$title = $this->lib->postlib->parser->censoredwords($title);
 		$_POST['post'] = $this->lib->postlib->parser->censoredwords($_POST['post']);
 		$message = $this->lib->postlib->parser->convert(array(
-			'text' => utf8_htmlspecialchars(convert($_POST['post'])),
+			'text' => utf8::htmlspecialchars(convert($_POST['post'])),
 			'allowsmilies' => input::int('allowsmile'),
 			'allowcode' => $bboptions['pmallowbbcode'],
 		));

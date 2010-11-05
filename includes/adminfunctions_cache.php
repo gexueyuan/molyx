@@ -675,7 +675,7 @@ register_php;
 					{
 						$strlen_code.=<<<register_php
 \n
-if(input::str('{$value["column_name"]}') && utf8_strlen(input::str('{$value["column_name"]}')) > {$value["column_length"]})
+if(input::str('{$value["column_name"]}') && utf8::strlen(input::str('{$value["column_name"]}')) > {$value["column_length"]})
 {
 \n	\$forums->lang['error{$value["column_name"]}_length'] = "{$value['column_title']}{\$forums->lang['cache_length']}";
 \n	callback_error("error{$value['column_name']}_length");

@@ -293,7 +293,7 @@ class search
 				{
 					$boolean = $matches[1][$i];
 					$word = trim($matches[2][$i]);
-					if (utf8_strlen($word) < $bboptions['minsearchlength'])
+					if (utf8::strlen($word) < $bboptions['minsearchlength'])
 					{
 						$forums->func->load_lang('error');
 						$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -317,7 +317,7 @@ class search
 			else
 			{
 				$keywords = str_replace('|', "&#124;", $keywords);
-				if (utf8_strlen(trim($keywords)) < $bboptions['minsearchlength'])
+				if (utf8::strlen(trim($keywords)) < $bboptions['minsearchlength'])
 				{
 					$forums->func->load_lang('error');
 					$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);

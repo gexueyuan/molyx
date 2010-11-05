@@ -45,12 +45,12 @@ function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 		}
 	}
 	//发帖长度限制
-	if (($bboptions['maxpostchars'] && utf8_strlen($post_content) > $bboptions['maxpostchars']) || strlen($post_content) > 16777215)
+	if (($bboptions['maxpostchars'] && utf8::strlen($post_content) > $bboptions['maxpostchars']) || strlen($post_content) > 16777215)
 	{
 		$forums->func->load_lang('error');
 		return return_process_result($forums->lang["_posterror1"]);
 	}
-	if ($bboptions['minpostchars'] && utf8_strlen($post_content) < $bboptions['minpostchars'] && !input::int('preview'))
+	if ($bboptions['minpostchars'] && utf8::strlen($post_content) < $bboptions['minpostchars'] && !input::int('preview'))
 	{
 		$forums->func->load_lang('error');
 		return return_process_result(sprintf($forums->lang["posttooshort"] , $bboptions['minpostchars']));
@@ -153,7 +153,7 @@ function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 	{
 		$bbuserinfo['usewysiwyg'] = ($bboptions['mxemode']) ?1 : 0;
 	}
-	$post = $bbuserinfo['usewysiwyg'] ? $post_content : utf8_htmlspecialchars($post_content);
+	$post = $bbuserinfo['usewysiwyg'] ? $post_content : utf8::htmlspecialchars($post_content);
 	$content = $dopost->parser->convert(array(
 		'text' => $post,
 		'allowsmilies' => input::int('allowsmile'),
@@ -496,13 +496,13 @@ function do_edit_post($pid, $fid, $uid, $tid, $content, $wMode, $dateline)
 	}
 
 	//发帖长度限制
-	if (($bboptions['maxpostchars'] && utf8_strlen($content) > $bboptions['maxpostchars']) || strlen($content) > 16777215)
+	if (($bboptions['maxpostchars'] && utf8::strlen($content) > $bboptions['maxpostchars']) || strlen($content) > 16777215)
 	{
 		$forums->func->load_lang('error');
 		show_processinfo($forums->lang["_posterror1"]);
 		return $response;
 	}
-	if ($bboptions['minpostchars'] && utf8_strlen($content) < $bboptions['minpostchars'])
+	if ($bboptions['minpostchars'] && utf8::strlen($content) < $bboptions['minpostchars'])
 	{
 		$forums->func->load_lang('error');
 		show_processinfo(sprintf($forums->lang["posttooshort"] , $bboptions['minpostchars']));
@@ -513,7 +513,7 @@ function do_edit_post($pid, $fid, $uid, $tid, $content, $wMode, $dateline)
 	require_once(ROOT_PATH . 'includes/class_textparse.php');
 	$lib = new functions_codeparse();
 	$bbuserinfo['usewysiwyg'] = ($wMode || $bboptions['mxemode']) ? 1 : 0;
-	$content = $bbuserinfo['usewysiwyg'] ? $content : utf8_htmlspecialchars($content);
+	$content = $bbuserinfo['usewysiwyg'] ? $content : utf8::htmlspecialchars($content);
 	$post = $lib->convert(array(
 		'text' => $content,
 		'allowsmilies' => 1,
@@ -631,7 +631,7 @@ function dopreview_post($content, $fid, $allow_smile)
 	{
 		$bbuserinfo['usewysiwyg'] = 0;
 	}
-	$content = $bbuserinfo['usewysiwyg'] ? $content : utf8_htmlspecialchars($content);
+	$content = $bbuserinfo['usewysiwyg'] ? $content : utf8::htmlspecialchars($content);
 	if ($fid > 0)
 	{
 		$thisforum = $forums->forum->single_forum($fid);
@@ -848,10 +848,10 @@ function process_post_form($input, $action, $pid = 0)
 			$showpost = array();
 			while ($row = $DB->fetch_array($result))
 			{
-				if (utf8_strlen($row['pagetext']) > 100)
+				if (utf8::strlen($row['pagetext']) > 100)
 				{
 					$row['pagetext'] = $codeparse->unconvert($row['pagetext']);
-					$row['pagetext'] = utf8_substr(strip_tags($row['pagetext']), 0, 100) . '...';
+					$row['pagetext'] = utf8::substr(strip_tags($row['pagetext']), 0, 100) . '...';
 				}
 
 				//处理code

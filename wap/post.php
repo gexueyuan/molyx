@@ -98,7 +98,7 @@ class newthread
 		$title = input::str('title');
 		if ($this->type == 'new')
 		{
-			if ((utf8_strlen($title) < 2) OR (!$title))
+			if ((utf8::strlen($title) < 2) OR (!$title))
 			{
 				$this->lib->obj['errors'] = $forums->lang['musttitle'];
 			}

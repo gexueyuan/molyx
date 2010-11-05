@@ -112,7 +112,7 @@ class announce
 			$row['dateline'] = '';
 		}
 		$row['announcetitle'] = convert(strip_tags($row['announcetitle']));
-		$row['pagetext'] = utf8_unhtmlspecialchars($row['pagetext']);
+		$row['pagetext'] = utf8::unhtmlspecialchars($row['pagetext']);
 
 		$row['pagetext'] = textparse::convert_text($row['pagetext']);
 		$row['pagetext'] = $this->lib->convert_text($row['pagetext']);

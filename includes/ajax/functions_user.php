@@ -67,7 +67,7 @@ function check_user_account($username)
 		return $response;
 	}
 
-	$len_u = utf8_strlen($check);
+	$len_u = utf8::strlen($check);
 	if (empty($username) || strstr($check, ';'))
 	{
 		display_check_result('name', $forums->lang['ajaxusernameempty']);
@@ -185,7 +185,7 @@ function do_change_signature($pid, $uid, $signature = '', $wmode = 1)
 		$response->script("$('signature{$pid}').innerHTML = $('oldHTML{$pid}').value");
 		return $response;
 	}
-	if (($bboptions['signaturemaxlength'] && utf8_strlen(strip_tags($signature)) > $bboptions['signaturemaxlength']) || strlen($signature) > 16777215)
+	if (($bboptions['signaturemaxlength'] && utf8::strlen(strip_tags($signature)) > $bboptions['signaturemaxlength']) || strlen($signature) > 16777215)
 	{
 		show_processinfo(sprintf($forums->lang['signatureuplinmit'], $bboptions['signaturemaxlength']));
 		$response->script("$('signature{$pid}').innerHTML = $('oldHTML{$pid}').value");
@@ -211,7 +211,7 @@ function do_change_signature($pid, $uid, $signature = '', $wmode = 1)
 	{
 		$bbuserinfo['usewysiwyg'] = ($bboptions['mxemode']) ? 1 : 0;
 	}
-	$signature = $bbuserinfo['usewysiwyg'] ? $signature : utf8_htmlspecialchars($signature);
+	$signature = $bbuserinfo['usewysiwyg'] ? $signature : utf8::htmlspecialchars($signature);
 	$signature = $lib->censoredwords($signature);
 	$sig = $lib->convert(array(
 		'text' => $signature,

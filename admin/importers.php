@@ -46,7 +46,7 @@ class importers
 			{
 				$importfile = fopen(ROOT_PATH . "importers/$file", "r");
 				fseek($importfile, 9);
-				$imlist[] = array($regs[1], utf8_htmlspecialchars(str_replace("// ", "", trim(fgets($importfile, 255)))));
+				$imlist[] = array($regs[1], utf8::htmlspecialchars(str_replace("// ", "", trim(fgets($importfile, 255)))));
 				flush();
 			}
 		}

@@ -102,11 +102,11 @@ class login
 			$charset = input::get('charset', '');
 			if ($charset == 'gb' || $charset == 'big5')
 			{
-				$username = convert_encoding($username, $charset, 'utf-8');
+				$username = encoding::convert($username, $charset, 'utf-8');
 			}
 
 			$check_name = input::unclean($username);
-			if (utf8_strlen($check_name) > 32)
+			if (utf8::strlen($check_name) > 32)
 			{
 				$forums->func->standard_error('nametoolong');
 			}

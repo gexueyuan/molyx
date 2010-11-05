@@ -879,7 +879,7 @@ class style
 
 		$css = $this->template->get_template_content($styleid, 'style.css');
 		$css = preg_replace('#/\*(.+?)\*/#s', '', $css);
-		$css = utf8_unhtmlspecialchars($css);
+		$css = utf8::unhtmlspecialchars($css);
 
 		$match = $colours = array();
 		preg_match_all('/([\:\.\#\w\s,]+)\{(.+?)\}/s', $css, $match);
@@ -1562,7 +1562,7 @@ class style
 			$xml .= "\t" . '<templategroup name="' . $group . '">' . "\r\n";
 			foreach ($grouptemplates as $template)
 			{
-				$xml .= "\t\t" . '<template name="' . utf8_htmlspecialchars($template['title']) . '" templatetype="' . utf8_htmlspecialchars($template['templatetype']) . '" group="' . utf8_htmlspecialchars($template['templategroup']) . '"><![CDATA[' . $template['template'] . ']]></template>' . "\r\n";
+				$xml .= "\t\t" . '<template name="' . utf8::htmlspecialchars($template['title']) . '" templatetype="' . utf8::htmlspecialchars($template['templatetype']) . '" group="' . utf8::htmlspecialchars($template['templategroup']) . '"><![CDATA[' . $template['template'] . ']]></template>' . "\r\n";
 			}
 			$xml .= "\t" . '</templategroup>' . "\r\n\r\n";
 		}

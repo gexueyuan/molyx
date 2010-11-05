@@ -251,7 +251,7 @@ class register
 
 		$username = input::get('username', '');
 		$check = input::unclean($username);
-		$len_u = utf8_strlen($check);
+		$len_u = utf8::strlen($check);
 		if ($bboptions['namenoallowenus'])
 		{
 			$pattern .= 'a-zA-Z';
@@ -300,7 +300,7 @@ class register
 		{
 			return $this->start_register('errorusername');
 		}
-		if (empty($password) || (utf8_strlen($password) < 3) || (strlen($password) > 32))
+		if (empty($password) || (utf8::strlen($password) < 3) || (strlen($password) > 32))
 		{
 			return $this->start_register('passwordfaq');
 		}
