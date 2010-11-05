@@ -91,14 +91,14 @@ class newpoll
 		}
 		if ($_POST['post'])
 		{
-			$content = utf8_htmlspecialchars($_POST['post']);
+			$content = utf8::htmlspecialchars($_POST['post']);
 		}
 		$show['title'] = true;
 		if ($bboptions['enablepolltags'])
 		{
 			$extra = $forums->lang['enablepolltags'];
 		}
-		$poll = utf8_htmlspecialchars($_POST['polloptions']);
+		$poll = utf8::htmlspecialchars($_POST['polloptions']);
 		if ($this->lib->obj['errors'])
 		{
 			$show['errors'] = true;
@@ -210,7 +210,7 @@ class newpoll
 		}
 
 		$title = input::get('title', '');
-		if (utf8_strlen($title) < 2 OR !$title)
+		if (utf8::strlen($title) < 2 OR !$title)
 		{
 			$this->lib->obj['errors'] = $forums->lang['musttitle'];
 		}

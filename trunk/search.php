@@ -286,7 +286,7 @@ class search
 					//逻辑关系后的数据
 					$word = trim($matches[2][$i]);
 					//取出的数据长度小于系统设置的搜索关键词的最小长度[常规设置]
-					if (utf8_strlen($word) < $bboptions['minsearchlength'])
+					if (utf8::strlen($word) < $bboptions['minsearchlength'])
 					{
 						$forums->func->standard_error("keywordtooshort", false, $bboptions['minsearchlength']);
 					}
@@ -308,7 +308,7 @@ class search
 			{
 				//单一条件
 				$keywords = str_replace('|', "&#124;", $keywords);
-				if (utf8_strlen(trim($keywords)) < $bboptions['minsearchlength'])
+				if (utf8::strlen(trim($keywords)) < $bboptions['minsearchlength'])
 				{
 					$forums->func->standard_error("keywordtooshort", false, $bboptions['minsearchlength']);
 				}
@@ -434,7 +434,7 @@ class search
 
 		$bboptions['minsearchlength'] = $bboptions['minsearchlength'] ? $bboptions['minsearchlength'] : 4;
 
-		if (utf8_strlen($keywords) < $bboptions['minsearchlength'])
+		if (utf8::strlen($keywords) < $bboptions['minsearchlength'])
 		{
 			$forums->func->standard_error("keywordtooshort", false, $bboptions['minsearchlength']);
 		}
@@ -490,7 +490,7 @@ class search
 
 		$bboptions['minsearchlength'] = $bboptions['minsearchlength'] ? $bboptions['minsearchlength'] : 4;
 
-		if (utf8_strlen($keywords) < $bboptions['minsearchlength'])
+		if (utf8::strlen($keywords) < $bboptions['minsearchlength'])
 		{
 			$forums->func->standard_error("keywordtooshort", false, $bboptions['minsearchlength']);
 		}

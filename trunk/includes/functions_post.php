@@ -297,7 +297,7 @@ class functions_post
 							{
 								$check = trim(strip_tags($qpost['pagetext']));
 								$check = str_replace(array('&amp;', '&lt;', '&gt;'), array('1', '1', '1'), $check);
-								if (utf8_strlen($check) > $bboptions['quoteslengthlimit'])
+								if (utf8::strlen($check) > $bboptions['quoteslengthlimit'])
 								{
 									$qpost['pagetext'] = preg_replace('/<img (.*) \/>/iU', '', $qpost['pagetext']);
 									$qpost['pagetext'] = $forums->func->fetch_trimmed_title($qpost['pagetext'], $bboptions['quoteslengthlimit']);
@@ -367,7 +367,7 @@ class functions_post
 		}
 
 		$allowsmile = input::int('allowsmile');
-		$pagetext = $bbuserinfo['usewysiwyg'] ? $_POST['post'] : utf8_htmlspecialchars($_POST['post']);
+		$pagetext = $bbuserinfo['usewysiwyg'] ? $_POST['post'] : utf8::htmlspecialchars($_POST['post']);
 		$post = array(
 			'userid' => $bbuserinfo['id'] ? $bbuserinfo['id'] : 0,
 			'showsignature' => input::int('showsignature'),
@@ -389,11 +389,11 @@ class functions_post
 		$check = $this->parser->unconvert($posttext, $this->forum['allowbbcode'], $this->forum['allowhtml'], $bbuserinfo['usewysiwyg']);
 		$check = trim(strip_tags($check));
 		$check = str_replace(array('&amp;', '&lt;', '&gt;'), array('1', '1', '1'), $check);
-		if (($bboptions['maxpostchars'] && utf8_strlen($check) > $bboptions['maxpostchars']) || strlen($posttext) > 16777215)
+		if (($bboptions['maxpostchars'] && utf8::strlen($check) > $bboptions['maxpostchars']) || strlen($posttext) > 16777215)
 		{
 			$this->obj['errors'] = $forums->lang['_posterror1'];
 		}
-		if ($bboptions['minpostchars'] && utf8_strlen($check) < $bboptions['minpostchars'] && !input::int('preview'))
+		if ($bboptions['minpostchars'] && utf8::strlen($check) < $bboptions['minpostchars'] && !input::int('preview'))
 		{
 			$forums->func->standard_error("posttooshort", false, $bboptions['minpostchars']);
 		}

@@ -92,7 +92,7 @@ class functions_upload
 			$this->error_no = 3;
 			return;
 		}
-		$filename = utf8_htmlspecialchars($filename);
+		$filename = utf8::htmlspecialchars($filename);
 		if (in_array($this->file_extension, $this->image_extension))
 		{
 			$this->is_image[$fileinfo['num']] = 1;

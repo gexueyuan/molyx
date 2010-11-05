@@ -63,7 +63,7 @@ class functions_private
 		{
 			$bbuserinfo['usewysiwyg'] = 0;
 		}
-		$post = $bbuserinfo['usewysiwyg'] ? $_POST['post'] : utf8_htmlspecialchars($_POST['post']);
+		$post = $bbuserinfo['usewysiwyg'] ? $_POST['post'] : utf8::htmlspecialchars($_POST['post']);
 		$post = $this->postlib->parser->censoredwords($post);
 		$message = $this->postlib->parser->convert(array('text' => $post,
 			'allowsmilies' => input::int('allowsmile'),
@@ -279,7 +279,7 @@ class functions_private
 			$username = input::str('username');
 		}
 		$title = preg_replace("/'/", "&#39;", input::str('title'));
-		$content = utf8_htmlspecialchars(input::str('post'));
+		$content = utf8::htmlspecialchars(input::str('post'));
 		if ($getpmid)
 		{
 			$pm = $DB->query_first("SELECT u.id,u.name, p.*, pt.*
@@ -323,8 +323,8 @@ class functions_private
 		{
 			$pm['message'] = preg_replace("#<br.*>#siU", "\n", $pm['message']);
 		}
-		$content = utf8_htmlspecialchars($content);
-		$content = preg_replace("#\[code\](.+?)\[/code\]#ies" , "utf8_unhtmlspecialchars('[code]\\1[/code]')", $content);
+		$content = utf8::htmlspecialchars($content);
+		$content = preg_replace("#\[code\](.+?)\[/code\]#ies" , "utf8::unhtmlspecialchars('[code]\\1[/code]')", $content);
 		if ($this->canupload)
 		{
 			$show['upload'] = true;

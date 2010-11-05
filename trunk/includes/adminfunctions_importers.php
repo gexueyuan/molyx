@@ -222,7 +222,7 @@ class adminfunctions_importers
 			$DB->insert(TABLE_PREFIX . 'user', $iuser);
 		}
 		$userid = $DB->insert_id();
-		$userimported = sprintf($forums->lang['userimported'], utf8_htmlspecialchars($user['name']));
+		$userimported = sprintf($forums->lang['userimported'], utf8::htmlspecialchars($user['name']));
 		$this->echo_flush($userimported . (input::int('pause') ? "<a href=" . ROOT_PATH . "" . ROOT_PATH . "user.php?" . $forums->sessionurl . "do=doform&amp;u=" . $userid . "' target='_blank'>" . $forums->lang['edit'] . "</a>" : "") . "<br /><br />\n\n");
 		return $userid;
 	}
@@ -273,7 +273,7 @@ class adminfunctions_importers
 			$DB->insert(TABLE_PREFIX . 'forum', $icategory);
 		}
 		$categoryid = $DB->insert_id();
-		$categoryimported = sprintf($forums->lang['categoryimported'], utf8_htmlspecialchars($category['name']));
+		$categoryimported = sprintf($forums->lang['categoryimported'], utf8::htmlspecialchars($category['name']));
 		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET parentlist='$categoryid,-1' WHERE id='$categoryid'");
 		$this->echo_flush($categoryimported . "<br /><br />");
 		return $categoryid;
@@ -294,7 +294,7 @@ class adminfunctions_importers
 		$forumid = $DB->insert_id();
 		$parentlist = $forumid . ',' . $forums->adminforum->fetch_forum_parentlist($forum['parentid']);
 		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET parentlist='$parentlist' WHERE id='$forumid'");
-		$forumimported = sprintf($forums->lang['forumimported'], utf8_htmlspecialchars($forum['name']));
+		$forumimported = sprintf($forums->lang['forumimported'], utf8::htmlspecialchars($forum['name']));
 		$this->echo_flush($forumimported . "<br /><br />");
 		return $forumid;
 	}
@@ -312,7 +312,7 @@ class adminfunctions_importers
 			$DB->insert(TABLE_PREFIX . 'moderator', $imoderator);
 		}
 		$moderatorid = $DB->insert_id();
-		$moderatorimported = sprintf($forums->lang['moderatorimported'], utf8_htmlspecialchars($moderator['username']));
+		$moderatorimported = sprintf($forums->lang['moderatorimported'], utf8::htmlspecialchars($moderator['username']));
 		$this->echo_flush($moderatorimported . "<br /><br />");
 		return $moderatorid;
 	}
@@ -395,7 +395,7 @@ class adminfunctions_importers
 			$DB->insert(TABLE_PREFIX . 'attachment', $iattachment);
 		}
 		$attachmentid = $DB->insert_id();
-		$attachimported = sprintf($forums->lang['attachimported'], utf8_htmlspecialchars($attachment['filename']));
+		$attachimported = sprintf($forums->lang['attachimported'], utf8::htmlspecialchars($attachment['filename']));
 		$this->echo_flush($attachimported . "<br />");
 		return $attachmentid;
 	}

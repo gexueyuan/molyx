@@ -129,8 +129,8 @@ class attachment
 		$this->credit = new functions_credit();
 		$this->credit->check_credit('downattach', $bbuserinfo['usergroupid'], $this->forum['id']);
 		$this->credit->update_credit('downattach', $bbuserinfo['id'], $bbuserinfo['usergroupid'], $this->forum['id']);
-		
-		
+
+
 		if ($bboptions['remoteattach'])
 		{
 			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
@@ -168,7 +168,7 @@ class attachment
 					$DB->shutdown_update(TABLE_PREFIX . 'attachment', array('counter' => array(1, '+')), 'attachmentid = ' . $id);
 				}
 				$filename = urldecode(input::get('filename', ''));
-				$filename = convert_encoding($filename, 'utf-8', 'gbk');
+				$filename = encoding::convert($filename, 'utf-8', 'gbk');
 
 				@header('Content-Type: ' . $forums->cache['attachmenttype'][$extension]['mimetype']);
 				@header('Cache-control: max-age=31536000');
@@ -223,11 +223,11 @@ class attachment
 			$extension = strtolower(input::get('extension', ''));
 
 			$filename = urldecode(input::get('filename', ''));
-			$filename = convert_encoding($filename, 'utf-8', 'gbk');
-			
+			$filename = encoding::convert($filename, 'utf-8', 'gbk');
+
 			if (file_exists($showfile) AND ($forums->cache['attachmenttype'][$extension]['mimetype'] != ""))
 			{
-				
+
 				@header('Cache-control: max-age=31536000');
 				@header('Expires: ' . gmdate("D, d M Y H:i:s", TIMENOW + 31536000) . ' GMT');
 				@header('Content-Type: ' . $forums->cache['attachmenttype'][$extension]['mimetype']);

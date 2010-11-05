@@ -98,7 +98,7 @@ class javascript
 
 				$jstype = $js['type'] ? $forums->lang['memberlist'] : $forums->lang['threadlist'];
 
-				$forums->admin->print_cells_row(array("<strong>{$jstype}</strong>", "<strong>{$js['name']}</strong>", $js['jsname'], ($js['refresh'] ? $forums->func->get_date($js['nextrun'], 2) : $forums->lang['realupdate']), "<textarea name='textarea' cols='40' rows='3' readonly='readonly' onmouseover=\"this.select();\">" . utf8_htmlspecialchars("<script language='javascript' src='{$jscode}'></script>") . "</textarea>",
+				$forums->admin->print_cells_row(array("<strong>{$jstype}</strong>", "<strong>{$js['name']}</strong>", $js['jsname'], ($js['refresh'] ? $forums->func->get_date($js['nextrun'], 2) : $forums->lang['realupdate']), "<textarea name='textarea' cols='40' rows='3' readonly='readonly' onmouseover=\"this.select();\">" . utf8::htmlspecialchars("<script language='javascript' src='{$jscode}'></script>") . "</textarea>",
 						$forums->admin->print_input_select_row('id' . $js['id'],
 							array(0 => array('edit,0,' . $js['type'], $forums->lang['changesetting']),
 								1 => array('preview,1', $forums->lang['jspreview']),

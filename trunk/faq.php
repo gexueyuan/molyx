@@ -91,7 +91,7 @@ class faq
 	{
 		global $forums, $DB;
 		$q = input::get('q', '');
-		$this->search = utf8_htmlspecialchars($q);
+		$this->search = utf8::htmlspecialchars($q);
 		if (empty($this->search))
 		{
 			$result['content'] = true;

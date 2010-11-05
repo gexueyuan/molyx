@@ -437,7 +437,7 @@ function do_change_forumrule($fid, $forumrule = '', $wmode = 1)
 		{
 			$bbuserinfo['usewysiwyg'] = ($bboptions['mxemode']) ? 1 : 0;
 		}
-		$forumrule = $bbuserinfo['usewysiwyg'] ? $forumrule : utf8_htmlspecialchars($forumrule);
+		$forumrule = $bbuserinfo['usewysiwyg'] ? $forumrule : utf8::htmlspecialchars($forumrule);
 		$forumrule = $lib->censoredwords($forumrule);
 		$forumrule = $lib->convert(array(
 			'text' => $forumrule,

@@ -38,7 +38,7 @@ function changemedo($do = '')
 		show_processinfo($forums->lang['cleardosuc']);
 		return $response;
 	}
-	if (utf8_strlen($userdo) > intval($bboptions['userdolenlimit'])) //长度超过限制
+	if (utf8::strlen($userdo) > intval($bboptions['userdolenlimit'])) //长度超过限制
 	{
 		show_processinfo($forums->lang['userdolimited']);
 		return $response;
@@ -163,7 +163,7 @@ function switch_editor_mode($content, $mode, $type, $allowsmile)
 	if ($mode == 0)
 	{
 		$content = $lib->convert(array (
-			'text' => utf8_htmlspecialchars($content),
+			'text' => utf8::htmlspecialchars($content),
 			'allowsmilies' => intval($allowsmile),
 			'allowcode' => $allowcode,
 			'change_editor' => 1,

@@ -444,7 +444,7 @@ class forums
 		$forums->admin->columns[] = array('' , '40%');
 		$forums->admin->columns[] = array('', '60%');
 		$forums->admin->print_table_start($basic_title);
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['forumtitle'] . "</strong>", $forums->admin->print_input_row("name", utf8_htmlspecialchars($this->forum['name']))));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['forumtitle'] . "</strong>", $forums->admin->print_input_row("name", utf8::htmlspecialchars($this->forum['name']))));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['forumicon'] . "</strong><br />" . $forums->lang['forumicondesc'], $forums->admin->print_input_row("forumicon", $this->forum['forumicon'])));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['forumdesc'] . "</strong><br />" . $forums->lang['forumdescdesc'], $forums->admin->print_textarea_row("description", br2nl($this->forum['description']))));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['forum_redirecturl'] . "</strong><br />" . $forums->lang['forum_redirecturl_desc'], $forums->admin->print_textarea_row("url", br2nl($this->forum['url']))));

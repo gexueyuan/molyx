@@ -121,7 +121,7 @@ class faq
 		$forums->admin->print_table_start($button);
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['faqtitle'] . "</strong>", $forums->admin->print_input_row('title', $r['title'])));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['faqdesc'] . "</strong>", $forums->admin->print_textarea_row('description', $r['description'])));
-		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['faqtext'] . "</strong>", $forums->admin->print_textarea_row('text', utf8_htmlspecialchars($r['text']), "60", "10")));
+		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['faqtext'] . "</strong>", $forums->admin->print_textarea_row('text', utf8::htmlspecialchars($r['text']), "60", "10")));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['faqparent'] . "</strong>", $forums->admin->print_input_select_row("parentid", $p_array, $r['parentid'])));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['displayorder'] . "</strong>", $forums->admin->print_input_row('displayorder', $r['displayorder'] ? intval($r['displayorder']) : 0)));
 		$forums->admin->print_form_submit($button);

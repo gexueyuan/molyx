@@ -86,14 +86,14 @@ class functions_email
 		if (($this->from) AND ($this->subject))
 		{
 			$this->subject .= " ( From " . $bboptions['bbtitle'] . " )";
-			$this->subject = convert_encoding($this->subject, 'UTF-8', $this->char_set);
-			$this->message = convert_encoding($this->message);
+			$this->subject = encoding::convert($this->subject, 'UTF-8', $this->char_set);
+			$this->message = encoding::convert($this->message);
 			$this->message = str_replace(
 				array("\r\n", "\r", "\n", '<br />'),
 				array("\n", "\n", "\r\n", "\r\n"),
 				$this->message
 			);
-			$this->mail_headers = convert_encoding($this->mail_headers);
+			$this->mail_headers = encoding::convert($this->mail_headers);
 			$this->mail_headers = str_replace(
 				array("\r\n", "\r", "\n", '<br />'),
 				array("\n", "\n", "\r\n", "\r\n"),

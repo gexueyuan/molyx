@@ -78,7 +78,7 @@ class newthread
 		$post = input::get('post', '', false);
 		if ($post)
 		{
-			$content = utf8_htmlspecialchars($post);
+			$content = utf8::htmlspecialchars($post);
 		}
 
 		$show['title'] = true;
@@ -170,7 +170,7 @@ class newthread
 		}
 
 		$title = input::get('title', '');
-		if ((utf8_strlen($title) < 2) || (!$title))
+		if ((utf8::strlen($title) < 2) || (!$title))
 		{
 			$this->lib->obj['errors'] = $forums->lang['musttitle'];
 		}

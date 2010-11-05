@@ -1448,7 +1448,7 @@ class mysql
 						$r[$fields[$i]->name] = $forums->func->fetch_trimmed_title($r[$fields[$i]->name], 200);
 					}
 				}
-				$rows[] = $r[$fields[$i]->name] ? wordwrap(utf8_htmlspecialchars(nl2br($r[$fields[$i]->name])) , 50, '<br />', 1) : '&nbsp;';
+				$rows[] = $r[$fields[$i]->name] ? wordwrap(utf8::htmlspecialchars(nl2br($r[$fields[$i]->name])) , 50, '<br />', 1) : '&nbsp;';
 			}
 			$forums->admin->print_cells_row($rows);
 		}

@@ -121,10 +121,10 @@ class parse_html extends parse_base
 				// 如果 a 标签的文字就是链接本身, 而且链接长度超过 55 字符那么将文字进行缩略处理
 				if ($text == $link)
 				{
-					$tmp = utf8_unhtmlspecialchars($link);
+					$tmp = utf8::unhtmlspecialchars($link);
 					if (mb_strlen($tmp) > 55)
 					{
-						$text = utf8_htmlspecialchars(mb_substr($tmp, 0, 36) . '...' . mb_substr($tmp, -14));
+						$text = utf8::htmlspecialchars(mb_substr($tmp, 0, 36) . '...' . mb_substr($tmp, -14));
 					}
 				}
 

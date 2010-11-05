@@ -95,9 +95,9 @@ class rss
 		$i = 0;
 		while ($thread = $DB->fetch_array($query))
 		{
-			$thread['title'] = utf8_htmlspecialchars(strip_tags($thread['title']));
-			$thread['forumnanme'] = utf8_htmlspecialchars(strip_tags($$thread['forumname']));
-			$thread['lastposter'] = utf8_htmlspecialchars($thread['lastposter']);
+			$thread['title'] = utf8::htmlspecialchars(strip_tags($thread['title']));
+			$thread['forumnanme'] = utf8::htmlspecialchars(strip_tags($$thread['forumname']));
+			$thread['lastposter'] = utf8::htmlspecialchars($thread['lastposter']);
 			$postdate = $forums->func->get_date($thread['dateline'], 2);
 			$pubdate = date('r', $thread['dateline']);
 			$lastdate = date('r', $thread['lastpost']);
@@ -107,7 +107,7 @@ class rss
 			}
 			else
 			{
-				$pagetext = utf8_htmlspecialchars($this->clean_message($thread['pagetext']));
+				$pagetext = utf8::htmlspecialchars($this->clean_message($thread['pagetext']));
 				$pagetext = preg_replace("(\r\n|\r|\n)", '<br />', $pagetext);
 			}
 			$thread['title'] = str_replace(array('&amp;amp;', '&amp;'), array('&#38;', '&'), $thread['title']);

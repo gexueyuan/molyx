@@ -177,9 +177,9 @@ class adminfunctions_javascript
 		{
 			$forums->func->check_cache('creditlist');
 			$usedcredit = array();
-			if ($forums->cache['creditlist']) 
+			if ($forums->cache['creditlist'])
 			{
-				foreach ($forums->cache['creditlist'] as $k => $v) 
+				foreach ($forums->cache['creditlist'] as $k => $v)
 				{
 					$usedcredit[$v['tag']] = $v['name'];
 				}
@@ -284,7 +284,7 @@ class adminfunctions_javascript
 			}
 			if ($output_code)
 			{
-				convert_encoding($jscode, 'UTF-8', $output_code);
+				$jscode = encoding::convert($jscode, 'UTF-8', $output_code);
 			}
 		}
 		$allcode = "document.write(\"<table width='100%'  border='0' cellspacing='0' cellpadding='0'><tr>" . $jscode;

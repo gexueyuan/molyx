@@ -1564,7 +1564,7 @@ class user
 
 		require_once(ROOT_PATH . "includes/functions_codeparse.php");
 		$parser = new functions_codeparse();
-		$signature = $parser->convert(array('text' => utf8_htmlspecialchars($_POST['signature']),
+		$signature = $parser->convert(array('text' => utf8::htmlspecialchars($_POST['signature']),
 			'allowsmilies' => 1,
 			'allowcode' => $bboptions['signatureallowbbcode'],
 		));

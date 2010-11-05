@@ -150,7 +150,7 @@ class editpost
 			$show['title'] = true;
 			$title = input::get('title', $this->thread['title']);
 
-			$title = utf8_unhtmlspecialchars($title);
+			$title = utf8::unhtmlspecialchars($title);
 			if (preg_match('#<strong>(.*)</strong>#siU', $title))
 			{
 				$title = preg_replace('#<strong>(.*)</strong>#siU', '\\1', $title);
@@ -261,7 +261,7 @@ class editpost
 		$title = input::get('title', '');
 		if ($this->edittitle)
 		{
-			if ((utf8_strlen($title) < 2) || !$title)
+			if ((utf8::strlen($title) < 2) || !$title)
 			{
 				$this->lib->obj['errors'] = $forums->lang['musttitle'];
 			}

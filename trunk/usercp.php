@@ -947,7 +947,7 @@ class usercp
 		}
 		require (ROOT_PATH . "includes/functions_codeparse.php");
 		$this->parser = new functions_codeparse();
-		if (($bboptions['signaturemaxlength'] && utf8_strlen(strip_tags($_POST['post'])) > $bboptions['signaturemaxlength']) || strlen($_POST['post']) > 16777215)
+		if (($bboptions['signaturemaxlength'] && utf8::strlen(strip_tags($_POST['post'])) > $bboptions['signaturemaxlength']) || strlen($_POST['post']) > 16777215)
 		{
 			$forums->func->standard_error("errorsignature");
 		}
@@ -968,7 +968,7 @@ class usercp
 		{
 			$bbuserinfo['usewysiwyg'] = 0;
 		}
-		$post = $bbuserinfo['usewysiwyg'] ? $_POST['post'] : utf8_htmlspecialchars($_POST['post']);
+		$post = $bbuserinfo['usewysiwyg'] ? $_POST['post'] : utf8::htmlspecialchars($_POST['post']);
 		$post = $this->parser->censoredwords($post);
 		$signature = $this->parser->convert(array(
 			'text' => $post,
