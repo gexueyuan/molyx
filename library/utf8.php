@@ -160,7 +160,7 @@ class utf8
 
 				if ($length > 0)
 				{
-					$length = min($strlen-$offset, $length);
+					$length = min($strlen - $offset, $length);
 
 					$lx = (int) ($length / 65535);
 					$ly = $length % 65535;
@@ -188,7 +188,7 @@ class utf8
 				}
 			}
 
-			if (!preg_match('#'.$op.$lp.'#us',$str, $match))
+			if (!preg_match('#' . $op . $lp . '#us', $str, $match))
 			{
 				return '';
 			}
@@ -198,111 +198,24 @@ class utf8
 	}
 
 	/**
-	 * 检查字符串是否兼容 UTF-8,
+	 * 检查字符串是否兼容 UTF-8
 	 */
-	public static function check($str, $strict = false)
+	public static function check($str)
 	{
-	    if (empty($str))
+		if (is_numeric($str))
+		{
+			return true;
+		}
+		else if (!is_string($str))
+	    {
+	    	return false;
+	    }
+	    else if (empty($str))
 	    {
 	        return true;
 	    }
 
-	    if (!$strict) // 不严格的 UTF-8 编码检查, 会忽略 5/6 字节的字符
-	    {
-	    	return (preg_match('/^.{1}/us', $str) == 1);
-	    }
-	    else
-	    {
-	    	$ucs4 = 0;
-	    	$state = 0;
-		    $bytes = 1;
-
-		    $len = strlen($str);
-
-		    for ($i = 0; $i < $len; $i++)
-		    {
-		        $in = ord($str{$i});
-
-		        if ($state == 0)
-		        {
-		            if (0 == (0x80 & ($in)))
-		            {
-		                $bytes = 1;
-		            }
-		            else if (0xC0 == (0xE0 & ($in)))
-		            {
-		                $ucs4 = ($in);
-		                $ucs4 = ($ucs4 & 0x1F) << 6;
-		                $state = 1;
-		                $bytes = 2;
-		            }
-		            else if (0xE0 == (0xF0 & ($in)))
-		            {
-		                $ucs4 = ($in);
-		                $ucs4 = ($ucs4 & 0x0F) << 12;
-		                $state = 2;
-		                $bytes = 3;
-		            }
-		            else if (0xF0 == (0xF8 & ($in)))
-		            {
-		                $ucs4 = ($in);
-		                $ucs4 = ($ucs4 & 0x07) << 18;
-		                $state = 3;
-		                $bytes = 4;
-		            }
-		            else if (0xF8 == (0xFC & ($in)))
-		            {
-		                $ucs4 = ($in);
-		                $ucs4 = ($ucs4 & 0x03) << 24;
-		                $state = 4;
-		                $bytes = 5;
-		            }
-		            else if (0xFC == (0xFE & ($in)))
-		            {
-		                $ucs4 = ($in);
-		                $ucs4 = ($ucs4 & 1) << 30;
-		                $state = 5;
-		                $bytes = 6;
-		            }
-		            else
-		            {
-		                return false;
-		            }
-		        }
-		        else
-		        {
-		            if (0x80 == (0xC0 & ($in)))
-		            {
-		                $shift = ($state - 1) * 6;
-		                $tmp = $in;
-		                $tmp = ($tmp & 0x0000003F) << $shift;
-		                $ucs4 |= $tmp;
-
-		                if (0 == --$state)
-		                {
-		                    if (((2 == $bytes) && ($ucs4 < 0x0080)) ||
-		                        ((3 == $bytes) && ($ucs4 < 0x0800)) ||
-		                        ((4 == $bytes) && ($ucs4 < 0x10000)) ||
-		                        (4 < $bytes) ||
-		                        (($ucs4 & 0xFFFFF800) == 0xD800) ||
-		                        ($ucs4 > 0x10FFFF))
-		                    {
-		                        return false;
-		                    }
-
-		                    $ucs4 = 0;
-		                    $state = 0;
-		                    $bytes = 1;
-		                }
-		            }
-		            else
-		            {
-		                return false;
-		            }
-		        }
-		    }
-		    return true;
-	    }
+	   return (bool) preg_match('##Dsu', $str);
 	}
 
 	/**
