@@ -1,4 +1,0 @@
-MolyX Notice
-Version 0.9 | Jun 2006
-
-MolyX2 is an open source forum software copyrighted to HOGE Software Ltd. MolyX2 is ditributed under the terms and conditions of MolyX Lincese (http://molyx.com/license). While all terms and conditions in MolyX License are met, any individual, organization, or commercial group can install and use this software with or without modifications, perpetually with no-charge, or copy, keep and redistribute the derivative version of this software. 
