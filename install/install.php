@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -112,14 +112,14 @@ switch ($action)
 		header('Expires: ' . gmdate('D, d M Y H:i:s') . ' GMT');
 
 		$config = array(
-			'servername' => $hostname,
-			'dbname' => $db,
-			'dbusername' => $user,
-			'dbpassword' => $pass,
-			'tableprefix' => $prefix,
+			'type' => $dbtype,
+			'server' => $hostname,
+			'database' => $db,
+			'username' => $user,
+			'password' => $pass,
+			'prefix' => $prefix,
 			'superadmin' => $superadmin,
-			'technicalemail' => $technicalemail,
-			'dbtype' => $dbtype,
+			'email' => $technicalemail,
 		);
 		echo config_file($config);
 		break;
@@ -305,14 +305,14 @@ switch ($action)
 		else
 		{
 			$config = array(
-				'servername' => $hostname,
-				'dbname' => $db,
-				'dbusername' => $user,
-				'dbpassword' => $pass,
-				'tableprefix' => $prefix,
+				'server' => $hostname,
+				'database' => $db,
+				'username' => $user,
+				'password' => $pass,
+				'prefix' => $prefix,
 				'superadmin' => $superadmin,
-				'technicalemail' => $technicalemail,
-				'dbtype' => $dbtype,
+				'email' => $technicalemail,
+				'type' => $dbtype,
 			);
 			if($fp = @fopen(ROOT_PATH . 'includes/config.php', 'wb'))
 			{

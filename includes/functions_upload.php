@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -142,7 +142,7 @@ class functions_upload
 		$count = count($userid_path);
 		$subpath = SAFE_MODE ? '' : implode('/', $userid_path);
 		$filepath = $bboptions['uploadfolder'] . '/' . $subpath;
-		if (checkdir($filepath, $count))
+		if (checkdir($filepath))
 		{
 			return $filepath;
 		}

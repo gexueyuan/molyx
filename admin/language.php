@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -611,7 +611,7 @@ class language
 
 		$file = $this->root . 'list.php';
 		require($file);
-		if (!checkdir($this->root . $title, 1))
+		if (!checkdir($this->root . $title))
 		{
 			$forums->admin->print_cp_error($forums->lang['filecannotwrite']);
 		}

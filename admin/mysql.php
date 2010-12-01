@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -408,7 +408,7 @@ class mysql
 			{
 				$dir = ROOT_PATH . 'data/dbbackup/' . $savefolder . '/';
 				$filename = $dir . $this->md5_check . '_' . $this->step . '.sql';
-				if (checkdir($dir, 1) === false)
+				if (checkdir($dir) === false)
 				{
 					$forums->main_msg = $dir . $forums->lang['cannotcreate'];
 					$this->backup_form();

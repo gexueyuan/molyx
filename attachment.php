@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -104,7 +104,7 @@ class attachment
 
 		$tid = input::get('tid', 0);
 		$attack = input::get('attach', '');
-		if (!$attack)
+		if (!$attack || strpos($attack, '..') !== false)
 		{
 			$forums->func->standard_error("cannotviewattach");
 		}
@@ -130,7 +130,6 @@ class attachment
 		$this->credit->check_credit('downattach', $bbuserinfo['usergroupid'], $this->forum['id']);
 		$this->credit->update_credit('downattach', $bbuserinfo['id'], $bbuserinfo['usergroupid'], $this->forum['id']);
 
-
 		if ($bboptions['remoteattach'])
 		{
 			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
@@ -145,6 +144,10 @@ class attachment
 
 			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
 			$subpath = input::get('attachpath', $subpath);
+			if (strpos($subpath, '..') !== false)
+			{
+				exit();
+			}
 
 			$path = $bboptions['uploadfolder'] . '/' . $subpath;
 			$attack = str_replace("\\", "/", $attack);
@@ -192,7 +195,7 @@ class attachment
 		$forums->noheader = 1;
 
 		$attach = input::get('attach', '');
-		if (!$attach)
+		if (!$attach || strpos($attack, '..') !== false)
 		{
 			$forums->func->standard_error("cannotviewattach");
 		}
@@ -215,6 +218,10 @@ class attachment
 		{
 			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
 			$subpath = input::get('attachpath', $subpath);
+			if (strpos($subpath, '..') !== false)
+			{
+				exit();
+			}
 
 			$path = $bboptions['uploadfolder'] . '/' . $subpath;
 			$attach = str_replace("\\", "/", $attach);

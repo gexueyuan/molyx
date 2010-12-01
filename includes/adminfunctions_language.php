@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -65,7 +65,7 @@ class adminfunctions_language
 	function writefile($filename, $lang = array(), $arrname = 'lang')
 	{
 		global $forums;
-		if (!checkdir($filename, 1, true))
+		if (!checkdir($filename, true))
 		{
 			$forums->admin->print_cp_error($forums->lang['filecannotwrite']);
 		}
