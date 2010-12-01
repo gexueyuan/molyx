@@ -31,10 +31,9 @@ abstract class Db_Pdo_Base extends Db_Base
 		{
 			$this->halt("Query Errors:\n$sql");
 		}
-
 		$this->stmt->setFetchMode(PDO::FETCH_ASSOC);
 
-		++$this->_count;
+		$this->query_id = $this->_count++;
 	}
 
 	protected function _queryUnbuffered($sql)

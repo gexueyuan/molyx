@@ -163,19 +163,9 @@ abstract class Db_Base
 	 */
 	public function update($table, $array, $where = '', $shutdown = NORMAL_QUERY)
 	{
-		if ($shutdown == SHUTDOWN_QUERY)
-		{
-			return $this->shutdownQuery(array(
-				'TABLE' => $table,
-				'ARRAY' => $array,
-				'WHERE' => $where,
-			));
-		}
-		else
-		{
-			$sql = $this->sql->update($table, $array, $where);
-			return $this->query($sql);
-		}
+		$sql = $this->sql->update($table, $array, $where);
+		$func = ($shutdown == SHUTDOWN_QUERY) ? 'shutdownQuery' : 'query';
+		return $this->$func($sql);
 	}
 
 	/**
@@ -335,11 +325,6 @@ abstract class Db_Base
 		return $this->query_id;
 	}
 
-	public function queryUnbuffered($sql, $cache_ttl = false, $cache_prefix = '')
-	{
-		return $this->query($sql, $cache_ttl, $cache_prefix, false);
-	}
-
 	/**
 	 * 使用 limit 查询
 	 *
@@ -391,29 +376,12 @@ abstract class Db_Base
 	{
 		if (USE_SHUTDOWN)
 		{
-			if (is_array($sql))
-			{
-				if (!isset($this->shutdown_queries[$sql['TABLE']]))
-				{
-					$this->shutdown_queries[$sql['TABLE']] = array();
-				}
-
-				if (!isset($this->shutdown_queries[$sql['TABLE']][$sql['WHERE']]))
-				{
-					$this->shutdown_queries[$sql['TABLE']][$sql['WHERE']] = array();
-				}
-
-				$this->shutdown_queries[$sql['TABLE']][$sql['WHERE']] = array_merge($this->shutdown_queries[$sql['TABLE']][$sql['WHERE']], $sql['ARRAY']);
-			}
-			else
-			{
-				$this->shutdown_queries[] = $sql;
-			}
+			$this->shutdown_queries[] = $sql;
 		}
 		else
 		{
 			$this->shutdown = true;
-			$this->queryUnbuffered($sql);
+			$this->query($sql);
 		}
 	}
 
@@ -571,17 +539,7 @@ abstract class Db_Base
 		{
 			foreach ($this->shutdown_queries as $table => $query)
 			{
-				if (is_array($query))
-				{
-					foreach ($query as $where => $array)
-					{
-						$this->update($table, $array, $where);
-					}
-				}
-				else
-				{
-					$this->queryUnbuffered($query);
-				}
+				$this->query($query);
 			}
 		}
 		$this->shutdown_queries = array();

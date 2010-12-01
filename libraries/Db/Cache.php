@@ -14,6 +14,7 @@ class Db_Cache
 	private $row = array();
 	private $count = array();
 	private $pointer = array();
+	private $_count = 0;
 
 	public function __construct($db)
 	{
@@ -31,7 +32,7 @@ class Db_Cache
 	public function load($sql, $prefix)
 	{
 		$name = $this->getName($sql, $prefix);
-		$query_id = count($this->row);
+		$query_id = $this->_count++;
 
 		if (false === ($filename = $this->getPath($name)))
 		{
@@ -69,7 +70,7 @@ class Db_Cache
 	{
 		$name = $this->getName($sql, $prefix);
 
-		$query_id = count($this->row);
+		$query_id = $this->_count++;
 		$this->row[$query_id] = $rowset;
 		$this->count[$query_id] = count($rowset);
 		$this->pointer[$query_id] = 0;
