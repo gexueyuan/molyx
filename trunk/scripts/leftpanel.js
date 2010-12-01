@@ -1,4 +1,4 @@
-// $Id$
+// $Id: leftpanel.js 15 2010-04-14 09:17:33Z flyinghail $
 var leftPanelWidth = 150;
 var moveMainContent = true;
 

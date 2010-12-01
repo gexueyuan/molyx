@@ -1,4 +1,4 @@
-// $Id$
+// $Id: modal.js 15 2010-04-14 09:17:33Z flyinghail $
 var modalMessage = function()
 {
 	var url, message, transparentDiv, contentDiv, shadowDiv, iframe, width, height, messageBoxCss, shadowOffset;

@@ -1,4 +1,4 @@
-// $Id$
+// $Id: controlpanel.js 15 2010-04-14 09:17:33Z flyinghail $
 var win = window;
 var n = 0;
 

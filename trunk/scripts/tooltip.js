@@ -1,4 +1,4 @@
-// $Id$
+// $Id: tooltip.js 15 2010-04-14 09:17:33Z flyinghail $
 function toolTip()
 {
 	var defaults = {mouseX: 0, mouseY: 0, tts: {}, rootElm: null, onshow: null, onhide: null};

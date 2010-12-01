@@ -1,4 +1,4 @@
-// $Id$
+// $Id: titles.js 15 2010-04-14 09:17:33Z flyinghail $
 function divTitles(delay)
 {
 	var timer, divObj, titleCache = [], isActive = false;
