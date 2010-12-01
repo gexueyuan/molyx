@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -138,7 +138,7 @@ class functions
 		if (!SAFE_MODE && strpos($name, '-') !== false)
 		{
 			$name = str_replace('-', '/', $name);
-			if ($check_dir && !checkdir(ROOT_PATH . 'cache/cache/' . $name, count(explode('/', $name)), true))
+			if ($check_dir && !checkdir(ROOT_PATH . 'cache/cache/' . $name, true))
 			{
 				$this->standard_error('cachewriteerror');
 			}
@@ -995,7 +995,7 @@ class functions
 	{
 		global $bboptions;
 		$dest_dir = split_todir($uid);
-		checkdir($bboptions['uploadfolder'] . '/user' . $dest_dir[0], $dest_dir[1] + 1);
+		checkdir($bboptions['uploadfolder'] . '/user' . $dest_dir[0]);
 		$path = $bboptions['uploadfolder'] . '/user' . $dest_dir[0];
 		$avatarsizeset = explode('|', $bboptions['avatardimension']);
 		require_once(ROOT_PATH . 'includes/functions_image.php');
@@ -1465,26 +1465,43 @@ function file_write($filename, $content, $mode = 'rb+')
  * 检查目录是否存在, 不存在则建立
  *
  * @param string $dir 要检查的路径
- * @param integer $layer 检查层级, 从后向前算
  * @param boolean $is_file 是否是文件的路径
+ * @param string $root 根目录, 根目录之上的目录不检查权限
  */
-function checkdir($dir, $layer = 0, $is_file = false)
+function checkdir($dir, $is_file = false, $root = ROOT_DIR)
 {
-	static $stats = array();
-	$hash = $dir . ':' . $layer . ':' . $is_file;
+	static $stats = array(), $rootlen = array();
+
+	$hash = $dir . ':' . $root . ':' . ((string) $is_file);
 	if (!isset($stats[$hash]))
 	{
 		$dir = format_path($dir);
-		$root = format_path(ROOT_DIR . '/');
+
+		$stats[$hash] = true;
+		if ($is_file)
+		{
+			if (file_exists($dir) && is_writable($dir))
+			{
+				return $stats[$hash];
+			}
+		}
+		else if (is_dir($dir) && is_writable($dir))
+		{
+			return $stats[$hash];
+		}
 
 		$check = '';
 		if (strpos($dir, $root) === 0)
 		{
-			$dir = substr($dir, strlen($root));
+			if (!isset($rootlen[$root]))
+			{
+				$rootlen[$root] = strlen($root);
+			}
+			$dir = substr($dir, $rootlen[$root]);
 			$check = $root;
 		}
 
-		if (strrchr($dir, '/') == '/')
+		if (strrchr($dir, '/') === '/')
 		{
 			$dir = substr($dir, 0, -1);
 		}
@@ -1495,32 +1512,28 @@ function checkdir($dir, $layer = 0, $is_file = false)
 			$file = array_pop($dir);
 		}
 		$n = count($dir);
-		$x = $n - $layer;
-
-		$stats[$hash] = true;
 		for ($i = 0; $i < $n; $i++)
 		{
-			if ($dir[$i] == '')
+			if ($dir[$i] === '')
 			{
 				continue;
 			}
 
 			$check .= $dir[$i] . '/';
-			if (($layer && $i < $x) || in_array(substr($check, -2), array('./', ':/')))
-			{
-				continue;
-			}
-
 			if (!is_dir($check))
 			{
-				if (!@mkdir($check, 0777))
+				if (!mkdir($check))
+				{
+					$stats[$hash] = false;
+				}
+				else if (!chmod($check, 0777))
 				{
 					$stats[$hash] = false;
 				}
 			}
 			else if (!is_writable($check))
 			{
-				if (!@chmod($check, 0777))
+				if (!chmod($check, 0777))
 				{
 					$stats[$hash] = false;
 				}
@@ -1530,12 +1543,13 @@ function checkdir($dir, $layer = 0, $is_file = false)
 		if ($is_file)
 		{
 			$file = $check . $file;
-			if (file_exists($file) && !is_writable($check . $file) && !@chmod($file, 0666))
+			if (file_exists($file) && !is_writable($check . $file) && !chmod($file, 0666))
 			{
 				$stats[$hash] = false;
 			}
 		}
 	}
+
 	return $stats[$hash];
 }
 
@@ -2080,4 +2094,31 @@ function xml_safe_str($str, $replace = true)
 		}
 	}
 	return $return;
+}
+
+if (!function_exists('memory_get_usage'))
+{
+	function memory_get_usage()
+	{
+		if (function_exists('exec') && function_exists('getmypid'))
+		{
+			if (IS_WIN)
+			{
+				$output = array();
+				exec('tasklist /FI "PID eq ' . getmypid() . '" /FO LIST', $output);
+				return preg_replace('/[\D]/', '', $output[5]) * 1024;
+			}
+			else
+			{
+				$pid = getmypid();
+				exec("ps -eo%mem,rss,pid | grep $pid", $output);
+				$output = explode('  ', $output[0]);
+				return $output[1] * 1024;
+			}
+		}
+		else
+		{
+			return false;
+		}
+	}
 }

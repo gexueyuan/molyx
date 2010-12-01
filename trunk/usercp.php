@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -991,7 +991,7 @@ class usercp
 			{
 				list($p_width, $p_height) = explode("x", $bboptions['sigimgdimension']);
 				$path = split_todir($bbuserinfo['id'], $bboptions['uploadfolder'] . '/user');
-				checkdir($path[0], $path[1] + 1);
+				checkdir($path[0]);
 				$path = $path[0];
 				if (!$has_cleaned)
 				{
@@ -1193,7 +1193,7 @@ class usercp
 		//头像生成小图
 
 		$path = split_todir($bbuserinfo['id'], $bboptions['uploadfolder'] . '/user');
-		checkdir($path[0], $path[1] + 1);
+		checkdir($path[0]);
 		@copy($avatar_dir . '/' . $final_string, $path[0] . '/' . $selected_avatar);
 		$forums->func->bulid_avatars($selected_avatar, $bbuserinfo['id']);
 		@unlink($path[0] . '/' . $selected_avatar);
@@ -1242,7 +1242,7 @@ class usercp
 			$avatar = '';
 		}
 		$path = split_todir($bbuserinfo['id'], $bboptions['uploadfolder'] . '/user');
-		checkdir($path[0], $path[1] + 1);
+		checkdir($path[0]);
 		$path = $path[0];
 		$thumb_suffix = array(1 => 'gif', 2 => 'jpg', 3 => 'png');
 		if (empty($avatar))

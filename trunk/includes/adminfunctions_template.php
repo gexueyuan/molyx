@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -69,7 +69,7 @@ class adminfunctions_template
 		{
 			if ($v['styleid'] == $id || (strpos($v['parentlist'], ",$id,") !== false && in_array($this->get_template_dir($v['styleid'], 'style.css'), array('global', $styles[$id]['title_en']))))
 			{
-				if (!SAFE_MODE && !checkdir($dir, 3))
+				if (!SAFE_MODE && !checkdir($dir))
 				{
 					$this->messages[] = '<strong>' . $forums->lang['cssdirnotwrite'] . '</strong>';
 					continue;
@@ -147,7 +147,7 @@ class adminfunctions_template
 		$good_to_go = 1;
 		$dot = SAFE_MODE ? '_' : '/';
 		$dir = ROOT_PATH . "cache/templates/style_$id";
-		$good_to_go = checkdir($dir, 1);
+		$good_to_go = checkdir($dir);
 		if ($good_to_go)
 		{
 			if (file_exists("{$dir}{$dot}{$templatename}.php"))

@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -582,7 +582,7 @@ class style
 		$forums->func->recache('style');
 
 		$dir = ROOT_PATH . 'templates/' . $new['title_en'] . '/';
-		if (checkdir($dir, 1))
+		if (checkdir($dir))
 		{
 			$config = array(
 				'title' => $new['title'],
@@ -825,7 +825,7 @@ class style
 		$forums->func->recache('style');
 
 		$dir = ROOT_PATH . 'templates/' . $this_style['title_en'] . '/';
-		if (checkdir($dir, 1))
+		if (checkdir($dir))
 		{
 			$config = array(
 				'title' => $barney['title'],
@@ -1347,7 +1347,7 @@ class style
 
 		$css = $final;
 		$dir = ROOT_PATH . 'tempaltes/' . $forums->admin->stylecache[$styleid]['title_en'] . '/';
-		if (checkdir($dir, 1))
+		if (checkdir($dir))
 		{
 			file_write($dir . '/style.css', $css);
 			$extra = "<strong>" . $forums->lang['cssupdated'] . "</strong>";
@@ -1948,7 +1948,7 @@ class style
 		if ($content != $css)
 		{
 			$dir = ROOT_PATH . 'templates/' . $forums->admin->stylecache[$styleid]['title_en'] . '/';
-			if (!checkdir($dir, 1))
+			if (!checkdir($dir))
 			{
 				$forums->admin->print_cp_error($forums->lang['mkdirerror']);
 			}
@@ -1974,7 +1974,7 @@ class style
 	function write_cfg($name, $config)
 	{
 		$dir = ROOT_PATH . 'templates/' . $name . '/';
-		if (!checkdir($dir, 1))
+		if (!checkdir($dir))
 		{
 			$forums->admin->print_cp_error($forums->lang['mkdirerror']);
 		}

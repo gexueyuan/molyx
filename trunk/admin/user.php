@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -1735,7 +1735,7 @@ class user
 		}
 
 		$path = split_todir($userid, $bboptions['uploadfolder'] . '/user');
-		checkdir($path[0], $path[1] + 1);
+		checkdir($path[0]);
 		$path = $path[0];
 		$real_name = 'a-' . $userid . '-0.jpg';
 		if (input::str('avatarid'))

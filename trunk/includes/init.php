@@ -2,7 +2,7 @@
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
-# @copyright (c) 2009-2010 MolyX Group.
+# @copyright (c) 2009-2012 MolyX Group.
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
@@ -12,7 +12,7 @@ if (!defined('IN_MXB') || isset($_REQUEST['GLOBALS']) || isset($_FILES['GLOBALS'
 {
 	exit();
 }
-define('STARTTIME', microtime()); // 统计PHP执行时间开始
+define('STARTTIME', microtime(true)); // 统计PHP执行时间开始
 define('IS_WIN', DIRECTORY_SEPARATOR == '\\'); // 服务器是否 Windows
 
 // 获得基础路径的绝对路径
@@ -65,21 +65,16 @@ else if (DEVELOPER_MODE)
 	function runtime()
 	{
 		static $starttime = 0;
-		$mtime = explode(' ', microtime());
 		if ($starttime === 0)
 		{
-			$starttime = $mtime[1] + $mtime[0];
+			$starttime = microtime(true);
 			return;
 		}
-		printf('%6fs', $mtime[1] + $mtime[0] - $starttime);
+		printf('%6fs', microtime(true) - $starttime);
 		$starttime = 0;
 	}
 
-	$base_memory_usage = 0;
-	if (function_exists('memory_get_usage'))
-	{
-		$base_memory_usage = memory_get_usage();
-	}
+	$base_memory_usage = memory_get_usage();
 }
 
 if (defined('DISPLAY_ERRORS') && DISPLAY_ERRORS)
