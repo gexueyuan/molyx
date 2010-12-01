@@ -228,12 +228,6 @@ abstract class Db_Base
 		return $this->queryFirst($sql, $cache_ttl, $cache_prefix);
 	}
 
-	// shutdown_insert
-	// shutdown_update
-	// shutdown_delete
-	// select_distinct
-
-
 	/**
 	 * 执行 SQL 读取类查询
 	 *
