@@ -755,4 +755,5 @@ abstract class Db_Base
 
 	abstract public function connect($config);
 	abstract public function escape($str);
+	abstract public function report($mode, $query = '');
 }
