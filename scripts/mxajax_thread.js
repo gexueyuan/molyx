@@ -1,4 +1,4 @@
-// $Id$
+// $Id: mxajax_thread.js 15 2010-04-14 09:17:33Z flyinghail $
 /**
 * 开放关闭主题
 */

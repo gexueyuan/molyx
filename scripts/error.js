@@ -1,4 +1,4 @@
-// $Id$
+// $Id: error.js 15 2010-04-14 09:17:33Z flyinghail $
 if (typeof($) == 'undefined')
 {
 	function $(el)

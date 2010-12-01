@@ -1,4 +1,4 @@
-// $Id$
+// $Id: thread.js 15 2010-04-14 09:17:33Z flyinghail $
 function delete_post(theURL)
 {
 	if (confirm(lang_g['g_delt'])) window.location.href=theURL;

@@ -1,4 +1,4 @@
-// $Id$
+// $Id: mxajax_user.js 15 2010-04-14 09:17:33Z flyinghail $
 var signature_a_height = 0;
 function edit_signature_event(pid, uid, width, editor_mode)
 {

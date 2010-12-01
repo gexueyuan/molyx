@@ -1,4 +1,4 @@
-// $Id$
+// $Id: drag.js 15 2010-04-14 09:17:33Z flyinghail $
 var drag = {
 dragging: false, obj: null, areas: [], els: [], layout: null,
 lastX: 0, lastY: 0, placeholder: null, obj: null,

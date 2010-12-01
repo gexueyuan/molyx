@@ -1,4 +1,4 @@
-// $Id$
+// $Id: register.js 15 2010-04-14 09:17:33Z flyinghail $
 function agree_terms()
 {
 	if (document.terms.agree_to_terms.value === '')
