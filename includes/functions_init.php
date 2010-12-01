@@ -14,7 +14,7 @@
  */
 function __autoload($class_name)
 {
-	$path = ROOT_PATH . 'library/';
+	$path = ROOT_PATH . 'libraries/';
 	$path .= (strpos($class_name, '_') !== false) ? str_replace('_', '/', $class_name) : $class_name;
     require $path . '.php';
 }
