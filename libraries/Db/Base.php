@@ -17,32 +17,31 @@ define('NORMAL_QUERY', false);
 
 abstract class Db_Base
 {
+	protected $type = '';
+	protected $version = 0;
+	protected $config;
+	protected $any_char;
+	protected $one_char;
+
+	private $slave = NULL;
+
 	private $error = '';
 	private $shutdown_queries = array();
 
 	private $transaction = false;
 	private $transactions = 0;
-	private $cache_prefix = '';
-	private $cached = array();
+
 	private $query_result = '';
 	private $open_queries = array();
 
-	private $debug = true;
 	private $shutdown = false;
-	private $cache = NULL;
-
-	private $type = 'mysql';
-	private $version = 0;
 
 	protected $query_id = 0;
 	protected $connect_id = '';
 
-	protected $table_locked = false;
-	protected $sql_buffered;
-	protected $any_char;
-	protected $one_char;
+	private $cache_prefix = '';
+	private $cached = array();
 
-	protected $config;
 	private $count = array(
 		'query' => 0,
 		'cached' => 0,
@@ -63,13 +62,10 @@ abstract class Db_Base
 
 		$this->config = $config;
 
-		if (defined('DEVELOPER_MODE') && DEVELOPER_MODE)
+		if (defined('DEVELOPER_MODE') && DEVELOPER_MODE && !empty($_GET['explain']))
 		{
-			$this->debug = true;
-			if (!empty($_GET['explain']))
-			{
-				define('USE_SHUTDOWN', false);
-			}
+			define('DB_EXPLAIN', true);
+			define('USE_SHUTDOWN', false);
 		}
 	}
 
@@ -96,6 +92,16 @@ abstract class Db_Base
 		}
 
 		return NULL;
+	}
+
+	public function setSlave($db)
+	{
+		if (defined('DB_EXPLAIN'))
+		{
+			return;
+		}
+
+		$this->slave = $db;
 	}
 
 	/**
@@ -238,22 +244,24 @@ abstract class Db_Base
 	 */
 	public function query($sql, $cache_ttl = false, $cache_prefix = '', $sql_buffered = NULL)
 	{
-		if (defined('DEBUG_EXTRA'))
+		$is_read = (strpos($sql, 'SELECT') === 0);
+		if ($is_read && $this->slave !== NULL)
 		{
-			$this->sql_buffered = true;
+			return $this->slave->query($sql, $cache_ttl, $cache_prefix);
+		}
+
+		if (defined('DB_EXPLAIN'))
+		{
+			$sql_buffered = true;
 			$this->explain->start($sql, $this->shutdown);
 		}
-		else if (is_bool($sql_buffered))
+		else if (!is_bool($sql_buffered))
 		{
-			$this->sql_buffered = $sql_buffered;
-		}
-		else
-		{
-			$this->sql_buffered = (strpos($sql, 'SELECT') === 0);
+			$sql_buffered = $is_read;
 		}
 
 		$this->query_id = false;
-		if ($this->sql_buffered && $cache_ttl !== false)
+		if ($sql_buffered && $cache_ttl !== false)
 		{
 			$cache_prefix = $this->type . '/' . $this->cache_prefix . '/' . $cache_prefix;
 			$this->query_id = $this->cache->load($sql, $cache_prefix);
@@ -266,7 +274,7 @@ abstract class Db_Base
 				$this->connect();
 			}
 
-			if ($this->sql_buffered)
+			if ($sql_buffered)
 			{
 				$this->_query($sql);
 			}
@@ -280,12 +288,12 @@ abstract class Db_Base
 				$this->halt("Query Errors:\n$sql");
 			}
 
-			if (defined('DEBUG_EXTRA'))
+			if (defined('DB_EXPLAIN'))
 			{
 				$this->explain->stop($sql);
 			}
 
-			if ($this->sql_buffered)
+			if ($sql_buffered)
 			{
 				if ($cache_ttl !== false)
 				{
@@ -309,7 +317,7 @@ abstract class Db_Base
 		{
 			$this->cached[(int) $this->query_id] = true;
 			$this->count['cached']++;
-			if (defined('DEBUG_EXTRA'))
+			if (defined('DB_EXPLAIN'))
 			{
 				$this->explain->fromCache($sql);
 			}
@@ -586,41 +594,31 @@ abstract class Db_Base
 
 	function halt($message = '')
 	{
-		global $bbuserinfo;
+		global $forums, $bboptions;
 
-		if ($bbuserinfo['usergroupid'] == 4 || $this->debug)
+		if (empty($bboptions['language']))
 		{
-			$this->error = $message . "\n" . $this->get_error();
-			trigger_error($db->error, E_USER_ERROR);
+			$bboptions['language'] = 'zh-cn';
+		}
+
+		if (isset($forums))
+		{
+			$lang = $forums->func->load_lang('db', true);
 		}
 		else
 		{
-			global $forums, $bboptions;
-
-			if (empty($bboptions['language']))
-			{
-				$bboptions['language'] = 'zh-cn';
-			}
-
-			if (isset($forums))
-			{
-				$lang = $forums->func->load_lang('db', true);
-			}
-			else
-			{
-				@include(ROOT_PATH . "cache/languages/{$bboptions['language']}/db.php");
-			}
-
-			$message = $lang['db_errors'] . ": \n\n";
-			$message .= $message . "\n\n";
-			$message .= $lang['mysql_errors'] . ': ' . $this->error . "\n\n";
-			echo "<html><head><title>{$bboptions['bbtitle']} {$lang['mysql_errors']}</title><style type=\"text/css\"><!--.error { font: 11px tahoma, verdana, arial, sans-serif, simsun; }--></style></head>\r\n<body>\r\n<blockquote><p class=\"error\">&nbsp;</p><p class=\"error\"><strong>{$bboptions['bbtitle']} {$lang['db_found_errors']}</strong><br />\r\n";
-			$db_sendmail = sprintf($lang['db_sendmail'], $this->config['email']);
-			echo $db_sendmail . "</p>";
-			echo "<p class=\"error\">{$lang['db_apologies']}</p>";
-			echo "\r\n\r\n</body></html>";
-			exit();
+			@include(ROOT_PATH . "cache/languages/{$bboptions['language']}/db.php");
 		}
+
+		$message = $lang['db_errors'] . ": \n\n";
+		$message .= $message . "\n\n";
+		$message .= $lang['mysql_errors'] . ': ' . $this->error . "\n\n";
+		echo "<html><head><title>{$bboptions['bbtitle']} {$lang['mysql_errors']}</title><style type=\"text/css\"><!--.error { font: 11px tahoma, verdana, arial, sans-serif, simsun; }--></style></head>\r\n<body>\r\n<blockquote><p class=\"error\">&nbsp;</p><p class=\"error\"><strong>{$bboptions['bbtitle']} {$lang['db_found_errors']}</strong><br />\r\n";
+		$db_sendmail = sprintf($lang['db_sendmail'], $this->config['email']);
+		echo $db_sendmail . "</p>";
+		echo "<p class=\"error\">{$lang['db_apologies']}</p>";
+		echo "\r\n\r\n</body></html>";
+		exit();
 	}
 
 	/**
