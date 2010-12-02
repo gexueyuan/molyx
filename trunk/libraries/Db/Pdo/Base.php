@@ -14,11 +14,6 @@ abstract class Db_Pdo_Base extends Db_Base
 	protected $stmt;
 	protected $_count = 0;
 
-	public function __construct($config)
-	{
-		parent::__construct($config);
-	}
-
 	public function __destruct()
 	{
 		unset($this->pdo, $this->stmt);

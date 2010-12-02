@@ -10,16 +10,6 @@
 # **************************************************************************#
 class Db_Pdo_Mysql extends Db_Pdo_Base
 {
-	public function __construct($config)
-	{
-		parent::__construct($config);
-	}
-
-	public function __destruct()
-	{
-		parent::__destruct();
-	}
-
 	function connect($server, $user, $password, $database)
 	{
 		$config = $this->config;
