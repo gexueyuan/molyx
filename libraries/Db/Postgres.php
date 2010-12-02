@@ -176,13 +176,13 @@ class Db_Postgres extends Db_Base
 
 	public function getTableNames()
 	{
-		$result = @mysql_query('SHOW TABLES FROM ' . $this->config['database'], $this->connect_id);
+		$result = @pg_query($this->connect_id, 'SELECT relname FROM pg_statio_user_tables');
 		$tables = array();
-		while ($row = @mysql_fetch_row($result))
+		while ($row = @pg_fetch_assoc($result, NULL))
 		{
-			$tables[] = $row[0];
+			$tables[] = $row['relname'];
 		}
-		@mysql_free_result($result);
+		@pg_free_result($result);
 		return $tables;
 	}
 
