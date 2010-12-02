@@ -26,7 +26,7 @@ class Db_Mysqli extends Db_Base
 				$config['charset'] = 'utf8';
 			}
 
-			if (version_compare(PHP_VERSION, '5.0.5', '>=') && version_compare($this->version, '5.0.6', '>='))
+			if (version_compare($this->version, '5.0.6', '>=')) // version_compare(PHP_VERSION, '5.0.5', '>=')
 			{
 				mysqli_set_charset($this->connect_id, $config['charset']);
 			}

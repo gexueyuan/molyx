@@ -594,15 +594,9 @@ class encoding
 	 */
 	private static function utf2ncr($text)
 	{
-		return preg_replace_callback('#[\\xC2-\\xF4][\\x80-\\xBF]{1,3}#', array(__CLASS__, 'utf2ncr_callback'), $text);
-	}
-
-	/**
-	 * 用于 encode_ncr() 的回调函数
-	 */
-	public static function utf2ncr_callback($m)
-	{
-		return '&#' . utf8::ord($m[0]) . ';';
+		return preg_replace_callback('#[\\xC2-\\xF4][\\x80-\\xBF]{1,3}#', function ($m) {
+			return '&#' . utf8::ord($m[0]) . ';';
+		}, $text);
 	}
 
 	/**
@@ -614,17 +608,11 @@ class encoding
 	 */
 	private static function ncr2utf($text)
 	{
-		return preg_replace_callback('/&#([0-9]{1,6}|x[0-9A-F]{1,5});/i', array(__CLASS__, 'ncr2utf_callback'), $text);
-	}
-
-	/**
-	 * decode_ncr() 回调函数
-	 * 函数会忽略大部分 (不是全部) 错误的 NCR
-	 */
-	public static function ncr2utf_callback($m)
-	{
-		$cp = (strncasecmp($m[1], 'x', 1)) ? $m[1] : hexdec(substr($m[1], 1));
-		return utf8::chr($cp);
+		return preg_replace_callback('/&#([0-9]{1,6}|x[0-9A-F]{1,5});/i', function ($m)
+		{
+			$cp = (strncasecmp($m[1], 'x', 1)) ? $m[1] : hexdec(substr($m[1], 1));
+			return utf8::chr($cp);
+		}, $text);
 	}
 
 	/**

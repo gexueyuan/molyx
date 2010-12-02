@@ -111,10 +111,10 @@ define('TODAY', strtotime(date('Y-m-d 00:00:00', TIMENOW)));
 // PHP 6 以后不需要再执行下面的操作
 if (PHP_VERSION < '6.0.0')
 {
-	if (version_compare(PHP_VERSION, '5.3.0', '<'))
-	{
-		@set_magic_quotes_runtime(0);
-	}
+//	if (version_compare(PHP_VERSION, '5.3.0', '<'))
+//	{
+//		@set_magic_quotes_runtime(0);
+//	}
 
 	// 删除全局注册的变量
 	$register_globals = @ini_get('register_globals');

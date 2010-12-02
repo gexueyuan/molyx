@@ -35,7 +35,7 @@ class Db_Mysql extends Db_Base
 					$config['charset'] = 'utf8';
 				}
 
-				if (version_compare(PHP_VERSION, '5.2.3', '>=') && version_compare($this->version, '5.0.7', '>='))
+				if (version_compare($this->version, '5.0.7', '>=')) // version_compare(PHP_VERSION, '5.2.3', '>=')
 				{
 					mysql_set_charset($config['charset'], $this->connect_id);
 				}
