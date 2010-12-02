@@ -6,7 +6,7 @@
 # @official forum http://molyx.com
 # @license http://opensource.org/licenses/gpl-2.0.php GNU Public License 2.0
 #
-# $$
+# $Id$
 # **************************************************************************#
 class Db_Sqlite extends Db_Base
 {

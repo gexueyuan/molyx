@@ -35,6 +35,7 @@ abstract class Db_Base
 	private $open_queries = array();
 
 	private $shutdown = false;
+	protected $multi_insert = true;
 
 	protected $query_id = 0;
 	protected $connect_id = '';
