@@ -22,71 +22,115 @@ class Db_Sql
 		unset($this->db);
 	}
 
-	/**
-	 * 建立 insert/update/select 语句使用的子句
-	 *
-	 * @param string $query 可选值: INSERT, INSERT_SELECT, MULTI_INSERT, UPDATE, SELECT
-	 * @param array $array 构造子句的数组
-	 * @return string
-	 */
-	private function clause($query, $array)
+	private function insertClause($array)
 	{
 		if (!is_array($array))
 		{
 			return false;
 		}
 
-		$query = strtoupper($query);
 		$fields = $values = '';
-		if ($query == 'INSERT' || $query == 'INSERT_SELECT')
+		foreach ($array as $key => $var)
 		{
-			foreach ($array as $key => $var)
-			{
-				$fields .= ', `' . $key . '`';
-				$values .= ($query == 'INSERT') ? ', ' . $this->validate($var) : ', `' . $var . '`';
-			}
-			$fields = substr($fields, 2);
-			$values = substr($values, 2);
-			$query = ($query == 'INSERT') ?
-				' (' . $fields . ') VALUES (' . $values . ')' :
-				' (' . $fields . ') SELECT ' . $values . ' ';
+			$fields .= ', `' . $key . '`';
+			$values .= ', ' . $this->db->validate($var);
 		}
-		else if ($query == 'MULTI_INSERT')
+		$fields = substr($fields, 2);
+		$values = substr($values, 2);
+		$query = ' (' . $fields . ') VALUES (' . $values . ')';
+
+		return $query;
+	}
+
+	private function insertSelectClause($array)
+	{
+		if (!is_array($array))
 		{
-			foreach ($array as $sql_array)
-			{
-				if (is_array($sql_array))
-				{
-					$value = '';
-					foreach ($sql_array as $key => $var)
-					{
-						$value .= ', ' . $this->validate($var);
-					}
-					$value = substr($value, 2);
-					$values .= ', (' . $value . ')';
-				}
-				else
-				{
-					return $this->clause('INSERT', $array);
-				}
-			}
-			$values = substr($values, 2);
-			$query = ' (`' . implode('`, `', array_keys($array[0])) . '`) VALUES ' . $values;
+			return false;
 		}
-		else if ($query == 'UPDATE' || $query == 'SELECT')
+
+		$fields = $values = '';
+		foreach ($array as $key => $var)
 		{
-			$values = '';
-			$sep = ($query == 'UPDATE') ? ',' : ' AND';
-			foreach ($array as $key => $var)
-			{
-				if (strpos($key, '.') !== false)
-				{
-					$key = str_replace('.', '`.`', $key);
-				}
-				$values .= "$sep `$key` = " . $this->validate($var, $key);
-			}
-			$query = substr($values, strlen($sep));
+			$fields .= ', `' . $key . '`';
+			$values .= ', `' . $var . '`';
 		}
+		$fields = substr($fields, 2);
+		$values = substr($values, 2);
+		$query = ' (' . $fields . ') SELECT ' . $values . ' ';
+
+		return $query;
+	}
+
+	private function insertMultiClause($array)
+	{
+		if (!is_array($array))
+		{
+			return false;
+		}
+
+		$fields = $values = '';
+		foreach ($array as $sql_array)
+		{
+			if (is_array($sql_array))
+			{
+				$value = '';
+				foreach ($sql_array as $key => $var)
+				{
+					$value .= ', ' . $this->db->validate($var);
+				}
+				$value = substr($value, 2);
+				$values .= ', (' . $value . ')';
+			}
+			else
+			{
+				return $this->clause('INSERT', $array);
+			}
+		}
+		$values = substr($values, 2);
+		$query = ' (`' . implode('`, `', array_keys($array[0])) . '`) VALUES ' . $values;
+
+		return $query;
+	}
+
+	private function updateClause($array)
+	{
+		if (!is_array($array))
+		{
+			return false;
+		}
+
+		$fields = $values = '';
+		foreach ($array as $key => $var)
+		{
+			if (strpos($key, '.') !== false)
+			{
+				$key = str_replace('.', '`.`', $key);
+			}
+			$values .= ", `$key` = " . $this->db->validate($var, $key);
+		}
+		$query = substr($values, 2);
+
+		return $query;
+	}
+
+	private function whereClause($array)
+	{
+		if (!is_array($array))
+		{
+			return false;
+		}
+
+		$fields = $values = '';
+		foreach ($array as $key => $var)
+		{
+			if (strpos($key, '.') !== false)
+			{
+				$key = str_replace('.', '`.`', $key);
+			}
+			$values .= " AND `$key` = " . $this->db->validate($var, $key);
+		}
+		$query = substr($values, 5);
 
 		return $query;
 	}
@@ -100,33 +144,19 @@ class Db_Sql
 	{
 		if (!is_array($value))
 		{
-			return $field . ($negate ? ' <> ' : ' = ') . $this->validate($value);
+			return $field . ($negate ? ' <> ' : ' = ') . $this->db->validate($value);
 		}
 		else if (count($value) == 1)
 		{
 			$var = @reset($value);
-			return $field . ($negate ? ' <> ' : ' = ') . $this->validate($var);
+			return $field . ($negate ? ' <> ' : ' = ') . $this->db->validate($var);
 		}
 		else
 		{
-			return $field . ($negate ? ' NOT IN ' : ' IN ') . '(' . implode(', ', array_map(array($this, 'validate'), $value)) . ')';
+			return $field . ($negate ? ' NOT IN ' : ' IN ') . '(' . implode(', ', array_map(array($this->db, 'validate'), $value)) . ')';
 		}
 	}
 
-	/**
-	 * 建立 LIKE 语句.
-	 *
-	 * @param boolean $expression 语句
-	 */
-	public function like($expression, $search = '*', $any = true)
-	{
-		$replace = $any ? $this->any_char : $this->one_char;
-		$expression = str_replace($search, $replace, $expression);
-		$expression = str_replace(array('_', '%'), array('\\_', '\\%'), $expression);
-		$expression = str_replace(array(chr(0) . '\\_', chr(0) . '\\%'), array('_', '%'), $expression);
-
-		return $this->db->likeExpression(' LIKE \'' . $this->escapeString($expression) . '\'');
-	}
 
 	/**
 	 * 建立 SELECT 语句
@@ -207,7 +237,7 @@ class Db_Sql
 		{
 			if (is_array($array['WHERE']))
 			{
-				$array['WHERE'] = $this->clause('SELECT', $array['WHERE']);
+				$array['WHERE'] = $this->whereClause($array['WHERE']);
 			}
 			$sql .= ' WHERE ' . $array['WHERE'];
 		}
@@ -247,7 +277,24 @@ class Db_Sql
 		{
 			return false;
 		}
-		return "$prefix INTO $table " . $this->clause($type, $array);
+
+		$sql = "$prefix INTO $table ";
+		switch ($type)
+		{
+			case 'INSERT':
+				$sql .= $this->insertClause($array);
+			break;
+
+			case 'INSERT_SELECT':
+				$sql .= $this->insertSelectClause($array);
+			break;
+
+			case 'MULTI_INSERT':
+				$sql .= $this->insertMultiClause($array);
+			break;
+		}
+
+		return $sql;
 	}
 
 
@@ -261,11 +308,18 @@ class Db_Sql
 			return false;
 		}
 
-		if (is_array($where))
+		$sql = "UPDATE $table SET " . $this->updateClause($array);
+		if (!empty($where))
 		{
-			$where = $this->clause('SELECT', $where);
+			if (is_array($where))
+			{
+				$where = $this->whereClause($where);
+			}
+
+			$sql .= " WHERE $where";
 		}
-		return "UPDATE $table SET " . $this->clause('UPDATE', $array) . ($where ? " WHERE $where" : '');
+
+		return $sql;
 	}
 
 	/**
@@ -301,8 +355,8 @@ class Db_Sql
 				{
 					if ($k)
 					{
-						$k = $this->validate($k);
-						$v = $this->validate($v, $set_field);
+						$k = $this->db->validate($k);
+						$v = $this->db->validate($v, $set_field);
 						$sql .= " WHEN $id_filed = $k THEN $v";
 						if (strpos($ids . ',', ",$k,") === false)
 						{
@@ -314,7 +368,7 @@ class Db_Sql
 			}
 			else
 			{
-				$sql .= $this->validate($array);
+				$sql .= $this->db->validate($array);
 			}
 			$sql .= ', ';
 		}
@@ -335,52 +389,20 @@ class Db_Sql
 	 */
 	public function delete($table, $where = '')
 	{
-		if (is_array($where))
+		$sql = 'DELETE FROM ' . $table;
+
+		if (!empty($where))
 		{
-			$where = $this->clause('SELECT', $where);
+			if (is_array($where))
+			{
+				$where = $this->whereClause($where);
+			}
+
+			$sql .= " WHERE $where";
 		}
-		return 'DELETE FROM ' . $table . ($where ? ' WHERE ' . $where : '');
+
+		return $sql;
 	}
 
-	/**
-	 * 验证 SQL 语句中的用到的变量
-	 * $set_field 不为空时特别的 $var 结构
-	 *	 - array('field_name', true) => field = field_name
-	 *   - array('^[0-9]+$', '^[/*+-]$') => filed = set_field [/*+-] [0-9]+
-	 *
-	 * @param mixed $var 将变量转换为 SQL 语句中可以直接使用的字符串
-	 */
-	public function validate($var, $set_field = '')
-	{
-		if ($set_field && is_array($var) && isset($var[0]) && isset($var[1]))
-		{
-			if ($var[1] === true)
-			{
-				return $var[0];
-			}
-			else if (in_array($var[1], array('+', '-', '*', '/'), true) && is_numeric($var[0]))
-			{
-				return "`$set_field` {$var[1]} {$var[0]}";
-			}
-		}
 
-		if (is_numeric($var))
-		{
-			if (is_string($var))
-			{
-				return "'$var'";
-			}
-			return $var;
-		}
-		else if (is_bool($var))
-		{
-			return (int) $var;
-		}
-		else if (is_array($var))
-		{
-			$var = serialize($var);
-		}
-
-		return "'" . $this->db->escape($var) . "'";
-	}
 }

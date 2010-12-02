@@ -114,16 +114,19 @@ class Db_Mysql extends Db_Base
 		return @mysql_insert_id($this->connect_id);
 	}
 
-	public function escape($str)
+	protected function _escape($str)
 	{
+		$return = '';
 		if ($this->connect_id)
 		{
-			return @mysql_real_escape_string($str, $this->connect_id);
+			$return = @mysql_real_escape_string($str, $this->connect_id);
 		}
 		else
 		{
-			return @mysql_escape_string($str);
+			$return = @mysql_escape_string($str);
 		}
+
+		return "'$return'";
 	}
 
 	protected function _likeExpression($expression)

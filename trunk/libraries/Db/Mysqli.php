@@ -104,9 +104,9 @@ class Db_Mysqli extends Db_Base
 		return @mysqli_insert_id($this->connect_id);
 	}
 
-	public function escape($str)
+	protected function _escape($str)
 	{
-		return @mysqli_real_escape_string($this->connect_id, $str);
+		return "'" . @mysqli_real_escape_string($this->connect_id, $str) . "'";
 	}
 
 	protected function _likeExpression($expression)
