@@ -528,6 +528,63 @@ abstract class Db_Base
 	}
 
 	/**
+	 * 建立 LIKE 语句.
+	 *
+	 * @param boolean $expression 语句
+	 */
+	public function like($expression, $search = '*', $any = true)
+	{
+		$replace = $any ? $this->any_char : $this->one_char;
+		$expression = str_replace($search, $replace, $expression);
+		$expression = str_replace(array('_', '%'), array('\\_', '\\%'), $expression);
+		$expression = str_replace(array(chr(0) . '\\_', chr(0) . '\\%'), array('_', '%'), $expression);
+
+		return $this->_likeExpression(' LIKE ' . $this->_escape($expression));
+	}
+
+	/**
+	 * 验证 SQL 语句中的用到的变量
+	 * $set_field 不为空时特别的 $var 结构
+	 *	 - array('field_name', true) => field = field_name
+	 *   - array('^[0-9]+$', '^[/*+-]$') => filed = set_field [/*+-] [0-9]+
+	 *
+	 * @param mixed $var 将变量转换为 SQL 语句中可以直接使用的字符串
+	 */
+	public function validate($var, $set_field = '')
+	{
+		if ($set_field && is_array($var) && isset($var[0]) && isset($var[1]))
+		{
+			if ($var[1] === true)
+			{
+				return $var[0];
+			}
+			else if (in_array($var[1], array('+', '-', '*', '/'), true) && is_numeric($var[0]))
+			{
+				return "`$set_field` {$var[1]} {$var[0]}";
+			}
+		}
+
+		if (is_numeric($var))
+		{
+			if (is_string($var))
+			{
+				return "'$var'";
+			}
+			return $var;
+		}
+		else if (is_bool($var))
+		{
+			return (int) $var;
+		}
+		else if (is_array($var))
+		{
+			$var = serialize($var);
+		}
+
+		return $this->_escape($var);
+	}
+
+	/**
 	 * 关闭数据库连接
 	 */
 	public function close()
@@ -701,9 +758,8 @@ abstract class Db_Base
 	abstract protected function _fetch($query_id);
 	abstract protected function _freeResult($query_id);
 	abstract protected function _fetchField($query_id);
-	abstract protected function _likeExpression($expression);
+	abstract protected function _escape($str);
 
 	abstract public function connect($config);
-	abstract public function escape($str);
 	abstract public function report($mode, $query = '');
 }

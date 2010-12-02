@@ -73,15 +73,9 @@ abstract class Db_Pdo_Base extends Db_Base
 		return $this->stmt->fetchColumn();
 	}
 
-	public function escape($str)
+	protected function _escape($str)
 	{
-		$return = $this->pdo->quote($str);
-		if (strpos($return, "'") === 0)
-		{
-			$return = substr($return, 1, -1);
-		}
-
-		return $return;
+		return $this->pdo->quote($str);
 	}
 
 	public function getError()
