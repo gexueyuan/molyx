@@ -63,6 +63,11 @@ abstract class Db_Base
 
 		$this->config = $config;
 
+		if (defined('DB_CONNECT') && DB_CONNECT)
+		{
+			$this->connect();
+		}
+
 		if (defined('DEVELOPER_MODE') && DEVELOPER_MODE && !empty($_GET['explain']))
 		{
 			define('DB_EXPLAIN', true);
@@ -755,12 +760,12 @@ abstract class Db_Base
 
 	abstract protected function _query($sql);
 	abstract protected function _queryUnbuffered($sql);
-	abstract protected function _queryLimit($sql, $total, $offset = 0, $cache_ttl = false, $cache_prefix = '');
+	abstract protected function _queryLimit($sql, $total, $offset, $cache_ttl, $cache_prefix);
 	abstract protected function _fetch($query_id);
 	abstract protected function _freeResult($query_id);
 	abstract protected function _fetchField($query_id);
 	abstract protected function _escape($str);
 
-	abstract public function connect($config);
-	abstract public function report($mode, $query = '');
+	abstract public function connect();
+	abstract public function report($mode, $query);
 }
