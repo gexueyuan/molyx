@@ -1,5 +1,5 @@
 <?php
-class parse_bbcode extends parse_base
+class Parse_Bbcode extends Parse_Base
 {
 	public function __construct()
 	{
@@ -10,7 +10,7 @@ class parse_bbcode extends parse_base
 	public function convert($text)
 	{
 		$text = str_replace(array('&', '<', '>'), array('&amp;', '&lt;', '&gt;'), $text);
-		return $this->parse_array($this->build_parse_array($text));
+		return $this->parseArray($this->buildParseArray($text));
 	}
 
 	/**
@@ -19,7 +19,7 @@ class parse_bbcode extends parse_base
 	 * @param string $tag_name 标签名
 	 * @return boolean 标签是否通过验证
 	 */
-	protected function is_valid_tag($tag_name)
+	protected function isValidTag($tag_name)
 	{
 		if ($tag_name === '')
 		{
@@ -41,7 +41,7 @@ class parse_bbcode extends parse_base
 	 * @param string Value of the option
 	 * @return boolean Whether the option is valid
 	 */
-	protected function is_valid_option($tag_name, $tag_option)
+	protected function isValidOption($tag_name, $tag_option)
 	{
 		if (!isset($this->tag_list[$tag_name]['option']) || !$this->tag_list[$tag_name]['option'])
 		{
@@ -94,10 +94,10 @@ class parse_bbcode extends parse_base
 	 * @param string 引用自
 	 * @return string HTML representation of the tag.
 	 */
-	protected function handle_quote($message, $from)
+	protected function handleQuote($message, $from)
 	{
-		$from = $this->strip_smilies($from);
-		$html = '<div class="quote" quote="' . $from . '">' . $this->strip_front_back_whitespace($message, 1, true, false) . '</div>';
+		$from = $this->stripSmilies($from);
+		$html = '<div class="quote" quote="' . $from . '">' . $this->stripFrontBackWhitespace($message, 1, true, false) . '</div>';
 		return $html;
 	}
 
@@ -109,7 +109,7 @@ class parse_bbcode extends parse_base
 	 *
 	 * @return	string	HTML representation of the tag.
 	 */
-	function handle_email($text, $link = '')
+	function handleEmail($text, $link = '')
 	{
 		$rightlink = trim($link);
 		if (empty($rightlink))
@@ -119,7 +119,7 @@ class parse_bbcode extends parse_base
 		$rightlink = str_replace(
 			array('`', '"', "'", '['),
 			array('&#96;', '&quot;', '&#39;', '&#91;'),
-			$this->strip_smilies($rightlink)
+			$this->stripSmilies($rightlink)
 		);
 
 		if (!trim($link) || $text == $rightlink)
@@ -138,7 +138,7 @@ class parse_bbcode extends parse_base
 		}
 		else
 		{
-			return $this->fetch_node('email', $text);
+			return $this->fetchNode('email', $text);
 		}
 	}
 
@@ -150,7 +150,7 @@ class parse_bbcode extends parse_base
 	 *
 	 * @return	string	HTML representation of the tag.
 	 */
-	function handle_list($text, $type = '')
+	function handleList($text, $type = '')
 	{
 		if ($type)
 		{
@@ -190,7 +190,7 @@ class parse_bbcode extends parse_base
 		$output = '';
 		foreach ($bullets as $bullet)
 		{
-			$output .= '<li>' . $this->strip_front_back_whitespace($bullet) . "</li>\n";
+			$output .= '<li>' . $this->stripFrontBackWhitespace($bullet) . "</li>\n";
 		}
 
 		if ($listtype)
@@ -211,7 +211,7 @@ class parse_bbcode extends parse_base
 	 *
 	 * @return	string	HTML representation of the tag.
 	 */
-	function handle_url($text, $link)
+	function handleUrl($text, $link)
 	{
 		$rightlink = trim($link);
 		if (empty($rightlink))
@@ -221,7 +221,7 @@ class parse_bbcode extends parse_base
 		$rightlink = str_replace(
 			array('`', '"', "'", '['),
 			array('&#96;', '&quot;', '&#39;', '&#91;'),
-			$this->strip_smilies($rightlink)
+			$this->stripSmilies($rightlink)
 		);
 
 		if (!preg_match('#^[a-z0-9]+(?<!about|javascript|vbscript|data):#si', $rightlink))
@@ -241,7 +241,7 @@ class parse_bbcode extends parse_base
 		return '<a href="' . $rightlink . '" target="_blank">' . $text . '</a>';
 	}
 
-	protected function handle_img($text, $link)
+	protected function handleImg($text, $link)
 	{
 		static $image_ext = array('gif', 'jpg', 'jpeg', 'jpe', 'png', 'bmp', 'tiff', 'tif', 'psd', 'pdf');
 		$link = trim($link);
@@ -277,7 +277,7 @@ class parse_bbcode extends parse_base
 		}
 	}
 
-	protected function handle_code($text, $type)
+	protected function handleCode($text, $type)
 	{
 		$type = strtolower(trim($type));
 		$code = check_code_type($type);
@@ -290,7 +290,7 @@ class parse_bbcode extends parse_base
 		return '<pre name="code" class="' . $type . '">' . $text . '</pre>';
 	}
 
-	protected function convert_br($text)
+	protected function convertBr($text)
 	{
 		return str_replace('<br>', '<br />', nl2br($text));
 	}

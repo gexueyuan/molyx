@@ -3,7 +3,7 @@ $tag_list = array();
 
 // quote, quote=xxx
 $tag_list['quote'] = array(
-	'callback' => 'handle_quote',
+	'callback' => 'handleQuote',
 	'parse_option' => true,
 	'strip_space_after' => 1
 );
@@ -118,31 +118,31 @@ $tag_list['right'] = array(
 
 // LIST, LIST=XXX
 $tag_list['list'] = array(
-	'callback' => 'handle_list',
+	'callback' => 'handleList',
 	'option' => true,
 	'strip_space_after' => 1
 );
 
 // EMAIL, EMAIL=XXX
 $tag_list['email'] = array(
-	'callback' => 'handle_email',
+	'callback' => 'handleEmail',
 	'option' => true
 );
 
 // URL, URL=XXX
 $tag_list['url'] = array(
-	'callback' => 'handle_url',
+	'callback' => 'handleUrl',
 	'option' => true
 );
 
 // IMG
 $tag_list['img'] = array(
-	'callback' => 'handle_img',
+	'callback' => 'handleImg',
 );
 
 //CODE
 $tag_list['code'] = array(
-	'callback' => 'handle_code',
+	'callback' => 'handleCode',
 	'stop_parse' => true,
 	'disable_smilies' => true,
 	'option' => true,
