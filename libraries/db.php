@@ -39,6 +39,16 @@ class db
 		return self::$db[$name];
 	}
 
+	public static function slave($master, $slave)
+	{
+		if (!isset(self::$db[$master]) || self::$db[$slave])
+		{
+			return;
+		}
+
+		self::$db[$master]->setSlave(self::$db[$slave]);
+	}
+
 	public static function close($name = '')
 	{
 		if ($name && isset(self::$db[$name]))

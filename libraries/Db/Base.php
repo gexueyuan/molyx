@@ -102,7 +102,7 @@ abstract class Db_Base
 
 	public function setSlave($db)
 	{
-		if (defined('DB_EXPLAIN'))
+		if (defined('DB_EXPLAIN') || !($db instanceof Db_Base))
 		{
 			return;
 		}
