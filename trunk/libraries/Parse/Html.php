@@ -1,18 +1,13 @@
 <?php
-class parse_html extends parse_base
+class Parse_Html extends Parse_Base
 {
-	public function __construct()
-	{
-		parent::__construct();
-	}
-
 	/**
 	 * 检查标签是否可以解释
 	 *
 	 * @param string $tag_name 标签名
 	 * @return boolean 标签是否通过验证
 	 */
-	protected function is_valid_tag($tag_name)
+	protected function isValidTag($tag_name)
 	{
 		if ($tag_name === '')
 		{
@@ -34,7 +29,7 @@ class parse_html extends parse_base
 	 * @param string 属性
 	 * @return boolean 是否通过验证
 	 */
-	protected function is_valid_option($tag_name, &$tag_option)
+	protected function isValidOption($tag_name, &$tag_option)
 	{
 		if (is_array($tag_option))
 		{
@@ -42,7 +37,7 @@ class parse_html extends parse_base
 			{
 				if ($k === 'style' || $k === 'color')
 				{
-					$v = $this->rgb2hex($v);
+					$v = $this->rgb2Hex($v);
 				}
 
 				if (isset($this->tag_list['option'][$k]))
@@ -79,7 +74,7 @@ class parse_html extends parse_base
 	 * @param string $text
 	 * @param array $option
 	 */
-	protected function handle_pre($text, $option)
+	protected function handlePre($text, $option)
 	{
 		// 如果 name="code" class="语言" 不能同时匹配则去掉这些属性
 		if (isset($option['name']) && $option['name'] === 'code')
@@ -101,17 +96,17 @@ class parse_html extends parse_base
 		}
 		$text = $this->do_entity(preg_replace('/<br>|<br[ ]+\/>/', "\n", $text));
 
-		return $this->fetch_node('pre', $text, $option);
+		return $this->fetchNode('pre', $text, $option);
 	}
 
-	protected function handle_url($text, $option)
+	protected function handleUrl($text, $option)
 	{
 		if (isset($option['href']))
 		{
 			$link = trim($option['href']);
 			if (!empty($link))
 			{
-				$link = $this->strip_smilies($link);
+				$link = $this->stripSmilies($link);
 
 				if (!preg_match('#^[a-z0-9]+(?<!about|javascript|vbscript|data):#si', $link))
 				{
@@ -133,15 +128,15 @@ class parse_html extends parse_base
 			}
 		}
 
-		$text = $this->fetch_node('a', $text, $option);
+		$text = $this->fetchNode('a', $text, $option);
 		if (!isset($link))
 		{
-			$text = $this->do_entity($text);
+			$text = $this->doEntity($text);
 		}
 		return $text;
 	}
 
-	protected function handle_img($text, $option)
+	protected function handleImg($text, $option)
 	{
 		static $image_ext = array('gif', 'jpg', 'jpeg', 'jpe', 'png', 'bmp', 'tiff', 'tif', 'psd', 'pdf');
 
@@ -169,33 +164,33 @@ class parse_html extends parse_base
 			'option' => $option
 		);
 
-		$return = $this->fetch_tag($tag);
+		$return = $this->fetchTag($tag);
 		if ($not_image)
 		{
-			$return = $this->do_entity($return);
+			$return = $this->doEntity($return);
 		}
 		return $return;
 	}
 
-	protected function handle_div($text, $option)
+	protected function handleDiv($text, $option)
 	{
-		$text = $this->fetch_block('div', 'quote', $option, $text);
+		$text = $this->fetchBlock('div', 'quote', $option, $text);
 		return $text;
 	}
 
-	protected function handle_span($text, $option)
+	protected function handleSpan($text, $option)
 	{
-		$text = $this->fetch_block('span', 'quote', $option, $text);
+		$text = $this->fetchBlock('span', 'quote', $option, $text);
 		return $text;
 	}
 
-	protected function handle_p($text, $option)
+	protected function handleP($text, $option)
 	{
-		$text = $this->fetch_block('p', 'quote', $option, $text);
+		$text = $this->fetchBlock('p', 'quote', $option, $text);
 		return $text;
 	}
 
-	protected function fetch_block($tag_name, $block_name, $option, $text)
+	protected function fetchBlock($tag_name, $block_name, $option, $text)
 	{
 		if (isset($option['class']) && strpos(" {$option['class']} ", " $block_name ") !== false)
 		{
@@ -205,7 +200,7 @@ class parse_html extends parse_base
 				$block_option[$block_name] = $option[$block_name];
 				unset($option[$block_name]);
 			}
-			$text = $this->fetch_node($tag_name, $text, $block_option);
+			$text = $this->fetchNode($tag_name, $text, $block_option);
 
 			if ($option['class'] === $block_name)
 			{
@@ -219,13 +214,8 @@ class parse_html extends parse_base
 
 		if (!empty($option))
 		{
-			$text = $this->fetch_node($tag_name, $text, $option);
+			$text = $this->fetchNode($tag_name, $text, $option);
 		}
-		return $text;
-	}
-
-	protected function convert_br($text)
-	{
 		return $text;
 	}
 }

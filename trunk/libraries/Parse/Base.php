@@ -3,11 +3,10 @@ define('PARSER_START', 1);
 define('PARSER_TEXT', 2);
 define('PARSER_TAG_OPENED', 3);
 
-abstract class parse_base
+abstract class Parse_Base
 {
 	protected $is_html = true;
 	protected $tag_list = array();
-	protected $error_message = '';
 	protected $smilies = array();
 	protected $include_code = array();
 	protected $current_tag;
@@ -16,16 +15,6 @@ abstract class parse_base
 
 	public function __construct()
 	{
-		$this->init();
-	}
-
-	public function get_errors()
-	{
-		return $this->error_message;
-	}
-
-	private function init()
-	{
 		$this->smilies = &cache::get('smilies');
 		include ROOT_DIR . 'library/parse/' . ($this->is_html ? 'html' : 'bbcode') . 'tag.php';
 		$this->tag_list = $tag_list;
@@ -33,7 +22,7 @@ abstract class parse_base
 
 	public function convert($text)
 	{
-		return $this->parse_array($this->build_parse_array($text));
+		return $this->parseArray($this->buildParseArray($text));
 	}
 
 	/**
@@ -42,7 +31,7 @@ abstract class parse_base
 	 * @param string $text 字符串
 	 * @return array
 	 */
-	protected function build_parse_array($text)
+	protected function buildParseArray($text)
 	{
 		$start_pos = 0;
 		$strlen = strlen($text);
@@ -152,7 +141,7 @@ abstract class parse_base
 						$tag_name = ($single_tag) ? substr($tag_name, 0, -1) : $tag_name;
 						$tag_name = trim($tag_name);
 
-						if ($this->is_valid_tag($tag_name))
+						if ($this->isValidTag($tag_name))
 						{
 							$str_start = $start_pos - ($closing_tag ? 2 : 1);
 							$source = substr($text, $str_start, $tag_close_pos - $str_start + 1);
@@ -178,7 +167,7 @@ abstract class parse_base
 					{
 						$tag_name = strtolower(substr($text, $start_pos, $tag_opt_start_pos - $start_pos));
 
-						if (!$this->is_valid_tag($tag_name))
+						if (!$this->isValidTag($tag_name))
 						{
 							$internal_data = array('start' => $start_pos - 1, 'end' => $start_pos);
 							$state = PARSER_TEXT;
@@ -280,7 +269,7 @@ abstract class parse_base
 							$tag_option = substr($text, $str_start, $tag_close_pos - $str_start);
 						}
 
-						if ($this->is_valid_option($tag_name, $tag_option))
+						if ($this->isValidOption($tag_name, $tag_option))
 						{
 							$source = substr($text, $start_pos - 1, $tag_close_pos - $start_pos + 2);
 							$output[] = array(
@@ -304,16 +293,16 @@ abstract class parse_base
 				break;
 			}
 		}
-		return $this->fix_tags($output);
+		return $this->fixTags($output);
 	}
 
 	/**
 	 * 遍历数组修正嵌套和搭配错误的标签
 	 *
-	 * @param array $preparsed 由 build_parse_array 生成的数组
+	 * @param array $preparsed 由 buildParseArray 生成的数组
 	 * @return array
 	 */
-	private function fix_tags($preparsed)
+	private function fixTags($preparsed)
 	{
 		$output = array();
 		$stack = array();
@@ -325,7 +314,7 @@ abstract class parse_base
 			{
 				$output[] = array(
 					'type' => 'text',
-					'data' => $this->fetch_tag($node)
+					'data' => $this->fetchTag($node)
 				);
 				continue;
 			}
@@ -350,7 +339,7 @@ abstract class parse_base
 			}
 			else
 			{
-				if (($key = $this->find_first_tag($node['name'], $stack)) !== false)
+				if (($key = $this->findFirstTag($node['name'], $stack)) !== false)
 				{
 					if (!empty($this->tag_list[$node['name']]['stop_parse']))
 					{
@@ -421,7 +410,7 @@ abstract class parse_base
 				{
 					$output[] = array(
 						'type' => 'text',
-						'data' => $this->fetch_tag($node)
+						'data' => $this->fetchTag($node)
 					);
 				}
 			}
@@ -435,7 +424,7 @@ abstract class parse_base
 			}
 			$output[$open['my_key']] = array(
 				'type' => 'text',
-				'data' => $this->fetch_tag($open)
+				'data' => $this->fetchTag($open)
 			);
 		}
 
@@ -450,7 +439,7 @@ abstract class parse_base
 	 *
 	 * @return	string	Final HTML
 	 */
-	protected function parse_array($preparsed, $do_smilies = true)
+	protected function parseArray($preparsed, $do_smilies = true)
 	{
 		$output = '';
 
@@ -474,22 +463,22 @@ abstract class parse_base
 				// remove leading space after a tag
 				if ($parse_options['strip_space_after'] && !$this->is_html)
 				{
-					$pending_text = $this->strip_front_back_whitespace($pending_text, $parse_options['strip_space_after'], true, false);
+					$pending_text = $this->stripFrontBackWhitespace($pending_text, $parse_options['strip_space_after'], true, false);
 					$parse_options['strip_space_after'] = 0;
 				}
 
 				// parse smilies
 				if ($do_smilies && !$parse_options['no_smilies'])
 				{
-					$pending_text = $this->parse_smilies($pending_text);
+					$pending_text = $this->parseSmilies($pending_text);
 				}
 
 				if ($parse_options['do_entity'])
 				{
-					$pending_text = $this->do_entity($pending_text);
+					$pending_text = $this->doEntity($pending_text);
 				}
 
-				$pending_text = $this->convert_br($pending_text);
+				$pending_text = $this->convertBr($pending_text);
 			}
 			else if ($node['closing'] == false)
 			{
@@ -521,7 +510,7 @@ abstract class parse_base
 				}
 				else
 				{
-					$pending_text = $this->do_entity($this->fetch_tag($node));
+					$pending_text = $this->doEntity($this->fetchTag($node));
 				}
 			}
 			else
@@ -530,7 +519,7 @@ abstract class parse_base
 
 				// closing a tag
 				// look for this tag on the stack
-				if (($key = $this->find_first_tag($node['name'], $this->stack)) !== false)
+				if (($key = $this->findFirstTag($node['name'], $this->stack)) !== false)
 				{
 					// found it
 					$open = &$this->stack[$key];
@@ -565,12 +554,12 @@ abstract class parse_base
 								else if (isset($tag_info['callback']))
 								{
 									// call a callback function
-									$pending_text = $this->$tag_info['callback']($open['data'], $open['option']);
+									$pending_text = $this->{$tag_info['callback']}($open['data'], $open['option']);
 								}
 							}
 							else
 							{
-								$pending_text = $this->do_entity($this->fetch_tag($open) . $open['data'] . $this->fetch_tag($node));
+								$pending_text = $this->doEntity($this->fetchTag($open) . $open['data'] . $this->fetchTag($node));
 							}
 						}
 
@@ -595,7 +584,7 @@ abstract class parse_base
 					if ($this->is_html && empty($pending_text))
 					{
 						$open['source'] = $node['source'] = '';
-						$pending_text = $this->fetch_tag($open) . $open['data'] . $this->fetch_tag($node);
+						$pending_text = $this->fetchTag($open) . $open['data'] . $this->fetchTag($node);
 					}
 
 					unset($this->stack[$key]);
@@ -613,11 +602,11 @@ abstract class parse_base
 					else if (isset($tag_info['callback']))
 					{
 						// call a callback function
-						$pending_text = $this->$tag_info['callback']('', $node['option']);
+						$pending_text = $this->{$tag_info['callback']}('', $node['option']);
 					}
 					else
 					{
-						$pending_text = $this->fetch_tag($node);
+						$pending_text = $this->fetchTag($node);
 					}
 				}
 			}
@@ -642,7 +631,7 @@ abstract class parse_base
 	 * @param array Array to search
 	 * @return int/false Array key of first instance; false if it does not exist
 	 */
-	private function find_first_tag($tag_name, &$stack)
+	private function findFirstTag($tag_name, &$stack)
 	{
 		foreach ($stack as $key => $node)
 		{
@@ -660,7 +649,7 @@ abstract class parse_base
 	 * @param array $array 标签
 	 * @return string
 	 */
-	protected function fetch_tag($array)
+	protected function fetchTag($array)
 	{
 		$return = '';
 		if (is_array($array))
@@ -711,7 +700,7 @@ abstract class parse_base
 		return $return;
 	}
 
-	protected function fetch_node($tag_name, $text, $option = '')
+	protected function fetchNode($tag_name, $text, $option = '')
 	{
 		$node = array(
 			'name' => $tag_name,
@@ -719,14 +708,14 @@ abstract class parse_base
 			'closing' => false,
 			'single' => false,
 		);
-		$return = $this->fetch_tag($node). $text;
+		$return = $this->fetchTag($node). $text;
 		$node['closing'] = true;
-		$return .= $this->fetch_tag($node);
+		$return .= $this->fetchTag($node);
 
 		return $return;
 	}
 
-	protected function do_entity($text)
+	protected function doEntity($text)
 	{
 		return str_replace(array('<', '>'), array('&lt;', '&gt;'), $text);
 	}
@@ -737,28 +726,27 @@ abstract class parse_base
 	 * @param	string	Text with smilie codes
 	 * @return	string	Text with HTML images in place of smilies
 	 */
-	private function parse_smilies($text)
+	private function parseSmilies($text)
 	{
-		$quoted = array();
-		foreach ($this->smilies as $find => $replace)
-		{
-			$quoted[] = preg_quote($find, '/');
-			if (count($quoted) > 100)
-			{
-				$text = preg_replace_callback('/(?<!&amp|&quot|&lt|&gt|&copy|&#[0-9]{1}|&#[0-9]{2}|&#[0-9]{3}|&#[0-9]{4}|&#[0-9]{5})(' . implode('|', $quoted) . ')/s', array($this, 'replace_smilies'), $text);
-				$quoted = array();
-			}
-		}
+		$quoted = array_map(function ($v) {
+			return preg_quote($v, '/');
+		}, array_keys($this->smilies));
 
-		if (count($quoted) > 0)
+		$quoted = array_chunk($quoted, 100, true);
+
+		foreach ($quoted as $v)
 		{
-			$text = preg_replace_callback('/(?<!&amp|&quot|&lt|&gt|&copy|&#[0-9]{1}|&#[0-9]{2}|&#[0-9]{3}|&#[0-9]{4}|&#[0-9]{5})(' . implode('|', $quoted) . ')/s', array($this, 'replace_smilies'), $text);
+			$text = preg_replace_callback(
+				'/(?<!&amp|&quot|&lt|&gt|&copy|&#[0-9]{1}|&#[0-9]{2}|&#[0-9]{3}|&#[0-9]{4}|&#[0-9]{5})(' . implode('|', $v) . ')/s',
+				array($this, 'parseSmiliesCallback'),
+				$text
+			);
 		}
 
 		return $text;
 	}
 
-	private function replace_smilies($matches)
+	public function parseSmiliesCallback($matches)
 	{
 		return $this->smilies[$matches[0]];
 	}
@@ -769,7 +757,7 @@ abstract class parse_base
 	 * @param string Text to search
 	 * @return string Text with smilie HTML returned to smilie codes
 	 */
-	protected function strip_smilies($text)
+	protected function stripSmilies($text)
 	{
 		return str_replace($this->smilies, array_keys($this->smilies), $text);
 	}
@@ -780,7 +768,7 @@ abstract class parse_base
 	 * @param string $style RGB 颜色 CSS 代码
 	 * @return string 16 进制颜色代码
 	 */
-	protected function rgb2hex($style)
+	protected function rgb2Hex($style)
 	{
 		if (strpos($style, 'rgb('))
 		{
@@ -797,7 +785,7 @@ abstract class parse_base
 	 * @param bool 是否处理开头部分
 	 * @param bool 是否处理结尾部分
 	 */
-	function strip_front_back_whitespace($text, $max_amount = 1, $strip_front = true, $strip_back = true)
+	function stripFrontBackWhitespace($text, $max_amount = 1, $strip_front = true, $strip_back = true)
 	{
 		$max_amount = intval($max_amount);
 
@@ -814,7 +802,11 @@ abstract class parse_base
 		return $text;
 	}
 
-	abstract protected function convert_br($text);
-	abstract protected function is_valid_tag($tag_name);
-	abstract protected function is_valid_option($tag_name, &$tag_option);
+	protected function convertBr($text)
+	{
+		return $text;
+	}
+
+	abstract protected function isValidTag($tag_name);
+	abstract protected function isValidOption($tag_name, &$tag_option);
 }

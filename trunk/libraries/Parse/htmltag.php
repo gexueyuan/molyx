@@ -12,18 +12,18 @@ $tag_list['font'] = array(
 
 // DIV
 $tag_list['div'] = array(
-	'callback' => 'handle_div',
+	'callback' => 'handleDiv',
 	'strip_space_after' => 1
 );
 
 // SPAN
 $tag_list['span'] = array(
-	'callback' => 'handle_span',
+	'callback' => 'handleSpan',
 );
 
 // P
 $tag_list['p'] = array(
-	'callback' => 'handle_p',
+	'callback' => 'handleP',
 	'strip_space_after' => 1
 );
 
@@ -35,12 +35,12 @@ $tag_list['blockquote'] = array(
 
 // URL
 $tag_list['a'] = array(
-	'callback' => 'handle_url',
+	'callback' => 'handleUrl',
 );
 
 // CODE
 $tag_list['pre'] = array(
-	'callback' => 'handle_pre',
+	'callback' => 'handlePre',
 	'stop_parse' => true,
 	'disable_smilies' => true,
 	'do_entity' => false,
@@ -57,5 +57,5 @@ $tag_list['textarea'] = array(
 
 // IMG
 $tag_list['img'] = array(
-	'callback' => 'handle_img',
+	'callback' => 'handleImg',
 );

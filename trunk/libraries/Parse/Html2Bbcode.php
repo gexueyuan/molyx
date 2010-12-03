@@ -1,21 +1,17 @@
 <?php
-class parse_html2bbcode extends parse_base
+class Parse_Html2Bbcode extends Parse_Base
 {
 	private $block = array();
-	public function __construct()
-	{
-		parent::__construct();
-	}
 
 	public function convert($text)
 	{
 		$text = preg_replace("/<br>|<br[ ]+\/>\n?/", "\n", $text);
-		$text = $this->build_parse_array($text);
+		$text = $this->buildParseArray($text);
 		$this->is_html = false;
 		return str_replace(
 			array('&lt;', '&gt;', '&quot;', '&amp;'),
 			array('<', '>', '"', '&'),
-			$this->strip_smilies($this->parse_array($text))
+			$this->stripSmilies($this->parseArray($text))
 		);
 	}
 
@@ -25,35 +21,35 @@ class parse_html2bbcode extends parse_base
 	 * @param string $tag_name 标签名
 	 * @return boolean 标签是否通过验证
 	 */
-	protected function is_valid_tag($tag_name)
+	protected function isValidTag($tag_name)
 	{
 		if ($tag_name[0] === '/')
 		{
 			$tag_name = substr($tag_name, 1);
 		}
 
-		if (!isset($this->tag_list[$tag_name]['callback']) || $this->tag_list[$tag_name]['callback'] !== 'handle_tag')
+		if (!isset($this->tag_list[$tag_name]['callback']) || $this->tag_list[$tag_name]['callback'] !== 'handleTag')
 		{
-			$this->tag_list[$tag_name]['callback'] = 'handle_tag';
+			$this->tag_list[$tag_name]['callback'] = 'handleTag';
 			$this->tag_list[$tag_name]['disable_smilies'] = true;
 		}
 
 		return true;
 	}
 
-	protected function is_valid_option($tag_name, &$tag_option)
+	protected function isValidOption($tag_name, &$tag_option)
 	{
 		foreach (array('style', 'color') as $v)
 		{
 			if (isset($tag_option[$v]))
 			{
-				$tag_option[$v] = $this->rgb2hex($tag_option[$v]);
+				$tag_option[$v] = $this->rgb2Hex($tag_option[$v]);
 			}
 		}
 		return true;
 	}
 
-	protected function handle_tag($text, $option)
+	protected function handleTag($text, $option)
 	{
 		$current_tag = &$this->current_tag;
 
@@ -73,14 +69,14 @@ class parse_html2bbcode extends parse_base
 
 		if (isset($option['style']))
 		{
-			$this->style2bbcode($option['style']);
+			$this->style2Bbcode($option['style']);
 		}
 
-		$this->block2bbcode('quote', $option);
+		$this->block2Bbcode('quote', $option);
 
 		if ($current_tag['name'] === 'li')
 		{
-			return "[*]" . $this->strip_front_back_whitespace($text) . "\n";
+			return "[*]" . $this->stripFrontBackWhitespace($text) . "\n";
 		}
 		else if ($current_tag['name'] === 'ul')
 		{
@@ -148,7 +144,7 @@ class parse_html2bbcode extends parse_base
 		else if ($current_tag['name'] === 'a' && !empty($option['href']))
 		{
 			$link = trim($option['href']);
-			$link = $this->strip_smilies($link);
+			$link = $this->stripSmilies($link);
 
 			if (!preg_match('#^[a-z0-9]+(?<!about|javascript|vbscript|data):#si', $link))
 			{
@@ -177,20 +173,20 @@ class parse_html2bbcode extends parse_base
 		}
 		else if ($current_tag['name'] === 'p' && !empty($text))
 		{
-			$text = "\n" . $this->strip_front_back_whitespace($text) . "\n";
+			$text = "\n" . $this->stripFrontBackWhitespace($text) . "\n";
 		}
 
 		if (!empty($this->block))
 		{
 			foreach ($this->block as $v)
 			{
-				$text = $this->fetch_node($v['name'], $text, $v['option']);
+				$text = $this->fetchNode($v['name'], $text, $v['option']);
 			}
 		}
 		return $text;
 	}
 
-	protected function style2bbcode($style)
+	protected function style2Bbcode($style)
 	{
 		static $search_list = array(
 			array(
@@ -255,7 +251,7 @@ class parse_html2bbcode extends parse_base
 		}
 	}
 
-	protected function block2bbcode($block_name, &$option)
+	protected function block2Bbcode($block_name, &$option)
 	{
 		if (isset($option['class']) && strpos(" {$option['class']} ", " $block_name ") !== false)
 		{
@@ -279,10 +275,5 @@ class parse_html2bbcode extends parse_base
 				$option['class'] = trim(str_replace(" $block_name ", '', " {$option['class']} "));
 			}
 		}
-	}
-
-	protected function convert_br($text)
-	{
-		return $text;
 	}
 }
