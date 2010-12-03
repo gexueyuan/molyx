@@ -332,7 +332,7 @@ class adminfunctions_template
 			'<' . '?php echo SCRIPTPATH; ?' . '>',
 			'<' . '?php echo $forums->lang_list; ?' . '>',
 			'<' . '?php echo $forums->style_list; ?' . '>',
-			'<' . '?php echo $DB->query_count(); ?' . '>',
+			'<' . '?php echo $DB->getCount(\'query\'); ?' . '>',
 			'<' . '?php if ($DB->explain !== null) { echo $DB->explain->show(); } ?' . '>',
 			'<' . '?php end_cache_page(); ?' . '>',
 			'<' . '?php echo $forums->\\1\\2; ?' . '>',

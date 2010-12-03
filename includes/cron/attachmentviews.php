@@ -23,7 +23,7 @@ class cron_attachmentviews
 			{
 				@unlink(ROOT_PATH . 'cache/cache/attachmentviews.txt');
 				$attachmentviews = array_count_values($attachmentviews);
-				$result = $DB->update_case(TABLE_PREFIX . 'attachment', 'attachmentid', array(
+				$result = $DB->updateCase(TABLE_PREFIX . 'attachment', 'attachmentid', array(
 					'counter' => array($attachmentviews, '+')
 				));
 				if ($result)

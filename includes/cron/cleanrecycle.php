@@ -30,7 +30,7 @@ class cron_cleanrecycle
 				FROM " . TABLE_PREFIX . "thread
 			WHERE forumid = $recycleforumid AND addtorecycle <= $date");
 		$all_tids = array();
-		while($row = $DB->fetch_array($t_result))
+		while($row = $DB->fetch($t_result))
 		{
 			$posttable = $row['posttable']?$row['posttable']:'post';
 			$dotids[$posttable][] = $row['tid'];
@@ -51,8 +51,8 @@ class cron_cleanrecycle
 						ON t.tid = p.threadid
 					LEFT JOIN " . TABLE_PREFIX . "forum f
 						ON t.forumid = f.id
-				WHERE " . $DB->sql_in('t.tid', $tids));
-				while ($r = $DB->fetch_array($result))
+				WHERE " . $DB->sql->in('t.tid', $tids));
+				while ($r = $DB->fetch($result))
 				{
 					$posts[$r['tid']] = $r;
 				}
@@ -88,14 +88,14 @@ class cron_cleanrecycle
 				}
 				$thread[$r['tid']] = true;
 			}
-			$DB->delete(TABLE_PREFIX . 'poll', $DB->sql_in('tid', $all_tids));
-			$DB->delete(TABLE_PREFIX . 'thread', $DB->sql_in('tid', $all_tids));
+			$DB->delete(TABLE_PREFIX . 'poll', $DB->sql->in('tid', $all_tids));
+			$DB->delete(TABLE_PREFIX . 'thread', $DB->sql->in('tid', $all_tids));
 			if (count($post))
 			{
 				$attachments = $DB->query('SELECT attachmentid, location, attachpath, thumblocation
 					FROM ' . TABLE_PREFIX . 'attachment
-					WHERE ' . $DB->sql_in('postid', $post));
-				while ($attachment = $DB->fetch_array($attachments))
+					WHERE ' . $DB->sql->in('postid', $post));
+				while ($attachment = $DB->fetch($attachments))
 				{
 					$dir = $bboptions['uploadfolder'] . '/' . $attachment['attachpath'] . '/';
 					if ($attachment['location'])
@@ -110,12 +110,12 @@ class cron_cleanrecycle
 				}
 				if ($attach)
 				{
-					$DB->delete(TABLE_PREFIX . 'attachment', $DB->sql_in('attachmentid', $attach));
+					$DB->delete(TABLE_PREFIX . 'attachment', $DB->sql->in('attachmentid', $attach));
 				}
 			}
 			foreach ($dotids as $posttable => $tids)
 			{
-				$DB->delete(TABLE_PREFIX . $posttable, $DB->sql_in('threadid', $tids));
+				$DB->delete(TABLE_PREFIX . $posttable, $DB->sql->in('threadid', $tids));
 			}
 			$modfunc->decrease_user($user);
 			$modfunc->decrease_forum($forum);

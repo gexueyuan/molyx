@@ -50,7 +50,7 @@ class userregfield
 		$forums->admin->print_cp_header($pagetitle);
 		$forums->admin->print_form_header(array(1 => array('do' , 'addfield')));
 
-		$row = $DB->query_first('SELECT count(*) as total FROM ' . TABLE_PREFIX . 'userextrafield');
+		$row = $DB->queryFirst('SELECT count(*) as total FROM ' . TABLE_PREFIX . 'userextrafield');
 		$row_count = $row['total'];
 		$links = $forums->func->build_pagelinks(array('totalpages' => $row_count,
 			'perpage' => 10,
@@ -68,9 +68,9 @@ class userregfield
 
 		$forums->admin->print_table_start($forums->lang['userextrafieldlist']);
 		$result = $DB->query('SELECT * FROM ' . TABLE_PREFIX . 'userextrafield');
-        if ($DB->num_rows($result))
+        if ($DB->numRows($result))
 		{
-			while ($field = $DB->fetch_array($result))
+			while ($field = $DB->fetch($result))
 			{
                 $action = $field["type"] ? $forums->lang['cannotmake']:"<a href='userfield.php?{$forums->sessionurl}do=editfield&amp;fieldid={$field['fieldid']}'>{$forums->lang['edit']}</a> |
                 	<a href='userfield.php?{$forums->sessionurl}do=delete&amp;fieldid={$field['fieldid']}&amp;fieldtag={$field['fieldtag']}&amp;tablename={$field['tablename']}' onclick=\"if (!confirm('".$forums->lang['confirmdelregfield']."')) {return false;}\">{$forums->lang['delete']}</a>";
@@ -102,7 +102,7 @@ class userregfield
 		if ($type=='edit')
 		{
 			$fieldid = input::int('fieldid');
-			$field = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "userextrafield WHERE fieldid = $fieldid");
+			$field = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "userextrafield WHERE fieldid = $fieldid");
 			if (!$field['fieldid'])
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
@@ -209,7 +209,7 @@ class userregfield
 		if (!input::get('fieldid', ''))
 		{
 			$result = $DB->query('SHOW FIELDS FROM ' . TABLE_PREFIX . 'user');
-			while ($r = $DB->fetch_array($result))
+			while ($r = $DB->fetch($result))
 			{
 				if ($r['Field'] == $fieldtag)
 				{
@@ -217,7 +217,7 @@ class userregfield
 				}
 			}
 			$result = $DB->query('SHOW FIELDS FROM ' . TABLE_PREFIX . 'userexpand');
-			while ($r = $DB->fetch_array($result))
+			while ($r = $DB->fetch($result))
 			{
 				if ($r['Field'] == $fieldtag)
 				{
@@ -282,7 +282,7 @@ class userregfield
 		switch($type)
 		{
 			case 'drop':
-				$DB->query_unbuffered("ALTER TABLE `" . TABLE_PREFIX . $tablename . "` DROP `". $fieldtag . "`");
+				$DB->queryUnbuffered("ALTER TABLE `" . TABLE_PREFIX . $tablename . "` DROP `". $fieldtag . "`");
 				$DB->delete(TABLE_PREFIX . "userextrafield", "fieldid=" . input::int('fieldid'));
 		    break;
 
@@ -293,7 +293,7 @@ class userregfield
 						$fieldtag => ''
 					), $fieldtag . ' IS NULL');
 				}
-				$DB->query_unbuffered("ALTER TABLE `" . TABLE_PREFIX . $tablename ."` CHANGE `" . $fieldtag . "` `" . $fieldtag . "` ". $datatype . ' ( ' . $length . ' ) ' . $datanull);
+				$DB->queryUnbuffered("ALTER TABLE `" . TABLE_PREFIX . $tablename ."` CHANGE `" . $fieldtag . "` `" . $fieldtag . "` ". $datatype . ' ( ' . $length . ' ) ' . $datanull);
 				$data = array(
 					'fieldname' => $fieldname,
 					'fieldtag' => $fieldtag,

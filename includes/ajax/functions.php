@@ -53,7 +53,7 @@ function changemedo($do = '')
 		$tousername = substr($userdo, 1, $usrnamepos - 1);
 		if ($tousername != $bbuserinfo['name'])
 		{
-			$touser = $DB->query_first('SELECT id, name FROM ' . TABLE_PREFIX . "user
+			$touser = $DB->queryFirst('SELECT id, name FROM ' . TABLE_PREFIX . "user
 										WHERE LOWER(name) = '" . strtolower($tousername) . "'"
 			);
 		}
@@ -250,7 +250,7 @@ function add_thread_log($tids, $action = 'Unknown')
 	}
 	$timenow = $forums->func->get_date(TIMENOW , 2, 1);
 	$threadlog = sprintf($forums->lang['threadlog'], $bbuserinfo['name'], $timenow, $action);
-	$DB->shutdown_update(TABLE_PREFIX . 'thread', array('logtext' => $threadlog), $uptid);
+	$DB->update(TABLE_PREFIX . 'thread', array('logtext' => $threadlog), $uptid, SHUTDOWN_QUERY);
 }
 
 function forum_recount($fid = '')

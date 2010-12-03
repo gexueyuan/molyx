@@ -160,7 +160,7 @@ switch ($action)
 			'pmfolders' => '',
 			'signature' => '',
 		));
-		$adminid = $DB->insert_id();
+		$adminid = $DB->insertId();
 		define('CACHE_TABLE', $prefix . 'cache');
 		$forums->func->recache('all');
 
@@ -241,21 +241,21 @@ switch ($action)
 		require_once(ROOT_PATH . 'includes/adminfunctions.php');
 		$forums->admin = new adminfunctions();
 
-		$DB->query_unbuffered("
+		$DB->queryUnbuffered("
 				REPLACE INTO " . $prefix . "style
 				(styleid, title, title_en, imagefolder, userselect, usedefault, parentid, parentlist, css, csscache, version)
 				VALUES
 				('1', 'Global Style', 'global', 'style_1', 0, 0, 0, 1, '', '', '" . $version . "')
 			");
-		$DB->query_unbuffered("
+		$DB->queryUnbuffered("
 				REPLACE INTO " . $prefix . "style
 				(title, title_en, imagefolder, userselect, usedefault, parentid, parentlist, css, csscache, version)
 				VALUES
 				('" . lng('defaultstyle') . "', 'default', 'style_1', 1, 1, 1, 1, '', '', '" . $version . "')
 			");
-		$styleid = $DB->insert_id();
+		$styleid = $DB->insertId();
 		$parentlist = $styleid . ',1';
-		$DB->query_unbuffered("UPDATE " . $prefix . "style SET parentlist='" . $parentlist . "' WHERE styleid = $styleid");
+		$DB->queryUnbuffered("UPDATE " . $prefix . "style SET parentlist='" . $parentlist . "' WHERE styleid = $styleid");
 
 		require_once(ROOT_PATH . 'includes/adminfunctions_template.php');
 		$recachestyle = new adminfunctions_template();

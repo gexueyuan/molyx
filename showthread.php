@@ -52,7 +52,7 @@ class showthread
 		$this->codeparse = new functions_codeparse();
 		$this->posthash = $forums->func->md5_check();
 		$this->recycleforum = $bboptions['recycleforumid'];
-		$this->thread = $DB->query_first('SELECT *
+		$this->thread = $DB->queryFirst('SELECT *
 			FROM ' . TABLE_PREFIX . "thread
 			WHERE tid = '$tid'");
 
@@ -165,7 +165,7 @@ class showthread
 		}
 		else
 		{
-			$DB->shutdown_update(TABLE_PREFIX . 'thread', array('views' => array(1, '+')), 'tid = ' . $this->thread['tid']);
+			$DB->update(TABLE_PREFIX . 'thread', array('views' => array(1, '+')), 'tid = ' . $this->thread['tid'], SHUTDOWN_QUERY);
 		}
 		$caneditposts = false;
 		$candeleteposts = false;
@@ -186,7 +186,7 @@ class showthread
 		{
 			$show['poll'] = true;
 			$poll_footer = '';
-			$poll_data = $DB->query_first('SELECT *
+			$poll_data = $DB->queryFirst('SELECT *
 				FROM ' . TABLE_PREFIX . 'poll
 				WHERE tid = ' . $this->thread['tid']);
 			if (!$poll_data['pollid'])
@@ -327,7 +327,7 @@ class showthread
 			LIMIT {$this->pp}, {$this->maxposts}");
 		$allpostrows = $attachment_inpost = array();
 
-		while ($row = $DB->fetch_array($post))
+		while ($row = $DB->fetch($post))
 		{
 			if ($row['userid'] == $bbuserinfo['id'])
 			{
@@ -454,7 +454,7 @@ class showthread
 				LIMIT 4
 				";
 			$DB->query($sql);
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$r['dateline'] = $forums->func->get_date($r['dateline'], 3);
 				$r['source_title'] = strip_tags($r['title']);

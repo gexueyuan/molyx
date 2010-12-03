@@ -177,7 +177,7 @@ class memberlist
 		{
 			$query_string = " AND " . implode(" AND ", $query);
 		}
-		$max = $DB->query_first("SELECT COUNT(*) as count FROM " . TABLE_PREFIX . "user u
+		$max = $DB->queryFirst("SELECT COUNT(*) as count FROM " . TABLE_PREFIX . "user u
 								LEFT JOIN " . TABLE_PREFIX . "usergroup g ON (g.usergroupid=u.usergroupid)
 								WHERE g.hidelist <> 1{$query_string}");
 		if ($max['count'] > 0)
@@ -194,7 +194,7 @@ class memberlist
 									ORDER BY u.{$sortby} {$order}
 									LIMIT {$first}, {$maxresults}"
 				);
-			while ($user = $DB->fetch_array($users))
+			while ($user = $DB->fetch($users))
 			{
 				$user['userid'] = $user['id'];
 				$user = $forums->func->fetch_user($user);

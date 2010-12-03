@@ -102,7 +102,7 @@ class functions_private
 		{
 			return $this->newpm($forums->lang['_toomanyusers'] . ': ' . $usercounts);
 		}
-		$total = $DB->query_first("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . "");
+		$total = $DB->queryFirst("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . "");
 		if ($savecopy && ($total['pmtotal'] + 1) > $bbuserinfo['pmquota'])
 		{
 			return $this->newpm($forums->lang['_pmquotafull']);
@@ -115,7 +115,7 @@ class functions_private
 				$errors['lengtherror'] .= $username . ',';
 				continue;
 			}
-			if (!$user = $DB->query_first("SELECT u.id, u.name, u.pmtotal, u.options, u.email, u.emailcharset, u.pmfolders, u.membergroupids, g.pmquota, p.id AS banid
+			if (!$user = $DB->queryFirst("SELECT u.id, u.name, u.pmtotal, u.options, u.email, u.emailcharset, u.pmfolders, u.membergroupids, g.pmquota, p.id AS banid
 				FROM " . TABLE_PREFIX . "user u
 					LEFT JOIN " . TABLE_PREFIX . "usergroup g
 						ON u.usergroupid=g.usergroupid
@@ -130,7 +130,7 @@ class functions_private
 			if ($user['membergroupids'])
 			{
 				$result = $DB->query('SELECT pmquota FROM ' . TABLE_PREFIX . 'usergroup WHERE usergroupid IN (' . $user['membergroupids'] . ')');
-				while ($row = $DB->fetch_array($result))
+				while ($row = $DB->fetch($result))
 				{
 					$user['pmquota'] = ($user['pmquota'] > $row['pmquota']) ? $user['pmquota'] : $row['pmquota'];
 				}
@@ -139,7 +139,7 @@ class functions_private
 			$deloldpmflag = 0;
 			if (! $user['pmquota'] OR $user['pmtotal'] >= $user['pmquota'])
 			{
-				$getoldpm = $DB->query_first("SELECT pmid, messageid FROM " . TABLE_PREFIX . "pm WHERE userid = {$user['id']} ORDER BY dateline ASC");
+				$getoldpm = $DB->queryFirst("SELECT pmid, messageid FROM " . TABLE_PREFIX . "pm WHERE userid = {$user['id']} ORDER BY dateline ASC");
 				if ($user['pmover'] && !empty($getoldpm))
 				{
 					$DB->delete(TABLE_PREFIX . "pm", "pmid = {$getoldpm['pmid']}");
@@ -198,7 +198,7 @@ class functions_private
 			'posthash' => $this->posthash,
 			'fromuserid' => $bbuserinfo['id'],
 		));
-		$pmtextid = $DB->insert_id();
+		$pmtextid = $DB->insertId();
 		$no_attachment = $this->postlib->attachment_complete(array($this->posthash), "", "", "", $pmtextid);
 		foreach ($touserlist AS $userid => $to_user)
 		{
@@ -213,7 +213,7 @@ class functions_private
 				'attach' => intval($no_attachment),
 				'userid' => $to_user['id'],
 			));
-			$pmid = $DB->insert_id();
+			$pmid = $DB->insertId();
 			$this->rebuild_foldercount($to_user['id'], "", '0', '-1', 'save', ",pmtotal=pmtotal+1, pmunread=pmunread+1");
 			if ($to_user['emailonpm'])
 			{
@@ -265,7 +265,7 @@ class functions_private
 		$sendmax = $bbuserinfo['pmsendmax'] ? intval($bbuserinfo['pmsendmax']) : '1';
 		if ($userid)
 		{
-			$user = $DB->query_first("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'");
+			$user = $DB->queryFirst("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'");
 			if (input::int('fwd') != 1)
 			{
 				if ($user['id'])
@@ -282,7 +282,7 @@ class functions_private
 		$content = utf8::htmlspecialchars(input::str('post'));
 		if ($getpmid)
 		{
-			$pm = $DB->query_first("SELECT u.id,u.name, p.*, pt.*
+			$pm = $DB->queryFirst("SELECT u.id,u.name, p.*, pt.*
 				FROM " . TABLE_PREFIX . "pm p
 				 LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid)
 				 LEFT JOIN " . TABLE_PREFIX . "user u ON (p.touserid=u.id)
@@ -355,11 +355,11 @@ class functions_private
 		global $DB, $forums, $bbuserinfo;
 		$contact = "";
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid='" . $bbuserinfo['id'] . "' ORDER BY contactname");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$contact = "<select class='select_normal' onchange='document.mxbform.username.focus(); document.mxbform.username.value = this.options[this.selectedIndex].value + document.mxbform.username.value;'>";
 			$contact .= "<option selected value=''>--------</option>\n";
-			while ($entry = $DB->fetch_array())
+			while ($entry = $DB->fetch())
 			{
 				$contact .= "<option value='" . $entry['contactname'] . ";'>" . $entry['contactname'] . "</option>\n";
 			}
@@ -374,7 +374,7 @@ class functions_private
 		$rebuild = array();
 		if (! $folders)
 		{
-			$user = $DB->query_first("SELECT pmfolders FROM " . TABLE_PREFIX . "user WHERE id=" . $userid);
+			$user = $DB->queryFirst("SELECT pmfolders FROM " . TABLE_PREFIX . "user WHERE id=" . $userid);
 			$def_folders = array('0' => array('pmcount' => 0, 'foldername' => $forums->lang['_inbox']),
 				'-1' => array('pmcount' => 0, 'foldername' => $forums->lang['_outbox']),
 				);
@@ -402,7 +402,7 @@ class functions_private
 		$pmfolders = addslashes(serialize($rebuild));
 		if ($nosave != 'nosave')
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmfolders='" . $pmfolders . "' " . $extra . " WHERE id=" . $userid);
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmfolders='" . $pmfolders . "' " . $extra . " WHERE id=" . $userid);
 		}
 		return $pmfolders;
 	}

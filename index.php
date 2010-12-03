@@ -106,7 +106,7 @@ if ($bboptions['showloggedin'])
 			WHERE lastactivity > $oltime
 			ORDER BY userid DESC";
 		$result = $DB->query($sql);
-		$totalonline += $DB->num_rows($result);
+		$totalonline += $DB->numRows($result);
 
 		// 在线人数超出系统限制则隐藏在线列表
 		if (defined('MAX_ONLINE_USERS') && $bboptions['maxonlineusers'] > MAX_ONLINE_USERS)
@@ -203,7 +203,7 @@ if ($bboptions['showloggedin'])
 
 			if (!$this_user['userid'] || $totalonline > 1)
 			{
-				while ($row = $DB->fetch_array($result))
+				while ($row = $DB->fetch($result))
 				{
 					// userid 为 0 表示会员信息已经提取完成, 不显示游客的话不需要继续处理游客信息
 					if (!$bboptions['showguest'] && $row['userid'] == 0)
@@ -226,14 +226,14 @@ if ($bboptions['showloggedin'])
 
 			$forums->lang['onlineusers'] = sprintf($forums->lang['onlineusers'], $online['guests'], $online['users'], $online['invisible'], $maxonline, $maxonlinedate);
 		}
-		$DB->free_result($result);
+		$DB->freeResult($result);
 	}
 	else // 隐藏在线列表只查询当前在线人数
 	{
 		$sql = "SELECT COUNT(sessionhash) AS count
 			FROM " . TABLE_PREFIX . "session
 			WHERE lastactivity > $oltime";
-		$totalonline = $DB->query_first($sql);
+		$totalonline = $DB->queryFirst($sql);
 		$totalonline = $totalonline['count'];
 	}
 	$forums->lang['onlineclosed'] = sprintf($forums->lang['onlineclosed'], $totalonline, $maxonline, $maxonlinedate);
@@ -242,7 +242,7 @@ if ($bboptions['showloggedin'])
 // 当前在线人数大于历史最大在线人数时更新记录
 if ($totalonline > $forums->cache['stats']['maxonline'])
 {
-	$DB->update_cache(array(
+	$DB->updateCache(array(
 		array('maxonline', $totalonline),
 		array('maxonlinedate', TIMENOW),
 	));

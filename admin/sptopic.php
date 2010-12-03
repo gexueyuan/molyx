@@ -47,7 +47,7 @@ class sptopic
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$st = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "specialtopic WHERE id = " . input::int('id') . "");
+		$st = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "specialtopic WHERE id = " . input::int('id') . "");
 		if (!$st['id'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -58,8 +58,8 @@ class sptopic
 			{
 				input::set('other', 0);
 			}
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "specialtopic WHERE id = '" . $st['id'] . "'");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET stopic=" . input::get('other', '') . " WHERE stopic = '" . $st['id'] . "'");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "specialtopic WHERE id = '" . $st['id'] . "'");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET stopic=" . input::get('other', '') . " WHERE stopic = '" . $st['id'] . "'");
 			if ($st['forumids'] == -1)
 			{
 				foreach($this->allforum AS $fid => $forum)
@@ -68,7 +68,7 @@ class sptopic
 					{
 						$forum['specialtopic'] = preg_replace("#(^|,)(" . $st['id'] . ")(,|$)#is", ",", $forum['specialtopic']);
 						$forum['specialtopic'] = preg_replace("#^(,|)(.*)(,|)$#is", "\\2", $forum['specialtopic']);
-						$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET specialtopic = '" . $forum['specialtopic'] . "' WHERE id={$fid}");
+						$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum SET specialtopic = '" . $forum['specialtopic'] . "' WHERE id={$fid}");
 					}
 				}
 			}
@@ -81,7 +81,7 @@ class sptopic
 					{
 						$forum['specialtopic'] = preg_replace("#(^|,)(" . $st['id'] . ")(,|$)#is", ",", $this->allforum[$fid]['specialtopic']);
 						$forum['specialtopic'] = preg_replace("#^(,|)(.*)(,|)$#is", "\\2", $forum['specialtopic']);
-						$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET specialtopic = '" . $forum['specialtopic'] . "' WHERE id={$fid}");
+						$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum SET specialtopic = '" . $forum['specialtopic'] . "' WHERE id={$fid}");
 					}
 				}
 			}
@@ -131,9 +131,9 @@ class sptopic
 		$forums->admin->columns[] = array($forums->lang['forumlist'], "55%");
 		$forums->admin->print_table_start($pagetitle);
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "specialtopic");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$forum_info = array();
 				if ($r['forumids'] == '-1')
@@ -171,7 +171,7 @@ class sptopic
 		global $forums, $DB;
 		if ($type == 'edit')
 		{
-			$st = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "specialtopic WHERE id=" . input::int('id') . "");
+			$st = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "specialtopic WHERE id=" . input::int('id') . "");
 			if (!$st['id'])
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
@@ -245,7 +245,7 @@ class sptopic
 		else
 		{
 			$DB->insert(TABLE_PREFIX . 'specialtopic', $data);
-			$id = $DB->insert_id();
+			$id = $DB->insertId();
 		}
 		$this->update_forum($id, $allids);
 		$forums->admin->redirect("sptopic.php", $forums->lang['sptopicmanage'], $forums->lang['sptopicupdated']);
@@ -262,7 +262,7 @@ class sptopic
 			{
 				$forum['specialtopic'] = preg_replace("#(^|,)(" . $id . ")(,|$)#is", ",", $forum['specialtopic']);
 				$forum['specialtopic'] = preg_replace("#^(,|)(.*)(,|)$#is", "\\2", $forum['specialtopic']);
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET specialtopic = '" . $forum['specialtopic'] . "' WHERE id={$fid}");
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum SET specialtopic = '" . $forum['specialtopic'] . "' WHERE id={$fid}");
 				continue;
 			}
 			if (in_array($fid, $forumids))
@@ -285,7 +285,7 @@ class sptopic
 				if ($update)
 				{
 					asort($spids);
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET specialtopic = '" . implode(",", $spids) . "' WHERE id={$fid}");
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum SET specialtopic = '" . implode(",", $spids) . "' WHERE id={$fid}");
 				}
 				continue;
 			}

@@ -69,7 +69,7 @@ class misc
 		{
 			$errmsg = $forums->lang['cannotfindpost'];
 		}
-		$data = $DB->query_first("SELECT pollid, voters
+		$data = $DB->queryFirst("SELECT pollid, voters
 			FROM " . TABLE_PREFIX . "poll
 			WHERE pollid = " . $pollid);
 		if (!$data['pollid'])
@@ -93,11 +93,11 @@ class misc
 				}
 				$DB->query("SELECT id, name
 					FROM " . TABLE_PREFIX . "user
-					WHERE " . $DB->sql_in('id', $all_voters));
-				if ($DB->num_rows())
+					WHERE " . $DB->sql->in('id', $all_voters));
+				if ($DB->numRows())
 				{
 					$all_polls = 0;
-					while ($user = $DB->fetch_array())
+					while ($user = $DB->fetch())
 					{
 						$all_polls++;
 						$pollvoters[] = $user;
@@ -123,7 +123,7 @@ class misc
 		{
 			$errmsg = $forums->lang['cannotfindpost'];
 		}
-		$data = $DB->query_first("SELECT hidepost FROM " . TABLE_PREFIX . "post WHERE pid = " . $pid . " LIMIT 0, 1");
+		$data = $DB->queryFirst("SELECT hidepost FROM " . TABLE_PREFIX . "post WHERE pid = " . $pid . " LIMIT 0, 1");
 		if (!$data['hidepost'])
 		{
 			$errmsg = $forums->lang['norecords'];
@@ -145,7 +145,7 @@ class misc
 		global $forums, $DB, $bbuserinfo, $bboptions;
 		$uid = input::int('uid');
 		$fid = input::int('fid');
-		$user = $DB->query_first("SELECT id, name, liftban, usergroupid
+		$user = $DB->queryFirst("SELECT id, name, liftban, usergroupid
 			FROM " . TABLE_PREFIX . "user WHERE id=$uid");
 		if (!$user['id'])
 		{
@@ -250,7 +250,7 @@ class misc
 						$rs = $DB->query("SELECT tid, posttable
 							FROM " . TABLE_PREFIX . "thread
 							WHERE postuserid={$user['id']} AND forumid = $fid");
-						while($row = $DB->fetch_array($rs))
+						while($row = $DB->fetch($rs))
 						{
 							$table = $row['posttable']?$row['posttable']:'post';
 							$tidarrs[$table][] = $row['tid'];
@@ -259,8 +259,8 @@ class misc
 						{
 							foreach ($tidarrs as $tblname => $tids)
 							{
-								$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "$tblname SET state=2, logtext = '" . $opera . "'
-								WHERE " . $DB->sql_in('threadid', $tids));
+								$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "$tblname SET state=2, logtext = '" . $opera . "'
+								WHERE " . $DB->sql->in('threadid', $tids));
 							}
 						}
 					}
@@ -289,7 +289,7 @@ class misc
 						$rs = $DB->query("SELECT tid, posttable
 							FROM " . TABLE_PREFIX . "thread
 							WHERE postuserid={$user['id']} AND forumid = $fid");
-						while($row = $DB->fetch_array($rs))
+						while($row = $DB->fetch($rs))
 						{
 							$table = $row['posttable']?$row['posttable']:'post';
 							$tidarrs[$table][] = $row['tid'];
@@ -301,7 +301,7 @@ class misc
 								$DB->update(TABLE_PREFIX . $tblname, array(
 									'state' => 0,
 									'logtext' => ''
-								), $DB->sql_in('threadid', $tids));
+								), $DB->sql->in('threadid', $tids));
 							}
 						}
 					}
@@ -389,7 +389,7 @@ class misc
 		{
 			$forums->func->standard_error("cannotfindpost");
 		}
-		$data = $DB->query_first("SELECT hidepost, userid FROM " . TABLE_PREFIX . "post WHERE pid = " . $pid . " LIMIT 1");
+		$data = $DB->queryFirst("SELECT hidepost, userid FROM " . TABLE_PREFIX . "post WHERE pid = " . $pid . " LIMIT 1");
 		if (!$data['hidepost'])
 		{
 			$forums->func->standard_error("nohidepost");
@@ -434,12 +434,14 @@ class misc
 			{
 				$forums->func->standard_error("noenoughcredit", false, $hidecredit[$hideinfo['credit_type']]);
 			}
-			$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "userexpand SET {$hideinfo['credit_type']} = {$hideinfo['credit_type']} - {$hideinfo['cond']} WHERE id = " . $bbuserinfo['id'] . "");
+			$DB->update(TABLE_PREFIX . "userexpand", array(
+				$hideinfo['credit_type'] => array($hideinfo['cond'], '-')
+			), "id = " . $bbuserinfo['id'], SHUTDOWN_QUERY);
 		}
 		else
 		{
 			$bbuserinfo = $this->bankfunc->patch_bankinfo();
-			$tarinfo = $DB->query_first("SELECT u.id, u.name, u.cash, u.bank, u.mkaccount
+			$tarinfo = $DB->queryFirst("SELECT u.id, u.name, u.cash, u.bank, u.mkaccount
 				FROM " . TABLE_PREFIX . "user u
 				WHERE u.id = " . $data['userid']);
 			if (!$tarinfo || !is_array($tarinfo) || !$tarinfo['id'])
@@ -535,7 +537,7 @@ class misc
 		}
 		else
 		{
-			$privacy = $DB->query_first("SELECT value FROM " . TABLE_PREFIX . "setting WHERE varname='privacytext'");
+			$privacy = $DB->queryFirst("SELECT value FROM " . TABLE_PREFIX . "setting WHERE varname='privacytext'");
 			$privacytext = str_replace("\n", '<br />', $privacy['value']);
 			$pagetitle = $bboptions['privacytitle'] . " - " . $bboptions['bbtitle'];
 			$nav[] = $bboptions['privacytitle'];
@@ -587,7 +589,7 @@ class misc
 		}
 		require_once(ROOT_PATH . 'includes/class_textparse.php');
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "bbcode");
-		while ($row = $DB->fetch_array())
+		while ($row = $DB->fetch())
 		{
 			$code['title'] = '[' . $row['bbcodetag'] . ']';
 			$code['desc'] = $row['description'];
@@ -608,7 +610,10 @@ class misc
 		{
 			$forums->func->standard_error("notlogin");
 		}
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET lastvisit=" . TIMENOW . ", lastactivity=" . TIMENOW . " WHERE id=" . $bbuserinfo['id'] . "");
+		$DB->update(TABLE_PREFIX . "user", array(
+			'lastvisit' => TIMENOW,
+			'lastactivity' => TIMENOW
+		), "id=" . $bbuserinfo['id'], SHUTDOWN_QUERY);
 		$forums->func->standard_redirect();
 	}
 

@@ -23,7 +23,7 @@ class functions_showthread
 			$sql_condition .= $posttable ? " AND posttable='" . $posttable ."'" : '';
 			$attach = $DB->query("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE $type IN (" . implode(",", $postids) . ")$sql_condition");
 
-			while ($a = $DB->fetch_array($attach))
+			while ($a = $DB->fetch($attach))
 			{
 				if ($a['inpost'] == 0)
 				{

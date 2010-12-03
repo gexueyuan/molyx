@@ -23,7 +23,7 @@ class subscribe
 		$this->thread = $forums->forum->single_forum($forumid);
 		if ($type != 'forum')
 		{
-			$row = $DB->query_first("SELECT tid, forumid FROM " . TABLE_PREFIX . "thread WHERE tid='" . $threadid . "'");
+			$row = $DB->queryFirst("SELECT tid, forumid FROM " . TABLE_PREFIX . "thread WHERE tid='" . $threadid . "'");
 			$this->thread = array_merge($row, $this->thread);
 		}
 		if (! $this->thread['id'])
@@ -57,18 +57,26 @@ class subscribe
 		{
 			$DB->query("SELECT subscribethreadid FROM " . TABLE_PREFIX . "subscribethread WHERE threadid='" . $this->thread['tid'] . "' AND userid='" . $bbuserinfo['id'] . "'");
 		}
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$forums->func->standard_error("alreadysubscribe");
 		}
 		if ($type == 'forum')
 		{
-			$DB->shutdown_query("INSERT INTO " . TABLE_PREFIX . "subscribeforum (userid, forumid, dateline) VALUES ('" . $bbuserinfo['id'] . "', '" . $forumid . "', '" . TIMENOW . "')");
+			$DB->insert(TABLE_PREFIX . "subscribeforum", array(
+				'userid' => $bbuserinfo['id'],
+				'forumid' => $forumid,
+				'dateline' => TIMENOW
+			), SHUTDOWN_QUERY);
 			$forums->func->redirect_screen($forums->lang['subscribeforum'], "forumdisplay.php{$forums->sessionurl}f=" . $forumid . "");
 		}
 		else
 		{
-			$DB->shutdown_query("INSERT INTO " . TABLE_PREFIX . "subscribethread (userid, threadid, dateline) VALUES ('" . $bbuserinfo['id'] . "', '" . $this->thread['tid'] . "', '" . TIMENOW . "')");
+			$DB->insert(TABLE_PREFIX . "subscribethread", array(
+				'userid' => $bbuserinfo['id'],
+				'threadid' => $this->thread['tid'],
+				'dateline' => TIMENOW
+			), SHUTDOWN_QUERY);
 			$forums->func->redirect_screen($forums->lang['subscribethread'], "showthread.php{$forums->sessionurl}f=" . $this->thread['id'] . "&amp;t=" . $this->thread['tid'] . "&amp;pp=" . input::get('pp', 0) . "");
 		}
 	}

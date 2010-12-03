@@ -45,7 +45,7 @@ class attachment
 		{
 			$forums->func->standard_error("cannotviewattach");
 		}
-		$thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid = $tid");
+		$thread = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid = $tid");
 		if (!$thread['attach'])
 		{
 			$forums->func->standard_error("cannotviewattach");
@@ -69,7 +69,7 @@ class attachment
 		if ($forums->func->fetch_permissions($this->forum['canread'], 'canread') == true)
 		{
 			$hashidden = false;
-			while ($row = $DB->fetch_array($attachments))
+			while ($row = $DB->fetch($attachments))
 			{
 				if($hidefunc->hide_attachment($row['userid'],$row['hidetype'],$row['threadid'],'',$row['forumid']))
 				{
@@ -117,7 +117,7 @@ class attachment
 		$hidefunc = new hidefunc();
 
 		$id = input::get('id', 0);
-		$hidetype = $DB->query_first("SELECT hidetype,postid,userid FROM ".TABLE_PREFIX."attachment WHERE attachmentid = $id");
+		$hidetype = $DB->queryFirst("SELECT hidetype,postid,userid FROM ".TABLE_PREFIX."attachment WHERE attachmentid = $id");
 
 		if(!$hidefunc->hide_attachment($hidetype['userid'],$hidetype['hidetype'], $tid,$hidetype['postid']))
 		{
@@ -168,7 +168,7 @@ class attachment
 				}
 				else
 				{
-					$DB->shutdown_update(TABLE_PREFIX . 'attachment', array('counter' => array(1, '+')), 'attachmentid = ' . $id);
+					$DB->update(TABLE_PREFIX . 'attachment', array('counter' => array(1, '+')), 'attachmentid = ' . $id, SHUTDOWN_QUERY);
 				}
 				$filename = urldecode(input::get('filename', ''));
 				$filename = encoding::convert($filename, 'utf-8', 'gbk');

@@ -75,7 +75,7 @@ class online
 				$group = "";
 				break;
 		}
-		$omax = $DB->query_first("SELECT COUNT(sessionhash) as sessions FROM " . TABLE_PREFIX . "session WHERE invisible <> 1 AND lastactivity > $t_time" . $group . "");
+		$omax = $DB->queryFirst("SELECT COUNT(sessionhash) as sessions FROM " . TABLE_PREFIX . "session WHERE invisible <> 1 AND lastactivity > $t_time" . $group . "");
 		$links = $forums->func->build_pagelinks(array('totalpages' => $omax['sessions'],
 				'perpage' => 40,
 				'curpage' => $pp,
@@ -87,7 +87,7 @@ class online
 		$userlist = array();
 		$forums->func->check_cache('usergroup');
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "session WHERE lastactivity > $t_time" . $group . " ORDER BY $db_key $db_order LIMIT " . $pp . ", 40");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$r['opentag'] = $forums->cache['usergroup'][ $r['usergroupid'] ]['opentag'];
 			$r['closetag'] = $forums->cache['usergroup'][ $r['usergroupid'] ]['closetag'];
@@ -100,7 +100,7 @@ class online
 		if (count($tid_array) > 0)
 		{
 			$DB->query("SELECT tid, title FROM " . TABLE_PREFIX . "thread WHERE tid IN (" . implode(",", $tid_array) . ")");
-			while ($t = $DB->fetch_array())
+			while ($t = $DB->fetch())
 			{
 				$thread[ $t['tid'] ] = $t['title'];
 			}

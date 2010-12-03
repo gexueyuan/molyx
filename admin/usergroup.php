@@ -112,13 +112,13 @@ class usergroup
 					ON up.joinusergroupid = u.usergroupid
 			$gquery"
 		);
-		while ($promotion = $DB->fetch_array($getpromos))
+		while ($promotion = $DB->fetch($getpromos))
 		{
 			$promotions[$promotion['usergroupid']][] = $promotion;
 		}
 		unset($promotion);
 
-		$row = $DB->query_first('SELECT name
+		$row = $DB->queryFirst('SELECT name
 			FROM ' . TABLE_PREFIX . 'credit
 			WHERE tag = \'reputation\'');
 		$forums->lang['reputation'] = $row['name'];
@@ -216,7 +216,7 @@ class usergroup
 		$DB->query("SELECT usergroupid, grouptitle
 			FROM " . TABLE_PREFIX . "usergroup
 			ORDER BY grouptitle");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$usergroup[] = array($r['usergroupid'] , $forums->lang[ $r['grouptitle'] ]);
 		}
@@ -228,7 +228,7 @@ class usergroup
 		}
 		else
 		{
-			$promotion = $DB->query_first("SELECT up.*, u.grouptitle
+			$promotion = $DB->queryFirst("SELECT up.*, u.grouptitle
 				FROM " . TABLE_PREFIX . "userpromotion up, " . TABLE_PREFIX . "usergroup u
 				WHERE up.userpromotionid = " . input::get('id', '') . "
 					AND up.usergroupid = u.usergroupid"
@@ -247,7 +247,7 @@ class usergroup
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['joindates'] . "</strong>", $forums->admin->print_input_select_row('date_sign', $signlist, $promotion['date_sign']) . $forums->admin->print_input_row("date", $promotion['date'])));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['posts'] . "</strong>", $forums->admin->print_input_select_row('posts_sign', $signlist, $promotion['posts_sign']) . $forums->admin->print_input_row("posts", $promotion['posts'])));
 
-		$row = $DB->query_first('SELECT name
+		$row = $DB->queryFirst('SELECT name
 			FROM ' . TABLE_PREFIX . 'credit
 			WHERE tag = \'reputation\'');
 		$forums->lang['reputation'] = $row['name'];
@@ -297,7 +297,7 @@ class usergroup
 		{
 			$forums->admin->print_cp_error($forums->lang['istoppromotion']);
 		}
-		if (!$group = $DB->query_first("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::int('usergroupid') . ""))
+		if (!$group = $DB->queryFirst("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::int('usergroupid') . ""))
 		{
 			$forums->admin->print_cp_error($forums->lang['promotiongroupnotfound']);
 		}
@@ -335,7 +335,7 @@ class usergroup
 		global $forums, $DB;
 		if (input::str('update'))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "userpromotion WHERE userpromotionid = " . input::get('userpromotionid', '') . "");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "userpromotion WHERE userpromotionid = " . input::get('userpromotionid', '') . "");
 			$forums->admin->save_log($forums->lang['deletepromotion']);
 			$forums->admin->redirect("usergroup.php?do=promotions", $forums->lang['userpromotion'], $forums->lang['promotiondeleted']);
 		}
@@ -362,7 +362,7 @@ class usergroup
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (! $perms = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . ""))
+		if (! $perms = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . ""))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
@@ -448,7 +448,7 @@ class usergroup
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$perms = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "usergroup");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$perms[ $r['usergroupid'] ] = $forums->lang[ $r['grouptitle'] ];
 		}
@@ -474,7 +474,7 @@ class usergroup
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$group = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . "");
+		$group = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . "");
 		$gid = $group['usergroupid'];
 		$gname = $forums->lang[ $group['grouptitle'] ];
 		$forums->lang['editgroupperms'] = sprintf($forums->lang['editgroupperms'], $gname);
@@ -561,7 +561,7 @@ class usergroup
 		$gid = input::get('id', '');
 		$thisgroup = false;
 		$forumpermission = $DB->query("SELECT * FROM " . TABLE_PREFIX . "usergroup ORDER BY usergroupid");
-		while ($group = $DB->fetch_array($forumpermission))
+		while ($group = $DB->fetch($forumpermission))
 		{
 			if (input::int('id') == $group['usergroupid'])
 			{
@@ -597,7 +597,7 @@ class usergroup
 			$forums->admin->print_cp_error($forums->lang['nogroupperms']);
 		}
 		$forumperms = $DB->query("SELECT * FROM " . TABLE_PREFIX . "forum");
-		while ($row = $DB->fetch_array($forumperms))
+		while ($row = $DB->fetch($forumperms))
 		{
 			$perms = unserialize($row['permissions']);
 			$newperms = array();
@@ -732,15 +732,15 @@ class usergroup
 		{
 			$forums->admin->print_cp_error($forums->lang['cannotdeletepregroup']);
 		}
-		$black_adder = $DB->query_first("SELECT COUNT(id) as users FROM " . TABLE_PREFIX . "user WHERE usergroupid=" . input::get('id', '') . "");
+		$black_adder = $DB->queryFirst("SELECT COUNT(id) as users FROM " . TABLE_PREFIX . "user WHERE usergroupid=" . input::get('id', '') . "");
 		if ($black_adder['users'] < 1)
 		{
 			$black_adder['users'] = 0;
 		}
-		$group = $DB->query_first("SELECT grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . "");
+		$group = $DB->queryFirst("SELECT grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . "");
 		$DB->query("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid <> " . input::get('id', '') . "");
 		$usergroup = array();
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$usergroup[] = array($r['usergroupid'], $forums->lang[ $r['grouptitle'] ]);
 		}
@@ -780,7 +780,7 @@ class usergroup
 		$DB->delete(TABLE_PREFIX . 'usergroup', 'usergroupid = ' . input::get('id', ''));
 		$DB->delete(TABLE_PREFIX . 'moderator', 'isgroup = 1 AND usergroupid = ' . input::get('id', ''));
 
-		$result = $DB->query_first("SELECT grouptitle, groupranks
+		$result = $DB->queryFirst("SELECT grouptitle, groupranks
 				FROM " . TABLE_PREFIX . 'usergroup
 			WHERE usergroupid = ' . input::get('id', ''));
 
@@ -908,8 +908,8 @@ class usergroup
 		else
 		{
 			$DB->insert(TABLE_PREFIX . 'usergroup', $usergroup);
-			$usergroupid = $DB->insert_id();
-			$DB->query_unbuffered('UPDATE ' . TABLE_PREFIX . 'usergroup SET displayorder = ' . $usergroupid . ' WHERE usergroupid = ' . $usergroupid);
+			$usergroupid = $DB->insertId();
+			$DB->queryUnbuffered('UPDATE ' . TABLE_PREFIX . 'usergroup SET displayorder = ' . $usergroupid . ' WHERE usergroupid = ' . $usergroupid);
 			$forums->admin->save_log($forums->lang['usergroupadded'] . " - '{$forums->lang[ input::get('grouptitle', '') ]}'");
 		}
 
@@ -969,7 +969,7 @@ class usergroup
 		$group = array();
 		if (input::get('id', '') != "")
 		{
-			$group = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . "");
+			$group = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid=" . input::get('id', '') . "");
 		}
 
 		$translatetitle = $translaterank = '';
@@ -1149,7 +1149,7 @@ class usergroup
 		         GROUP BY g.usergroupid ORDER BY g.displayorder");
 		$i = 0;
 
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$i++;
 			$del = '&nbsp;';
@@ -1230,7 +1230,7 @@ class usergroup
 			}
 			if (!empty($ugids))
 			{
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "usergroup
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "usergroup
 					SET displayorder = CASE $orderssql ELSE 0 END
 					WHERE usergroupid IN (0$ugids)");
 			}

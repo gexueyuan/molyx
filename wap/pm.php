@@ -137,7 +137,7 @@ class newprivate
 	function ignorepm()
 	{
 		global $forums, $DB, $bbuserinfo;
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
 		redirect("index.php{$forums->sessionurl}");
 	}
 
@@ -184,9 +184,9 @@ class newprivate
 		}
 		$contents = "";
 		$i = 0;
-		if ($DB->num_rows($pms))
+		if ($DB->numRows($pms))
 		{
-			while ($pm = $DB->fetch_array($pms))
+			while ($pm = $DB->fetch($pms))
 			{
 				++$i;
 				$contents .= "<p>";
@@ -211,7 +211,7 @@ class newprivate
 		$forums->lang['nextlink'] = $nextpage ? convert($forums->lang['nextlink']) : '';
 		if ($this->folderid == 0 AND $bbuserinfo['pmunread'] > 0)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
 		}
 		if ($prevpage OR $nextpage)
 		{
@@ -245,7 +245,7 @@ class newprivate
 				 LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid)
 				 LEFT JOIN " . TABLE_PREFIX . "user u ON (p.fromuserid=u.id)
 				WHERE p.pmid = $id");
-		if ($pm = $DB->fetch_array())
+		if ($pm = $DB->fetch())
 		{
 			if ($pm['userid'] != $bbuserinfo['id'] && $pm['usergroupid'] != -1 && !preg_match("/," . $bbuserinfo['usergroupid'] . ",/i", "," . $pm['usergroupid'] . ","))
 			{
@@ -266,11 +266,11 @@ class newprivate
 		}
 		if ($bbuserinfo['pmunread'] > 0)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
 		}
 		if ($pm['pmread'] < 1)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pm SET pmread=1, pmreadtime=" . TIMENOW . " WHERE pmid = $id");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "pm SET pmread=1, pmreadtime=" . TIMENOW . " WHERE pmid = $id");
 		}
 		$dateline = $forums->func->get_date($pm['dateline'], 2);
 		$username = convert($pm['username']);
@@ -365,7 +365,7 @@ class newprivate
 										WHERE " . $query . " AND p.pmid " . $id_string . "");
 		$final_ids = array();
 		$final_pms = array();
-		while ($i = $DB->fetch_array($pms))
+		while ($i = $DB->fetch($pms))
 		{
 			if ($i['usergroupid'] != 0) continue;
 			$extra = "";
@@ -383,24 +383,24 @@ class newprivate
 		}
 		if (count($final_pms))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE pmid IN (" . implode(',', $final_pms) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE pmid IN (" . implode(',', $final_pms) . ")");
 		}
 		if (count($final_ids))
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pmtext SET deletedcount=deletedcount+1 WHERE pmtextid IN (" . implode(',', $final_ids) . ")");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "pmtext SET deletedcount=deletedcount+1 WHERE pmtextid IN (" . implode(',', $final_ids) . ")");
 		}
 		$deleted_ids = array();
 		$attachmentids = array();
 		$DB->query("SELECT pmtextid FROM " . TABLE_PREFIX . "pmtext WHERE deletedcount >= savedcount");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$deleted_ids[] = $r['pmtextid'];
 		}
 		if (count($deleted_ids))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE pmtextid IN (" . implode(',', $deleted_ids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE pmtextid IN (" . implode(',', $deleted_ids) . ")");
 			$DB->query("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE pmid IN (" . implode(',', $deleted_ids) . ")");
-			while ($a = $DB->fetch_array())
+			while ($a = $DB->fetch())
 			{
 				$attachmentids[] = $a['attachmentid'];
 				if ($a['location'])
@@ -414,7 +414,7 @@ class newprivate
 			}
 			if (count($attachmentids))
 			{
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid IN (" . implode(',', $attachmentids) . ")");
+				$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid IN (" . implode(',', $attachmentids) . ")");
 			}
 		}
 	}
@@ -435,7 +435,7 @@ class newprivate
 
 		if ($userid)
 		{
-			$user = $DB->query_first("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'");
+			$user = $DB->queryFirst("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'");
 			if ($user['id'])
 			{
 				$username = $user['name'];
@@ -449,7 +449,7 @@ class newprivate
 		$showuser = true;
 		if ($getpmid)
 		{
-			$pm = $DB->query_first("SELECT u.id,u.name, p.*
+			$pm = $DB->queryFirst("SELECT u.id,u.name, p.*
 				FROM " . TABLE_PREFIX . "pm p
 				 LEFT JOIN " . TABLE_PREFIX . "user u ON (p.touserid=u.id)
 				WHERE p.pmid=" . $getpmid . " AND p.userid=" . $bbuserinfo['id'] . "");
@@ -500,7 +500,7 @@ class newprivate
 		$u = input::int('u');
 		if ($u)
 		{
-			$user = $DB->query_first("SELECT name FROM " . TABLE_PREFIX . "user WHERE id = $u");
+			$user = $DB->queryFirst("SELECT name FROM " . TABLE_PREFIX . "user WHERE id = $u");
 			$username = $user['name'];
 		}
 		else
@@ -533,7 +533,7 @@ class newprivate
 		{
 			return $this->newpm($forums->lang['toomanyusers'] . ': ' . $usercounts);
 		}
-		$total = $DB->query_first("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . "");
+		$total = $DB->queryFirst("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . "");
 		if ($savecopy AND ($total['pmtotal'] + 1) > $bbuserinfo['pmquota'])
 		{
 			return $this->newpm($forums->lang['pmquotafull']);
@@ -542,7 +542,7 @@ class newprivate
 		foreach ($touser AS $username)
 		{
 			if ($username == '' OR strlen($username) > 60) continue;
-			if (! $user = $DB->query_first("
+			if (! $user = $DB->queryFirst("
 						SELECT u.id, u.name, u.pmtotal, u.options, u.email, u.emailcharset, u.pmfolders, g.pmquota, p.id AS banid
 						FROM " . TABLE_PREFIX . "user u
 						LEFT JOIN " . TABLE_PREFIX . "usergroup g ON (u.usergroupid=g.usergroupid)
@@ -589,20 +589,20 @@ class newprivate
 			}
 			return $this->newpm($showerrors);
 		}
-		$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "pmtext
+		$DB->queryUnbuffered("INSERT INTO " . TABLE_PREFIX . "pmtext
 								(dateline, message, savedcount, posthash, fromuserid)
 							VALUES
 								(" . TIMENOW . ", '" . addslashes($message) . "', " . $usercounts . ", '" . $this->posthash . "', " . $bbuserinfo['id'] . ")"
 			);
-		$pmtextid = $DB->insert_id();
+		$pmtextid = $DB->insertId();
 		foreach ($touserlist AS $userid => $to_user)
 		{
-			$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "pm
+			$DB->queryUnbuffered("INSERT INTO " . TABLE_PREFIX . "pm
 									(messageid, dateline, title, fromuserid, touserid, folderid, tracking, attach, userid)
 								VALUES
 									(" . $pmtextid . ", " . TIMENOW . ", '" . addslashes($title) . "', " . $bbuserinfo['id'] . ", " . $to_user['id'] . ", 0, 0, 0, " . $to_user['id'] . ")"
 				);
-			$pmid = $DB->insert_id();
+			$pmid = $DB->insertId();
 			$this->lib->rebuild_foldercount($to_user['id'], "", '0', '-1', 'save', ",pmtotal=pmtotal+1, pmunread=pmunread+1");
 			if ($to_user['emailonpm'])
 			{

@@ -28,8 +28,8 @@ class cron_renameupload
 			{
 				$bboptions['uploadurl'] = $bboptions['bburl'] . '/data/upload_' . $tmp;
 				$bboptions['uploadfolder'] = $this->root_path . 'data/upload_' . $tmp;
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "setting SET value='" . $bboptions['uploadurl'] . "' WHERE varname='uploadurl'");
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "setting SET value='" . $bboptions['uploadfolder'] . "' WHERE varname='uploadfolder'");
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "setting SET value='" . $bboptions['uploadurl'] . "' WHERE varname='uploadurl'");
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "setting SET value='" . $bboptions['uploadfolder'] . "' WHERE varname='uploadfolder'");
 				$forums->cache['settings'] = $bboptions;
 				$forums->func->update_cache(array('name' => 'settings', 'array' => 1));
 				$this->class->cronlog($this->cron, $forums->lang['renameupload'] . ' - upload_' . $tmp);

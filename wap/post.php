@@ -32,7 +32,7 @@ class newthread
 		if ($t)
 		{
 			$this->type = 'reply';
-			$this->thread = $DB->query_first("SELECT t.*, u.usergroupid
+			$this->thread = $DB->queryFirst("SELECT t.*, u.usergroupid
 				FROM " . TABLE_PREFIX . "thread t
 					LEFT JOIN " . TABLE_PREFIX . "user u
 						ON (t.postuserid = u.id)
@@ -149,14 +149,14 @@ class newthread
 				'visible' => ($this->lib->obj['moderate'] == 1 || $this->lib->obj['moderate'] == 2) ? 0 : 1,
 			);
 			$DB->insert(TABLE_PREFIX . 'thread', $this->thread);
-			$this->post['threadid'] = $DB->insert_id();
+			$this->post['threadid'] = $DB->insertId();
 			$this->thread['tid'] = $this->post['threadid'];
 			$this->post['newthread'] = 1;
 			$this->post['moderate'] = 0;
 			$this->post['posttype'] = 1; //自wap发表
 			$DB->insert(TABLE_PREFIX . 'post', $this->post);
-			$this->post['pid'] = $DB->insert_id();
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET firstpostid=" . $this->post['pid'] . ",lastpostid=" . $this->post['pid'] . " WHERE tid='" . $this->thread['tid'] . "'");
+			$this->post['pid'] = $DB->insertId();
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET firstpostid=" . $this->post['pid'] . ",lastpostid=" . $this->post['pid'] . " WHERE tid='" . $this->thread['tid'] . "'");
 			$this->lib->stats_recount($this->post['threadid'], 'new');
 			$this->lib->posts_recount();
 			$this->credit->update_credit('newthread', $bbuserinfo['id'], $bbuserinfo['usergroupid'], $this->thread['forumid']);
@@ -171,11 +171,11 @@ class newthread
 			$this->post['posttype'] = 1; //自wap发表
 			$this->lastpost = $this->thread['lastpost'];
 			$DB->insert(TABLE_PREFIX . 'post', $this->post);
-			$this->post['pid'] = $DB->insert_id();
+			$this->post['pid'] = $DB->insertId();
 			$this->lib->stats_recount($this->post['threadid'], 'reply');
-			$post = $DB->query_first("SELECT COUNT(*) as posts FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND moderate != 1");
+			$post = $DB->queryFirst("SELECT COUNT(*) as posts FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND moderate != 1");
 			$postcount = intval($post['posts'] - 1);
-			$modpost = $DB->query_first("SELECT COUNT(*) as posts FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND moderate = 1");
+			$modpost = $DB->queryFirst("SELECT COUNT(*) as posts FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND moderate = 1");
 			$modpostcount = intval($modpost['posts']);
 			$poster_name = $bbuserinfo['id'] ? $bbuserinfo['name'] : input::str('username');
 			$update_array = array('post' => $postcount,
@@ -191,16 +191,16 @@ class newthread
 			$DB->update(TABLE_PREFIX . 'thread', $update_array, 'tid = ' . $this->thread['tid']);
 			$this->lib->posts_recount();
 			$hideposts = $DB->query("SELECT pid, userid, hidepost FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND hidepost!=''");
-			if ($DB->num_rows($hideposts))
+			if ($DB->numRows($hideposts))
 			{
-				while ($hidepost = $DB->fetch_array($hideposts))
+				while ($hidepost = $DB->fetch($hideposts))
 				{
 					$hideinfo = unserialize($hidepost['hidepost']);
 					if ($hideinfo['type'] == '111' AND $hidepost['userid'] != $bbuserinfo['id'])
 					{
 						if (is_array($hideinfo['buyers']) AND in_array($bbuserinfo['name'], $hideinfo['buyers'])) continue;
 						$hideinfo['buyers'][] = $bbuserinfo['name'];
-						$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "post SET hidepost='" . addslashes(serialize($hideinfo)) . "' WHERE pid='" . $hidepost['pid'] . "'");
+						$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "post SET hidepost='" . addslashes(serialize($hideinfo)) . "' WHERE pid='" . $hidepost['pid'] . "'");
 					}
 				}
 			}

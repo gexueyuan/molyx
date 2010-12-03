@@ -23,7 +23,7 @@ class adminfunctions_forum
 		{
 			return '-1';
 		}
-		$foruminfo = $DB->query_first('SELECT parentid FROM ' . TABLE_PREFIX . "forum WHERE id = $forumid");
+		$foruminfo = $DB->queryFirst('SELECT parentid FROM ' . TABLE_PREFIX . "forum WHERE id = $forumid");
 		$forumarray = $forumid;
 		if ($foruminfo['parentid'] != 0)
 		{
@@ -57,7 +57,7 @@ class adminfunctions_forum
 			}
 			else
 			{
-				$foruminfo = $DB->query_first("SELECT parentlist FROM " . TABLE_PREFIX . "forum WHERE id = $forumid");
+				$foruminfo = $DB->queryFirst("SELECT parentlist FROM " . TABLE_PREFIX . "forum WHERE id = $forumid");
 				$forumarraycache["$forumid"] = $foruminfo['parentlist'];
 				return $foruminfo['parentlist'];
 			}
@@ -73,10 +73,10 @@ class adminfunctions_forum
 			WHERE FIND_IN_SET('$forumid', parentlist)
 			ORDER BY parents ASC
 		");
-		while ($forum = $DB->fetch_array($forumlist))
+		while ($forum = $DB->fetch($forumlist))
 		{
 			$parentlist = $this->fetch_forum_parentlist($forum['id']);
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET parentlist = '" . addslashes($parentlist) . "' WHERE id = $forum[id]");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum SET parentlist = '" . addslashes($parentlist) . "' WHERE id = $forum[id]");
 		}
 	}
 
@@ -84,10 +84,10 @@ class adminfunctions_forum
 	{
 		global $DB;
 		$forumlist = $DB->query("SELECT id FROM " . TABLE_PREFIX . "forum WHERE FIND_IN_SET('$forumid', childlist)");
-		while ($forum = $DB->fetch_array($forumlist))
+		while ($forum = $DB->fetch($forumlist))
 		{
 			$childlist = $this->construct_child_list($forum['id']);
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET childlist = '$childlist' WHERE id = $forum[id]");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum SET childlist = '$childlist' WHERE id = $forum[id]");
 		}
 	}
 
@@ -100,7 +100,7 @@ class adminfunctions_forum
 		}
 		$childlist = $forumid;
 		$children = $DB->query("SELECT id FROM " . TABLE_PREFIX . "forum WHERE parentlist LIKE '%,$forumid,%'");
-		while ($child = $DB->fetch_array($children))
+		while ($child = $DB->fetch($children))
 		{
 			$childlist .= ',' . $child['id'];
 		}
@@ -220,7 +220,7 @@ class adminfunctions_forum
 			$forumlist = $DB->query('SELECT *
 				FROM ' . TABLE_PREFIX . 'forum
 				ORDER BY parentid, displayorder');
-			while ($forum = $DB->fetch_array($forumlist))
+			while ($forum = $DB->fetch($forumlist))
 			{
 				$fcache[$forum['parentid']][$forum['displayorder']][$forum['id']] = $forum;
 				if ($parentid != $forum['parentid'])

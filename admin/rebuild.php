@@ -62,10 +62,10 @@ class rebuild
 		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = array();
-		$tmp = $DB->query_first("SELECT attachmentid FROM " . TABLE_PREFIX . "attachment WHERE attachmentid > " . $end . "");
+		$tmp = $DB->queryFirst("SELECT attachmentid FROM " . TABLE_PREFIX . "attachment WHERE attachmentid > " . $end . "");
 		$max = intval($tmp['attachmentid']);
 		$ra = $DB->query("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE attachmentid >= " . $start . " AND attachmentid < " . $end . " ORDER BY attachmentid ASC");
-		while ($r = $DB->fetch_array($ra))
+		while ($r = $DB->fetch($ra))
 		{
 			$update = array();
 			$update['extension'] = strtolower(strrchr($r['filename'], '.'));
@@ -106,12 +106,12 @@ class rebuild
 		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = array();
-		$tmp = $DB->query_first("SELECT attachmentid FROM " . TABLE_PREFIX . "attachment WHERE attachmentid > " . $end . "");
+		$tmp = $DB->queryFirst("SELECT attachmentid FROM " . TABLE_PREFIX . "attachment WHERE attachmentid > " . $end . "");
 		$max = intval($tmp['attachmentid']);
 		require_once(ROOT_PATH . 'includes/functions_image.php');
 		$image = new functions_image();
 		$rt = $DB->query("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE attachmentid >= " . $start . " AND attachmentid < " . $end . " ORDER BY attachmentid ASC");
-		while ($r = $DB->fetch_array($rt))
+		while ($r = $DB->fetch($rt))
 		{
 			if ($r['image'])
 			{
@@ -188,13 +188,13 @@ class rebuild
 			FROM " . TABLE_PREFIX . "user
 			WHERE id >= " . $start . " AND id < " . $end . "
 			ORDER BY id ASC");
-		while ($r = $DB->fetch_array($usercount))
+		while ($r = $DB->fetch($usercount))
 		{
 			$new_post_count = 0;
 			foreach ($splittable as $id => $v)
 			{
 				if ($v['isempty']) continue;
-				$count = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "{$v['name']} WHERE userid=" . $r['id'] . " AND moderate != 1");
+				$count = $DB->queryFirst("SELECT count(*) as count FROM " . TABLE_PREFIX . "{$v['name']} WHERE userid=" . $r['id'] . " AND moderate != 1");
 				$new_post_count += intval($count['count']);
 			}
 			$DB->update(TABLE_PREFIX . 'user', array('posts' => $new_post_count), 'id=' . $r['id']);
@@ -224,7 +224,7 @@ class rebuild
 		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = $splittable = array();
-		$tmp = $DB->query_first("SELECT id FROM " . TABLE_PREFIX . "user WHERE id > " . $end . "");
+		$tmp = $DB->queryFirst("SELECT id FROM " . TABLE_PREFIX . "user WHERE id > " . $end . "");
 		$max = intval($tmp['id']);
 
 		$forums->func->recache('splittable');
@@ -232,7 +232,7 @@ class rebuild
 		$splittable = $forums->cache['splittable']['all'];
 
 		$user = $DB->query("SELECT id, name FROM " . TABLE_PREFIX . "user WHERE id >= " . $start . " AND id < " . $end . " ORDER BY id ASC");
-		while ($r = $DB->fetch_array($user))
+		while ($r = $DB->fetch($user))
 		{
 			$DB->update(TABLE_PREFIX . 'pmuserlist', array('contactname' => $r['name']), "contactid=" . $r['id']);
 			$DB->update(TABLE_PREFIX . 'moderatorlog', array('username' => $r['name']), 'userid=' . $r['id']);
@@ -285,7 +285,7 @@ class rebuild
 			if ($v['isempty']) continue;
 			if ($v['isdefaulttable'] && $v['maxpid'] <= 0)
 			{
-				$getmax = $DB->query_first("SELECT max(pid) as maxpid FROM " . TABLE_PREFIX . $v['name']);
+				$getmax = $DB->queryFirst("SELECT max(pid) as maxpid FROM " . TABLE_PREFIX . $v['name']);
 				$DB->update(TABLE_PREFIX . 'splittable', array('maxpid'=>intval($getmax['maxpid'])), "id = $id");
 				$v['maxpid'] = $getmax['maxpid'];
 			}
@@ -330,7 +330,7 @@ class rebuild
 						ON t.forumid = f.id
 					WHERE p.pid >= " . $v['start'] . " AND p.pid < " . $v['end'] . "
 					ORDER BY p.pid ASC");
-				while ($row = $DB->fetch_array($result))
+				while ($row = $DB->fetch($result))
 				{
 					$posts[$row['pid']] = $row;
 					$posts[$row['pid']]['posttable'] = $table;
@@ -381,10 +381,10 @@ class rebuild
 		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = $tids = array();
-		$tmp = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE tid > " . $end . "");
+		$tmp = $DB->queryFirst("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE tid > " . $end . "");
 		$max = intval($tmp['count']);
 		$thread = $DB->query("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid >= " . $start . " AND tid < " . $end . " ORDER BY tid ASC");
-		while ($r = $DB->fetch_array($thread))
+		while ($r = $DB->fetch($thread))
 		{
 			$tids[] = $r['tid'];
 			if (input::get('percycle', '') <= 200)
@@ -420,7 +420,7 @@ class rebuild
 		$end = input::get('percycle', '') ? input::int('percycle') : 100;
 		$end += $start;
 		$output = array();
-		$tmp = $DB->query_first("SELECT COUNT(*) as count
+		$tmp = $DB->queryFirst("SELECT COUNT(*) as count
 			FROM " . TABLE_PREFIX . "forum
 			WHERE id > " . $end);
 		$max = intval($tmp['count']);
@@ -428,7 +428,7 @@ class rebuild
 			FROM " . TABLE_PREFIX . "forum
 			WHERE id >= " . $start . " AND id < " . $end . "
 			ORDER BY id ASC");
-		while ($r = $DB->fetch_array($forumid))
+		while ($r = $DB->fetch($forumid))
 		{
 			$modfunc->forum_recount($r['id'], false);
 			$output[] = $forums->lang['rebulidforumtitle'] . " - " . $r['name'];

@@ -171,10 +171,10 @@ class session
 			{
 				$this->user['loggedin'] = 1;
 				$this->user['options'] = $forums->func->convert_array_to_bits($this->user);
-				$DB->shutdown_update(TABLE_PREFIX . 'user', array(
+				$DB->update(TABLE_PREFIX . 'user', array(
 					'options' => $this->user['options'],
 					'lastactivity' => TIMENOW
-				), 'id = ' . $this->user['id']);
+				), 'id = ' . $this->user['id'], SHUTDOWN_QUERY);
 			}
 			if ($this->user['liftban'])
 			{
@@ -192,7 +192,7 @@ class session
 					}
 					elseif ($ban_arr['banposts'] > 0 && $ban_arr['forumid'])
 					{
-						$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "post p," . TABLE_PREFIX . "thread t SET p.state = 0
+						$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "post p," . TABLE_PREFIX . "thread t SET p.state = 0
 							WHERE p.threadid=t.tid and p.userid={$this->user['id']} and t.forumid = {$ban_arr['forumid']}");
 					}
 					$DB->update(TABLE_PREFIX . 'user', array('liftban' => '','usergroupid' => $ban_arr['groupid']), 'id = ' . $this->user['id']);
@@ -274,7 +274,7 @@ class session
 		$userid = intval($userid);
 		if ($userid != 0)
 		{
-			if ($this->user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'"))
+			if ($this->user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'"))
 			{
 				$this->user['options'] = intval($this->user['options']);
 				$forums->func->convert_bits_to_array($this->user, $this->user['options']);
@@ -358,7 +358,7 @@ class session
 		$sessionid = preg_replace("/([^a-zA-Z0-9])/", "", $sessionid);
 		if ($sessionid)
 		{
-			if (!$result = $DB->query_first("SELECT sessionhash, userid, lastactivity, location
+			if (!$result = $DB->queryFirst("SELECT sessionhash, userid, lastactivity, location
 				FROM " . TABLE_PREFIX . 'session
 				WHERE sessionhash = ' . $DB->validate($sessionid) . '
 					AND host = ' . $DB->validate(IPADDRESS)))
@@ -407,7 +407,7 @@ class session
 			$this->user['usergroupid'] = 2;
 			$this->user['invisible'] = 0;
 		}
-		$DB->shutdown_delete(TABLE_PREFIX . 'session', "lastactivity < $cookietimeout");
+		$DB->delete(TABLE_PREFIX . 'session', "lastactivity < $cookietimeout", SHUTDOWN_QUERY);
 		$this->sessionid = substr(md5(uniqid(microtime())), 0, 16);
 
 		$sql_array = array(

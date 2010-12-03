@@ -135,7 +135,7 @@ if (THIS_SCRIPT != 'login' && THIS_SCRIPT != 'register')
 	{
 		if (!$bbuserinfo['canviewoffline'])
 		{
-			$row = $DB->query_first("SELECT *
+			$row = $DB->queryFirst("SELECT *
 				FROM " . TABLE_PREFIX . "setting
 				WHERE varname = 'bbclosedreason'");
 			$message = str_replace("\n", '<br />', $row['value']);
@@ -284,12 +284,12 @@ function check_forumpwd($fid)
 function forums_custom_error($forumid)
 {
 	global $forums, $DB;
-	$error = $DB->query_first("SELECT customerror FROM " . TABLE_PREFIX . "forum WHERE id = $forumid");
+	$error = $DB->queryFirst("SELECT customerror FROM " . TABLE_PREFIX . "forum WHERE id = $forumid");
 	if ($error['customerror'])
 	{
 		$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
 		$contents = convert($error['customerror']);
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "session SET badlocation=1 WHERE sessionhash='" . $forums->sessionid . "'");
+		$DB->update(TABLE_PREFIX . 'session', array('badlocation' => 1), "sessionhash='" . $forums->sessionid . "'", SHUTDOWN_QUERY);
 		include $forums->func->load_template('wap_info');
 		exit;
 	}

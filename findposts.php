@@ -77,7 +77,7 @@ class findposts
 		{
 			$forums->func->standard_error("cannotsearchuser");
 		}
-		$results = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE visible=1 AND forumid IN($forumlist) AND postuserid=$userid");
+		$results = $DB->queryFirst("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE visible=1 AND forumid IN($forumlist) AND postuserid=$userid");
 		if (!$results['count'])
 		{
 			$forums->func->standard_error("nosearchresult");
@@ -130,7 +130,7 @@ class findposts
 		$this->posttable = $splittable['name'] ? $splittable['name'] : 'post';
 		do
 		{
-			$results = $DB->query_first("SELECT count(*) as count
+			$results = $DB->queryFirst("SELECT count(*) as count
 				FROM " . TABLE_PREFIX . $this->posttable . " p
 				LEFT JOIN " . TABLE_PREFIX . "thread t ON (p.threadid=t.tid)
 				WHERE p.moderate != 1 AND p.newthread=0 AND t.forumid IN(" . $forumlist . ") AND p.userid=" . $userid . "");
@@ -186,7 +186,7 @@ class findposts
 		{
 			$query_condition = ' AND postuserid=' . $userid;
 		}
-		$results = $DB->query_first("SELECT count(*) as count
+		$results = $DB->queryFirst("SELECT count(*) as count
 			FROM " . TABLE_PREFIX . "thread
 			WHERE quintessence=1 AND forumid IN(" . $forumlist . ")" . $query_condition);
 		if (!$results['count'])
@@ -239,7 +239,7 @@ class findposts
 			$forums->func->standard_error("selectsearchforum");
 		}
 
-		$results = $DB->query_first("SELECT count(*) as count
+		$results = $DB->queryFirst("SELECT count(*) as count
 			FROM " . TABLE_PREFIX . "thread
 			WHERE visible = 1
 				AND lastpost > '" . $last_time . "'
@@ -292,7 +292,7 @@ class findposts
 		$this->posttable = $splittable['name'] ? $splittable['name'] : 'post';
 		do
 		{
-			$results = $DB->query_first("SELECT count(*) as count
+			$results = $DB->queryFirst("SELECT count(*) as count
 													FROM " . TABLE_PREFIX . $this->posttable . " p
 													LEFT JOIN " . TABLE_PREFIX . "thread t ON (p.threadid=t.tid)
 													WHERE p.moderate = 1 AND t.forumid IN(" . $forumlist . ")"

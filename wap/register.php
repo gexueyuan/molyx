@@ -102,7 +102,7 @@ class register
 		{
 			return $this->start_register('erroremail');
 		}
-		$checkuser = $DB->query_first("SELECT id, name, email, usergroupid, password, host, salt
+		$checkuser = $DB->queryFirst("SELECT id, name, email, usergroupid, password, host, salt
 				FROM " . TABLE_PREFIX . "user
 				WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'");
 		if (($checkuser['id']) OR ($username == $forums->lang['guest']))
@@ -110,14 +110,14 @@ class register
 			return $this->start_register('namealreadyexist');
 		}
 		$DB->query("SELECT email FROM " . TABLE_PREFIX . "user WHERE email = '" . $email . "'");
-		if ($DB->num_rows() != 0)
+		if ($DB->numRows() != 0)
 		{
 			$this->start_register('mailalreadyexist');
 			return;
 		}
 		$banfilter = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "banfilter WHERE type != 'title'");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$banfilter[ $r['type'] ][] = $r['content'];
 		}
@@ -193,7 +193,7 @@ class register
 		);
 
 		$DB->insert(TABLE_PREFIX . 'user', $user);
-		$user['id'] = $DB->insert_id();
+		$user['id'] = $DB->insertId();
 
 		$activationkey = md5($forums->func->make_password() . TIMENOW);
 		if (($bboptions['moderatememberstype'] == 'user') OR ($bboptions['moderatememberstype'] == 'admin'))
@@ -234,7 +234,7 @@ class register
 		}
 		else
 		{
-			$DB->update_case(CACHE_TABLE, 'title', array(
+			$DB->updateCase(CACHE_TABLE, 'title', array(
 				'data' => array(
 					'numbermembers' => array(1, '+'),
 					'newusername' => $user['name'],

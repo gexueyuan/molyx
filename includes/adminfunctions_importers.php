@@ -16,20 +16,20 @@ class adminfunctions_importers
 		$DB->return_die = 1;
 		if ($doclear == 1)
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "user WHERE importuserid<>0 AND isnew=1");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "user WHERE importuserid<>0 AND isnew=1");
 
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "forum WHERE importforumid<>0 OR importcategoryid<>0");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "subscribeforumid WHERE importsubscribeforumid<>0");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "moderator WHERE importmoderatorid<>0");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "forum WHERE importforumid<>0 OR importcategoryid<>0");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "subscribeforumid WHERE importsubscribeforumid<>0");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "moderator WHERE importmoderatorid<>0");
 
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "thread WHERE threadid > 1");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "post WHERE postid > 1");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "poll WHERE importpollid <> ''");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "subscribethread WHERE importsubscribethreadid<>0");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE importattachmentid <> 0");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE importpmid<>0");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE importpmtextid<>0");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "usergroup WHERE importusergroupid<>0");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "thread WHERE threadid > 1");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "post WHERE postid > 1");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "poll WHERE importpollid <> ''");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "subscribethread WHERE importsubscribethreadid<>0");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE importattachmentid <> 0");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE importpmid<>0");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE importpmtextid<>0");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "usergroup WHERE importusergroupid<>0");
 		}
 		$DB->query("DROP TABLE " . TABLE_PREFIX . "importtable");
 		$DB->query("ALTER TABLE " . TABLE_PREFIX . "user DROP importuserid");
@@ -86,11 +86,11 @@ class adminfunctions_importers
 		$DB->query("ALTER TABLE " . TABLE_PREFIX . "pm ADD importpmid INT (10) not null");
 		$DB->query("ALTER TABLE " . TABLE_PREFIX . "pmtext ADD importpmtextid INT (10) not null");
 		$DB->query("ALTER TABLE " . TABLE_PREFIX . "attachment ADD importattachmentid INT (10) not null");
-		$DB->free_result();
+		$DB->freeResult();
 		$DB->query("SELECT usergroupid FROM " . TABLE_PREFIX . "usergroup WHERE grouptitle='时没'");
-		if ($DB->num_rows() == 0)
+		if ($DB->numRows() == 0)
 		{
-			$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "usergroup (title,usertitle,importusergroupid) VALUES ('时没','Banned',1)");
+			$DB->queryUnbuffered("INSERT INTO " . TABLE_PREFIX . "usergroup (title,usertitle,importusergroupid) VALUES ('时没','Banned',1)");
 		}
 		$DB->return_die = 0;
 	}
@@ -127,7 +127,7 @@ class adminfunctions_importers
 	{
 		global $DB;
 		$users = $DB->query("SELECT id,name,importuserid FROM " . TABLE_PREFIX . "user WHERE importuserid<>0");
-		while ($user = $DB->fetch_array($users))
+		while ($user = $DB->fetch($users))
 		{
 			$importuserid = $user['importuserid'];
 			$userid[$importuserid] = array('id' => $user['id'], 'name' => $user['name']);
@@ -139,7 +139,7 @@ class adminfunctions_importers
 	{
 		global $DB;
 		$forums = $DB->query("SELECT id,name,importcategoryid FROM " . TABLE_PREFIX . "forum WHERE importcategoryid<>0");
-		while ($forum = $DB->fetch_array($forums))
+		while ($forum = $DB->fetch($forums))
 		{
 			$impforumid = intval($forum['importcategoryid']);
 			$categoryid[$impforumid] = $forum['id'];
@@ -151,7 +151,7 @@ class adminfunctions_importers
 	{
 		global $DB;
 		$forums = $DB->query("SELECT id,name,importforumid FROM " . TABLE_PREFIX . "forum WHERE importforumid<>0");
-		while ($forum = $DB->fetch_array($forums))
+		while ($forum = $DB->fetch($forums))
 		{
 			$impforumid = intval($forum['importforumid']);
 			$forumid[$impforumid] = $forum['id'];
@@ -163,7 +163,7 @@ class adminfunctions_importers
 	{
 		global $DB;
 		$polls = $DB->query("SELECT pollid,importpollid FROM " . TABLE_PREFIX . "poll WHERE importpollid<>0");
-		while ($poll = $DB->fetch_array($polls))
+		while ($poll = $DB->fetch($polls))
 		{
 			$importpollid = $poll['importpollid'];
 			$pollid[$importpollid] = $poll['pollid'];
@@ -221,7 +221,7 @@ class adminfunctions_importers
 			$iuser = $this->dovalue($user, $cachekeys);
 			$DB->insert(TABLE_PREFIX . 'user', $iuser);
 		}
-		$userid = $DB->insert_id();
+		$userid = $DB->insertId();
 		$userimported = sprintf($forums->lang['userimported'], utf8::htmlspecialchars($user['name']));
 		$this->echo_flush($userimported . (input::int('pause') ? "<a href=" . ROOT_PATH . "" . ROOT_PATH . "user.php?" . $forums->sessionurl . "do=doform&amp;u=" . $userid . "' target='_blank'>" . $forums->lang['edit'] . "</a>" : "") . "<br /><br />\n\n");
 		return $userid;
@@ -252,7 +252,7 @@ class adminfunctions_importers
 				}
 			}
 			$DB->insert(TABLE_PREFIX . 'pmtext', $ipmtext);
-			$ipm['messageid'] = $DB->insert_id();
+			$ipm['messageid'] = $DB->insertId();
 			$DB->insert(TABLE_PREFIX . 'pm', $ipm);
 		}
 		$pmimported = sprintf($forums->lang['pmimported'], $pm['name']);
@@ -272,9 +272,9 @@ class adminfunctions_importers
 			$icategory = $this->dovalue($category, $ccachekeys);
 			$DB->insert(TABLE_PREFIX . 'forum', $icategory);
 		}
-		$categoryid = $DB->insert_id();
+		$categoryid = $DB->insertId();
 		$categoryimported = sprintf($forums->lang['categoryimported'], utf8::htmlspecialchars($category['name']));
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET parentlist='$categoryid,-1' WHERE id='$categoryid'");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum SET parentlist='$categoryid,-1' WHERE id='$categoryid'");
 		$this->echo_flush($categoryimported . "<br /><br />");
 		return $categoryid;
 	}
@@ -291,9 +291,9 @@ class adminfunctions_importers
 			$iforum = $this->dovalue($forum, $fcachekeys);
 			$DB->insert(TABLE_PREFIX . 'forum', $iforum);
 		}
-		$forumid = $DB->insert_id();
+		$forumid = $DB->insertId();
 		$parentlist = $forumid . ',' . $forums->adminforum->fetch_forum_parentlist($forum['parentid']);
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET parentlist='$parentlist' WHERE id='$forumid'");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum SET parentlist='$parentlist' WHERE id='$forumid'");
 		$forumimported = sprintf($forums->lang['forumimported'], utf8::htmlspecialchars($forum['name']));
 		$this->echo_flush($forumimported . "<br /><br />");
 		return $forumid;
@@ -311,7 +311,7 @@ class adminfunctions_importers
 			$imoderator = $this->dovalue($moderator, $mcachekeys);
 			$DB->insert(TABLE_PREFIX . 'moderator', $imoderator);
 		}
-		$moderatorid = $DB->insert_id();
+		$moderatorid = $DB->insertId();
 		$moderatorimported = sprintf($forums->lang['moderatorimported'], utf8::htmlspecialchars($moderator['username']));
 		$this->echo_flush($moderatorimported . "<br /><br />");
 		return $moderatorid;
@@ -329,7 +329,7 @@ class adminfunctions_importers
 			$ithread = $this->dovalue($thread, $tcachekeys);
 			$DB->insert(TABLE_PREFIX . 'thread', $ithread);
 		}
-		$threadid = $DB->insert_id();
+		$threadid = $DB->insertId();
 		$this->echo_flush(" [OK]<br /><br />");
 		return $threadid;
 	}
@@ -346,7 +346,7 @@ class adminfunctions_importers
 			$ipost = $this->dovalue($post, $pcachekeys);
 			$DB->insert(TABLE_PREFIX . 'post', $ipost);
 		}
-		$postid = $DB->insert_id();
+		$postid = $DB->insertId();
 		$postimported = sprintf($forums->lang['postimported'], $postid);
 		$this->echo_flush($postimported . "<br />");
 		return $postid;
@@ -394,7 +394,7 @@ class adminfunctions_importers
 			}
 			$DB->insert(TABLE_PREFIX . 'attachment', $iattachment);
 		}
-		$attachmentid = $DB->insert_id();
+		$attachmentid = $DB->insertId();
 		$attachimported = sprintf($forums->lang['attachimported'], utf8::htmlspecialchars($attachment['filename']));
 		$this->echo_flush($attachimported . "<br />");
 		return $attachmentid;
@@ -412,7 +412,7 @@ class adminfunctions_importers
 			$ipoll = $this->dovalue($poll, $pocachekeys);
 			$DB->insert(TABLE_PREFIX . 'poll', $ipoll);
 		}
-		$pollid = $DB->insert_id();
+		$pollid = $DB->insertId();
 		$pollimported = sprintf($forums->lang['pollimported'], $pollid);
 		$this->echo_flush($pollimported . "<br /><br />");
 		return $pollid;
@@ -423,7 +423,7 @@ class adminfunctions_importers
 		global $DB;
 		$key = array();
 		$keys = $DB->query("DESCRIBE " . TABLE_PREFIX . $table);
-		while ($r = $DB->fetch_array($keys))
+		while ($r = $DB->fetch($keys))
 		{
 			$key[$r['Field']] = $r['Field'];
 		}

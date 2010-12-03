@@ -101,7 +101,7 @@ class register
 				WHERE host != '127.0.0.1'
 					AND host = " . $DB->validate(IPADDRESS) . "
 					AND joindate > {$check_time}");
-			if ($DB->num_rows($result))
+			if ($DB->numRows($result))
 			{
 				$forums->func->standard_error("limit_time_registration", false, $bboptions['reg_ip_time']);
 			}
@@ -111,7 +111,7 @@ class register
 		if (!$step)
 		{
 			$nav = array($forums->lang['register'] . ' - ' . $forums->lang['step1']);
-			$cache = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE varname='registerrule'");
+			$cache = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "setting WHERE varname='registerrule'");
 			$text = $cache['value'] ? $cache['value'] : $cache['defaultvalue'];
 			$text = str_replace("\n", "<br />", $text);
 			$text = str_replace("{bbtitle}", $bboptions['bbtitle'], $text);
@@ -317,7 +317,7 @@ class register
 		{
 			return $this->start_register('erroremail');
 		}
-		$checkuser = $DB->query_first("SELECT id, name, email, usergroupid, password, host, salt
+		$checkuser = $DB->queryFirst("SELECT id, name, email, usergroupid, password, host, salt
 				FROM " . TABLE_PREFIX . "user
 				WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'");
 		if (($checkuser['id']) OR ($username == $forums->lang['guest']))
@@ -325,14 +325,14 @@ class register
 			return $this->start_register('namealreadyexist');
 		}
 		$DB->query("SELECT email FROM " . TABLE_PREFIX . "user WHERE email = '" . $email . "'");
-		if ($DB->num_rows() != 0)
+		if ($DB->numRows() != 0)
 		{
 			$this->start_register('mailalreadyexist');
 			return;
 		}
 		$banfilter = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "banfilter WHERE type != 'title'");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$banfilter[ $r['type'] ][] = $r['content'];
 		}
@@ -376,7 +376,7 @@ class register
 				$this->start_register('badimagehash');
 				return;
 			}
-			if (!$row = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes($regimghash) . "'"))
+			if (!$row = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes($regimghash) . "'"))
 			{
 				return $this->start_register('badimagehash');
 			}
@@ -384,7 +384,7 @@ class register
 			{
 				return $this->start_register('badimagehash');
 			}
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes($regimghash) . "'");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes($regimghash) . "'");
 		}
 
 		$usergroupid = 3;
@@ -393,9 +393,9 @@ class register
 			$usergroupid = 1;
 		}
 		$newusers = $DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE varname = 'newuser_pm'");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($newuser = $DB->fetch_array($newusers))
+			while ($newuser = $DB->fetch($newusers))
 			{
 				if ($newuser['varname'] == 'newuser_pm' AND ($newuser['value'] != '' OR $newuser['defaultvalue'] != ''))
 				{
@@ -444,7 +444,7 @@ class register
 		}
 
 		$DB->insert(TABLE_PREFIX . 'user', $user);
-		$user['id'] = $DB->insert_id();
+		$user['id'] = $DB->insertId();
 		$userexpand = array(
 			'id' => $user['id'],
 		);
@@ -534,12 +534,12 @@ class register
 			$this->reactivationform('errorusername');
 			return;
 		}
-		if (! $user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
+		if (! $user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
 		{
 			$this->reactivationform('namenotexist');
 			return;
 		}
-		if (! $activation = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "useractivation WHERE userid='" . $user['id'] . "'"))
+		if (! $activation = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "useractivation WHERE userid='" . $user['id'] . "'"))
 		{
 			$this->reactivationform('namenotexist');
 			return;
@@ -604,7 +604,7 @@ class register
 		if ($bboptions['enableantispam'])
 		{
 			$passtime = TIMENOW - (60 * 60 * 6);
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "antispam WHERE dateline < " . $passtime . "");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "antispam WHERE dateline < " . $passtime . "");
 			$regimagehash = md5(uniqid(microtime()));
 			$imagestamp = mt_rand(100000, 999999);
 			$DB->insert(TABLE_PREFIX . 'antispam', array(
@@ -641,7 +641,7 @@ class register
 			{
 				return $this->lostpassword('badimagehash');
 			}
-			if (! $row = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes($regimagehash) . "'"))
+			if (! $row = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash='" . addslashes($regimagehash) . "'"))
 			{
 				return $this->lostpassword('badimagehash');
 			}
@@ -655,7 +655,7 @@ class register
 		{
 			return $this->lostpassword('errorusername');
 		}
-		if (! $user = $DB->query_first("SELECT id, name, email, emailcharset, usergroupid FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
+		if (! $user = $DB->queryFirst("SELECT id, name, email, emailcharset, usergroupid FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
 		{
 			return $this->lostpassword('namenotexist');
 		}
@@ -668,7 +668,7 @@ class register
 			else
 			{
 				$activationkey = md5($forums->func->make_password() . TIMENOW);
-				$DB->shutdown_insert(TABLE_PREFIX . 'useractivation', array(
+				$DB->insert(TABLE_PREFIX . 'useractivation', array(
 					'useractivationid' => $activationkey,
 					'userid' => $user['id'],
 					'usergroupid' => $user['usergroupid'],
@@ -676,7 +676,7 @@ class register
 					'dateline' => TIMENOW,
 					'type' => 1,
 					'host' => IPADDRESS
-				));
+				), SHUTDOWN_QUERY);
 				$message = $this->email->fetch_email_lostpassword(array('name' => $user['name'],
 						'link' => $bboptions['bburl'] . "/register.php?do=lostpassform&amp;u=" . $user['id'] . "&amp;a=" . $activationkey,
 						'linkpage' => $bboptions['bburl'] . "/register.php?do=lostpassform",
@@ -699,7 +699,7 @@ class register
 	function safechange($userid = 0)
 	{
 		global $forums, $DB, $bboptions;
-		$safe = $DB->query_first("SELECT answer, question FROM " . TABLE_PREFIX . "userextra WHERE id = {$userid}");
+		$safe = $DB->queryFirst("SELECT answer, question FROM " . TABLE_PREFIX . "userextra WHERE id = {$userid}");
 		if (!$safe['question'] OR !$safe['answer'])
 		{
 			$forums->func->standard_error("cannotusesafe");
@@ -723,7 +723,10 @@ class register
 			{
 				$salt = generate_user_salt(5);
 				$saltpassword = md5(md5($password) . $salt);
-				$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET password='" . $saltpassword . "', salt='" . addslashes($salt) . "' WHERE id={$userid}");
+				$DB->update(TABLE_PREFIX . "user", array(
+					'password' => $saltpassword,
+					'salt' => $salt
+				), "id={$userid}", SHUTDOWN_QUERY);
 				$forums->func->redirect_screen($forums->lang['hasresetpass']);
 			}
 		}
@@ -750,17 +753,17 @@ class register
 		}
 		if ($username)
 		{
-			$user = $DB->query_first("SELECT id,name,password,salt,email FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'");
+			$user = $DB->queryFirst("SELECT id,name,password,salt,email FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'");
 		}
 		else
 		{
-			$user = $DB->query_first("SELECT id,name,password,salt,email FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'");
+			$user = $DB->queryFirst("SELECT id,name,password,salt,email FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'");
 		}
 		if (! $user['id'])
 		{
 			$forums->func->standard_error("cannotvalidate");
 		}
-		$useractivation = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "useractivation WHERE userid='" . $user['id'] . "'");
+		$useractivation = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "useractivation WHERE userid='" . $user['id'] . "'");
 		if (! $useractivation['userid'])
 		{
 			$forums->func->standard_error("cannotvalidate");
@@ -785,12 +788,12 @@ class register
 				{
 					$useractivation['usergroupid'] = 3;
 				}
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET usergroupid='" . intval($useractivation['usergroupid']) . "' WHERE id='" . intval($user['id']) . "'");
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET usergroupid='" . intval($useractivation['usergroupid']) . "' WHERE id='" . intval($user['id']) . "'");
 
 				$this->update_stats($user);
 				$forums->func->set_cookie("userid", $user['id'], 86400);
 				$forums->func->set_cookie("password", $user['password'], 86400);
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE useractivationid='" . $useractivation['useractivationid'] . "' OR (userid='" . $user['id'] . "' AND type=2)");
+				$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE useractivationid='" . $useractivation['useractivationid'] . "' OR (userid='" . $user['id'] . "' AND type=2)");
 				$this->clean_validations();
 				$forums->func->standard_redirect('login.php' . $forums->sessionurl . 'do=autologin&amp;logintype=fromreg');
 			}
@@ -821,10 +824,12 @@ class register
 					return false;
 				}
 				$newpassword = md5($newpassword . $user['salt']);
-				$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET password='" . $newpassword . "' WHERE id='" . intval($user['id']) . "'");
+				$DB->update(TABLE_PREFIX . "user", array(
+					'password' => $newpassword
+				), "id='" . intval($user['id']) . "'", SHUTDOWN_QUERY);
 				$forums->func->set_cookie("userid", $user['id'], 86400);
 				$forums->func->set_cookie("password", $newpassword, 86400);
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE useractivationid='" . $useractivation['useractivationid'] . "' OR (userid={$user['id']} AND type=1)");
+				$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE useractivationid='" . $useractivation['useractivationid'] . "' OR (userid={$user['id']} AND type=1)");
 				$this->clean_validations();
 				$forums->func->standard_redirect('login.php' . $forums->sessionurl . 'do=autologin&amp;logintype=frompass');
 			}
@@ -838,10 +843,10 @@ class register
 				{
 					$useractivation['usergroupid'] = 3;
 				}
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET usergroupid='" . intval($useractivation['usergroupid']) . "' WHERE id='" . intval($user['id']) . "'");
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET usergroupid='" . intval($useractivation['usergroupid']) . "' WHERE id='" . intval($user['id']) . "'");
 				$forums->func->set_cookie("userid", $user['id'], 86400);
 				$forums->func->set_cookie("password", $user['password'], 86400);
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE useractivationid='" . $useractivation['useractivationid'] . "' OR (userid={$user['id']} AND type=3)");
+				$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE useractivationid='" . $useractivation['useractivationid'] . "' OR (userid={$user['id']} AND type=3)");
 				$this->clean_validations();
 				$forums->func->standard_redirect('login.php' . $forums->sessionurl . 'do=autologin&amp;logintype=fromemail');
 			}
@@ -864,11 +869,11 @@ class register
 				{
 					$forums->func->standard_error("cannotvalidate");
 				}
-				if (! $user = $DB->query_first("SELECT * FROM  " . TABLE_PREFIX . "user WHERE id=$userid "))
+				if (! $user = $DB->queryFirst("SELECT * FROM  " . TABLE_PREFIX . "user WHERE id=$userid "))
 				{
 					$forums->func->standard_error("cannotvalidate");
 				}
-				$validate = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "useractivation WHERE userid=$userid AND useractivationid='$activationkey' AND type=1");
+				$validate = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "useractivation WHERE userid=$userid AND useractivationid='$activationkey' AND type=1");
 				if (!$validate['userid'])
 				{
 					$forums->func->standard_error("cannotvalidate");
@@ -897,7 +902,7 @@ class register
 		{
 			$less_than = TIMENOW - $bboptions['removemoderate'] * 86400;
 			$DB->query("SELECT ua.useractivationid, ua.userid, u.posts FROM " . TABLE_PREFIX . "useractivation ua LEFT JOIN " . TABLE_PREFIX . "user u ON (ua.userid=u.id) WHERE ua.dateline < " . $less_than . " AND ua.type != 1");
-			while ($i = $DB->fetch_array())
+			while ($i = $DB->fetch())
 			{
 				if (intval($i['posts']) < 1)
 				{
@@ -907,8 +912,8 @@ class register
 			}
 			if (count($userids) > 0)
 			{
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "user WHERE id IN(" . implode(",", $userids) . ")");
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE useractivationid IN(" . implode(",", $activationids) . ")");
+				$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "user WHERE id IN(" . implode(",", $userids) . ")");
+				$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE useractivationid IN(" . implode(",", $activationids) . ")");
 			}
 		}
 	}
@@ -916,7 +921,7 @@ class register
 	function update_stats($user)
 	{
 		global $forums, $DB;
-		$DB->update_case(CACHE_TABLE, 'title', array(
+		$DB->updateCase(CACHE_TABLE, 'title', array(
 			'data' => array(
 				'numbermembers' => array(1, '+'),
 				'newusername' => $user['name'],

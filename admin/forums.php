@@ -95,11 +95,11 @@ class forums
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$DB->query("SELECT id, name FROM " . TABLE_PREFIX . "forum WHERE id=" . input::int('f') . "");
-		if (!$DB->num_rows())
+		if (!$DB->numRows())
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$forum = $DB->fetch_array();
+		$forum = $DB->fetch();
 		$pagetitle = $forums->lang['emptyforum'] . " - '{$this->forum['name']}'";
 		$detail = $forums->lang['emptyforumdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
@@ -122,12 +122,12 @@ class forums
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (! $forum = $DB->query_first("SELECT id, name, post, thread FROM " . TABLE_PREFIX . "forum WHERE id=" . input::int('f')))
+		if (! $forum = $DB->queryFirst("SELECT id, name, post, thread FROM " . TABLE_PREFIX . "forum WHERE id=" . input::int('f')))
 		{
 			$forums->admin->print_cp_error($forums->lang['noemptyforums']);
 		}
 		$DB->query("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE forumid=" . input::int('f'));
-		while ($t = $DB->fetch_array())
+		while ($t = $DB->fetch())
 		{
 			$tids[] = $t['tid'];
 		}
@@ -148,11 +148,11 @@ class forums
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$result = $DB->query("SELECT id, name FROM " . TABLE_PREFIX . "forum");
-		if ($DB->num_rows($result) < 2)
+		if ($DB->numRows($result) < 2)
 		{
 			$forums->admin->print_cp_error($forums->lang['onlyoneforum']);
 		}
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			if ($r['id'] == input::int('f'))
 			{
@@ -165,8 +165,8 @@ class forums
 			$forumlist[] = array($value[id], depth_mark($value['depth'], '--') . $value[name]);
 		}
 
-		$post = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE forumid=" . input::int('f'));
-		$children = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "forum WHERE parentid=" . input::int('f'));
+		$post = $DB->queryFirst("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE forumid=" . input::int('f'));
+		$children = $DB->queryFirst("SELECT count(*) as count FROM " . TABLE_PREFIX . "forum WHERE parentid=" . input::int('f'));
 		$pagetitle = $forums->lang['deleteforum'] . " - '$name'";
 		$detail = $forums->lang['deleteforumdesc'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
@@ -224,9 +224,9 @@ class forums
 			$DB->update(TABLE_PREFIX . 'poll', $sql_array, 'forumid=' . $id);
 			$modfunc->forum_recount(input::str('move_id'));
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "forum WHERE id=" . $id);
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "moderator WHERE forumid=" . $id);
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "subscribeforum WHERE forumid=" . $id);
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "forum WHERE id=" . $id);
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "moderator WHERE forumid=" . $id);
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "subscribeforum WHERE forumid=" . $id);
 		$forums->func->rmcache(array('subforum_' . $id, 'forum_' . $id));
 		if (!input::int('new_parentid'))
 		{
@@ -315,7 +315,7 @@ class forums
 			'url' => input::get('url', ''),
 			'customerror' => str_replace("\n", '<br />', convert_andstr($_POST['customerror'])),
 		));
-		$forumid = $DB->insert_id();
+		$forumid = $DB->insertId();
 		if ($forumrule)
 		{
 			require_once(ROOT_PATH . 'includes/functions_codeparse.php');
@@ -345,7 +345,7 @@ class forums
 		if (input::get('parentid', '') != -1)
 		{
 			$DB->query("SELECT id FROM " . TABLE_PREFIX . "forum WHERE parentid = " . input::get('parentid', '') . " ");
-			while ($cid = $DB->fetch_array())
+			while ($cid = $DB->fetch())
 			{
 				$childids[] = $cid['id'];
 			}
@@ -359,9 +359,9 @@ class forums
 			$childlist = $forumid;
 		}
 		$DB->update(TABLE_PREFIX . 'forum', array('parentlist' => "$forumid,$parentlist", 'childlist' => $forumid), "id = $forumid");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum
 			SET childlist = concat(childlist,'," . $forumid . "')
-			WHERE " . $DB->sql_in('id', $parentlist));
+			WHERE " . $DB->sql->in('id', $parentlist));
 		$this->update_specialtopic(input::get('st', ''), $forumid);
 		$forums->func->recache('forum');
 		$forums->lang['forumcreated'] = sprintf($forums->lang['forumcreated'], input::get('name', ''));
@@ -509,7 +509,7 @@ class forums
 						), $this->forum['sortorder'])));
 		if ($this->forum['forumrule'])
 		{
-			$forumrule = $DB->query_first('SELECT *
+			$forumrule = $DB->queryFirst('SELECT *
 											FROM ' . TABLE_PREFIX . 'forum_attr
 											WHERE forumid = ' . $this->forum['id'] . '
 			');
@@ -591,7 +591,7 @@ class forums
 		{
 			$forums->admin->print_cp_error($forums->lang['parentnotsame']);
 		}
-		$foruminfo = $DB->query_first("SELECT id, name, parentlist FROM " . TABLE_PREFIX . "forum WHERE id=$parentid");
+		$foruminfo = $DB->queryFirst("SELECT id, name, parentlist FROM " . TABLE_PREFIX . "forum WHERE id=$parentid");
 		$parents = explode(',', $foruminfo['parentlist']);
 		foreach($parents as $val)
 		{
@@ -616,7 +616,7 @@ class forums
 			}
 			$specialtopic = serialize($specialtopic);
 		}
-		$oldforuminfo = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "forum WHERE id = $forumid");
+		$oldforuminfo = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "forum WHERE id = $forumid");
 		$this->forum['parentlist'] = $forumid . ',' . $forums->adminforum->fetch_forum_parentlist($parentid);
 		$forumrule = trim(input::str('forumrule')) ? 1 : 0;
 		if ($forumrule)
@@ -737,11 +737,11 @@ class forums
 						if ($forums->cache['st'][$stid]['forumids'] != '-1')
 						{
 							$update_forumid = str_replace(",$fid,", '', ",{$forums->cache['st'][$stid]['forumids']},");
-							$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "specialtopic SET forumids = '" . $update_forumid . "' WHERE id = {$stid}");
+							$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "specialtopic SET forumids = '" . $update_forumid . "' WHERE id = {$stid}");
 						}
 						else
 						{
-							$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "specialtopic SET forumids = '" . $fids . "' WHERE id = {$stid}");
+							$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "specialtopic SET forumids = '" . $fids . "' WHERE id = {$stid}");
 						}
 					}
 				}
@@ -766,7 +766,7 @@ class forums
 					asort($forumids);
 					$update_forumid = implode(',', $forumids);
 				}
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "specialtopic SET forumids = '" . $update_forumid . "' WHERE id = {$stid}");
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "specialtopic SET forumids = '" . $update_forumid . "' WHERE id = {$stid}");
 			}
 		}
 		$forums->func->recache('st');
@@ -932,7 +932,7 @@ class forums
 			}
 			if (!empty($fids))
 			{
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum
 					SET displayorder = CASE $ordersql ELSE 0 END
 					WHERE id IN (0$fids)");
 			}

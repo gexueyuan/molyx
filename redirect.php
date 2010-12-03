@@ -39,7 +39,7 @@ class redirect
 			{
 				if ($pid > 0)
 				{
-					$thread = $DB->query_first("SELECT threadid FROM " . TABLE_PREFIX . "post WHERE pid = " . $pid);
+					$thread = $DB->queryFirst("SELECT threadid FROM " . TABLE_PREFIX . "post WHERE pid = " . $pid);
 					if ($thread)
 					{
 						$t = $thread['threadid'];
@@ -59,7 +59,7 @@ class redirect
 				$forums->func->standard_error("errorthreadlink");
 			}
 		}
-		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid='" . $t . "'");
+		$this->thread = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid='" . $t . "'");
 		$this->forum = $forums->forum->single_forum($this->thread['forumid']);
 		if (!$this->forum['id'] OR !$this->thread['tid'])
 		{
@@ -73,7 +73,7 @@ class redirect
 		switch ($goto)
 		{
 			case 'new':
-				if ($this->thread = $DB->query_first("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost > '" . $this->thread['lastpost'] . "' ORDER BY lastpost LIMIT 0, 1"))
+				if ($this->thread = $DB->queryFirst("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost > '" . $this->thread['lastpost'] . "' ORDER BY lastpost LIMIT 0, 1"))
 				{
 					$t = $this->thread['tid'];
 				}
@@ -84,7 +84,7 @@ class redirect
 			break;
 
 			case 'old':
-				if ($this->thread = $DB->query_first("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost < '" . $this->thread['lastpost'] . "' ORDER BY lastpost DESC LIMIT 0, 1"))
+				if ($this->thread = $DB->queryFirst("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost < '" . $this->thread['lastpost'] . "' ORDER BY lastpost DESC LIMIT 0, 1"))
 				{
 					$t = $this->thread['tid'];
 				}
@@ -103,7 +103,7 @@ class redirect
 				$pid = "";
 				$last_time = $threadread[$this->thread['tid']];
 				$last_time = $last_time ? $last_time : input::get('lastvisit', 0);
-				$post = $DB->query_first("SELECT pid, dateline
+				$post = $DB->queryFirst("SELECT pid, dateline
 					FROM " . TABLE_PREFIX . "post
 					WHERE threadid='" . $this->thread['tid'] . "'
 						AND moderate != 1
@@ -112,7 +112,7 @@ class redirect
 				if (!empty($post))
 				{
 					$pid = "#pid" . $post['pid'];
-					$cpost = $DB->query_first("SELECT COUNT(*) as post
+					$cpost = $DB->queryFirst("SELECT COUNT(*) as post
 						FROM " . TABLE_PREFIX . "post
 						WHERE threadid='" . $this->thread['tid'] . "'
 							AND moderate != 1
@@ -144,7 +144,7 @@ class redirect
 			case 'findpost':
 				if ($pid > 0)
 				{
-					$cpost = $DB->query_first("SELECT COUNT(*) as post FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND pid <= '" . $pid . "' LIMIT 0, 1");
+					$cpost = $DB->queryFirst("SELECT COUNT(*) as post FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND pid <= '" . $pid . "' LIMIT 0, 1");
 					if ((($cpost['post']) % $this->maxposts) == 0)
 					{
 						$pages = ($cpost['post']) / $this->maxposts;
@@ -193,7 +193,7 @@ class redirect
 			}
 			$page = ($pages - 1) * $this->maxposts;
 		}
-		$post = $DB->query_first("SELECT pid FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND moderate != 1 ORDER BY pid DESC LIMIT 0, 1");
+		$post = $DB->queryFirst("SELECT pid FROM " . TABLE_PREFIX . "post WHERE threadid='" . $this->thread['tid'] . "' AND moderate != 1 ORDER BY pid DESC LIMIT 0, 1");
 		$bboptions['rewritestatus'] ? $forums->func->standard_redirect("thread-" . $this->thread['tid'] . "-" . $page . ".html" . "#pid" . $post['pid']) :$forums->func->standard_redirect("showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . "&amp;pp=" . $page . "#pid" . $post['pid']);
 	}
 }

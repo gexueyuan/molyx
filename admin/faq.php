@@ -89,7 +89,7 @@ class faq
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
-			if (! $r = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "faq WHERE id='" . input::int('id') . "'"))
+			if (! $r = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "faq WHERE id='" . input::int('id') . "'"))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
@@ -107,9 +107,9 @@ class faq
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$p_array[] = array(0, $forums->lang['tobecategory']);
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "faq WHERE parentid=0 ORDER BY displayorder");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($parent = $DB->fetch_array())
+			while ($parent = $DB->fetch())
 			{
 				$p_array[] = array($parent['id'], $parent['title']);
 			}
@@ -139,7 +139,7 @@ class faq
 		}
 		if (input::str('update'))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "faq WHERE id=" . input::int('id') . " OR parentid=" . input::int('id') . "");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "faq WHERE id=" . input::int('id') . " OR parentid=" . input::int('id') . "");
 			$forums->admin->save_log($forums->lang['deletefaq']);
 			$forums->func->standard_redirect("faq.php?" . $forums->sessionurl);
 			exit();
@@ -169,16 +169,16 @@ class faq
 		$newfaq = $forums->admin->print_button($forums->lang['addnewfaq'], "faq.php?{$forums->sessionurl}do=new");
 		$forums->admin->print_table_start($forums->lang['currentlyfaq'], "", "<div style='float:right'>$newfaq&nbsp;</div>");
 		$pfaqs = $DB->query("SELECT * FROM " . TABLE_PREFIX . "faq WHERE parentid=0 ORDER BY displayorder");
-		if ($DB->num_rows($pfaqs))
+		if ($DB->numRows($pfaqs))
 		{
-			while ($pfaq = $DB->fetch_array($pfaqs))
+			while ($pfaq = $DB->fetch($pfaqs))
 			{
 				$faqlist .= "<ul><li><a href='faq.php?{$forums->sessionurl}do=edit&amp;id=" . $pfaq['id'] . "'><strong>" . $pfaq['title'] . "</strong></a> <a href='faq.php?{$forums->sessionurl}do=edit&amp;id=" . $pfaq['id'] . "'>[" . $forums->lang['edit'] . "]</a> <a href='faq.php?{$forums->sessionurl}do=remove&amp;id=" . $pfaq['id'] . "'>[" . $forums->lang['delete'] . "]</a></li></ul>\n";
 				$subfaqs = $DB->query("SELECT * FROM " . TABLE_PREFIX . "faq WHERE parentid=" . $pfaq['id'] . " ORDER BY displayorder");
-				if ($DB->num_rows($subfaqs))
+				if ($DB->numRows($subfaqs))
 				{
 					$faqlist .= "<ul>\n";
-					while ($subfaq = $DB->fetch_array($subfaqs))
+					while ($subfaq = $DB->fetch($subfaqs))
 					{
 						$faqlist .= "<li><a href='faq.php?{$forums->sessionurl}do=edit&amp;id=" . $subfaq['id'] . "'><strong>" . $subfaq['title'] . "</strong></a> <a href='faq.php?{$forums->sessionurl}do=edit&amp;id=" . $subfaq['id'] . "'>[" . $forums->lang['edit'] . "]</a> <a href='faq.php?{$forums->sessionurl}do=remove&amp;id=" . $subfaq['id'] . "'>[" . $forums->lang['delete'] . "]</a></li>";
 					}

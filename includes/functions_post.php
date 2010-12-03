@@ -105,7 +105,7 @@ class functions_post
 				$mod_arr = banned_detect($bbuserinfo['moderate']);
 				if (TIMENOW >= $mod_arr['date_end'])
 				{
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET moderate=0 WHERE id=" . $bbuserinfo['id'] . "");
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET moderate=0 WHERE id=" . $bbuserinfo['id'] . "");
 					$this->obj['moderate'] = intval($this->forum['moderatepost']);
 				}
 				else
@@ -150,7 +150,7 @@ class functions_post
 		}
 		if ($bbuserinfo['id'] && !$bbuserinfo['supermod'])
 		{
-			$this->moderator = $DB->query_first('SELECT *
+			$this->moderator = $DB->queryFirst('SELECT *
 				FROM ' . TABLE_PREFIX . "moderator
 				WHERE forumid='{$this->forum['id']}'
 					AND (userid='{$bbuserinfo['id']}'
@@ -183,7 +183,7 @@ class functions_post
 					$DB->query('SELECT id, name, email, usergroupid, password, host, options, salt
 						FROM ' . TABLE_PREFIX . 'user
 						WHERE name = ' . $DB->validate($username));
-					if ($DB->num_rows())
+					if ($DB->numRows())
 					{
 						$bboptions['guesttag'] = $bboptions['guesttag'] ? $bboptions['guesttag'] : '*';
 						input::set('username', $username . $bboptions['guesttag']);
@@ -230,7 +230,7 @@ class functions_post
 						FROM " . TABLE_PREFIX . "thread
 						WHERE tid IN (" . implode(',', array_keys($tidspid)) . ")");
 
-					while ($r = $DB->fetch_array($tposttable))
+					while ($r = $DB->fetch($tposttable))
 					{
 						$r['posttable'] = $r['posttable'] ? $r['posttable'] : 'post';
 						if (is_array($tablename[$r['posttable']]))
@@ -252,7 +252,7 @@ class functions_post
 							LEFT JOIN " . TABLE_PREFIX . "thread t
 							ON (t.tid=p.threadid)
 							WHERE pid IN (" . implode(",", $ids) . ")");
-						while ($r = $DB->fetch_array($result))
+						while ($r = $DB->fetch($result))
 						{
 							$qposts[$r['pid']] = $r;
 						}
@@ -554,7 +554,7 @@ class functions_post
 		global $forums, $DB, $bbuserinfo;
 		if ($this->totalattachsum == -1)
 		{
-			$stats = $DB->query_first("SELECT SUM(filesize) as sum FROM " . TABLE_PREFIX . "attachment WHERE userid=" . $bbuserinfo['id'] . "");
+			$stats = $DB->queryFirst("SELECT SUM(filesize) as sum FROM " . TABLE_PREFIX . "attachment WHERE userid=" . $bbuserinfo['id'] . "");
 			$this->totalattachsum = $stats['sum'];
 		}
 	}
@@ -568,7 +568,7 @@ class functions_post
 		if ($posthash != "")
 		{
 			$DB->query("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE posthash='" . $posthash . "'");
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$this->postattach[] = $r;
 			}
@@ -732,7 +732,7 @@ class functions_post
 						$attach_data['thumblocation'] = $thumb_data['thumblocation'];
 					}
 					$DB->insert(TABLE_PREFIX . 'attachment', $attach_data);
-					$insertid = $DB->insert_id();
+					$insertid = $DB->insertId();
 					$attach_data['attachmentid'] = $insertid;
 					$this->totalattachsize += $attach_data['filesize'];
 					$newid[] = $insertid;
@@ -794,7 +794,7 @@ class functions_post
 			}
 		}
 
-		$DB->update(TABLE_PREFIX . 'forum', $stats, $DB->sql_in('id', $forum_ids));
+		$DB->update(TABLE_PREFIX . 'forum', $stats, $DB->sql->in('id', $forum_ids));
 		if ($this_stats)
 		{
 			$DB->update(TABLE_PREFIX . 'forum', $this_stats, 'id = ' . $this->forum['id']);
@@ -804,7 +804,7 @@ class functions_post
 	function remove_attachment($attachmentid, $posthash)
 	{
 		global $forums, $DB, $bboptions;
-		$attachment = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE posthash='" . $posthash . "' AND attachmentid=" . $attachmentid . " LIMIT 0, 1");
+		$attachment = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE posthash='" . $posthash . "' AND attachmentid=" . $attachmentid . " LIMIT 0, 1");
 		if ($attachment['attachmentid'])
 		{
 			if ($attachment['location'])
@@ -815,13 +815,13 @@ class functions_post
 			{
 				@unlink($bboptions['uploadfolder'] . "/" . $attachment['attachpath'] . "/" . $attachment['thumblocation']);
 			}
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid=" . $attachment['attachmentid'] . "");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid=" . $attachment['attachmentid'] . "");
 
 			$forums->func->check_cache('splittable');
 			$deftable = $forums->cache['splittable']['default'];
 			$deftable = $deftable ? $deftable : 'post';
 			$posttable = $attachment['posttable'] ? $attachment['posttable'] : $deftable;
-			$t = $DB->query_first("SELECT threadid FROM " . TABLE_PREFIX . "$posttable WHERE posthash='" . $posthash . "' LIMIT 0, 1");
+			$t = $DB->queryFirst("SELECT threadid FROM " . TABLE_PREFIX . "$posttable WHERE posthash='" . $posthash . "' LIMIT 0, 1");
 			$this->recount_attachment($t['threadid']);
 		}
 	}
@@ -832,7 +832,7 @@ class functions_post
 		$cutoff = TIMENOW - 7200;
 		$deadid = array();
 		$attachments = $DB->query("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE postid=0 AND pmid=0 AND dateline < " . $cutoff . "");
-		while ($attachment = $DB->fetch_array($attachments))
+		while ($attachment = $DB->fetch($attachments))
 		{
 			if ($attachment['location'])
 			{
@@ -846,15 +846,15 @@ class functions_post
 		}
 		if (count($deadid))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid IN(" . implode(",", $deadid) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid IN(" . implode(",", $deadid) . ")");
 		}
 		if ($posthash[1])
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "attachment SET posthash='" . $posthash[0] . "' WHERE posthash='" . $posthash[1] . "'");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "attachment SET posthash='" . $posthash[0] . "' WHERE posthash='" . $posthash[1] . "'");
 		}
 		if ($posthash[0] AND ($pid OR $pmid))
 		{
-			$cnt = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "attachment WHERE posthash='" . $posthash[0] . "'");
+			$cnt = $DB->queryFirst("SELECT count(*) as count FROM " . TABLE_PREFIX . "attachment WHERE posthash='" . $posthash[0] . "'");
 			if ($cnt['count'])
 			{
 
@@ -866,7 +866,7 @@ class functions_post
 				{
 					$query[] = "postid=" . $pid;
 					$query[] = "posttable='" . $posttable . "'";
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET attach=" . $cnt['count'] . " WHERE tid=" . $tid . "");
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET attach=" . $cnt['count'] . " WHERE tid=" . $tid . "");
 				}
 				if ($tid)
 				{
@@ -874,7 +874,7 @@ class functions_post
 				}
 				if (is_array($query))
 				{
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "attachment SET " . implode(", ", $query) . " WHERE posthash='" . $posthash[0] . "'");
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "attachment SET " . implode(", ", $query) . " WHERE posthash='" . $posthash[0] . "'");
 					$this->clean_attachment($posthash[0]);
 				}
 			}
@@ -888,7 +888,7 @@ class functions_post
 		$update_notinpost = false;
 		$update_inpost = false;
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE posthash='{$posthash}'");
-		while ($attach = $DB->fetch_array())
+		while ($attach = $DB->fetch())
 		{
 			if ($attach['inpost'])
 			{
@@ -909,11 +909,11 @@ class functions_post
 		}
 		if ($update_notinpost)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "attachment SET inpost = 0 WHERE attachmentid IN (" . implode(",", $notinpost) . ")");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "attachment SET inpost = 0 WHERE attachmentid IN (" . implode(",", $notinpost) . ")");
 		}
 		if ($update_inpost)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "attachment SET inpost = 1 WHERE attachmentid IN (" . implode(",", $inpost) . ")");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "attachment SET inpost = 1 WHERE attachmentid IN (" . implode(",", $inpost) . ")");
 		}
 	}
 
@@ -934,15 +934,15 @@ class functions_post
 		$result = $DB->query('SELECT pid
 			FROM ' . TABLE_PREFIX . "$posttable
 			WHERE threadid = $tid");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($p = $DB->fetch_array($result))
+			while ($p = $DB->fetch($result))
 			{
 				$pids[] = $p['pid'];
 			}
-			$count = $DB->query_first('SELECT count(*) as count
+			$count = $DB->queryFirst('SELECT count(*) as count
 				FROM ' . TABLE_PREFIX . 'attachment
-				WHERE ' . $DB->sql_in('postid', $pids) ."
+				WHERE ' . $DB->sql->in('postid', $pids) ."
 				AND posttable='" . $posttable . "'");
 			$count = intval($count['count']);
 		}
@@ -961,7 +961,7 @@ class functions_post
 			{
 				return false;
 			}
-			if (!$row = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash = " . $DB->validate($imagehash)))
+			if (!$row = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "antispam WHERE regimagehash = " . $DB->validate($imagehash)))
 			{
 				return false;
 			}

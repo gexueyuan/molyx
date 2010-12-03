@@ -85,7 +85,7 @@ class Db_Pdo_Mysql extends Db_Pdo_Base
 		return $expression;
 	}
 
-	public function get_table_names()
+	public function getTableNames()
 	{
 		$stmt = $this->pdo->query('SHOW TABLES FROM ' . $this->config['database']);
 		$stmt->setFetchMode(PDO::FETCH_NUM);

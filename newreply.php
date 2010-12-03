@@ -28,7 +28,7 @@ class newreply
 
 		$t = input::get('t', 0);
 		$f = input::get('f', 0);
-		$this->thread = $DB->query_first("SELECT t.*, u.usergroupid
+		$this->thread = $DB->queryFirst("SELECT t.*, u.usergroupid
 			FROM " . TABLE_PREFIX . "thread t
 			LEFT JOIN " . TABLE_PREFIX . "user u
 				ON u.id = t.postuserid
@@ -244,11 +244,11 @@ class newreply
 		$this->post['posthash'] = $this->posthash;
 		$posttable = $this->thread['posttable']?$this->thread['posttable']:'post';
 		$DB->insert(TABLE_PREFIX . $posttable, $this->post);
-		$this->post['pid'] = $DB->insert_id();
+		$this->post['pid'] = $DB->insertId();
 		$this->lib->stats_recount($this->thread['tid'], 'reply');
-		$post = $DB->query_first("SELECT COUNT(*) as posts FROM " . TABLE_PREFIX . "$posttable WHERE threadid='" . $this->thread['tid'] . "' AND moderate != 1");
+		$post = $DB->queryFirst("SELECT COUNT(*) as posts FROM " . TABLE_PREFIX . "$posttable WHERE threadid='" . $this->thread['tid'] . "' AND moderate != 1");
 		$postcount = intval($post['posts'] - 1);
-		$modpost = $DB->query_first("SELECT COUNT(*) as posts FROM " . TABLE_PREFIX . "$posttable WHERE threadid='" . $this->thread['tid'] . "' AND moderate = 1");
+		$modpost = $DB->queryFirst("SELECT COUNT(*) as posts FROM " . TABLE_PREFIX . "$posttable WHERE threadid='" . $this->thread['tid'] . "' AND moderate = 1");
 		$modpostcount = intval($modpost['posts']);
 		$poster_name = $bbuserinfo['id'] ? $bbuserinfo['name'] : input::get('username', '');
 		$update_array = array(
@@ -282,9 +282,9 @@ class newreply
 			$forums->func->redirect_screen($forums->lang['haspost'], "forumdisplay.php{$forums->sessionurl}&f=" . $this->lib->forum['id']);
 		}
 		$hideposts = $DB->query("SELECT pid, userid, hidepost FROM " . TABLE_PREFIX . "$posttable WHERE threadid='" . $this->thread['tid'] . "' AND hidepost!=''");
-		if ($DB->num_rows($hideposts))
+		if ($DB->numRows($hideposts))
 		{
-			while ($hidepost = $DB->fetch_array($hideposts))
+			while ($hidepost = $DB->fetch($hideposts))
 			{
 				$hideinfo = unserialize($hidepost['hidepost']);
 				if ($hideinfo['type'] == '111' && $hidepost['userid'] != $bbuserinfo['id'])
@@ -294,7 +294,9 @@ class newreply
 						continue;
 					}
 					$hideinfo['buyers'][] = $bbuserinfo['name'];
-					$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "$posttable SET hidepost='" . addslashes(serialize($hideinfo)) . "' WHERE pid='" . $hidepost['pid'] . "'");
+					$DB->update(TABLE_PREFIX . $posttable, array(
+						'hidepost' => serialize($hideinfo)
+					), "pid='" . $hidepost['pid'] . "'", SHUTDOWN_QUERY);
 				}
 			}
 		}

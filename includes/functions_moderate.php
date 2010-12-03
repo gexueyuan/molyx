@@ -65,8 +65,8 @@ class modfunctions
 					ON u.id = p.userid
 				LEFT JOIN " . TABLE_PREFIX . "forum f
 						ON t.forumid = f.id
-				WHERE " . $DB->sql_in('p.pid', $pids));
-			while ($row = $DB->fetch_array($result))
+				WHERE " . $DB->sql->in('p.pid', $pids));
+			while ($row = $DB->fetch($result))
 			{
 				$posts[$row['pid']] = $row;
 			}
@@ -75,7 +75,7 @@ class modfunctions
 		{
 			foreach ($pids as $pid => $table)
 			{
-				$row = $DB->query_first("SELECT p.pid, p.userid, p.dateline, t.forumid, t.tid, f.countposts, u.usergroupid
+				$row = $DB->queryFirst("SELECT p.pid, p.userid, p.dateline, t.forumid, t.tid, f.countposts, u.usergroupid
 				FROM " . TABLE_PREFIX . "$table p
 					LEFT JOIN " . TABLE_PREFIX . "thread t
 						ON p.threadid = t.tid
@@ -127,9 +127,9 @@ class modfunctions
 		$attachmentids = array();
 		$result = $DB->query('SELECT attachmentid, postid, attachpath, location, thumblocation
 			FROM ' . TABLE_PREFIX . 'attachment
-			WHERE ' . $DB->sql_in('postid', $pids));
+			WHERE ' . $DB->sql->in('postid', $pids));
 		$dir = $bboptions['uploadfolder'] . '/' . $attachment['attachpath'] . '/';
-		while ($attachment = $DB->fetch_array($result))
+		while ($attachment = $DB->fetch($result))
 		{
 			if ($attachment['location'])
 			{
@@ -144,7 +144,7 @@ class modfunctions
 		}
 		if (count($attachmentids))
 		{
-			$DB->delete(TABLE_PREFIX . 'attachment', $DB->sql_in('attachmentid', $attachmentids));
+			$DB->delete(TABLE_PREFIX . 'attachment', $DB->sql->in('attachmentid', $attachmentids));
 			require_once(ROOT_PATH . 'includes/functions_post.php');
 			foreach($attach_tid as $apid => $tid)
 			{
@@ -154,7 +154,7 @@ class modfunctions
 
 		if ($posttable)
 		{
-			$DB->delete(TABLE_PREFIX . $posttable, $DB->sql_in('pid', $pids));
+			$DB->delete(TABLE_PREFIX . $posttable, $DB->sql->in('pid', $pids));
 		}
 		else
 		{
@@ -192,17 +192,17 @@ class modfunctions
 		global $forums, $DB;
 
 		$tid = intval($tid);
-		$thisthread = $DB->query_first('SELECT posttable
+		$thisthread = $DB->queryFirst('SELECT posttable
 			FROM ' . TABLE_PREFIX . "thread
 			WHERE tid = $tid");
 		$posttable = $thisthread['posttable'] ? $thisthread['posttable'] : 'post';
-		$postcount = $DB->query_first('SELECT COUNT(*) as count
+		$postcount = $DB->queryFirst('SELECT COUNT(*) as count
 			FROM ' . TABLE_PREFIX . "$posttable
 			WHERE threadid = $tid
 				AND moderate != 1");
 		$postcount = intval($postcount['count']) - 1;
 
-		$lastpost = $DB->query_first('SELECT p.dateline, p.threadid, p.userid, p.username, p.pid, t.forumid, t.title
+		$lastpost = $DB->queryFirst('SELECT p.dateline, p.threadid, p.userid, p.username, p.pid, t.forumid, t.title
 			FROM ' . TABLE_PREFIX . "$posttable p
 				LEFT JOIN " . TABLE_PREFIX . "thread t
 					ON p.threadid = t.tid
@@ -211,7 +211,7 @@ class modfunctions
 			ORDER BY pid DESC
 			LIMIT 0, 1");
 
-		$first_post = $DB->query_first('SELECT dateline, userid, username, pid, newthread
+		$first_post = $DB->queryFirst('SELECT dateline, userid, username, pid, newthread
 			FROM ' . TABLE_PREFIX . "$posttable
 			WHERE threadid = $tid
 			ORDER BY pid ASC
@@ -230,13 +230,13 @@ class modfunctions
 		}
 		else
 		{
-			$modpostcount = $DB->query_first('SELECT COUNT(*) as count
+			$modpostcount = $DB->queryFirst('SELECT COUNT(*) as count
 				FROM ' . TABLE_PREFIX . "$posttable
 				WHERE threadid = $tid
 					AND moderate = 1");
 			$modpostcount = intval($modpostcount['count']);
 
-			$attach = $DB->query_first('SELECT COUNT(*) as count
+			$attach = $DB->queryFirst('SELECT COUNT(*) as count
 				FROM ' . TABLE_PREFIX . 'attachment a
 					LEFT JOIN ' . TABLE_PREFIX . "$posttable p
 						ON a.postid = p.pid
@@ -292,14 +292,14 @@ class modfunctions
 					ON u.id = t.postuserid
 				LEFT JOIN " . TABLE_PREFIX . "forum f
 					ON t.forumid = f.id
-			WHERE " . $DB->sql_in('t.tid', $ids) . ' AND t.sticky > 0');
+			WHERE " . $DB->sql->in('t.tid', $ids) . ' AND t.sticky > 0');
 		$attach_post = $delposts = array();
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$currenttable = $r['posttable']?$r['posttable']:'post';
 			$delposts[$r['tid']] = $currenttable;
 
-			$posts = $DB->query_first("SELECT pid, moderate
+			$posts = $DB->queryFirst("SELECT pid, moderate
 			FROM " . TABLE_PREFIX . "$currenttable
 			WHERE newthread = 1 AND threadid = {$r['tid']}");
 			if ($directdel)
@@ -350,16 +350,16 @@ class modfunctions
 		{
 			$this->credit->update_credit('delthread', $userids, $groupids, $forumids);
 		}
-		$DB->delete(TABLE_PREFIX . 'poll', $DB->sql_in('tid', $ids));
-		$DB->delete(TABLE_PREFIX . 'thread', $DB->sql_in('tid', $ids) . ' AND sticky = 0');
+		$DB->delete(TABLE_PREFIX . 'poll', $DB->sql->in('tid', $ids));
+		$DB->delete(TABLE_PREFIX . 'thread', $DB->sql->in('tid', $ids) . ' AND sticky = 0');
 		foreach ($attach_post AS $tab => $post)
 		{
 			if (count($post))
 			{
 				$attachments = $DB->query('SELECT attachmentid, location, attachpath, thumblocation
 					FROM ' . TABLE_PREFIX . 'attachment
-					WHERE ' . $DB->sql_in('postid', $post) . " AND posttable = '{$tab}'");
-				while ($attachment = $DB->fetch_array($attachments))
+					WHERE ' . $DB->sql->in('postid', $post) . " AND posttable = '{$tab}'");
+				while ($attachment = $DB->fetch($attachments))
 				{
 					$dir = $bboptions['uploadfolder'] . '/' . $attachment['attachpath'] . '/';
 					if ($attachment['location'])
@@ -374,7 +374,7 @@ class modfunctions
 				}
 				if ($attach)
 				{
-					$DB->delete(TABLE_PREFIX . 'attachment', $DB->sql_in('attachmentid', $attach));
+					$DB->delete(TABLE_PREFIX . 'attachment', $DB->sql->in('attachmentid', $attach));
 				}
 			}
 		}
@@ -423,8 +423,8 @@ class modfunctions
 						FROM " . TABLE_PREFIX . "thread t
 					LEFT JOIN " . TABLE_PREFIX . "user u
 						ON u.id = t.postuserid
-					WHERE " . $DB->sql_in('t.tid', $thread) . ' AND t.sticky = 0');
-			while ($r = $DB->fetch_array($threads))
+					WHERE " . $DB->sql->in('t.tid', $thread) . ' AND t.sticky = 0');
+			while ($r = $DB->fetch($threads))
 			{
 				$userids[] = $r['id'];
 				$groupids[] = $r['usergroupid'];
@@ -440,24 +440,24 @@ class modfunctions
 			}
 		}
 		$where = $source_id ? "forumid = $source_id AND " : '';
-		$where .= $DB->sql_in('tid', $thread);
+		$where .= $DB->sql->in('tid', $thread);
 		//主题移到回收站
 		if ($recycleforumid && $recycleforumid == $dest_id)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET addtorecycle=".TIMENOW.", rawforumid=forumid WHERE $where AND sticky = 0");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "poll SET addtorecycle=".TIMENOW.", rawforumid=forumid WHERE $where");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET addtorecycle=".TIMENOW.", rawforumid=forumid WHERE $where AND sticky = 0");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "poll SET addtorecycle=".TIMENOW.", rawforumid=forumid WHERE $where");
 		}
 
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET forumid=$dest_id WHERE $where AND sticky = 0");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "poll SET forumid=$dest_id WHERE $where ");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET forumid=$dest_id WHERE $where AND sticky = 0");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "poll SET forumid=$dest_id WHERE $where ");
 
 		//移动主题，添加一条记录
 		if ($leavelink != 0)
 		{
 			$result = $DB->query("SELECT title, forumid, postuserid, dateline, postusername, lastpost, tid, lastposterid, lastposter
 				FROM " . TABLE_PREFIX . "thread
-				WHERE " . $DB->sql_in('tid', $thread));
-			while ($row = $DB->fetch_array($result))
+				WHERE " . $DB->sql->in('tid', $thread));
+			while ($row = $DB->fetch($result))
 			{
 				$row['open'] = 2;
 				$row['post'] = 0;
@@ -479,9 +479,9 @@ class modfunctions
 					ON (u.id = s.userid)
 				LEFT JOIN ' . TABLE_PREFIX . 'usergroup g
 					ON (g.usergroupid = u.usergroupid)
-			WHERE ' . $DB->sql_in('s.threadid', $thread));
+			WHERE ' . $DB->sql->in('s.threadid', $thread));
 		$threadid = array();
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$pass = false;
 			$forum_perm_array = explode(',', $forums->forum->foruminfo[$r['forumid'] ]['canread']);
@@ -496,7 +496,7 @@ class modfunctions
 		}
 		if (count($threadid) > 0)
 		{
-			$DB->delete(TABLE_PREFIX . 'subscribethread', $DB->sql_in('subscribethreadid', $threadid));
+			$DB->delete(TABLE_PREFIX . 'subscribethread', $DB->sql->in('subscribethreadid', $threadid));
 		}
 
 		return true;
@@ -511,7 +511,7 @@ class modfunctions
 		{
 			return false;
 		}
-		$DB->update(TABLE_PREFIX . 'thread', array('stopic' => $st_id), $DB->sql_in('tid', $thread));
+		$DB->update(TABLE_PREFIX . 'thread', array('stopic' => $st_id), $DB->sql->in('tid', $thread));
 		return true;
 	}
 
@@ -567,17 +567,17 @@ class modfunctions
 
 		$childlist = explode(',', $forum['childlist']);
 
-		$this_thread = $DB->query_first('SELECT COUNT(*) AS count
+		$this_thread = $DB->queryFirst('SELECT COUNT(*) AS count
 			FROM ' . TABLE_PREFIX . "thread
 			WHERE forumid = $fid
 				AND visible = 1");
-		$thread = $DB->query_first('SELECT COUNT(*) AS count, SUM(post) AS replies, SUM(modposts) AS modreplies, MAX(lastpostid) AS lastpostid
+		$thread = $DB->queryFirst('SELECT COUNT(*) AS count, SUM(post) AS replies, SUM(modposts) AS modreplies, MAX(lastpostid) AS lastpostid
 			FROM ' . TABLE_PREFIX . 'thread
-			WHERE ' . $DB->sql_in('forumid', $childlist) . '
+			WHERE ' . $DB->sql->in('forumid', $childlist) . '
 				AND visible = 1');
-		$moderatethread = $DB->query_first('SELECT COUNT(*) AS count, SUM(modposts) AS modreplies
+		$moderatethread = $DB->queryFirst('SELECT COUNT(*) AS count, SUM(modposts) AS modreplies
 			FROM ' . TABLE_PREFIX . 'thread
-			WHERE ' . $DB->sql_in('forumid', $childlist) . '
+			WHERE ' . $DB->sql->in('forumid', $childlist) . '
 				AND visible = 0');
 
 		$today = date('Y-n-j', TIMENOW);
@@ -592,11 +592,11 @@ class modfunctions
 
 		foreach ($splittable as $id => $row)
 		{
-			$tpost = $DB->query_first('SELECT COUNT(*) AS count
+			$tpost = $DB->queryFirst('SELECT COUNT(*) AS count
 				FROM ' . TABLE_PREFIX . 'thread t
 					LEFT JOIN ' . TABLE_PREFIX . "{$row['name']} p
 						ON (p.threadid = t.tid)
-				WHERE " . $DB->sql_in('t.forumid', $childlist) . "
+				WHERE " . $DB->sql->in('t.forumid', $childlist) . "
 					AND t.visible = 1
 					AND p.dateline >= $day_start");
 			$todaypostcount += $tpost['count'];
@@ -681,7 +681,7 @@ class modfunctions
 		}
 		if ($sql_array)
 		{
-			$DB->update_case(TABLE_PREFIX . 'forum', 'id', $sql_array);
+			$DB->updateCase(TABLE_PREFIX . 'forum', 'id', $sql_array);
 		}
 	}
 
@@ -691,9 +691,9 @@ class modfunctions
 		static $lastthread = array();
 		if (!isset($lastthread[$forum['id']]))
 		{
-			$thread = $DB->query_first('SELECT tid
+			$thread = $DB->queryFirst('SELECT tid
 				FROM ' . TABLE_PREFIX . 'thread
-				WHERE ' . $DB->sql_in('forumid', $forum['childlist']) . '
+				WHERE ' . $DB->sql->in('forumid', $forum['childlist']) . '
 					AND visible = 1
 				ORDER BY lastpost DESC
 				LIMIT 1');
@@ -715,7 +715,7 @@ class modfunctions
 
 		if ($sql_array)
 		{
-			$DB->update_case(TABLE_PREFIX . 'user', 'id', $sql_array);
+			$DB->updateCase(TABLE_PREFIX . 'user', 'id', $sql_array);
 		}
 	}
 
@@ -737,7 +737,7 @@ class modfunctions
 
 		if ($id)
 		{
-			return $DB->update(TABLE_PREFIX . 'thread', $sql_array, $DB->sql_in('tid', $id));
+			return $DB->update(TABLE_PREFIX . 'thread', $sql_array, $DB->sql->in('tid', $id));
 		}
 		else
 		{
@@ -789,7 +789,7 @@ class modfunctions
 							LEFT JOIN " . TABLE_PREFIX . 'user u
 								ON u.id = p.userid
 							WHERE p.pid IN ( ' . implode(',' , $pids) . ')');
-					while ($row = $DB->fetch_array($query))
+					while ($row = $DB->fetch($query))
 					{
 						$info[] = $row;
 					}
@@ -803,8 +803,8 @@ class modfunctions
 								FROM " . TABLE_PREFIX . "thread t
 							LEFT JOIN " . TABLE_PREFIX . "user u
 								ON u.id = t.postuserid
-							WHERE " . $DB->sql_in('t.tid', $ids));
-			while ($r = $DB->fetch_array($result))
+							WHERE " . $DB->sql->in('t.tid', $ids));
+			while ($r = $DB->fetch($result))
 			{
 				$info[] = $r;
 			}

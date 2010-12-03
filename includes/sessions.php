@@ -84,13 +84,13 @@ class session
 					$sql = 'SELECT lastactivity
 						FROM ' . TABLE_PREFIX . 'session
 						WHERE sessionhash = ' . $DB->validate($bot_agent);
-					$online = $DB->query_first($sql);
+					$online = $DB->queryFirst($sql);
 					if (isset($online['lastactivity']))
 					{
 						$online = TIMENOW - $online['lastactivity'];
 						if ($online > 300)
 						{
-							$DB->shutdown_update(TABLE_PREFIX . 'session', $sql_array, 'sessionhash = ' . $DB->validate($bot_agent));
+							$DB->update(TABLE_PREFIX . 'session', $sql_array, 'sessionhash = ' . $DB->validate($bot_agent), SHUTDOWN_QUERY);
 						}
 					}
 					else
@@ -117,8 +117,7 @@ class session
 						'badlocation' => 0,
 						'mobile' => 0,
 					);
-					$sql = $DB->sql_insert(TABLE_PREFIX . 'session', $sql_array, 'INSERT', 'INSERT IGNORE');
-					$DB->shutdown_query($sql);
+					$DB->insert(TABLE_PREFIX . 'session', $sql_array, SHUTDOWN_QUERY, INSERT_IGNORE);
 				}
 			}
 
@@ -165,7 +164,7 @@ class session
 			{
 				$sql .= ' AND s.useragent = ' . $DB->validate(USER_AGENT);
 			}
-			$row = $DB->query_first($sql);
+			$row = $DB->queryFirst($sql);
 			if (!$row['sessionhash'])
 			{
 				$this->badsessionid = $this->sessionid;
@@ -308,14 +307,14 @@ class session
 			$useronline = TIMENOW - input::int('lastactivity');
 			if (!$this->user['lastvisit'])
 			{
-				$DB->shutdown_update(TABLE_PREFIX . 'user', array('lastvisit' => TIMENOW, 'lastactivity' => TIMENOW), "id = {$this->user['id']}");
+				$DB->update(TABLE_PREFIX . 'user', array('lastvisit' => TIMENOW, 'lastactivity' => TIMENOW), "id = {$this->user['id']}", SHUTDOWN_QUERY);
 			}
 			else if ($useronline > 300)
 			{
 				$this->user['loggedin'] = 1;
 				$this->user['options'] = $forums->func->convert_array_to_bits($this->user);
 
-				$DB->shutdown_update(TABLE_PREFIX . 'user', array('options' => $this->user['options'], 'lastactivity' => TIMENOW),  "id={$this->user['id']}");
+				$DB->update(TABLE_PREFIX . 'user', array('options' => $this->user['options'], 'lastactivity' => TIMENOW),  "id={$this->user['id']}", SHUTDOWN_QUERY);
 
 				//更新用户评价和积分默认值
 				$lefttime = TIMENOW - $this->user['lastvisit'];
@@ -328,7 +327,7 @@ class session
 						$recycletime = intval($credit['inittime'])*3600;
 						if ($lefttime > $recycletime)
 						{
-							$DB->shutdown_update(TABLE_PREFIX . 'userexpand', array($credit['tag'] => intval($credit['initvalue'])), "id={$this->user['id']}");
+							$DB->update(TABLE_PREFIX . 'userexpand', array($credit['tag'] => intval($credit['initvalue'])), "id={$this->user['id']}", SHUTDOWN_QUERY);
 						}
 					}
 				}
@@ -350,10 +349,10 @@ class session
 					}
 					elseif ($ban_arr['banposts'] > 0 && $ban_arr['forumid'])
 					{
-						$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "post p," . TABLE_PREFIX . "thread t SET p.state = 0
+						$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "post p," . TABLE_PREFIX . "thread t SET p.state = 0
 							WHERE p.threadid=t.tid and p.userid={$this->user['id']} and t.forumid = {$ban_arr['forumid']}");
 					}
-					$DB->shutdown_update(TABLE_PREFIX . 'user', array('liftban' => '', 'usergroupid' => $ban_arr['groupid']), "id = {$this->user['id']}");
+					$DB->update(TABLE_PREFIX . 'user', array('liftban' => '', 'usergroupid' => $ban_arr['groupid']), "id = {$this->user['id']}", SHUTDOWN_QUERY);
 				}
 				else
 				{
@@ -446,7 +445,7 @@ class session
 					LEFT JOIN " . TABLE_PREFIX . "userexpand ue
 						ON u.id = ue.id
 				WHERE u.id = $userid";
-			$this->user = $DB->query_first($sql);
+			$this->user = $DB->queryFirst($sql);
 		}
 
 		if ($this->user['id'])
@@ -507,7 +506,7 @@ class session
 			'badlocation' => 0,
 			'mobile' => 0,
 		);
-		$DB->shutdown_update(TABLE_PREFIX . 'session', $sql_array, "sessionhash = '{$this->sessionid}'");
+		$DB->update(TABLE_PREFIX . 'session', $sql_array, "sessionhash = '{$this->sessionid}'", SHUTDOWN_QUERY);
 	}
 
 	function update_guest_session()
@@ -531,7 +530,7 @@ class session
 			'inthread' => input::int('t'),
 		);
 
-		$DB->shutdown_update(TABLE_PREFIX . 'session', $sql_array, 'sessionhash = ' . $DB->validate($this->sessionid));
+		$DB->update(TABLE_PREFIX . 'session', $sql_array, 'sessionhash = ' . $DB->validate($this->sessionid), SHUTDOWN_QUERY);
 	}
 
 	function create_session($userid = 0)
@@ -548,11 +547,11 @@ class session
 				$this->user['loggedin'] = 1;
 				$this->user['options'] = $forums->func->convert_array_to_bits($this->user);
 
-				$DB->shutdown_update(TABLE_PREFIX . 'user', array(
+				$DB->update(TABLE_PREFIX . 'user', array(
 					'options' => $this->user['options'],
 					'lastvisit' => $this->user['lastactivity'],
 					'lastactivity' => TIMENOW
-				), "id='{$this->user['id']}'");
+				), "id='{$this->user['id']}'", SHUTDOWN_QUERY);
 
 				input::set('lastvisit', $this->user['lastactivity']);
 				input::set('lastactivity', TIMENOW);
@@ -593,8 +592,7 @@ class session
 			'badlocation' => 0,
 			'mobile' => 0,
 		);
-		$sql = $DB->sql_insert(TABLE_PREFIX . 'session', $sql_array, 'INSERT', 'INSERT IGNORE');
-		$DB->shutdown_query($sql);
+		$DB->insert(TABLE_PREFIX . 'session', $sql_array, SHUTDOWN_QUERY, INSERT_IGNORE);
 	}
 
 	function check_pm()
@@ -642,7 +640,7 @@ class session
 						OR p.usergroupid != 0
 					ORDER BY p.dateline DESC
 					LIMIT 0, $pmlimit");
-				while ($pm = $DB->fetch_array())
+				while ($pm = $DB->fetch())
 				{
 					$pm['dateline'] = $forums->func->get_date($pm['dateline'], 1);
 					if ($pm['usergroupid'] != '-1' && !empty($pm['usergroupid']))

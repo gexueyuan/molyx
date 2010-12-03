@@ -31,16 +31,16 @@ class editpost
 		$this->hidefunc = new hidefunc();
 
 		$tid = input::get('t', 0);
-		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid = $tid");
+		$this->thread = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid = $tid");
 		$this->posttable = $this->thread['posttable'] ? $this->thread['posttable'] : 'post';
 
 		$pid = input::get('p', 0);
-		$this->getpost = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . $this->posttable . " WHERE pid = $pid");
+		$this->getpost = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . $this->posttable . " WHERE pid = $pid");
 		if (! $this->getpost)
 		{
 			$forums->func->standard_error("cannoteditpost");
 		}
-		$this->poster = $DB->query_first("SELECT id, usergroupid FROM " . TABLE_PREFIX . "user
+		$this->poster = $DB->queryFirst("SELECT id, usergroupid FROM " . TABLE_PREFIX . "user
 		                                  WHERE id=" . intval($this->getpost['userid']));
 		if($this->getpost['state'] == 1)
 		{
@@ -49,8 +49,8 @@ class editpost
 		if (! $this->getpost['posthash'])
 		{
 			$this->posthash = md5(microtime());
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . $this->posttable . " SET posthash='" . $this->posthash . "' WHERE pid='" . $this->getpost['pid'] . "'");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "attachment SET posthash='" . $this->posthash . "' WHERE postid='" . $this->getpost['pid'] . "'");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . $this->posttable . " SET posthash='" . $this->posthash . "' WHERE pid='" . $this->getpost['pid'] . "'");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "attachment SET posthash='" . $this->posthash . "' WHERE postid='" . $this->getpost['pid'] . "'");
 		}
 		else
 		{

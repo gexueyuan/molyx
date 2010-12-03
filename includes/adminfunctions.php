@@ -22,7 +22,7 @@ class adminfunctions
 		{
 			$result = $DB->query('SELECT *
 				FROM ' . TABLE_PREFIX . 'style');
-			while ($style = $DB->fetch_array($result))
+			while ($style = $DB->fetch($result))
 			{
 				$stylecache[$style['parentid']][$style['styleid']] = $style;
 			}
@@ -114,7 +114,7 @@ class adminfunctions
 		global $DB, $forums;
 		$r_array = array('read' => '', 'reply' => '', 'start' => '', 'upload' => '', 'show' => '');
 		$DB->query("SELECT usergroupid, grouptitle, canshow, canviewothers, canpostnew, canreplyothers, attachlimit FROM " . TABLE_PREFIX . "usergroup ORDER BY usergroupid");
-		while ($data = $DB->fetch_array())
+		while ($data = $DB->fetch())
 		{
 			foreach(array('read', 'reply', 'start', 'upload', 'show') AS $bit)
 			{
@@ -144,7 +144,7 @@ class adminfunctions
 				}
 			}
 		}
-		$perms = $DB->query_first("SELECT COUNT(usergroupid) AS count FROM " . TABLE_PREFIX . "usergroup ORDER BY usergroupid");
+		$perms = $DB->queryFirst("SELECT COUNT(usergroupid) AS count FROM " . TABLE_PREFIX . "usergroup ORDER BY usergroupid");
 		foreach(array('read', 'reply', 'start', 'upload', 'show') AS $bit)
 		{
 			if ($r_array[ $bit ] == $g_array[ $bit ])
@@ -183,7 +183,7 @@ class adminfunctions
 	{
 		global $forums, $DB;
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "usergroup ORDER BY displayorder ASC");
-		while ($data = $DB->fetch_array())
+		while ($data = $DB->fetch())
 		{
 			foreach(array('read', 'reply', 'start', 'upload', 'show') AS $bit)
 			{
@@ -244,7 +244,7 @@ class adminfunctions
 	{
 		global $forums, $DB;
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "usergroup ORDER BY grouptitle ASC");
-		while ($data = $DB->fetch_array())
+		while ($data = $DB->fetch())
 		{
 			$groups[$data['usergroupid']] = $data;
 		}
@@ -620,13 +620,13 @@ class adminfunctions
 		global $forums, $DB, $bboptions;
 		define ('LOGIN', true);
 		$cut_off_stamp = TIMENOW - 7200;
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "adminsession WHERE logintime < $cut_off_stamp");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "adminsession WHERE logintime < $cut_off_stamp");
 		$name = "";
 		$extra = "";
 		$userid = intval($forums->func->get_cookie('userid'));
 		if ($userid > 0)
 		{
-			if ($r = $DB->query_first("SELECT u.id, u.name, u.usergroupid, g.cancontrolpanel FROM " . TABLE_PREFIX . "user u, " . TABLE_PREFIX . "usergroup g WHERE u.id=$userid AND g.usergroupid=u.usergroupid AND g.cancontrolpanel=1"))
+			if ($r = $DB->queryFirst("SELECT u.id, u.name, u.usergroupid, g.cancontrolpanel FROM " . TABLE_PREFIX . "user u, " . TABLE_PREFIX . "usergroup g WHERE u.id=$userid AND g.usergroupid=u.usergroupid AND g.cancontrolpanel=1"))
 			{
 				$name = $r['name'];
 				$extra = 'onload="document.cpform.password.focus();"';
@@ -983,7 +983,7 @@ class adminfunctions
 		$stats = array();
 		if (input::int('users') || $cache)
 		{
-			$row = $DB->query_first('SELECT COUNT(id) AS users
+			$row = $DB->queryFirst('SELECT COUNT(id) AS users
 				FROM ' . TABLE_PREFIX . 'user
 				WHERE usergroupid <> 2');
 			$stats[] = array('numbermembers', intval($row['users']));
@@ -991,7 +991,7 @@ class adminfunctions
 
 		if (input::int('lastreg') || $cache)
 		{
-			$row = $DB->query_first('SELECT id, name
+			$row = $DB->queryFirst('SELECT id, name
 				FROM ' . TABLE_PREFIX . 'user
 				WHERE usergroupid <> 2
 				ORDER BY id DESC
@@ -1005,7 +1005,7 @@ class adminfunctions
 			$stats[] = array('maxonlinedate', TIMENOW);
 			$stats[] = array('maxonline', 1);
 		}
-		$DB->update_cache($stats);
+		$DB->updateCache($stats);
 		$forums->func->recache('stats');
 	}
 

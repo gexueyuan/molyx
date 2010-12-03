@@ -27,7 +27,7 @@ class bankfunc
 		}
 		else
 		{
-			$userinfo = $DB->query_first("SELECT u.id, u.bank, u.cash, u.mkaccount
+			$userinfo = $DB->queryFirst("SELECT u.id, u.bank, u.cash, u.mkaccount
 						      FROM " . TABLE_PREFIX . "user u
 						      WHERE u.id = " . intval($userid));
 		}
@@ -41,7 +41,7 @@ class bankfunc
 		global $DB, $bbuserinfo;
 		
 		$DB->query("SELECT tag_name, name, type FROM " . TABLE_PREFIX . "credit WHERE used = 1");
-		while ($row = $DB->fetch_array())
+		while ($row = $DB->fetch())
 		{
 			$creditlist[$row['type']][$row['tag_name']] = $row['name'];
 		}
@@ -59,7 +59,7 @@ class bankfunc
 		{
 			return $userinfo;
 		}
-		$infoarray = $DB->query_first("SELECT id, loanamount, loanreturn, loaninterest FROM " . TABLE_PREFIX . "userextra WHERE id = " . $userinfo['id']);
+		$infoarray = $DB->queryFirst("SELECT id, loanamount, loanreturn, loaninterest FROM " . TABLE_PREFIX . "userextra WHERE id = " . $userinfo['id']);
 		if (!$infoarray['id'])
 		{
 			return $userinfo;
@@ -112,8 +112,8 @@ class bankfunc
 				$bank_log = $forums->lang['doclean_log'];
 			}
 		}
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET bank=" . $bankleftsql . " WHERE id='" . $bbuserinfo['id'] . "'");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $tag=" . $creditleftsql . " WHERE id='" . $bbuserinfo['id'] . "'");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET bank=" . $bankleftsql . " WHERE id='" . $bbuserinfo['id'] . "'");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $tag=" . $creditleftsql . " WHERE id='" . $bbuserinfo['id'] . "'");
 		$banklog = array (
 				'fromuserid' => $bbuserinfo['id'],
 				'touserid' => $bbuserinfo['id'],
@@ -153,7 +153,7 @@ class bankfunc
 			$costlog .= round($val)."{$costcredit['unit']}{$costcredit['name']} ";
 		}
 		$bank_log = sprintf($forums->lang['exchange_log'], $costlog, $savelog);
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET " . implode(',', $costsql) . " WHERE id='" . $bbuserinfo['id'] . "'");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET " . implode(',', $costsql) . " WHERE id='" . $bbuserinfo['id'] . "'");
 		$banklog = array (
 				'fromuserid' => $bbuserinfo['id'],
 				'touserid' => $bbuserinfo['id'],
@@ -177,13 +177,13 @@ class bankfunc
 		}
 		if ($tag == 'bank')
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET bank = bank - " . $transferout . " WHERE id = " . $bbuserinfo['id'] . "");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET bank = bank + " . $transferin . " WHERE id = " . $tar['id'] . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET bank = bank - " . $transferout . " WHERE id = " . $bbuserinfo['id'] . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET bank = bank + " . $transferin . " WHERE id = " . $tar['id'] . "");
 		}
 		else 
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $tag = $tag - " . $transferout . " WHERE id = " . $bbuserinfo['id'] . "");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $tag = $tag + " . $transferin . " WHERE id = " . $tar['id'] . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $tag = $tag - " . $transferout . " WHERE id = " . $bbuserinfo['id'] . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $tag = $tag + " . $transferin . " WHERE id = " . $tar['id'] . "");
 		}
 		if ($this->trdesc AND strlen($this->trdesc) > 0)
 		{

@@ -29,7 +29,7 @@ class report
 		}
 		$this->postid = input::get('p', 0);
 		$this->threadid = input::get('t', 0);
-		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . $this->threadid . "");
+		$this->thread = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . $this->threadid . "");
 		$this->forum = $forums->forum->single_forum($this->thread['forumid']);
 		$this->forumid = $this->forum['id'];
 		if ((!$this->threadid) OR (!$this->postid) OR (!$this->forumid))
@@ -95,9 +95,9 @@ class report
 		$this->check_permissions();
 		$mods = array();
 		$nmods = $DB->query("SELECT u.id, u.name, u.email, u.emailcharset, m.moderatorid FROM " . TABLE_PREFIX . "moderator m, " . TABLE_PREFIX . "user u WHERE m.forumid=" . $this->forumid . " and m.userid=u.id");
-		if ($DB->num_rows($nmods))
+		if ($DB->numRows($nmods))
 		{
-			while ($r = $DB->fetch_array($nmods))
+			while ($r = $DB->fetch($nmods))
 			{
 				$mods[] = $r;
 			}
@@ -105,9 +105,9 @@ class report
 		else
 		{
 			$smods = $DB->query("SELECT u.id, u.name, u.email, u.emailcharset FROM " . TABLE_PREFIX . "user u, " . TABLE_PREFIX . "usergroup g WHERE g.supermod=1 AND u.usergroupid=g.usergroupid");
-			if ($DB->num_rows($smods))
+			if ($DB->numRows($smods))
 			{
-				while ($r = $DB->fetch_array($smods))
+				while ($r = $DB->fetch($smods))
 				{
 					$mods[] = $r;
 				}
@@ -115,7 +115,7 @@ class report
 			else
 			{
 				$admin = $DB->query("SELECT u.id, u.name, u.email, u.emailcharset FROM " . TABLE_PREFIX . "user u, " . TABLE_PREFIX . "usergroup g WHERE g.cancontrolpanel=1 AND u.usergroupid=g.usergroupid");
-				while ($r = $DB->fetch_array($admin))
+				while ($r = $DB->fetch($admin))
 				{
 					$mods[] = $r;
 				}

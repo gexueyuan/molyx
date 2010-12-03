@@ -70,7 +70,7 @@ class template_import
 		{
 			if ($styleid == -1)
 			{
-				if ($DB->query_first('SELECT styleid
+				if ($DB->queryFirst('SELECT styleid
 					FROM ' . TABLE_PREFIX . 'style
 					WHERE title_en = ' . $DB->validate($name)))
 				{
@@ -86,12 +86,12 @@ class template_import
 						'userselect' => $userselect,
 						'usedefault' => $usedefault
 					));
-					$styleid = $DB->insert_id();
+					$styleid = $DB->insertId();
 				}
 			}
 			else
 			{
-				if (!$DB->query_first("SELECT styleid
+				if (!$DB->queryFirst("SELECT styleid
 					FROM " . TABLE_PREFIX . "style
 					WHERE styleid = $styleid"))
 				{
@@ -147,7 +147,7 @@ class template_import
 
 		if ($styleid != 1)
 		{
-			$parent = $DB->query_first('SELECT parentlist
+			$parent = $DB->queryFirst('SELECT parentlist
 				FROM ' . TABLE_PREFIX . "style
 				WHERE styleid = $parentid");
 			$stylebits['parentlist'] = $styleid . ',' . $parent['parentlist'];

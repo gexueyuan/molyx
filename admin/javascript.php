@@ -90,9 +90,9 @@ class javascript
 		echo "</script>\n";
 		$forums->admin->print_table_start($forums->lang['jslist']);
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "javascript ORDER BY id");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($js = $DB->fetch_array())
+			while ($js = $DB->fetch())
 			{
 				$jscode = $js['refresh'] ? "{$bboptions['bburl']}/data/{$js['jsname']}" : "{$bboptions['bburl']}/real_js.php?id={$js['id']}";
 
@@ -126,7 +126,7 @@ class javascript
 		{
 			$pagetitle = $forums->lang['editjs'];
 			$detail = $forums->lang['editjsdesc'];
-			if (!$id OR !$js = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . ""))
+			if (!$id OR !$js = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . ""))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
@@ -288,7 +288,7 @@ class javascript
 	{
 		global $forums, $DB, $bboptions;
 		$id = input::int('id');
-		if (!$id OR !$js = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . ""))
+		if (!$id OR !$js = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . ""))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
@@ -308,7 +308,7 @@ class javascript
 	{
 		global $forums, $DB, $bboptions;
 		$id = input::int('id');
-		$js = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . "");
+		$js = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . "");
 		if (!$js['id'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -323,9 +323,9 @@ class javascript
 		global $forums, $DB, $bboptions;
 		$id = input::int('id');
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "javascript");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($js = $DB->fetch_array())
+			while ($js = $DB->fetch())
 			{
 				$this->lib->createjs($js, 1);
 				if ($js['refresh'] > 0)
@@ -341,7 +341,7 @@ class javascript
 						$next_do_cron = $nextrun;
 					}
 					$next_do_cron = ($nextrun < $next_do_cron) ? $nextrun : $next_do_cron;
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "javascript SET nextrun='" . $next_do_cron . "' WHERE id = " . $js['id'] . "");
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "javascript SET nextrun='" . $next_do_cron . "' WHERE id = " . $js['id'] . "");
 				}
 			}
 			$forums->func->recache('realjs');
@@ -357,12 +357,12 @@ class javascript
 	{
 		global $forums, $DB, $bboptions;
 		$id = input::int('id');
-		$js = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . "");
+		$js = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . "");
 		if (!$js['id'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . "");
 		@unlink(ROOT_PATH . 'data/' . $js['jsname']);
 		$forums->func->recache('realjs');
 		$forums->admin->redirect("javascript.php", $forums->lang['jsmanage'], $forums->lang['jsdeleted']);
@@ -468,10 +468,10 @@ class javascript
 		{
 			$forums->func->update_cache(array('name' => 'cron', 'value' => $nextrun, 'array' => 0));
 		}
-		$old_next = $DB->query_first("SELECT nextrun FROM " . TABLE_PREFIX . "cron WHERE filename = 'refreshjs.php'");
+		$old_next = $DB->queryFirst("SELECT nextrun FROM " . TABLE_PREFIX . "cron WHERE filename = 'refreshjs.php'");
 		if ($old_next['nextrun'] > $nextrun AND $refresh != 0)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "cron SET nextrun='{$nextrun}' WHERE filename = 'refreshjs.php'");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "cron SET nextrun='{$nextrun}' WHERE filename = 'refreshjs.php'");
 		}
 
 		if ($id)

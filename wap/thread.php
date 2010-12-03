@@ -46,7 +46,7 @@ class showthread
 			exit;
 		}
 
-		$this->thread = $DB->query_first("SELECT t.*, p.anonymous, p.pagetext FROM " . TABLE_PREFIX . "thread t LEFT JOIN " . TABLE_PREFIX . "post p ON (p.newthread =1 AND p.threadid = t.tid) WHERE tid='" . $this->tid . "'");
+		$this->thread = $DB->queryFirst("SELECT t.*, p.anonymous, p.pagetext FROM " . TABLE_PREFIX . "thread t LEFT JOIN " . TABLE_PREFIX . "post p ON (p.newthread =1 AND p.threadid = t.tid) WHERE tid='" . $this->tid . "'");
 		$this->forum = $forums->forum->single_forum($this->thread['forumid']);
 		if (!$this->forum['id'] OR !$this->thread['tid'])
 		{
@@ -120,7 +120,7 @@ class showthread
 			}
 		}
 
-		$post = $DB->query_first("SELECT *, userid AS postuserid, username AS postusername
+		$post = $DB->queryFirst("SELECT *, userid AS postuserid, username AS postusername
 			FROM " . TABLE_PREFIX . "post
 			WHERE threadid='" . $this->thread['tid'] . "'
 				AND pid='" . input::int('p') . "'
@@ -147,7 +147,7 @@ class showthread
 		}
 		$showpost .= "</p>\r\n";
 
-		$post = $DB->query_first("SELECT COUNT(pid) AS count FROM " . TABLE_PREFIX . "post WHERE newthread !=1 AND threadid = " . $this->thread['tid']);
+		$post = $DB->queryFirst("SELECT COUNT(pid) AS count FROM " . TABLE_PREFIX . "post WHERE newthread !=1 AND threadid = " . $this->thread['tid']);
 
 		$tlink = "<p><small>\r\n";
 		$tlink .= "<a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$extra}'>" . convert($forums->lang['returnthread']) . "</a><br />\r\n";
@@ -184,9 +184,9 @@ class showthread
 		$posts = $DB->query("SELECT p.*, p.userid AS postuserid,p.username AS postusername
 									FROM " . TABLE_PREFIX . "post p
 									WHERE threadid='" . $this->thread['tid'] . "' AND newthread != 1" . $moderate . " ORDER BY dateline LIMIT " . $this->pp . ", 10");
-		if ($DB->num_rows($posts))
+		if ($DB->numRows($posts))
 		{
-			while ($post = $DB->fetch_array($posts))
+			while ($post = $DB->fetch($posts))
 			{
 				++$i;
 				$this->offset = 0;
@@ -207,7 +207,7 @@ class showthread
 			$showpost = "<p>" . convert($forums->lang['nonewpost']) . "</p>\r\n";
 		}
 
-		$pcount = $DB->query_first("SELECT COUNT(pid) AS count
+		$pcount = $DB->queryFirst("SELECT COUNT(pid) AS count
 									FROM " . TABLE_PREFIX . "post p
 									WHERE threadid='" . $this->thread['tid'] . "' AND newthread != 1" . $moderate . "");
 
@@ -244,14 +244,14 @@ class showthread
 		}
 		else
 		{
-			$DB->shutdown_update(TABLE_PREFIX . 'thread', array('views' => array(1, '+')), 'tid = ' . $this->thread['tid']);
+			$DB->update(TABLE_PREFIX . 'thread', array('views' => array(1, '+')), 'tid = ' . $this->thread['tid'], SHUTDOWN_QUERY);
 		}
 
 		if ($this->thread['pollstate'])
 		{
 			$show['poll'] = true;
 			$poll_footer = "";
-			$poll_data = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "poll WHERE tid='" . $this->thread['tid'] . "'");
+			$poll_data = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "poll WHERE tid='" . $this->thread['tid'] . "'");
 			if (! $poll_data['pollid'])
 			{
 				return;
@@ -293,7 +293,7 @@ class showthread
 		}
 		$showpost .= "</p>\r\n";
 
-		$post = $DB->query_first("SELECT COUNT(pid) AS count FROM " . TABLE_PREFIX . "post WHERE newthread !=1 AND threadid = " . $this->thread['tid']);
+		$post = $DB->queryFirst("SELECT COUNT(pid) AS count FROM " . TABLE_PREFIX . "post WHERE newthread !=1 AND threadid = " . $this->thread['tid']);
 
 		$tlink = "<p><small>";
 
@@ -328,11 +328,11 @@ class showthread
 		$otherlink = "<p>";
 		$otherlink .= "{$forums->lang['forum']}: <a href='forum.php{$forums->sessionurl}f={$this->forum['id']}{$this->extra}' title='{$forums->lang['go']}'>" . strip_tags($this->forum['name']) . "</a><br />";
 		$otherlink .= "{$forums->lang['thread']}: <a href='thread.php{$forums->sessionurl}t={$this->thread['tid']}&amp;extra={$extra}' title='{$forums->lang['go']}'>" . strip_tags($this->thread['title']) . "</a><br />";
-		if ($prevthread = $DB->query_first("SELECT tid, title FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost < '" . $this->thread['lastpost'] . "' ORDER BY lastpost DESC LIMIT 0, 1"))
+		if ($prevthread = $DB->queryFirst("SELECT tid, title FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost < '" . $this->thread['lastpost'] . "' ORDER BY lastpost DESC LIMIT 0, 1"))
 		{
 			$otherlink .= "{$forums->lang['prevthread']}: <a href='thread.php{$forums->sessionurl}t={$prevthread['tid']}&amp;extra={$extra}' title='{$forums->lang['go']}'>" . strip_tags($prevthread['title']) . "</a><br />";
 		}
-		if ($nextthread = $DB->query_first("SELECT tid, title FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost > '" . $this->thread['lastpost'] . "' ORDER BY lastpost LIMIT 0, 1"))
+		if ($nextthread = $DB->queryFirst("SELECT tid, title FROM " . TABLE_PREFIX . "thread WHERE forumid='" . $this->forum['id'] . "' AND visible=1 AND open != 2 AND lastpost > '" . $this->thread['lastpost'] . "' ORDER BY lastpost LIMIT 0, 1"))
 		{
 			$otherlink .= "{$forums->lang['nextthread']}: <a href='thread.php{$forums->sessionurl}t={$nextthread['tid']}&amp;extra={$extra}' title='{$forums->lang['go']}'>" . strip_tags($nextthread['title']) . "</a><br />";
 		}

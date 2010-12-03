@@ -59,7 +59,7 @@ class faq
 	{
 		global $forums, $DB;
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "faq ORDER BY displayorder");
-		while ($result = $DB->fetch_array())
+		while ($result = $DB->fetch())
 		{
 			if ($result['parentid'] == 0)
 			{
@@ -77,7 +77,7 @@ class faq
 		{
 			$forums->func->standard_error("cannotfindfaq");
 		}
-		$result = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "faq WHERE id = $id");
+		$result = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "faq WHERE id = $id");
 		$result['content'] = true;
 		if (preg_match("/<#show_credit#>/ies", $result['text']))
 		{
@@ -117,9 +117,9 @@ class faq
 				break;
 		}
 		$results = $DB->query("SELECT * FROM " . TABLE_PREFIX . "faq WHERE " . $q_by . " ORDER BY title");
-		if ($DB->num_rows($results))
+		if ($DB->numRows($results))
 		{
-			while ($result = $DB->fetch_array($results))
+			while ($result = $DB->fetch($results))
 			{
 				$result['text'] = preg_replace("/(.*)(" . preg_quote($q, '/') . ")(.*)/is", "\\1<span class='highlight'>\\2</span>\\3", $result['text']);
 				$result['title'] = preg_replace("/(.*)(" . preg_quote($q, '/') . ")(.*)/is", "\\1<span class='highlight'>\\2</span>\\3", $result['title']);
@@ -143,10 +143,10 @@ class faq
 	{
 		global $forums, $DB;
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "credit");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$row = "row2";
-			while ($credit = $DB->fetch_array())
+			while ($credit = $DB->fetch())
 			{
 				foreach($credit AS $key => $value)
 				{

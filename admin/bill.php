@@ -80,7 +80,7 @@ class adminlog
 		global $forums, $DB;
 		if (input::str('id'))
 		{
-			$ad = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "ad WHERE id = " . input::int('id') . "");
+			$ad = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "ad WHERE id = " . input::int('id') . "");
 			if (!$ad['id'])
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
@@ -382,7 +382,7 @@ class adminlog
 		if (!input::get('id', ''))
 		{
 			$DB->insert(TABLE_PREFIX . 'ad', $array);
-			input::set('id', $DB->insert_id());
+			input::set('id', $DB->insertId());
 		}
 
 		if (in_array('-1', input::get('ad_in', '')))
@@ -459,9 +459,9 @@ class adminlog
 			);
 
 		$ads = $DB->query("SELECT * FROM " . TABLE_PREFIX . "ad ORDER BY type, displayorder");
-		if ($DB->num_rows($ads))
+		if ($DB->numRows($ads))
 		{
-			while ($ad = $DB->fetch_array($ads))
+			while ($ad = $DB->fetch($ads))
 			{
 				if ($linesite AND $ad['type'] == 'header')
 				{
@@ -536,12 +536,12 @@ class adminlog
 	function deletead()
 	{
 		global $forums, $DB;
-		$ad = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "ad WHERE id = " . input::int('id') . "");
+		$ad = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "ad WHERE id = " . input::int('id') . "");
 		if (!$ad['id'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "ad WHERE id={$ad['id']}");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "ad WHERE id={$ad['id']}");
 		$forums->func->recache('ad');
 		$forums->admin->redirect("bill.php", $forums->lang['admanage'], $forums->lang['adupdated']);
 	}
@@ -553,7 +553,7 @@ class adminlog
 		if (!empty($array))
 		{
 			$ads = $DB->query("SELECT id,displayorder FROM " . TABLE_PREFIX . "ad");
-			while ($ad = $DB->fetch_array($ads))
+			while ($ad = $DB->fetch($ads))
 			{
 				if (!isset($array[$ad['id']]))
 				{

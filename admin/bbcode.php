@@ -55,7 +55,7 @@ class bbcode
 			$forums->main_msg = $forums->lang['noids'];
 			$this->showcode();
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "bbcode WHERE bbcodeid=" . input::int('id') . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "bbcode WHERE bbcodeid=" . input::int('id') . "");
 		$forums->func->recache('bbcode');
 		$this->showcode();
 	}
@@ -65,7 +65,7 @@ class bbcode
 		global $forums, $DB;
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "bbcode ORDER BY title");
 		$text = convert_andstr($_POST['bbtest']);
-		while ($row = $DB->fetch_array())
+		while ($row = $DB->fetch())
 		{
 			if (substr_count($row['bbcodereplacement'], '{content}') > 1)
 			{
@@ -160,7 +160,7 @@ class bbcode
 				$forums->main_msg = $forums->lang['noids'];
 				$this->showcode();
 			}
-			$bbcode = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "bbcode WHERE bbcodeid='" . input::int('id') . "'");
+			$bbcode = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "bbcode WHERE bbcodeid='" . input::int('id') . "'");
 			$button = $forums->lang['editbbcode'];
 			$code = 'doedit';
 			$pagetitle = $forums->lang['editbbcode'] . ": " . $bbcode['title'];
@@ -206,7 +206,7 @@ class bbcode
 		$forums->admin->columns[] = array($forums->lang['option'], "30%");
 		$forums->admin->print_table_start($forums->lang['managebbcode']);
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "bbcode ORDER BY title");
-		while ($row = $DB->fetch_array())
+		while ($row = $DB->fetch())
 		{
 			if ($row['twoparams'])
 			{

@@ -43,7 +43,7 @@ class cronlog
 		{
 			$where = "dateline < $prune";
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "cronlog WHERE " . $where . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "cronlog WHERE " . $where . "");
 		$forums->main_msg = $forums->lang['cronlogdeleted'];
 		$this->listlog();
 	}
@@ -69,9 +69,9 @@ class cronlog
 		$forums->admin->columns[] = array($forums->lang['crontime'], "35%");
 		$forums->admin->columns[] = array($forums->lang['cronloginfo'], "45%");
 		$forums->admin->print_table_start($forums->lang['selectedcronlog']);
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$forums->admin->print_cells_row(array("<strong>{$row['title']}</strong>", $forums->func->get_date($row['dateline'], 1), "{$row['description']}"));
 			}
@@ -92,7 +92,7 @@ class cronlog
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$crons = array(0 => array(-1, $forums->lang['allcronlist']));
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "cron");
-		while ($pee = $DB->fetch_array())
+		while ($pee = $DB->fetch())
 		{
 			$crons[] = array($pee['cronid'], $pee['title']);
 		}
@@ -101,9 +101,9 @@ class cronlog
 		$forums->admin->columns[] = array($forums->lang['crontime'], "35%");
 		$forums->admin->columns[] = array($forums->lang['cronloginfo'], "45%");
 		$forums->admin->print_table_start($forums->lang['lastfivecron']);
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$forums->admin->print_cells_row(array("<strong>{$row['title']}</strong>", $forums->func->get_date($row['dateline'], 1), "{$row['description']}"));
 			}

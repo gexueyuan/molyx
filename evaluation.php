@@ -54,11 +54,11 @@ class evaluation
 		{
 			$this->posttable = $tablename;
 		}
-		$this->post = $DB->query_first("SELECT p.*, u.usergroupid FROM " . TABLE_PREFIX . "$this->posttable p
+		$this->post = $DB->queryFirst("SELECT p.*, u.usergroupid FROM " . TABLE_PREFIX . "$this->posttable p
 			LEFT JOIN  " . TABLE_PREFIX . "user u ON u.id = p.userid
 			WHERE p.pid= $this->postid");
 		$this->threadid = input::get('t', 0);
-		$this->thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid= $this->threadid");
+		$this->thread = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid= $this->threadid");
 		$this->forum = $forums->forum->single_forum($this->thread['forumid']);
 		$this->forumid = $this->forum['id'];
 		if ($bbuserinfo['id'] == $this->post['userid'])
@@ -131,7 +131,7 @@ class evaluation
 		$amount = input::get('amount', 0);
 		$evalmessage = input::get('evalmessage', '');
 		$allrep = unserialize($this->thread['allrep']);
-		$thiscredit = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "credit WHERE tag='$actcredit'");
+		$thiscredit = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "credit WHERE tag='$actcredit'");
 		//判断用户用该积分进行的评价活动是否超出评价默认值
 		if ($bbuserinfo['eval'.$actcredit]<=0)
 		{
@@ -156,7 +156,7 @@ class evaluation
 		$scorearrs = $this->credit->getactioncredit('evalthreadscore', $this->post['usergroupid'], $this->forumid);
 		$threadscore = $scorearrs[$thiscredit['creditid']]['action'];
 
-		$log = $DB->query_first("SELECT *
+		$log = $DB->queryFirst("SELECT *
 			FROM " . TABLE_PREFIX . "evaluationlog
 			WHERE postid = $this->postid AND actionuserid = {$bbuserinfo['id']}");
 		if ($log['evaluationid'] && !$bbuserinfo['canevalsameuser'])
@@ -188,11 +188,11 @@ class evaluation
 		);
 		$DB->insert(TABLE_PREFIX . "evaluationlog", $logarray);
 		//更新被评价的用户积分
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $actcredit = $actcredit + ( $amount ) WHERE id = {$this->post['userid']}");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $actcredit = $actcredit + ( $amount ) WHERE id = {$this->post['userid']}");
 		//更新评价的用户积分
 		$evalcredit = 'eval'.$actcredit;
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $evalcredit = $evalcredit - " . abs($amount) . " WHERE id = {$bbuserinfo['id']}");
-		$DB->shutdown_update(TABLE_PREFIX . "thread", array('allrep' => serialize($allrep)), "tid = $this->threadid");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $evalcredit = $evalcredit - " . abs($amount) . " WHERE id = {$bbuserinfo['id']}");
+		$DB->udpate(TABLE_PREFIX . "thread", array('allrep' => serialize($allrep)), "tid = $this->threadid", SHUTDOWN_QUERY);
 
 		//发送短消息
 		if (input::get('sendpm', '') =='yes')
@@ -249,7 +249,7 @@ class evaluation
 			WHERE postid={$this->postid}
 			ORDER BY dateline DESC
 			LIMIT 0,5");
-		while ($r = $DB->fetch_array($rs))
+		while ($r = $DB->fetch($rs))
 		{
 			$split = array();
 			if (substr($r['affect'], 0, 1) != '-')
@@ -264,12 +264,12 @@ class evaluation
 			WHERE postid={$this->postid}
 			GROUP BY creditid");
 		$postcredit = array();
-		while ($r = $DB->fetch_array($rs))
+		while ($r = $DB->fetch($rs))
 		{
 			$postcredit[] = $r;
 		}
 		$evallog['ac'] = $postcredit;
-		$DB->shutdown_update(TABLE_PREFIX . $this->posttable, array('reppost' => serialize($evallog)), 'pid=' . $this->postid);
+		$DB->update(TABLE_PREFIX . $this->posttable, array('reppost' => serialize($evallog)), 'pid=' . $this->postid, SHUTDOWN_QUERY);
 	}
 }
 

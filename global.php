@@ -90,7 +90,7 @@ if (THIS_SCRIPT != 'login' && THIS_SCRIPT != 'register' && THIS_SCRIPT != 'cron'
 		if (!$bbuserinfo['canviewoffline'])
 		{
 			$forums->func->load_lang('error');
-			$row = $DB->query_first("SELECT *
+			$row = $DB->queryFirst("SELECT *
 				FROM " . TABLE_PREFIX . "setting
 				WHERE varname = 'bbclosedreason'");
 			$message = nl2br($row['value'] ? $row['value'] : $row['defaultvalue']);

@@ -101,7 +101,7 @@ function response_op_result($valid_tids, $fid)
 	$user_thread_num = array();
 	$moderator_log = array();
 	$title = input::str('title');
-	while ($thread = $DB->fetch_array($threads))
+	while ($thread = $DB->fetch($threads))
 	{
 		if ($thread['open'] == 1) //开放主题
 		{
@@ -187,7 +187,7 @@ function change_thread_attr($tid, $color = 'reset', $bold = 0)
 		return $response;
 	}
 	//取出主题信息
-	$thread = $DB->query_first("SELECT title, forumid, sticky, postuserid FROM " . TABLE_PREFIX . "thread WHERE tid = " . intval($tid));
+	$thread = $DB->queryFirst("SELECT title, forumid, sticky, postuserid FROM " . TABLE_PREFIX . "thread WHERE tid = " . intval($tid));
 	if (!$thread)
 	{
 		$forums->func->load_lang('error');
@@ -298,7 +298,7 @@ function change_thread_title($tid, $title, $oldthreadhtml = '')
 		return $response;
 	}
 	//取出主题信息
-	$thread = $DB->query_first("SELECT title, forumid, sticky, postuserid FROM " . TABLE_PREFIX . "thread WHERE tid = " . intval($tid));
+	$thread = $DB->queryFirst("SELECT title, forumid, sticky, postuserid FROM " . TABLE_PREFIX . "thread WHERE tid = " . intval($tid));
 	if (!$thread)
 	{
 		$forums->func->load_lang('error');
@@ -680,7 +680,7 @@ function process_form($input, $action)
 					WHERE tid IN (" . $tids . "){$prms_fids}
 					ORDER BY dateline DESC");
 		$thread = array();
-		while ($row = $DB->fetch_array())
+		while ($row = $DB->fetch())
 		{
 			$thread[] = $row;
 		}
@@ -735,7 +735,7 @@ function approveunapprove($input, $prms_fids, $type = 'approve')
 	}
 	else
 	{
-		$thread = $DB->query_first('SELECT tid, title FROM '. TABLE_PREFIX . "thread
+		$thread = $DB->queryFirst('SELECT tid, title FROM '. TABLE_PREFIX . "thread
 						  			WHERE tid = " . intval($tids));
 
 		input::set('tid', $thread['tid']);
@@ -790,7 +790,7 @@ function merge_threads()
 			show_processinfo($forums->lang['cannotfindmerge']);
 			return $response;
 		}
-		$old_thread = $DB->query_first('SELECT tid, title, forumid, lastpost, lastposterid, lastposter, post, views, posttable
+		$old_thread = $DB->queryFirst('SELECT tid, title, forumid, lastpost, lastposterid, lastposter, post, views, posttable
 			FROM ' . TABLE_PREFIX . "thread
 			WHERE tid = $old_id");
 		if (!$old_thread)
@@ -799,9 +799,9 @@ function merge_threads()
 			show_processinfo($forums->lang['cannotfindmerge']);
 			return $response;
 		}
-		$thread = $DB->query_first('SELECT *
+		$thread = $DB->queryFirst('SELECT *
 			FROM ' . TABLE_PREFIX . 'thread
-			WHERE ' . $DB->sql_in('tid', $tid));
+			WHERE ' . $DB->sql->in('tid', $tid));
 		if ($old_id == $thread['tid'])
 		{
 			$forums->func->load_lang('error');
@@ -827,7 +827,7 @@ function merge_threads()
 						AND (userid = {$bbuserinfo['id']}
 							OR (isgroup = 1
 								AND usergroupid = {$bbuserinfo['usergroupid']}))");
-				if ($DB->num_rows($result))
+				if ($DB->numRows($result))
 				{
 					$pass = true;
 				}
@@ -868,9 +868,9 @@ function merge_threads()
 		$forums_recount = $thread = array();
 		$result = $DB->query('SELECT tid, title, description, posttable, forumid
 			FROM ' . TABLE_PREFIX . 'thread
-			WHERE ' . $DB->sql_in('tid', $tid) . '
+			WHERE ' . $DB->sql->in('tid', $tid) . '
 			ORDER BY dateline ASC');
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			$thread[] = $row;
 			$forums_recount[$row['forumid']] = 1;
@@ -910,14 +910,14 @@ function merge_threads()
 	$tid_in_merge_ids = "tid IN ($merge_ids)";
 	if ($direct_merge_ids)
 	{
-		$DB->update(TABLE_PREFIX . $posttable, array('threadid' => $new_id), $DB->sql_in('threadid', $direct_merge_ids));
+		$DB->update(TABLE_PREFIX . $posttable, array('threadid' => $new_id), $DB->sql->in('threadid', $direct_merge_ids));
 	}
 	if ($move_merge_ids)
 	{
 		$table_fields = $DB->query('SHOW COLUMNS FROM ' . TABLE_PREFIX . $posttable);
 		$fields = array();
 		$values = array();
-		while ($row = $DB->fetch_array($table_fields))
+		while ($row = $DB->fetch($table_fields))
 		{
 			if ($row['Field'] == 'pid')
 			{
@@ -942,7 +942,7 @@ function merge_threads()
 				FROM " . TABLE_PREFIX . $tab . '
 				WHERE threadid IN (' . implode(',', $tids) . ')';
 				$DB->query($sql);
-				$DB->delete(TABLE_PREFIX . $tab, $DB->sql_in('threadid', $tids));
+				$DB->delete(TABLE_PREFIX . $tab, $DB->sql->in('threadid', $tids));
 			}
 		}
 	}
@@ -1024,7 +1024,7 @@ function move_threads()
 		show_processinfo($forums->lang['notsamesource']);
 		return $response;
 	}
-	if (!$forum = $DB->query_first("SELECT id, allowposting, name FROM " . TABLE_PREFIX . "forum WHERE id=" . $dest_id . ""))
+	if (!$forum = $DB->queryFirst("SELECT id, allowposting, name FROM " . TABLE_PREFIX . "forum WHERE id=" . $dest_id . ""))
 	{
 		$forums->func->load_lang('error');
 		show_processinfo($forums->lang['cannotfindtarget']);
@@ -1096,11 +1096,11 @@ function doquintessence($type)
 						 		ON u.id = t.postuserid
 	                     WHERE t.tid IN(" . $tids . ")");
 
-	if ($DB->num_rows($users))
+	if ($DB->numRows($users))
 	{
 		$userids = $groupids = $forumids = array();
 		$update_tid = $pm_touser = $update_user_quint = array();
-		while ($user = $DB->fetch_array($users))
+		while ($user = $DB->fetch($users))
 		{
 			if ($user['quintessence'] == $operation)
 			{
@@ -1122,11 +1122,11 @@ function doquintessence($type)
 		if($update_case_sql)
 		{
 			$update_case_sql = ' CASE id ' . $update_case_sql . ' ELSE quintessence END';
-			$DB->shutdown_query('UPDATE ' . TABLE_PREFIX . "user SET quintessence = ($update_case_sql) WHERE id IN (" . implode(',' , array_keys($update_user_quint)) . ')');
+			$DB->shutdownQuery('UPDATE ' . TABLE_PREFIX . "user SET quintessence = ($update_case_sql) WHERE id IN (" . implode(',' , array_keys($update_user_quint)) . ')');
 		}
 
 		$credit->update_credit($type, $userids, $groupids, $forumids);
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET quintessence='" . $operation . "' WHERE tid IN(" . $tids . ")");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET quintessence='" . $operation . "' WHERE tid IN(" . $tids . ")");
 		if ($pm_touser)
 		{
 			//发送短消息给主题作者
@@ -1163,7 +1163,7 @@ function doquintessence($type)
 		}
 		else
 		{
-			$thread = $DB->query_first('SELECT tid, title FROM '. TABLE_PREFIX . "thread
+			$thread = $DB->queryFirst('SELECT tid, title FROM '. TABLE_PREFIX . "thread
 							  			WHERE tid = " . intval($tids));
 
 			input::set('tid', $thread['tid']);
@@ -1246,7 +1246,7 @@ function sticky_threads()
 	}
 	else
 	{
-		$thread = $DB->query_first('SELECT tid, title FROM '. TABLE_PREFIX . "thread
+		$thread = $DB->queryFirst('SELECT tid, title FROM '. TABLE_PREFIX . "thread
 						  			WHERE tid = " . intval($tids));
 
 		input::set('tid', $thread['tid']);
@@ -1276,7 +1276,7 @@ function clean_moveurl()
 	$tid = input::arr('tid');
 	foreach ($tid AS $t)
 	{
-		if ($cleanid = $DB->query_first("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE moved LIKE '" . $t . "&%'"))
+		if ($cleanid = $DB->queryFirst("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE moved LIKE '" . $t . "&%'"))
 		{
 			$thread[] = $cleanid['tid'];
 		}
@@ -1286,7 +1286,7 @@ function clean_moveurl()
 	$t = input::int('t');
 	if (is_array($thread))
 	{
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "thread WHERE tid IN (" . implode(',', $thread) . ')');
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "thread WHERE tid IN (" . implode(',', $thread) . ')');
 		forum_recount($f);
 	}
 	show_processinfo($forums->lang['hascleaned']);
@@ -1311,7 +1311,7 @@ function delete_threads()
 	$tids = input::arr('tid');
 	foreach ($tids AS $link_thread)
 	{
-		$linked_thread = $DB->query_first( "SELECT tid, forumid FROM ".TABLE_PREFIX."thread WHERE open=2 AND moved LIKE '".$link_thread."&%'" );
+		$linked_thread = $DB->queryFirst( "SELECT tid, forumid FROM ".TABLE_PREFIX."thread WHERE open=2 AND moved LIKE '".$link_thread."&%'" );
 		if ( $linked_thread)
 		{
 			$del_tids[] = $linked_thread['tid'];
@@ -1323,7 +1323,7 @@ function delete_threads()
 	}
 	if (is_array($del_tids))
 	{
-		$DB->delete(TABLE_PREFIX . 'thread', $DB->sql_in('tid', $del_tids));
+		$DB->delete(TABLE_PREFIX . 'thread', $DB->sql->in('tid', $del_tids));
 		foreach ($d_ceche AS $forumid)
 		{
 			forum_recount($forumid);
@@ -1335,7 +1335,7 @@ function delete_threads()
 			LEFT JOIN ".TABLE_PREFIX."user u
 				ON u.id=t.postuserid
 			WHERE tid IN(" . implode(',', $tids) . ')' );
-	while ($thread = $DB->fetch_array($threads))
+	while ($thread = $DB->fetch($threads))
 	{
 		$delthread[$thread['postuserid']][] = $thread;
 		$threadforum[$thread['tid']] = $thread['forumid'];
@@ -1500,11 +1500,11 @@ function do_revert_threads()
 	$mod_func = new modfunctions();
 	$recountids = $revertpids = $reverttids = array();
 	$result = $DB->query('SELECT tid, rawforumid, forumid FROM ' . TABLE_PREFIX . 'thread WHERE tid IN (' . implode(',', $tid) . ') AND forumid = ' . $forumid);
-	while ($row = $DB->fetch_array($result))
+	while ($row = $DB->fetch($result))
 	{
 		if (!$row['rawforumid'])
 		{
-			$recthread = $DB->query_first('SELECT posttable
+			$recthread = $DB->queryFirst('SELECT posttable
 					FROM ' . TABLE_PREFIX . 'thread
 				WHERE tid ='. $row['tid']);
 			$posttable = $recthread['posttable'] ? $recthread['posttable'] : 'post';
@@ -1514,7 +1514,7 @@ function do_revert_threads()
 				LEFT JOIN " . TABLE_PREFIX . 'thread t
 					ON p.rawthreadid = t.tid
 				WHERE p.threadid ='. $row['tid']);
-			while ($r = $DB->fetch_array($rs))
+			while ($r = $DB->fetch($rs))
 			{
 				$rawtid = $r['tid'];
 				$rawfid = $r['forumid'];
@@ -1584,7 +1584,7 @@ function mod_commend_thread()
 	$sql = 'SELECT count(*) AS count FROM ' . TABLE_PREFIX . 'thread
 			WHERE forumid = ' . $forumid . '
 				AND mod_commend > 0';
-	$commend_num = $DB->query_first($sql);
+	$commend_num = $DB->queryFirst($sql);
 	if ($commend_exp && $commend_num['count'] >= $bboptions['commend_thread_num'])
 	{
 		show_processinfo($forums->lang['commend_thread_overflow']);
@@ -1592,7 +1592,7 @@ function mod_commend_thread()
 	}
 
 	$tid = input::arr('tid');
-	$DB->update(TABLE_PREFIX . 'thread', array('mod_commend' => $commend_exp), $DB->sql_in('tid', $tid));
+	$DB->update(TABLE_PREFIX . 'thread', array('mod_commend' => $commend_exp), $DB->sql->in('tid', $tid));
 	$forums->func->recache('forum_commend_thread');
 	if ($commend_exp)
 	{

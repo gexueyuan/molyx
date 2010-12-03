@@ -40,7 +40,7 @@ class functions_cron
 			WHERE enabled = 1
 				AND nextrun <= " . TIMENOW . "
 			ORDER BY nextrun ASC");
-		while ($cron = $DB->fetch_array($result))
+		while ($cron = $DB->fetch($result))
 		{
 			$nextrun = $this->next_run($cron);
 			$sql_array[$cron['cronid']] = $nextrun;
@@ -57,7 +57,7 @@ class functions_cron
 				}
 			}
 		}
-		$DB->update_case(TABLE_PREFIX . 'cron', 'cronid', array('nextrun' => $sql_array));
+		$DB->updateCase(TABLE_PREFIX . 'cron', 'cronid', array('nextrun' => $sql_array));
 		$this->save_next_run();
 	}
 
@@ -185,7 +185,7 @@ class functions_cron
 	function save_next_run()
 	{
 		global $forums, $DB;
-		$cron = $DB->query_first('SELECT nextrun
+		$cron = $DB->queryFirst('SELECT nextrun
 			FROM ' . TABLE_PREFIX . 'cron
 			WHERE enabled = 1
 			ORDER BY nextrun ASC

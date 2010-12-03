@@ -137,13 +137,13 @@ class newprivate
 				$sortby = 'dateline DESC';
 				break;
 		}
-		$total = $DB->query_first("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . "");
+		$total = $DB->queryFirst("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . "");
 		$curfolderid = $this->folderid;
 		if ($total['pmtotal'] != $bbuserinfo['pmtotal'])
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmtotal=" . $total['pmtotal'] . " WHERE id=" . $bbuserinfo['id'] . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmtotal=" . $total['pmtotal'] . " WHERE id=" . $bbuserinfo['id'] . "");
 		}
-		$currenttotal = $DB->query_first("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . " AND folderid=" . input::int('folderid') . "");
+		$currenttotal = $DB->queryFirst("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . " AND folderid=" . input::int('folderid') . "");
 		if ($currenttotal['pmtotal'] != intval($bbuserinfo['pmfolders'][$curfolderid]['pmcount']))
 		{
 			$this->lib->rebuild_foldercount($bbuserinfo['id'], $bbuserinfo['pmfolders'], $this->folderid, intval($currenttotal['pmtotal']));
@@ -177,10 +177,10 @@ class newprivate
 		$pmselect = $this->pmselect;
 		$sender = $forums->lang['post']['sender'];
 		$adminpms = $DB->query("SELECT p.* FROM " . TABLE_PREFIX . "pm p WHERE p.userid='' AND p.usergroupid!='' ORDER BY dateline");
-		if ($DB->num_rows($pms))
+		if ($DB->numRows($pms))
 		{
 			$show['message'] = true;
-			while ($adminpm = $DB->fetch_array($pms))
+			while ($adminpm = $DB->fetch($pms))
 			{
 				if (preg_match("/," . $bbuserinfo['usergroupid'] . ",/i", "," . $adminpm['usergroupid'] . ",") OR $adminpm['usergroupid'] == '-1')
 				{
@@ -216,10 +216,10 @@ class newprivate
 							$where
 						ORDER BY " . $sortby . " LIMIT " . $pp . ", 30");
 		}
-		if ($DB->num_rows($pms))
+		if ($DB->numRows($pms))
 		{
 			$show['message'] = true;
-			while ($row = $DB->fetch_array($pms))
+			while ($row = $DB->fetch($pms))
 			{
 				if ($row['attach'])
 				{
@@ -232,7 +232,7 @@ class newprivate
 		}
 		if ($this->folderid == 0 AND $bbuserinfo['pmunread'] > 0)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
 		}
 
 		//加载ajax
@@ -249,7 +249,9 @@ class newprivate
 	function ignorepm()
 	{
 		global $forums, $DB, $bbuserinfo, $bboptions;
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
+		$DB->update(TABLE_PREFIX . "user", array(
+			'pmunread' => 0
+		), "id=" . $bbuserinfo['id'], SHUTDOWN_QUERY);
 		$forums->func->standard_redirect($forums->url);
 	}
 
@@ -281,13 +283,17 @@ class newprivate
 		}
 		$pmids = array();
 		$DB->query("SELECT pmid FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . " AND folderid IN('" . implode("','", $ids) . "')");
-		while ($d = $DB->fetch_array())
+		while ($d = $DB->fetch())
 		{
 			$pmids[] = $d['pmid'];
 		}
 		$this->delete_messages($pmids, $bbuserinfo['id']);
-		$total = $DB->query_first("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . "");
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET pmtotal='" . $total['pmtotal'] . "', pmfolders='" . addslashes(serialize($bbuserinfo['pmfolders'])) . "' WHERE id=" . $bbuserinfo['id'] . "");
+		$total = $DB->queryFirst("SELECT COUNT(*) as pmtotal FROM " . TABLE_PREFIX . "pm WHERE userid=" . $bbuserinfo['id'] . "");
+
+		$DB->update(TABLE_PREFIX . "user", array(
+			'pmtotal' => $total['pmtotal'],
+			'pmfolders' => serialize($bbuserinfo['pmfolders']),
+		), "id=" . $bbuserinfo['id'], SHUTDOWN_QUERY);
 		$forums->func->standard_redirect("private.php{$forums->sessionurl}do=empty");
 	}
 
@@ -345,10 +351,15 @@ class newprivate
 		}
 		if (!empty($updatefolders))
 		{
-			$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "pm SET folderid=0 WHERE userid=$bbuserinfo[id] AND folderid IN(" . implode(', ', $updatefolders) . ")");
+			$DB->update(TABLE_PREFIX . "pm", array(
+				'folderid' => 0
+			), "userid=" . $bbuserinfo['id'] . '
+				AND ' . $DB->sql->in('folderid', $updatefolders), SHUTDOWN_QUERY);
 		}
 		ksort($pmfolders);
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET pmfolders='" . addslashes(serialize($pmfolders)) . "' WHERE id=" . $bbuserinfo['id'] . "");
+		$DB->update(TABLE_PREFIX . "user", array(
+			'pmfolders' => serialize($pmfolders)
+		), "id=" . $bbuserinfo['id'], SHUTDOWN_QUERY);
 		$forums->func->standard_redirect("private.php{$forums->sessionurl}do=editfolders");
 	}
 
@@ -357,10 +368,10 @@ class newprivate
 		global $forums, $DB, $bbuserinfo, $bboptions;
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " ORDER BY contactname ASC");
 		$contacts = array();
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$show['userlist'] = true;
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$row['text'] = $row['allowpm'] ? $forums->lang['allowpm'] : $forums->lang['forbidpm'];
 				$contacts[] = $row;
@@ -370,7 +381,7 @@ class newprivate
 		$u = input::int('u');
 		if ($u > 0)
 		{
-			$user = $DB->query_first("SELECT name,id FROM " . TABLE_PREFIX . "user WHERE id=" . $u . "");
+			$user = $DB->queryFirst("SELECT name,id FROM " . TABLE_PREFIX . "user WHERE id=" . $u . "");
 			if ($user['id'])
 			{
 				$username = $user['name'];
@@ -396,22 +407,24 @@ class newprivate
 		{
 			$forums->func->standard_error("plzinputallform");
 		}
-		$user = $DB->query_first("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "'");
+		$user = $DB->queryFirst("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "'");
 		if (! $user['id'])
 		{
 			$forums->func->standard_error("cannotfindadduser");
 		}
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=" . $user['id'] . "");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$forums->func->standard_error("alreadyadd");
 		}
 		$allowpm = input::int('allowpm');
-		$DB->shutdown_query("INSERT INTO " . TABLE_PREFIX . "pmuserlist
-								(userid, contactname, allowpm, description, contactid)
-							VALUES
-								(" . $bbuserinfo['id'] . ", '" . $user['name'] . "', " . $allowpm . ", '" . input::get('description', '') . "', " . $user['id'] . ")"
-			);
+		$DB->insert(TABLE_PREFIX . "pmuserlist", array(
+			'userid' => $bbuserinfo['id'],
+			'contactname' => $user['name'],
+			'allowpm' => $allowpm,
+			'description' => input::str('description'),
+			'contactid' => $user['id']
+		), SHUTDOWN_QUERY);
 		$forums->func->standard_redirect("private.php{$forums->sessionurl}do=buddy");
 	}
 
@@ -423,7 +436,7 @@ class newprivate
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
-		if (!$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=$u"))
+		if (!$user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=$u"))
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
@@ -450,12 +463,15 @@ class newprivate
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
-		$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=$u");
+		$user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=$u");
 		if (!$user['contactid'])
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "pmuserlist SET description='" . input::get('description', '') . "', allowpm=" . input::int('allowpm') . " WHERE id=" . $user['id'] . "");
+		$DB->update(TABLE_PREFIX . "pmuserlist", array(
+			'description' => input::str('description'),
+			'allowpm' => input::int('allowpm')
+		), "id=" . $user['id'], SHUTDOWN_QUERY);
 		$forums->func->standard_redirect("private.php{$forums->sessionurl}do=buddy");
 	}
 
@@ -467,7 +483,7 @@ class newprivate
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
-		$DB->shutdown_query("DELETE FROM " . TABLE_PREFIX . "pmuserlist WHERE userid=" . $bbuserinfo['id'] . " AND contactid=" . $u . "");
+		$DB->delete(TABLE_PREFIX . "pmuserlist", "userid=" . $bbuserinfo['id'] . " AND contactid=" . $u, SHUTDOWN_QUERY);
 		$forums->func->standard_redirect("private.php{$forums->sessionurl}do=buddy");
 	}
 
@@ -481,7 +497,7 @@ class newprivate
 				WHERE p.fromuserid='" . $bbuserinfo['id'] . "' AND p.tracking=1");
 		$read = array();
 		$unread = array();
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			if ($r['pmread'])
 			{
@@ -523,7 +539,7 @@ class newprivate
 				LEFT JOIN " . TABLE_PREFIX . "user u ON (p.$whatuserid=u.id)
 				LEFT JOIN " . TABLE_PREFIX . "usergroup g ON (g.usergroupid=u.usergroupid)
 				WHERE p.pmid= $pmid");
-		if ($pm = $DB->fetch_array())
+		if ($pm = $DB->fetch())
 		{
 			if ($pm['userid'] != $bbuserinfo['id'] && $pm['usergroupid'] != -1 && !preg_match("/," . $bbuserinfo['usergroupid'] . ",/i", "," . $pm['usergroupid'] . ","))
 			{
@@ -537,7 +553,7 @@ class newprivate
 
 		if ($bbuserinfo['pmunread'] > 0)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread=0 WHERE id=" . $bbuserinfo['id'] . "");
 		}
 
 		if ($pm['pmread'] < 1)
@@ -640,7 +656,7 @@ class newprivate
 			WHERE " . $query . " AND p.pmid " . $id_string . "");
 		$final_ids = array();
 		$final_pms = array();
-		while ($i = $DB->fetch_array($pms))
+		while ($i = $DB->fetch($pms))
 		{
 			if ($i['usergroupid'] != 0) continue;
 			$extra = "";
@@ -658,24 +674,24 @@ class newprivate
 		}
 		if (count($final_pms))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE pmid IN (" . implode(',', $final_pms) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE pmid IN (" . implode(',', $final_pms) . ")");
 		}
 		if (count($final_ids))
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pmtext SET deletedcount=deletedcount+1 WHERE pmtextid IN (" . implode(',', $final_ids) . ")");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "pmtext SET deletedcount=deletedcount+1 WHERE pmtextid IN (" . implode(',', $final_ids) . ")");
 		}
 		$deleted_ids = array();
 		$attachmentids = array();
 		$DB->query("SELECT pmtextid FROM " . TABLE_PREFIX . "pmtext WHERE deletedcount >= savedcount");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$deleted_ids[] = $r['pmtextid'];
 		}
 		if (count($deleted_ids))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE pmtextid IN (" . implode(',', $deleted_ids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE pmtextid IN (" . implode(',', $deleted_ids) . ")");
 			$DB->query("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE pmid IN (" . implode(',', $deleted_ids) . ")");
-			while ($a = $DB->fetch_array())
+			while ($a = $DB->fetch())
 			{
 				$attachmentids[] = $a['attachmentid'];
 				if ($a['location'])
@@ -689,7 +705,7 @@ class newprivate
 			}
 			if (count($attachmentids))
 			{
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid IN (" . implode(',', $attachmentids) . ")");
+				$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid IN (" . implode(',', $attachmentids) . ")");
 			}
 		}
 	}
@@ -722,8 +738,8 @@ class newprivate
 			{
 				if ($curfolderid != $this->folderid)
 				{
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pm SET folderid='" . $this->folderid . "' WHERE folderid != '" . $this->folderid . "' AND userid=" . $bbuserinfo['id'] . " AND pmid IN (" . $id_string . ")");
-					if ($DB->affected_rows())
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "pm SET folderid='" . $this->folderid . "' WHERE folderid != '" . $this->folderid . "' AND userid=" . $bbuserinfo['id'] . " AND pmid IN (" . $id_string . ")");
+					if ($DB->affectedRows())
 					{
 						$returnpmfolders = $this->lib->rebuild_foldercount($bbuserinfo['id'],
 							$bbuserinfo['pmfolders'],
@@ -771,12 +787,12 @@ class newprivate
 		if ($affected_ids > 0)
 		{
 			$id_string = implode(",", $ids);
-			$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "pm
-				SET tracking=0
-				WHERE tracking=1
-					AND pmread=1
-					AND fromuserid=" . $bbuserinfo['id'] . "
-					AND pmid IN (" . $id_string . ")");
+			$DB->update(TABLE_PREFIX . "pm", array(
+				'tracking' => 0
+			), "tracking=1
+				AND pmread=1
+				AND fromuserid=" . $bbuserinfo['id'] . "
+				AND pmid IN (" . $id_string . ")", SHUTDOWN_QUERY);
 			$forums->func->standard_redirect("private.php{$forums->sessionurl}do=showtrack");
 		}
 		else

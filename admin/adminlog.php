@@ -1,4 +1,4 @@
-<?php 
+<?php
 # **************************************************************************#
 # MolyX2
 # ------------------------------------------------------
@@ -49,7 +49,7 @@ class adminlog
 				$forums->main_msg = $forums->lang['inputkeywords'];
 				return $this->loglist();
 			}
-			$row = $DB->query_first("SELECT COUNT(adminlogid) as count FROM " . TABLE_PREFIX . "adminlog WHERE userid=" . intval(input::int('u')) . "");
+			$row = $DB->queryFirst("SELECT COUNT(adminlogid) as count FROM " . TABLE_PREFIX . "adminlog WHERE userid=" . intval(input::int('u')) . "");
 			$row_count = $row['count'];
 			$query = "u=" . input::int('u') . "&amp;do=view";
 			$DB->query("SELECT a.*, u.id, u.name FROM " . TABLE_PREFIX . "adminlog a, " . TABLE_PREFIX . "user u WHERE a.userid='" . input::int('u') . "' AND a.userid=u.id ORDER BY a.dateline DESC LIMIT " . $pp . ", 20");
@@ -58,7 +58,7 @@ class adminlog
 		{
 			input::str('key') = rawurldecode(input::str('key'));
 			$where = input::str('type') . " LIKE '%" . input::str('key') . "%'";
-			$row = $DB->query_first("SELECT COUNT(adminlogid) as count FROM " . TABLE_PREFIX . "adminlog WHERE " . $where . "");
+			$row = $DB->queryFirst("SELECT COUNT(adminlogid) as count FROM " . TABLE_PREFIX . "adminlog WHERE " . $where . "");
 			$row_count = $row['count'];
 			$query = "do=view&amp;type=".input::str('type')."&amp;key=" . urlencode(input::str('key'));
 			$DB->query("SELECT a.*, u.id, u.name FROM " . TABLE_PREFIX . "adminlog a, " . TABLE_PREFIX . "user u
@@ -77,9 +77,9 @@ class adminlog
 		$forums->admin->columns[] = array($forums->lang['ipaddress'], "20%");
 		$forums->admin->print_table_start($forums->lang['savedadminlog']);
 		$forums->admin->print_cells_single_row($links, 'center', 'pformstrip');
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$row['dateline'] = $forums->func->get_date($row['dateline'], 2);
 				$forums->admin->print_cells_row(array("<strong>{$row['name']}</strong>",
@@ -105,7 +105,7 @@ class adminlog
 		{
 			$forums->admin->print_cp_error($forums->lang['nodeleteusers']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "adminlog WHERE userid=" . input::int('u') . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "adminlog WHERE userid=" . input::int('u') . "");
 		$forums->func->standard_redirect("adminlog.php?" . $forums->sessionurl);
 	}
 
@@ -122,9 +122,9 @@ class adminlog
 		$forums->admin->columns[] = array($forums->lang['actiontime'], "15%");
 		$forums->admin->columns[] = array($forums->lang['ipaddress'], "20%");
 		$forums->admin->print_table_start($forums->lang['recentlyfivelogs']);
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$row['dateline'] = $forums->func->get_date($row['dateline'], 2);
 				$forums->admin->print_cells_row(array("<strong>{$row['name']}</strong>",
@@ -145,9 +145,9 @@ class adminlog
 		$forums->admin->columns[] = array($forums->lang['deleteuseralllogs'], "30%");
 		$forums->admin->print_table_start($forums->lang['savedadminlog']);
 		$DB->query("SELECT a.*, u.name, count(a.adminlogid) as acount FROM " . TABLE_PREFIX . "adminlog a LEFT JOIN " . TABLE_PREFIX . "user u ON (a.userid=u.id) GROUP BY a.userid ORDER BY acount DESC");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$forums->admin->print_cells_row(array("<strong>{$r['name']}</strong>",
 						"<center>{$r['acount']}</center>",

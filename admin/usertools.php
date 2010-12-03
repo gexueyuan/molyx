@@ -53,7 +53,7 @@ class usertools
 
 		$groups = array();
 		$pms = $DB->query("SELECT COUNT(*) AS total, userid FROM " . TABLE_PREFIX . "pm GROUP BY userid ORDER BY total DESC");
-		while ($pm = $DB->fetch_array($pms))
+		while ($pm = $DB->fetch($pms))
 		{
 			$groups[$pm['total']]++;
 		}
@@ -113,12 +113,12 @@ class usertools
 			$forums->admin->print_cells_single_row($forums->lang['noanyitems']);
 		}
 		$users = $DB->query("SELECT COUNT( * ) AS total, p.userid, u.name, u.lastactivity,u.email FROM " . TABLE_PREFIX . "pm p LEFT JOIN " . TABLE_PREFIX . "user u ON (p.userid = u.id) GROUP BY p.userid HAVING total = {$total} ORDER BY u.name DESC");
-		if ($DB->num_rows($users))
+		if ($DB->numRows($users))
 		{
 			$forums->admin->columns[] = array($forums->lang['username'], "30%");
 			$forums->admin->columns[] = array($forums->lang['lastactivity'], "30%");
 			$forums->admin->columns[] = array($forums->lang['action'], "40%");
-			while ($user = $DB->fetch_array($users))
+			while ($user = $DB->fetch($users))
 			{
 				$forums->admin->print_cells_row(array($user['name'], $forums->func->get_date($user['lastactivity'], 2), $forums->admin->print_input_select_row('id' . $user['userid'],
 							array(0 => array('pmstats', $forums->lang['viewuserpms']),
@@ -142,7 +142,7 @@ class usertools
 	{
 		global $forums, $DB;
 		$userid = input::int('u');
-		$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id = {$userid}");
+		$user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id = {$userid}");
 		if (!$user['id'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -154,11 +154,11 @@ class usertools
 		}
 		$folders = array();
 		$pms = $DB->query("SELECT COUNT(*) AS messages, folderid FROM " . TABLE_PREFIX . "pm WHERE userid = {$user['id']} GROUP BY folderid");
-		if (!$DB->num_rows($pms))
+		if (!$DB->numRows($pms))
 		{
 			$forums->admin->print_cp_error($forums->lang['nomatchresult']);
 		}
-		while ($pm = $DB->fetch_array($pms))
+		while ($pm = $DB->fetch($pms))
 		{
 			$pmtotal += $pm['messages'];
 			$folders[$user['pmfolders'][$pm['folderid']]['foldername']] = $pm['messages'];
@@ -192,7 +192,7 @@ class usertools
 	{
 		global $DB, $forums, $bbuserinfo, $bboptions;
 		$userid = input::int('u');
-		$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id = {$userid}");
+		$user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id = {$userid}");
 		if (!$user['id'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -201,9 +201,9 @@ class usertools
 		{
 			$pmtextids = array();
 			$pmtexts = $DB->query("SELECT pmtextid FROM " . TABLE_PREFIX . "pmtext WHERE fromuserid = {$user['id']}");
-			if ($DB->num_rows($pmtexts))
+			if ($DB->numRows($pmtexts))
 			{
-				while ($pmtext = $DB->fetch_array($pmtexts))
+				while ($pmtext = $DB->fetch($pmtexts))
 				{
 					$pmtextids[] = $pmtext['pmtextid'];
 				}
@@ -216,12 +216,12 @@ class usertools
 			$pmids = array();
 			$pmarray = array();
 			$pms = $DB->query("SELECT p.*, u.name FROM " . TABLE_PREFIX . "pm p LEFT JOIN " . TABLE_PREFIX . "user u ON (p.userid=u.id) WHERE p.messageid IN (" . implode(",", $pmtextids) . ")");
-			while ($pm = $DB->fetch_array($pms))
+			while ($pm = $DB->fetch($pms))
 			{
 				$pmids[] = $pm['pmid'];
 				$pmarray[ $pm['username'] ][] = $pm;
 			}
-			$DB->free_result($pms);
+			$DB->freeResult($pms);
 			$users = array();
 			foreach($pmarray AS $username => $pms)
 			{
@@ -239,7 +239,7 @@ class usertools
 			if (count($pmids))
 			{
 				$attachments = $DB->query("SELECT location, thumblocation, attachpath FROM " . TABLE_PREFIX . "attachment WHERE pmid IN (" . implode(",", $pmids) . ")");
-				if ($attachment = $DB->fetch_array($attachments))
+				if ($attachment = $DB->fetch($attachments))
 				{
 					if ($attachment['location'])
 					{
@@ -250,14 +250,14 @@ class usertools
 						@unlink($bboptions['uploadfolder'] . "/" . $attachment['attachpath'] . "/" . $attachment['thumblocation']);
 					}
 				}
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE pmid IN (" . implode(",", $pmids) . ")");
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE pmid IN (" . implode(",", $pmids) . ")");
+				$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE pmid IN (" . implode(",", $pmids) . ")");
+				$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE pmid IN (" . implode(",", $pmids) . ")");
 			}
 
 			if (!empty($users))
 			{
 				$userids = implode(', ', array_keys($users));
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmtotal = 0, pmunread = 0 WHERE id IN ($userids)");
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmtotal = 0, pmunread = 0 WHERE id IN ($userids)");
 			}
 			$forums->admin->redirect("usertools.php?do=pmstats", $forums->lang['manageuser'], $forums->lang['pmdeleted']);
 		}
@@ -288,7 +288,7 @@ class usertools
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$user_group = array(0 => array('', $forums->lang['anyusergroup']));
 		$DB->query("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup ORDER BY grouptitle");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$user_group[] = array($r['usergroupid'] , $forums->lang[ $r['grouptitle'] ]);
 		}
@@ -562,7 +562,7 @@ class usertools
 			$limit = " LIMIT {$first}," . input::get('operateuser', '') . "";
 		}
 		$DB->query("SELECT COUNT(*) as count FROM " . TABLE_PREFIX . "user u " . $where . "");
-		$count = $DB->fetch_array();
+		$count = $DB->fetch();
 		if ($count['count'] < 1)
 		{
 			$forums->main_msg = $forums->lang['nomatchresult'];
@@ -585,7 +585,7 @@ class usertools
 			$useactivation = true;
 		}
 		$users = $DB->query("SELECT u.email, u.emailcharset, u.name, u.id, u.usergroupid, ua.useractivationid FROM " . TABLE_PREFIX . "user u LEFT JOIN " . TABLE_PREFIX . "useractivation ua ON (ua.userid = u.id AND ua.type = 2) " . $where . " ORDER BY name$limit");
-		while ($user = $DB->fetch_array($users))
+		while ($user = $DB->fetch($users))
 		{
 			if (input::str('glist'))
 			{
@@ -604,7 +604,7 @@ class usertools
 						$activationid = md5($forums->func->make_password() . TIMENOW);
 						if (empty($user['useractivationid']))
 						{
-							$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "useractivation
+							$DB->queryUnbuffered("INSERT INTO " . TABLE_PREFIX . "useractivation
 								(useractivationid, userid, usergroupid, tempgroup, dateline, type)
 								VALUES
 								('" . $activationid . "', " . $user['id'] . ", 3, 1, " . TIMENOW . ", 2)"
@@ -612,7 +612,7 @@ class usertools
 						}
 						else
 						{
-							$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "useractivation SET dateline = " . TIMENOW . ", useractivationid ='" . $activationid . "' WHERE useractivationid = '" . $user['useractivationid'] . "'");
+							$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "useractivation SET dateline = " . TIMENOW . ", useractivationid ='" . $activationid . "' WHERE useractivationid = '" . $user['useractivationid'] . "'");
 						}
 						$activatelink = $bboptions['bburl'] . "/register.php?do=validate&amp;u=" . urlencode($user['id']) . "&amp;a=" . urlencode($activationid);
 						$msg = str_replace(array("{activateid}", "{activatelink}"), array($activationid, $activatelink), $msg);

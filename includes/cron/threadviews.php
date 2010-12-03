@@ -23,7 +23,7 @@ class cron_threadviews
 			{
 				@unlink(ROOT_PATH . 'cache/cache/threadviews.txt');
 				$threadviews = array_count_values($threadviews);
-				$result = $DB->update_case(TABLE_PREFIX . 'thread', 'tid', array('views' => array($threadviews, '+')));
+				$result = $DB->updateCase(TABLE_PREFIX . 'thread', 'tid', array('views' => array($threadviews, '+')));
 				if ($result)
 				{
 					$this->class->cronlog($this->cron, $forums->lang['threadviews']);

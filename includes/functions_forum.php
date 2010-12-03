@@ -114,10 +114,10 @@ class functions_forum
 			FROM " . TABLE_PREFIX . "forum f
 			LEFT JOIN " . TABLE_PREFIX . "thread t
 			ON f.lastthreadid = t.tid";
-		if(!empty($this->forumids)) $sqlQueryStr .= " WHERE " . $DB->sql_in('f.id', $this->forumids);
+		if(!empty($this->forumids)) $sqlQueryStr .= " WHERE " . $DB->sql->in('f.id', $this->forumids);
 		$result = $DB->query($sqlQueryStr);
 
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			if ($row['parentid'] == '-1')
 			{
@@ -166,7 +166,7 @@ class functions_forum
 			$this->foruminfo[$row['id']] = array_merge($this->foruminfo[$row['id']], $row);
 		}
 
-		$DB->free_result($result);
+		$DB->freeResult($result);
 	}
 
 	function single_forum($forumid = '')
@@ -324,13 +324,13 @@ class functions_forum
 	function forums_custom_error($forumid)
 	{
 		global $forums, $DB;
-		$error = $DB->query_first('SELECT customerror
+		$error = $DB->queryFirst('SELECT customerror
 			FROM ' . TABLE_PREFIX . "forum
 			WHERE id = $forumid");
 		if ($error['customerror'])
 		{
 			$forums->lang['customerror'] = $error['customerror'];
-			$DB->shutdown_update(TABLE_PREFIX . 'session', array('badlocation' => 1), "sessionhash = '{$forums->sessionid}'");
+			$DB->update(TABLE_PREFIX . 'session', array('badlocation' => 1), "sessionhash = '{$forums->sessionid}'", SHUTDOWN_QUERY);
 			$forums->func->standard_error('customerror');
 		}
 	}
