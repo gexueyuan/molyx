@@ -74,7 +74,7 @@ if ($bboptions['showstatus'])
 	{
 		$cutoff = $bboptions['cookietimeout'] != "" ? $bboptions['cookietimeout'] : '15';
 		$time = TIMENOW - $cutoff * 60;
-		$online = $DB->query_first("SELECT COUNT(sessionhash) AS users FROM " . TABLE_PREFIX . "session WHERE lastactivity > $time");
+		$online = $DB->queryFirst("SELECT COUNT(sessionhash) AS users FROM " . TABLE_PREFIX . "session WHERE lastactivity > $time");
 		$statusinfo[] = sprintf($forums->lang['onlinemembers'], $online['users']);
 	}
 	$status_info = implode("<br />", convert($statusinfo));

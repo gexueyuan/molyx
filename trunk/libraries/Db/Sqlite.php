@@ -85,7 +85,7 @@ class Db_Sqlite extends Db_Base
 
 	public function insertId()
 	{
-		//$id = $this->query_first('SELECT LAST_INSERT_ID() as id');
+		//$id = $this->queryFirst('SELECT LAST_INSERT_ID() as id');
 		return @sqlite_last_insert_rowid($this->connect_id);
 	}
 

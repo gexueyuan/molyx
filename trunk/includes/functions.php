@@ -326,7 +326,7 @@ class functions
 
 		if ($bbuserinfo['id'] && $update)
 		{
-			$DB->shutdown_update(TABLE_PREFIX . 'user', array('style' => intval($bbuserinfo['style'])), "id = {$bbuserinfo['id']}");
+			$DB->update(TABLE_PREFIX . 'user', array('style' => intval($bbuserinfo['style'])), "id = {$bbuserinfo['id']}", SHUTDOWN_QUERY);
 		}
 
 		if (empty($forums->cache['style'][$bbuserinfo['style']]['imagefolder']))
@@ -352,14 +352,13 @@ class functions
 		$starttime = explode(' ', STARTTIME);
 		$totaltime = sprintf('%.6f', ($mtime[1] + $mtime[0] - $starttime[1] - $starttime[0]));
 		echo 'Processed in ' . $totaltime . ' second(s), ';
-		echo ($DB) ? $DB->query_count() . ' queries, ' : '';
+		echo ($DB) ? $DB->getCount('query') . ' queries, ' : '';
 		echo $bboptions['gzipoutput'] ? 'GZIP On' : 'GZIP Off';
 	}
 
 	function do_shutdown()
 	{
-		global $DB;
-		$DB->close_db();
+		db::close();
 	}
 
 	/**
@@ -1042,7 +1041,7 @@ class functions
 		}
 		list($user, $domain) = explode('@', $bboptions['emailreceived']);
 
-		$DB->shutdown_update(TABLE_PREFIX . 'session', array('badlocation' => 1), "sessionhash = '{$forums->sessionid}'");
+		$DB->update(TABLE_PREFIX . 'session', array('badlocation' => 1), "sessionhash = '{$forums->sessionid}'", SHUTDOWN_QUERY);
 
 		$suffix = $this->errheader ? '_index' : '_body';
 		if (!$bbuserinfo['id'] && THIS_SCRIPT != 'register' && THIS_SCRIPT != 'login' && !$nologin)
@@ -1284,7 +1283,7 @@ class functions
 			$preid = $id > 0 ? $id : '';
 			$pretable = 'post' . $preid;
 
-			$getpid = $DB->query_first("SELECT max(pid) as maxpid FROM " . TABLE_PREFIX . $pretable);
+			$getpid = $DB->queryFirst("SELECT max(pid) as maxpid FROM " . TABLE_PREFIX . $pretable);
 			if ($getpid['maxpid'] < 0)
 			{
 				$forums->func->standard_error("cannotmaxpid");
@@ -1335,7 +1334,7 @@ class functions
 			}
 			foreach ($userextrafield['o'] as $k => $v)
 			{
-				$checkonly = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . $userextrafield['a'][$k]['tablename'] . "
+				$checkonly = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . $userextrafield['a'][$k]['tablename'] . "
 						WHERE {$k}='" . addslashes(input::str($k)) . "'" . $extra_cond);
 				if ($checkonly)
 				{
@@ -1884,7 +1883,7 @@ function update_user_view($user)
 {
 	global $DB;
 
-	$user_view = $DB->query_first('SELECT UserID
+	$user_view = $DB->queryFirst('SELECT UserID
 			FROM ' . TABLE_PREFIX . "userinfo
 			WHERE UserID = '{$user['id']}'");
 

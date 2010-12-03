@@ -86,7 +86,7 @@ class index
 			WHERE lastactivity > $time");
 		$time_now = TIMENOW;
 		$seen_name = array();
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			if ($seen_name[$r['username']] == 1)
 			{
@@ -126,14 +126,14 @@ class index
 		}
 
 		$forums->admin->print_table_footer();
-		$reg = $DB->query_first("SELECT COUNT(*) as reg
+		$reg = $DB->queryFirst("SELECT COUNT(*) as reg
 			FROM " . TABLE_PREFIX . "useractivation
 			WHERE type <> 1");
 		$reg['reg'] = intval($reg['reg']);
 		$forums->admin->columns[] = array("&nbsp;", "50%");
 		$forums->admin->columns[] = array("&nbsp;", "50%");
 		$forums->admin->print_table_start($forums->lang['systeminfo']);
-		$total = $DB->query_first('SELECT SUM(thread) AS totalthreads, SUM(post) AS totalposts
+		$total = $DB->queryFirst('SELECT SUM(thread) AS totalthreads, SUM(post) AS totalposts
 			FROM ' . TABLE_PREFIX . 'forum
 			WHERE parentid = \'-1\'');
 		$forums->admin->print_cells_row(array(
@@ -157,9 +157,9 @@ class index
 						ON (a.userid=u.id)
 				ORDER BY a.dateline DESC
 				LIMIT 0, 5");
-			if ($DB->num_rows($result))
+			if ($DB->numRows($result))
 			{
-				while ($row = $DB->fetch_array($result))
+				while ($row = $DB->fetch($result))
 				{
 					$row['dateline'] = $forums->func->get_date($row['dateline'], 2);
 					$forums->admin->print_cells_row(array("<strong>{$row['name']}</strong>", "{$row['note']}", "{$row['dateline']}", "{$row['host']}"));
@@ -204,7 +204,7 @@ class index
 	function logout()
 	{
 		global $DB, $forums, $bbuserinfo, $bboptions;
-		$DB->query_unbuffered('DELETE FROM ' . TABLE_PREFIX . 'adminsession
+		$DB->queryUnbuffered('DELETE FROM ' . TABLE_PREFIX . 'adminsession
 			WHERE userid=' . $bbuserinfo['id']);
 		$forums->admin->print_cp_login($forums->lang['youhavesafelogout']);
 	}

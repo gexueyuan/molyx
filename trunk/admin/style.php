@@ -26,7 +26,7 @@ class style
 		}
 		require_once(ROOT_PATH . 'includes/adminfunctions_template.php');
 		$this->template = new adminfunctions_template();
-		$this->scount = $DB->query_first('SELECT COUNT(*) AS count
+		$this->scount = $DB->queryFirst('SELECT COUNT(*) AS count
 			FROM ' . TABLE_PREFIX . 'style');
 		if ($this->scount['count'] <= 2)
 		{
@@ -132,7 +132,7 @@ class style
 		$styles = $DB->query('SELECT styleid, title, parentlist, parentid
 			FROM ' . TABLE_PREFIX . 'style
 			ORDER BY parentid');
-		while ($style = $DB->fetch_array($styles))
+		while ($style = $DB->fetch($styles))
 		{
 			$parentlist = $this->fetch_template_parentlist($style['styleid']);
 			if ($parentlist != $style['parentlist'])
@@ -157,7 +157,7 @@ class style
 	function fetch_template_parentlist($styleid)
 	{
 		global $DB;
-		$info = $DB->query_first('SELECT parentid
+		$info = $DB->queryFirst('SELECT parentid
 			FROM ' . TABLE_PREFIX . "style
 			WHERE styleid = $styleid");
 		$parentlist = $styleid;
@@ -174,7 +174,7 @@ class style
 			else
 			{
 				global $DB;
-				$tmp_info = $DB->query_first('SELECT parentlist
+				$tmp_info = $DB->queryFirst('SELECT parentlist
 					FROM ' . TABLE_PREFIX . "style
 					WHERE styleid = {$info['parentid']}");
 				$parentlist_cache[$info['parentid']] = $info['parentlist'];
@@ -385,7 +385,7 @@ class style
 			$forums->admin->print_cp_error($forums->lang['cannotchangedlstyle']);
 		}
 
-		$style = $DB->query_first('SELECT userselect
+		$style = $DB->queryFirst('SELECT userselect
 			FROM ' . TABLE_PREFIX . "style
 			WHERE styleid = $styleid");
 		$userselect = 0;
@@ -489,7 +489,7 @@ class style
 			$this->stylelist();
 		}
 
-		$title = $DB->query_first('SELECT title_en
+		$title = $DB->queryFirst('SELECT title_en
 			FROM ' . TABLE_PREFIX . "style
 			WHERE styleid = $styleid");
 		$title = $title['title_en'];
@@ -554,7 +554,7 @@ class style
 			$title = ucfirst(str_replace('_', ' ', $title_en));
 		}
 
-		$this_style = $DB->query_first('SELECT imagefolder, parentlist
+		$this_style = $DB->queryFirst('SELECT imagefolder, parentlist
 			FROM ' . TABLE_PREFIX . "style
 			WHERE styleid = $styleid" );
 		$new = array(
@@ -567,7 +567,7 @@ class style
 		);
 		$DB->insert(TABLE_PREFIX . 'style', $new);
 
-		$newid = $DB->insert_id();
+		$newid = $DB->insertId();
 		$new = array();
 		if ($styleid == 1)
 		{
@@ -608,7 +608,7 @@ class style
 		$pagetitle = $forums->lang['deletestyle'];
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$styleid = input::int('id');
-		$this_style = $DB->query_first("SELECT title, parentid, parentlist
+		$this_style = $DB->queryFirst("SELECT title, parentid, parentlist
 			FROM " . TABLE_PREFIX . "style
 			WHERE styleid = $styleid");
 		$forums->admin->print_form_header(array(
@@ -643,7 +643,7 @@ class style
 			$this->stylelist();
 		}
 
-		$this_style = $DB->query_first('SELECT *
+		$this_style = $DB->queryFirst('SELECT *
 			FROM ' . TABLE_PREFIX . "style
 			WHERE styleid = $styleid");
 		if ($this_style['usedefault'] == 1 || $this->scount <= 2)
@@ -652,7 +652,7 @@ class style
 			$this->stylelist();
 		}
 
-		$default_style = $DB->query_first('SELECT styleid
+		$default_style = $DB->queryFirst('SELECT styleid
 			FROM ' . TABLE_PREFIX . 'style
 			WHERE usedefault = 1');
 		$DB->update(TABLE_PREFIX . 'user', array('style' => intval($default_style['styleid'])), "style = $styleid");
@@ -680,7 +680,7 @@ class style
 		}
 		$sets = array();
 		$parents = array(0 => array('1', $forums->lang['noparentstyle']));
-		$row = $DB->query_first('SELECT *
+		$row = $DB->queryFirst('SELECT *
 			FROM ' . TABLE_PREFIX . 'style
 			WHERE styleid=' . input::get('id', ''));
 		$forums->admin->cache_styles();
@@ -773,7 +773,7 @@ class style
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 
-		$this_style = $DB->query_first('SELECT *
+		$this_style = $DB->queryFirst('SELECT *
 			FROM ' . TABLE_PREFIX . "style
 			WHERE styleid = $styleid");
 		$title = trim(input::str('title'));
@@ -783,7 +783,7 @@ class style
 		}
 
 		$parentid = input::int('parentid');
-		$info = $DB->query_first('SELECT styleid, title, parentlist
+		$info = $DB->queryFirst('SELECT styleid, title, parentlist
 			FROM ' . TABLE_PREFIX . "style
 			WHERE styleid = $parentid");
 		$parents = explode(',', $info['parentlist']);
@@ -1490,7 +1490,7 @@ class style
 		}
 
 		$templates = array();
-		$style = $DB->query_first("SELECT *
+		$style = $DB->queryFirst("SELECT *
 			FROM " . TABLE_PREFIX . "style
 			WHERE styleid = $styleid");
 
@@ -1737,7 +1737,7 @@ class style
 		$userselect = input::get('userselect', '');
 		$usedefault = input::get('usedefault', '');
 
-		$getstyle = $DB->query_first('SELECT styleid
+		$getstyle = $DB->queryFirst('SELECT styleid
 			FROM ' . TABLE_PREFIX . 'style
 			WHERE title_en = ' . $DB->validate($title_en));
 		if ($getstyle['styleid'])
@@ -1751,7 +1751,7 @@ class style
 			$forums->admin->print_cp_error($forums->lang['styleversionnotsame']);
 		}
 
-		$imparentstyle = $DB->query_first('SELECT parentlist
+		$imparentstyle = $DB->queryFirst('SELECT parentlist
 			FROM ' . TABLE_PREFIX . "style
 			WHERE styleid = $parentid");
 
@@ -1764,7 +1764,7 @@ class style
 			'imagefolder' => $imagefolder,
 			'version' => $version
 		));
-		$styleid = $DB->insert_id();
+		$styleid = $DB->insertId();
 		$newbits = array('parentlist' => $styleid . ',' . $imparentstyle['parentlist']);
 		$DB->update(TABLE_PREFIX . 'style', $newbits, 'styleid=' . $styleid);
 
@@ -1880,7 +1880,7 @@ class style
 		$result = $DB->query('SELECT styleid, parentlist
 			FROM ' . TABLE_PREFIX . 'style
 			ORDER BY styleid');
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$styleidlist[] = $r['styleid'];
 		}
@@ -1914,7 +1914,7 @@ class style
 		$new_id = input::int('change');
 		if (!$new_id)
 		{
-			$style = $DB->query_first('SELECT styleid
+			$style = $DB->queryFirst('SELECT styleid
 				FROM ' . TABLE_PREFIX . 'style
 				WHERE usedefault = 1');
 			$new_id = $style['styleid'];

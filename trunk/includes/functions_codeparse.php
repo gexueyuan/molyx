@@ -566,10 +566,10 @@ class functions_codeparse
 		$forums->func->check_cache('attachmenttype');
 		$result = $DB->query('SELECT *
 			FROM ' . TABLE_PREFIX . 'attachment
-			WHERE ' . $DB->sql_in('attachmentid', $this->aip));
-		if ($DB->num_rows($result))
+			WHERE ' . $DB->sql->in('attachmentid', $this->aip));
+		if ($DB->numRows($result))
 		{
-			while ($attach = $DB->fetch_array($result))
+			while ($attach = $DB->fetch($result))
 			{
 				$this->attachinpost[] = $attach['attachmentid'];
 				$attach['filesize'] = fetch_number_format($attach['filesize'], true);

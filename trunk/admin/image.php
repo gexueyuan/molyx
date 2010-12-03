@@ -88,7 +88,7 @@ class image
 		}
 		if (is_array($delids))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "smile WHERE id IN (" . implode(',', $delids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "smile WHERE id IN (" . implode(',', $delids) . ")");
 		}
 		$forums->func->recache('smile');
 		$forums->main_msg = $forums->lang['smiliesupdated'];
@@ -224,7 +224,7 @@ class image
 		$smile_db = array();
 		$smile_file = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "smile ORDER BY displayorder");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$smile_db[ $r['image'] ] = $r;
 		}
@@ -388,7 +388,7 @@ class image
 		$icon_db = array();
 		$icon_file = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "icon ORDER BY displayorder");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$icon_db[ $r['image'] ] = $r;
 		}
@@ -550,7 +550,7 @@ class image
 		}
 		if (is_array($delids))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "icon WHERE id IN (" . implode(',', $delids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "icon WHERE id IN (" . implode(',', $delids) . ")");
 		}
 		$forums->func->recache('icon');
 		$forums->main_msg = $forums->lang['iconsupdated'];

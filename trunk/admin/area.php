@@ -66,7 +66,7 @@ class area
 		$forums->admin->print_table_start($title);
 		$forums->adminforum->moderator = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "area ORDER BY orderid ASC");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			//$manage = "<a href='area.php?{$forums->sessionurl}do=remove&amp;id={$r['moderatorid']}'>" . $forums->lang['delete'] . "</a>&nbsp;<a href='area.php?{$forums->sessionurl}do=edit&amp;u={$r['moderatorid']}'>" . $forums->lang['edit'] . "</a>&nbsp;";
 			$r['areaname'] = "<a href='area.php?{$forums->sessionurl}do=list_content&amp;areaid={$r['areaid']}'>" . $r['areaname'] . "</a>";
@@ -76,7 +76,7 @@ class area
 		$forums->admin->print_form_end();
 		$forums->admin->print_cp_footer();
 	}
-	
+
 	function area_content_list()
 	{
 		global $forums, $DB;
@@ -91,14 +91,14 @@ class area
 		$forums->admin->columns[] = array($forums->lang['manage'], "20%");
 		$forums->admin->print_table_start($title);
 		$forums->adminforum->moderator = array();
-		$DB->query("SELECT * FROM " . TABLE_PREFIX . "area_content ac 
+		$DB->query("SELECT * FROM " . TABLE_PREFIX . "area_content ac
 						LEFT JOIN " . TABLE_PREFIX . "area a
 							ON a.areaid=ac.areaid
 					WHERE ac.areaid=" . intval(input::int('areaid')) . " ORDER BY ac.orderid ASC, ac.id DESC");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$manage = "<a href='area.php?{$forums->sessionurl}do=del_content&amp;id={$r['id']}&amp;areaid=".intval(input::int('areaid'))."' onclick=\"return confirm('{$forums->lang['confirmdelete']}');\">" . $forums->lang['delete'] . "</a>&nbsp;<a href='area.php?{$forums->sessionurl}do=edit_content&amp;id={$r['id']}'>" . $forums->lang['edit'] . "</a>&nbsp;";
-			if ($r['titlelink']) 
+			if ($r['titlelink'])
 			{
 				$r['title'] = "<a href='{$r['titlelink']}' target='_blank'>" . $r['title'] . "</a>";
 			}
@@ -110,21 +110,21 @@ class area
 		$forums->admin->print_form_end();
 		$forums->admin->print_cp_footer();
 	}
-	
+
 	function content_form($type = 'add')
 	{
 		global $forums, $DB;
 		$hiddens = array();
-		if ($type == 'edit') 
+		if ($type == 'edit')
 		{
 			$pagetitle = $forums->lang['edit_area_content'];
 			$action = 'doedit_content';
 			$detail = '';
 			$table_title = $forums->lang['edit_area_content'];
-			$content_info = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "area_content WHERE id=" . intval(input::int('id')));
+			$content_info = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "area_content WHERE id=" . intval(input::int('id')));
 			$hiddens[] = array('id', input::int('id'));
 		}
-		else 
+		else
 		{
 			$pagetitle = $forums->lang['add_area_content'];
 			$action = 'doadd_content';
@@ -132,8 +132,8 @@ class area
 			$table_title = $forums->lang['add_area_content'];
 		}
 		$hiddens[] = array('do', $action);
-		
-		
+
+
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->print_form_header($hiddens);
 		$forums->admin->columns[] = array("&nbsp;" , "40%");
@@ -159,7 +159,7 @@ class area
 		$forums->admin->print_table_footer();
 		$forums->admin->print_cp_footer();
 	}
-	
+
 	function doadd_content()
 	{
 		global $DB, $forums;
@@ -173,7 +173,7 @@ class area
 		$this->recache();
 		$forums->admin->redirect("area.php?do=list_content&amp;areaid=".intval(input::int('areaid')), $forums->lang['area_content_list'], $forums->lang['add_content_suc']);
 	}
-	
+
 	function doedit_content()
 	{
 		global $DB, $forums;
@@ -194,19 +194,19 @@ class area
 		$this->recache();
 		$forums->admin->redirect("area.php?do=list_content&amp;areaid=".intval(input::int('areaid')), $forums->lang['area_content_list'], $forums->lang['del_content_suc']);
 	}
-	
+
 	function fetch_area()
 	{
 		global $DB;
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "area ORDER BY orderid ASC");
 		$ret = array();
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$ret[$r['areaid']] = array($r['areaid'], $r['areaname']);
 		}
 		return $ret;
 	}
-	
+
 	function recache()
 	{
 		global $forums;

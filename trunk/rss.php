@@ -93,7 +93,7 @@ class rss
 			WHERE 1=1 $t_forumlist ORDER BY t.dateline DESC LIMIT 0, $limit"
 			);
 		$i = 0;
-		while ($thread = $DB->fetch_array($query))
+		while ($thread = $DB->fetch($query))
 		{
 			$thread['title'] = utf8::htmlspecialchars(strip_tags($thread['title']));
 			$thread['forumnanme'] = utf8::htmlspecialchars(strip_tags($$thread['forumname']));

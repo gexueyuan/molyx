@@ -166,14 +166,14 @@ class forum
 
 		$threadlist = array();
 		$i = 0;
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			if ($firstpost)
 			{
 				$extra = "&amp;extra=" . $firstpost;
 				$reffer = urlencode("forum.php{$forums->sessionurl}f={$this->forum['id']}{$extra}");
 			}
-			while ($t = $DB->fetch_array($threads))
+			while ($t = $DB->fetch($threads))
 			{
 				++$i;
 				$thread_array[ $t['tid'] ] = $t;

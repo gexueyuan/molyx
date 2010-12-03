@@ -23,9 +23,9 @@ class cron_promotion
 					ON (u.usergroupid = up.usergroupid)
 			WHERE u.lastactivity >= ' . (TIMENOW - 86400));
 		$primaryupdates = $secondaryupdates = $titleupdates = $primarynames = $secondarynames = $titles = array();
-		if ($DB->num_rows($result))
+		if ($DB->numRows($result))
 		{
-			while ($row = $DB->fetch_array($result))
+			while ($row = $DB->fetch($result))
 			{
 				if ((strpos(",{$row['membergroupids']},", ",{$row['joinusergroupid']},") === false && $row['type'] == 2) || ($row['usergroupid'] != $row['joinusergroupid'] && $row['type'] == 1))
 				{
@@ -124,11 +124,11 @@ class cron_promotion
 		}
 		foreach($primaryupdates as $joinusergroupid => $ids)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET usergroupid = $joinusergroupid WHERE id IN (0$ids)");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET usergroupid = $joinusergroupid WHERE id IN (0$ids)");
 		}
 		foreach($secondaryupdates as $joinusergroupid => $ids)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET membergroupids = IF(membergroupids= '', '$joinusergroupid', CONCAT(membergroupids, ',$joinusergroupid')) WHERE id IN (0$ids)");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET membergroupids = IF(membergroupids= '', '$joinusergroupid', CONCAT(membergroupids, ',$joinusergroupid')) WHERE id IN (0$ids)");
 		}
 		$this->class->cronlog($this->cron, $forums->lang['updatepromotion']);
 	}

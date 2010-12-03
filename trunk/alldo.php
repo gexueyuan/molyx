@@ -19,7 +19,7 @@ $showcondition[] = " userdotime > 0";
 $showcondition = ' WHERE ' . implode(',', $showcondition);
 $sql = 'SELECT count(*) AS count FROM ' . TABLE_PREFIX . 'user
 		' . $showcondition;
-$sqlcount = $DB->query_first($sql);
+$sqlcount = $DB->queryFirst($sql);
 $perpage = 20;
 $pagenav = $forums->func->build_pagelinks(array(
 	'totalpages' => $sqlcount['count'],
@@ -33,7 +33,7 @@ $sql = 'SELECT id, name, avatar, usercurdo, userdotime FROM ' . TABLE_PREFIX . '
 		ORDER BY userdotime DESC
 		LIMIT ' . $firstpost . ',' . $perpage;
 $DB->query($sql);
-while ($row = $DB->fetch_array())
+while ($row = $DB->fetch())
 {
 	$row['avatar'] = $forums->func->get_avatar($row['id'], $row['avatar'], '1');//显示中等头像
 	if (!$row['usercurdo'])
@@ -53,7 +53,7 @@ $sql = 'SELECT id, name, avatar FROM ' . TABLE_PREFIX . 'user
 		LIMIT 0, 10
 		';
 $DB->query($sql);
-while ($row = $DB->fetch_array())
+while ($row = $DB->fetch())
 {
 	$row['joindate'] = $forums->func->get_date($row['joindate']);
 	$row['avatar'] = $forums->func->get_avatar($row['id'], $row['avatar'], '1');//显示中等头像

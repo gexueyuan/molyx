@@ -108,13 +108,13 @@ class iptools
 		$forums->admin->print_form_header("", "userips");
 		$forums->admin->print_table_start($forums->lang['registeredips']);
 		$users = $DB->query("SELECT id, name, email, posts, host, joindate FROM " . TABLE_PREFIX . "user WHERE host" . $query . " ORDER BY joindate DESC LIMIT 0,250");
-		if (! $DB->num_rows($users))
+		if (! $DB->numRows($users))
 		{
 			$forums->admin->print_cells_single_row($forums->lang['noanyitems'], "center");
 		}
 		else
 		{
-			while ($user = $DB->fetch_array($users))
+			while ($user = $DB->fetch($users))
 			{
 				$forums->admin->print_cells_row(array("<a href='user.php?{$forums->sessionurl}do=doform&amp;u=" . $user['id'] . "'>" . $user['name'] . "</a>" ,
 						$user['email'],
@@ -140,13 +140,13 @@ class iptools
 		$forums->admin->print_form_header("", "postips");
 		$forums->admin->print_table_start($forums->lang['usethisipsuser']);
 		$posters = $DB->query("SELECT count(p.host) as ip, p.userid, u.name, u.email, u.posts, p.host, p.dateline FROM " . TABLE_PREFIX . "post p LEFT JOIN " . TABLE_PREFIX . "user u ON (u.id=p.userid) WHERE p.host" . $query . " GROUP BY p.host ORDER BY p.dateline DESC LIMIT 0,250");
-		if (! $DB->num_rows($posters))
+		if (! $DB->numRows($posters))
 		{
 			$forums->admin->print_cells_single_row($forums->lang['noanyitems'], "center");
 		}
 		else
 		{
-			while ($poster = $DB->fetch_array($posters))
+			while ($poster = $DB->fetch($posters))
 			{
 				$forums->admin->print_cells_row(array("<a href='user.php?{$forums->sessionurl}do=doform&amp;u=" . $poster['userid'] . "'>" . $poster['name'] . "</a>" ,
 						$poster['email'],
@@ -172,13 +172,13 @@ class iptools
 						FROM " . TABLE_PREFIX . "useractivation ua
 						 LEFT JOIN " . TABLE_PREFIX . "user u ON ( ua.userid=u.id)
 						WHERE ua.host" . $query . " GROUP BY ua.userid ORDER BY ua.dateline DESC LIMIT 0,250");
-		if (! $DB->num_rows($users))
+		if (! $DB->numRows($users))
 		{
 			$forums->admin->print_cells_single_row($forums->lang['noanyitems'], "center");
 		}
 		else
 		{
-			while ($user = $DB->fetch_array($users))
+			while ($user = $DB->fetch($users))
 			{
 				$forums->admin->print_cells_row(array("<a href='user.php?{$forums->sessionurl}do=doform&amp;u=" . $user['id'] . "'>" . $user['name'] . "</a>" ,
 						$user['email'],
@@ -202,7 +202,7 @@ class iptools
 		if (input::str('userid'))
 		{
 			$id = input::int('userid');
-			if (! $user = $DB->query_first("SELECT id, name, email, host FROM " . TABLE_PREFIX . "user WHERE id='" . $id . "'"))
+			if (! $user = $DB->queryFirst("SELECT id, name, email, host FROM " . TABLE_PREFIX . "user WHERE id='" . $id . "'"))
 			{
 				$forums->main_msg = $forums->lang['cannotfinduser'] . " " . $id;
 				$this->show_index();
@@ -212,14 +212,14 @@ class iptools
 		else
 		{
 			$username = trim(input::str('name'));
-			if (! $user = $DB->query_first("SELECT id, name, email, host FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
+			if (! $user = $DB->queryFirst("SELECT id, name, email, host FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
 			{
 				$forums->main_msg = $forums->lang['cannotfindusername'];
 				$this->show_index($name);
 				exit;
 			}
 		}
-		$count = $DB->query_first("SELECT count(distinct(host)) as cnt FROM " . TABLE_PREFIX . "post WHERE userid='" . $user['id'] . "'");
+		$count = $DB->queryFirst("SELECT count(distinct(host)) as cnt FROM " . TABLE_PREFIX . "post WHERE userid='" . $user['id'] . "'");
 		$curpage = input::int('pp');
 		$end = 50;
 		$links = $forums->func->build_pagelinks(array('totalpages' => $count['cnt'],
@@ -234,7 +234,7 @@ class iptools
 				WHERE userid='" . $user['id'] . "'
 				GROUP BY host
 				ORDER BY ip DESC LIMIT " . $curpage . ", " . $end . "");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$master[] = $r;
 			$ips[] = '"' . $r['host'] . '"';
@@ -243,7 +243,7 @@ class iptools
 		if (count($ips) > 0)
 		{
 			$DB->query("SELECT count(host) as ip, id, name, host FROM " . TABLE_PREFIX . "user WHERE host IN (" . implode(",", $ips) . ") AND id != " . $user['id'] . " GROUP BY host");
-			while ($i = $DB->fetch_array())
+			while ($i = $DB->fetch())
 			{
 				$reg[ $i['ip'] ][] = $i;
 			}
@@ -291,14 +291,14 @@ class iptools
 		else
 		{
 			$DB->query("SELECT id, name FROM " . TABLE_PREFIX . "user WHERE LOWER(name) LIKE concat('" . strtolower($username) . "','%') OR name LIKE concat('" . $username . "','%')");
-			if (! $DB->num_rows())
+			if (! $DB->numRows())
 			{
 				$forums->lang['notfindfirstcharsuser'] = sprintf($forums->lang['notfindfirstcharsuser'], $username);
 				$forums->main_msg = $forums->lang['notfindfirstcharsuser'];
 				$this->show_index();
 			}
 			$user_array = array();
-			while ($m = $DB->fetch_array())
+			while ($m = $DB->fetch())
 			{
 				$user_array[] = array($m['id'], $m['name']);
 			}

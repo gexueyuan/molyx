@@ -55,7 +55,7 @@ class adminfunctions_cache
 				    FROM " . TABLE_PREFIX . "announcement a
 				   		LEFT JOIN " . TABLE_PREFIX . "user u on (a.userid=u.id)
 				    WHERE a.active != 0 ORDER BY startdate DESC, enddate DESC");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$start_ok = false;
 			$end_ok = false;
@@ -102,7 +102,7 @@ class adminfunctions_cache
 		$result = $DB->query('SELECT extension, mimetype, maxsize, usepost, useavatar, attachimg
 			FROM ' . TABLE_PREFIX . 'attachmenttype
 			WHERE usepost = 1 OR useavatar = 1');
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$forums->cache['attachmenttype'][$r['extension']] = $r;
 		}
@@ -114,7 +114,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['badword'] = array();
 		$DB->query("SELECT badbefore,badafter,type FROM " . TABLE_PREFIX . "badword");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$forums->cache['badword'][] = $r;
 		}
@@ -126,7 +126,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['banfilter'] = array();
 		$DB->query("SELECT content FROM " . TABLE_PREFIX . "banfilter WHERE type='ip'");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$forums->cache['banfilter'][] = $r['content'];
 		}
@@ -138,7 +138,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['bbcode'] = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "bbcode");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$forums->cache['bbcode'][] = $r;
 		}
@@ -160,7 +160,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['usergroup'] = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "usergroup ORDER BY displayorder");
-		while ($i = $DB->fetch_array())
+		while ($i = $DB->fetch())
 		{
 			$forums->cache['usergroup'][$i['usergroupid']] = $i;
 			$forums->func->update_cache(array('name' => 'usergroup_' . $i['usergroupid'], 'value' => $i));
@@ -173,7 +173,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['moderator'] = array();
 		$DB->query('SELECT * FROM ' . TABLE_PREFIX . 'moderator');
-		while ($i = $DB->fetch_array())
+		while ($i = $DB->fetch())
 		{
 			if ($i['isgroup'])
 			{
@@ -201,7 +201,7 @@ class adminfunctions_cache
 			}
 		}
 		$forumlist = $DB->query("SELECT * FROM " . TABLE_PREFIX . "forum");
-		while ($forum = $DB->fetch_array($forumlist))
+		while ($forum = $DB->fetch($forumlist))
 		{
 			$forums->func->update_cache(array('name' => 'moderator_' . $forum['id'], 'value' => $forums->cache['moderator_' . $forum['id']]));
 		}
@@ -213,7 +213,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['ranks'] = array();
 		$DB->query("SELECT id, title, ranklevel, post FROM " . TABLE_PREFIX . "usertitle ORDER BY post DESC");
-		while ($i = $DB->fetch_array())
+		while ($i = $DB->fetch())
 		{
 			$forums->cache['ranks'][ $i['id'] ] = array('title' => $i['title'], 'ranklevel' => $i['ranklevel'], 'post' => $i['post']);
 		}
@@ -225,7 +225,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['settings'] = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE addcache=1");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$value = $r['value'] != "" ? $r['value'] : $r['defaultvalue'];
 			if ($value == '{blank}')
@@ -242,7 +242,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['smile'] = array();
 		$smile = $DB->query("SELECT id,smiletext,image FROM " . TABLE_PREFIX . "smile ORDER BY displayorder, id");
-		while ($r = $DB->fetch_array($smile))
+		while ($r = $DB->fetch($smile))
 		{
 			$forums->cache['smile'][] = $r;
 		}
@@ -254,7 +254,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['icon'] = array();
 		$icon = $DB->query("SELECT id,icontext,image FROM " . TABLE_PREFIX . "icon ORDER BY displayorder");
-		while ($r = $DB->fetch_array($icon))
+		while ($r = $DB->fetch($icon))
 		{
 			$forums->cache['icon'][$r['id']] = $r;
 		}
@@ -266,7 +266,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['stats'] = array();
 		$cache = array('numbermembers', 'maxonline', 'maxonlinedate', 'newusername', 'newuserid');
-		$forums->cache['stats'] = $DB->read_cache($cache);
+		$forums->cache['stats'] = $DB->readCache($cache);
 
 		$forums->func->update_cache(array('name' => 'stats'));
 	}
@@ -419,7 +419,7 @@ class adminfunctions_cache
 		$forums->cache['recycle'] = array();
 		if ($bboptions['enablerecyclebin'] && $bboptions['recycleforumid'])
 		{
-			$row = $DB->query_first('SELECT id
+			$row = $DB->queryFirst('SELECT id
 				FROM ' . TABLE_PREFIX . 'forum
 				WHERE id = ' . $bboptions['recycleforumid']);
 			$forums->cache['recycle'] = $row;
@@ -433,7 +433,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['league'] = array();
 		$leagues = $DB->query("SELECT * FROM " . TABLE_PREFIX . "league WHERE type != 3 ORDER BY type, displayorder");
-		while ($r = $DB->fetch_array($leagues))
+		while ($r = $DB->fetch($leagues))
 		{
 			$forums->cache['league'][] = $r;
 		}
@@ -446,7 +446,7 @@ class adminfunctions_cache
 		$forums->cache['creditlist'] = array();
 		$result = $DB->query('SELECT *
 			FROM ' . TABLE_PREFIX . 'credit');
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$forums->cache['creditlist'][$r['creditid']] = $r;
 		}
@@ -459,7 +459,7 @@ class adminfunctions_cache
 		$forums->cache['creditevent'] = array();
 		$result = $DB->query('SELECT *
 			FROM ' . TABLE_PREFIX . 'creditevent');
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$forums->cache['creditevent'][$r['eventid']] = $r;
 		}
@@ -472,7 +472,7 @@ class adminfunctions_cache
 		$array = array();
 		$result = $DB->query('SELECT *
 			FROM ' . TABLE_PREFIX . 'creditrule');
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			if ($row['type']==0)
 			{
@@ -491,7 +491,7 @@ class adminfunctions_cache
 		//列出所有版面
 		$result = $DB->query('SELECT id
 			FROM ' . TABLE_PREFIX . 'forum');
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			$rules = array();
 			$fid = intval($row['id']);
@@ -505,7 +505,7 @@ class adminfunctions_cache
 		//列出所有用户组
 		$result = $DB->query('SELECT usergroupid
 			FROM ' . TABLE_PREFIX . 'usergroup');
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			$rules = array();
 			$gid = intval($row['usergroupid']);
@@ -523,7 +523,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['realjs'] = array();
 		$DB->query("SELECT id, type, jsname, inids, numbers, perline, selecttype, daylimit, orderby, trimtitle, trimdescription, trimpagetext, export, htmlcode FROM " . TABLE_PREFIX . "javascript ORDER BY id");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$forums->cache['realjs'][$r['id']] = $r;
 		}
@@ -535,7 +535,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['st'] = array();
 		$DB->query("SELECT id, name, forumids FROM " . TABLE_PREFIX . "specialtopic ORDER BY id");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$forums->cache['st'][$r['id']] = $r;
 		}
@@ -555,7 +555,7 @@ class adminfunctions_cache
 		global $forums, $DB;
 		$forums->cache['ad'] = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "ad WHERE (endtime = 0 OR endtime >= " . TIMENOW . ") AND starttime <= " . TIMENOW . " ORDER BY type, displayorder");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$forums->cache['ad']['content'][$r['id']] = $r['htmlcode'];
 			if ($r['ad_in'] == '-1')
@@ -730,7 +730,7 @@ register_php;
 \nif(!empty(input::str('{$value["column_name"]}')))
 {
 \n	\$DB->query("SELECT {$value['column_name']} FROM " . TABLE_PREFIX . "{$value['tablename']} WHERE {$value['column_name']} = '" . input::str('{$value["column_name"]}') . "'");
-\n	if (\$DB->num_rows() != 0)
+\n	if (\$DB->numRows() != 0)
 	{
 \n		\$forums->lang['error{$value["column_name"]}_exists'] = "{$value['column_title']}{\$forums->lang['cache_exists']}";
 \n		callback_error("error{$value['column_name']}_exists");
@@ -976,7 +976,7 @@ str;
 		global $forums, $DB;
 		$forums->cache['splittable'] = array();
 		$result = $DB->query("SELECT * FROM " . TABLE_PREFIX . "splittable");
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			if ($r['isdefaulttable'])
 			{
@@ -992,7 +992,7 @@ str;
 		global $forums, $DB;
 		$forums->cache['userextrafield'] = array();
 		$result = $DB->query("SELECT * FROM " . TABLE_PREFIX . "userextrafield");
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			//全部扩展字段
 			$r['listcontent'] = unserialize($r['listcontent']);
@@ -1032,7 +1032,7 @@ str;
 				LIMIT ' . intval($bboptions['commend_thread_num']);
 		$thread = array();
 		$q = $DB->query($sql);
-		while ($r = $DB->fetch_array($q))
+		while ($r = $DB->fetch($q))
 		{
 			$thread[$r['tid']] = $r;
 		}
@@ -1056,7 +1056,7 @@ str;
 				LIMIT ' . intval($bboptions['forum_active_user']);
 		$user = array();
 		$q = $DB->query($sql);
-		while ($r = $DB->fetch_array($q))
+		while ($r = $DB->fetch($q))
 		{
 			$user[$r['id']] = $r;
 		}
@@ -1074,7 +1074,7 @@ str;
 				ORDER BY orderid ASC';
 		$area = array();
 		$q = $DB->query($sql);
-		while ($r = $DB->fetch_array($q))
+		while ($r = $DB->fetch($q))
 		{
 			$area[$r['areaid']] = $r;
 		}
@@ -1092,7 +1092,7 @@ str;
 							LIMIT ' . intval($areaset['show_record']);
 					$q = $DB->query($sql);
 					$area_content[$areaid]['name'] = $areaset['areaname'];
-					while ($r = $DB->fetch_array($q))
+					while ($r = $DB->fetch($q))
 					{
 						if ($r['titlelink'])
 						{
@@ -1114,7 +1114,7 @@ str;
 									FROM ' . TABLE_PREFIX . "setting
 									WHERE varname IN ('diggshowtype', 'diggshowcondition')");
 		$digg_setting = array();
-		while ($r = $DB->fetch_array($q))
+		while ($r = $DB->fetch($q))
 		{
 			$digg_setting[$r['varname']] = $r['value'] ? trim($r['value']) : trim($r['defaultvalue']);
 		}
@@ -1152,7 +1152,7 @@ str;
 				' . $orderby . '
 				LIMIT ' . intval($bboptions['top_digg_thread_num']);
 		$q = $DB->query($sql);
-		while ($r = $DB->fetch_array($q))
+		while ($r = $DB->fetch($q))
 		{
 			$forums->cache['top_digg_thread'][$r['tid']] = $r;
 		}

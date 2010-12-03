@@ -54,7 +54,7 @@ class moderate
 
 				if (count($this->tids) == 1)
 				{
-					$this->thread = $DB->query_first("SELECT t.*
+					$this->thread = $DB->queryFirst("SELECT t.*
 						FROM " . TABLE_PREFIX . "thread t
 						WHERE t.tid = " . current($this->tids));
 				}
@@ -69,7 +69,7 @@ class moderate
 				}
 				else
 				{
-					$this->thread = $DB->query_first("SELECT *
+					$this->thread = $DB->queryFirst("SELECT *
 						FROM " . TABLE_PREFIX . "thread
 						WHERE tid =" . $t);
 					if (!$this->thread)
@@ -298,7 +298,9 @@ class moderate
 		}
 		$timenow = $forums->func->get_date(TIMENOW , 2, 1);
 		$threadlog = sprintf($forums->lang['threadlog'], $bbuserinfo['name'], $timenow, $action);
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "thread SET logtext = '" . addslashes($threadlog) . "' WHERE {$uptid}");
+		$DB->update(TABLE_PREFIX . "thread", array(
+			'logtext' => $threadlog
+		), $uptid, SHUTDOWN_QUERY);
 	}
 
 	function cleanlog()
@@ -312,7 +314,9 @@ class moderate
 		{
 			$forums->func->standard_error("erroraddress");
 		}
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "thread SET logtext = '' WHERE tid='" . $this->thread['tid'] . "'");
+		$DB->update(TABLE_PREFIX . "thread", array(
+			'logtext' => ''
+		), "tid='" . $this->thread['tid'] . "'", SHUTDOWN_QUERY);
 		$forums->func->redirect_screen($forums->lang['threadlogcleaned'], "showthread.php{$forums->sessionurl}t=" . $this->thread['tid'] . "&amp;pp=" . input::int('pp'));
 	}
 
@@ -339,7 +343,7 @@ class moderate
 		}
 		require (ROOT_PATH . "includes/functions_codeparse.php");
 		$parser = new functions_codeparse();
-		if (!$user = $DB->query_first("SELECT u.*, s.lastactivity, s.inforum, s.inthread FROM " . TABLE_PREFIX . "user u
+		if (!$user = $DB->queryFirst("SELECT u.*, s.lastactivity, s.inforum, s.inthread FROM " . TABLE_PREFIX . "user u
 					LEFT JOIN " . TABLE_PREFIX . "session s ON (s.userid=u.id)
 				WHERE u.id='" . $userid . "'"))
 		{
@@ -445,7 +449,7 @@ class moderate
 		{
 			$forums->func->standard_error("noperms");
 		}
-		$poll_data = $DB->query_first("SELECT p.*, t.postuserid, u.usergroupid FROM " . TABLE_PREFIX . "poll p
+		$poll_data = $DB->queryFirst("SELECT p.*, t.postuserid, u.usergroupid FROM " . TABLE_PREFIX . "poll p
 		                                     LEFT JOIN " . TABLE_PREFIX . "thread t
 		                                         ON p.tid = t.tid
 		                                     LEFT JOIN " . TABLE_PREFIX . "user u
@@ -571,14 +575,14 @@ class moderate
 		{
 			$forums->func->standard_error("noperms");
 		}
-		$userinfo = $DB->query_first("SELECT id, usergroupid FROM " . TABLE_PREFIX . "user
+		$userinfo = $DB->queryFirst("SELECT id, usergroupid FROM " . TABLE_PREFIX . "user
 		                              WHERE id=" . intval($this->thread['postuserid']));
 		if ($bbuserinfo['id'] == $this->thread['postuserid'])
 		{
 			$this->credit->check_credit('delthread', $userinfo['usergroupid'], $fid);
 		}
 		$DB->query("SELECT pollid FROM " . TABLE_PREFIX . "poll WHERE tid=" . $this->thread['tid']);
-		if (!$DB->num_rows())
+		if (!$DB->numRows())
 		{
 			$forums->func->standard_error("cannotfinddelpolls");
 		}
@@ -609,7 +613,9 @@ class moderate
 			$action = $forums->lang['openthread'];
 			$operation = 1;
 		}
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "thread SET open='" . $operation . "' WHERE tid IN(" . implode(",", $this->tids) . ")");
+		$DB->update(TABLE_PREFIX . "thread", array(
+			'open' => $operation
+		), $DB->sql->in('tid', $this->tids), SHUTDOWN_QUERY);
 		if (count ($this->tids) > 1)
 		{
 			$this->moderate_log($action . " - " . $forums->lang['threadid'] . ": " . implode(",", $this->tids));
@@ -639,7 +645,7 @@ class moderate
 			$action = $forums->lang['unstickthread'];
 			$sticky = 0;
 		}
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET sticky='" . $sticky . "' WHERE tid IN(" . implode(",", $this->tids) . ")");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET sticky='" . $sticky . "' WHERE tid IN(" . implode(",", $this->tids) . ")");
 		if (count ($this->tids) > 1)
 		{
 			$this->moderate_log($action . " - " . $forums->lang['threadid'] . ": " . implode(",", $this->tids));
@@ -671,7 +677,7 @@ class moderate
 			$action = $forums->lang['ungstickthread'];
 			$sticky = 0;
 		}
-		$DB->update(TABLE_PREFIX . 'thread', array('sticky' => $sticky), $DB->sql_in('tid', $this->tids));
+		$DB->update(TABLE_PREFIX . 'thread', array('sticky' => $sticky), $DB->sql->in('tid', $this->tids));
 		if (count ($this->tids) > 1)
 		{
 			$this->moderate_log($action . ' - ' . $forums->lang['threadid'] . ': ' . implode(',', $this->tids));
@@ -704,7 +710,7 @@ class moderate
 			$action = $forums->lang['unapprovethread'];
 			$operation = 0;
 		}
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET visible='" . $operation . "' WHERE tid IN(" . implode(",", $this->tids) . ")");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET visible='" . $operation . "' WHERE tid IN(" . implode(",", $this->tids) . ")");
 		if (count ($this->tids) > 1)
 		{
 			$this->moderate_log($action . " - " . $forums->lang['threadid'] . ": " . implode(",", $this->tids));
@@ -729,26 +735,32 @@ class moderate
 			$forums->func->standard_error("erroroperation");
 			return;
 		}
+
 		if ($type == 'quintessence')
 		{
 			$action = $forums->lang['quintessencethread'];
 			$operation = 1;
-			$userquintessence = 'quintessence=quintessence+1';
+			$sign = '+';
 		}
 		else if ($type == 'unquintessence')
 		{
 			$action = $forums->lang['unquintessencethread'];
 			$operation = 0;
-			$userquintessence = 'quintessence=quintessence-1';
+			$sign = '-';
 		}
+		else
+		{
+			return;
+		}
+
 		$users = $DB->query("SELECT t.tid, t.title, t.postuserid, t.forumid, t.postusername, t.quintessence, u.usergroupid
 		                        FROM " . TABLE_PREFIX . "thread t
 								LEFT JOIN " . TABLE_PREFIX . "user u
 							 		ON u.id = t.postuserid
 		                     WHERE t.tid IN(" . implode(",", $this->tids) . ")");
-		if ($DB->num_rows($users))
+		if ($DB->numRows($users))
 		{
-			while ($user = $DB->fetch_array($users))
+			while ($user = $DB->fetch($users))
 			{
 				$userids[] = $user['userid'];
 				$groupids[] = $user['usergroupid'];
@@ -785,10 +797,12 @@ class moderate
 				}
 				$allusers[] = $user['postuserid'];
 			}
-			$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET $userquintessence WHERE id IN (" . implode("," , $allusers) . ")");
+			$DB->update(TABLE_PREFIX . "user", array(
+				'quintessence' => array(1, $sign)
+			), $DB->sql->in('id', $$allusers), SHUTDOWN_QUERY);
 			$this->credit->update_credit($type, $userids, $groupids, $forumids);
 		}
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET quintessence='" . $operation . "' WHERE tid IN(" . implode(",", $this->tids) . ")");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET quintessence='" . $operation . "' WHERE tid IN(" . implode(",", $this->tids) . ")");
 		if (count ($this->tids) > 1)
 		{
 			$this->moderate_log($action . " - " . $forums->lang['threadid'] . ": " . implode(",", $this->tids));
@@ -812,14 +826,14 @@ class moderate
 		}
 		foreach ($this->tids AS $tid)
 		{
-			if ($cleanid = $DB->query_first("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE moved LIKE '" . $tid . "&%'"))
+			if ($cleanid = $DB->queryFirst("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE moved LIKE '" . $tid . "&%'"))
 			{
 				$thread[] = $cleanid['tid'];
 			}
 		}
 		if (is_array($thread))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "thread WHERE tid IN (" . implode(",", $thread) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "thread WHERE tid IN (" . implode(",", $thread) . ")");
 			$this->recount($this->forum['id']);
 		}
 		$this->redirect($action);
@@ -841,7 +855,7 @@ class moderate
 		if (count ($this->tids) > 1)
 		{
 			$DB->query("SELECT title, tid FROM " . TABLE_PREFIX . "thread WHERE tid IN(" . implode(",", $this->tids) . ")");
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$thread[] = $row;
 			}
@@ -941,7 +955,7 @@ class moderate
 		{
 			$forums->func->standard_error("notsamesource");
 		}
-		if (!$forum = $DB->query_first("SELECT id, allowposting, name FROM " . TABLE_PREFIX . "forum WHERE id=" . $dest_id . ""))
+		if (!$forum = $DB->queryFirst("SELECT id, allowposting, name FROM " . TABLE_PREFIX . "forum WHERE id=" . $dest_id . ""))
 		{
 			$forums->func->standard_error("cannotfindtarget");
 		}
@@ -984,7 +998,7 @@ class moderate
 		if (count($this->tids) > 1)
 		{
 			$DB->query("SELECT title, tid FROM " . TABLE_PREFIX . "thread WHERE tid IN(" . implode(",", $this->tids) . ")");
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$thread[] = $row;
 			}
@@ -1076,7 +1090,7 @@ class moderate
 		if (count ($this->tids) > 1)
 		{
 			$DB->query("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid IN (" . implode(",", $this->tids) . ") ORDER BY dateline ASC");
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$thread[] = $row;
 			}
@@ -1123,16 +1137,16 @@ class moderate
 				$forums->func->standard_error("cannotfindmerge");
 			}
 
-			$old_thread = $DB->query_first('SELECT tid, title, forumid, lastpost, lastposterid, lastposter, post, views
+			$old_thread = $DB->queryFirst('SELECT tid, title, forumid, lastpost, lastposterid, lastposter, post, views
 				FROM ' . TABLE_PREFIX . "thread
 				WHERE tid = $old_id");
 			if (!$old_thread)
 			{
 				$forums->func->standard_error("cannotfindmerge");
 			}
-			$this->thread = $DB->query_first('SELECT *
+			$this->thread = $DB->queryFirst('SELECT *
 				FROM ' . TABLE_PREFIX . 'thread
-				WHERE ' . $DB->sql_in('tid', $this->tids));
+				WHERE ' . $DB->sql->in('tid', $this->tids));
 			if ($old_id == $this->thread['tid'])
 			{
 				$forums->func->standard_error("mergenotsame");
@@ -1156,7 +1170,7 @@ class moderate
 							AND (userid = {$bbuserinfo['id']}
 								OR (isgroup = 1
 									AND usergroupid = {$bbuserinfo['usergroupid']}))");
-					if ($DB->num_rows($result))
+					if ($DB->numRows($result))
 					{
 						$pass = true;
 					}
@@ -1194,9 +1208,9 @@ class moderate
 			$thread = array();
 			$result = $DB->query('SELECT tid, title, description
 				FROM ' . TABLE_PREFIX . 'thread
-				WHERE ' . $DB->sql_in('tid', $this->tids) . '
+				WHERE ' . $DB->sql->in('tid', $this->tids) . '
 				ORDER BY dateline ASC');
-			while ($row = $DB->fetch_array($result))
+			while ($row = $DB->fetch($result))
 			{
 				$thread[] = $row;
 			}
@@ -1278,7 +1292,7 @@ class moderate
 			$d_ceche = array();
 			foreach ($this->tids AS $link_thread)
 			{
-				$linked_thread = $DB->query_first( "SELECT tid, forumid FROM ".TABLE_PREFIX."thread WHERE open=2 AND moved LIKE '".$link_thread."&%'" );
+				$linked_thread = $DB->queryFirst( "SELECT tid, forumid FROM ".TABLE_PREFIX."thread WHERE open=2 AND moved LIKE '".$link_thread."&%'" );
 				if ($linked_thread)
 				{
 					$del_tids[] = $linked_thread['tid'];
@@ -1290,7 +1304,7 @@ class moderate
 			}
 			if (is_array($del_tids))
 			{
-				$DB->delete(TABLE_PREFIX . 'thread', $DB->sql_in('tid', $del_tids));
+				$DB->delete(TABLE_PREFIX . 'thread', $DB->sql->in('tid', $del_tids));
 				foreach ($d_ceche AS $forumid)
 				{
 					$this->recount($forumid);
@@ -1302,7 +1316,7 @@ class moderate
 					LEFT JOIN ".TABLE_PREFIX."user u
 						ON u.id=t.postuserid
 					WHERE tid IN(".implode(",",$this->tids).")" );
-			while ($thread = $DB->fetch_array($threads))
+			while ($thread = $DB->fetch($threads))
 			{
 				$delthread[$thread['postuserid']][] = $thread;
 				$threadforum[$thread['tid']] = $thread['forumid'];
@@ -1398,7 +1412,7 @@ class moderate
 		}
 		$recountids = $revertpids = $reverttids = array();
 		$result = $DB->query('SELECT tid, rawforumid, forumid FROM ' . TABLE_PREFIX . 'thread WHERE tid IN (' . implode(',', $this->tids) . ')');
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			if ($this->recycleforum && $row['forumid']!=$this->recycleforum)
 			{
@@ -1406,7 +1420,7 @@ class moderate
 			}
 			if (!$row['rawforumid'])
 			{
-				$recthread = $DB->query_first('SELECT posttable
+				$recthread = $DB->queryFirst('SELECT posttable
 						FROM ' . TABLE_PREFIX . 'thread
 					WHERE tid ='. $row['tid']);
 				$posttable = $recthread['posttable']?$recthread['posttable']:'post';
@@ -1416,7 +1430,7 @@ class moderate
 					LEFT JOIN " . TABLE_PREFIX . 'thread t
 						ON p.rawthreadid = t.tid
 					WHERE p.threadid ='. $row['tid']);
-				while ($r = $DB->fetch_array($rs))
+				while ($r = $DB->fetch($rs))
 				{
 					$rawtid = $r['tid'];
 					$rawfid = $r['forumid'];
@@ -1425,7 +1439,7 @@ class moderate
 
 				$recountids[] = $rawfid;
 				$DB->query('UPDATE '.TABLE_PREFIX . "$posttable SET threadid=" . $rawtid . ", newthread=0, rawthreadid='' WHERE threadid=" . $row['tid']);
-				$DB->query_unbuffered('DELETE FROM ' . TABLE_PREFIX . 'thread WHERE tid=' . $row['tid']);
+				$DB->queryUnbuffered('DELETE FROM ' . TABLE_PREFIX . 'thread WHERE tid=' . $row['tid']);
 				$this->modfunc->rebuild_thread($rawtid);
 			}
 			else
@@ -1468,7 +1482,7 @@ class moderate
 		{
 			$forums->func->standard_error("noperms");
 		}
-		$DB->shutdown_delete(TABLE_PREFIX . 'subscribethread', "threadid = {$this->thread['tid']}");
+		$DB->delete(TABLE_PREFIX . 'subscribethread', "threadid = {$this->thread['tid']}", SHUTDOWN_QUERY);
 		$forums->func->redirect_screen($forums->lang['hasunsubscribe'], "showthread.php{$forums->sessionurl}t={$this->thread['tid']}");
 	}
 
@@ -1490,10 +1504,10 @@ class moderate
 		{
 			$result = $DB->query('SELECT pagetext, pid, dateline, userid, username
 				FROM ' . TABLE_PREFIX . "$posttable
-				WHERE " . $DB->sql_in('pid', $this->pids) . '
+				WHERE " . $DB->sql->in('pid', $this->pids) . '
 				ORDER BY dateline');
 			$post_count = 0;
-			while ($row = $DB->fetch_array($result))
+			while ($row = $DB->fetch($result))
 			{
 				if (strlen($row['pagetext']) > 800)
 				{
@@ -1531,21 +1545,21 @@ class moderate
 				$forums->func->standard_error('erroraddress');
 			}
 
-			$move_to_thread = $DB->query_first('SELECT tid, forumid, title
+			$move_to_thread = $DB->queryFirst('SELECT tid, forumid, title
 				FROM ' . TABLE_PREFIX . "thread
 				WHERE tid = $old_id");
 			if (!$move_to_thread['tid'] || !$forums->forum->foruminfo[$move_to_thread['forumid']]['id'])
 			{
 				$forums->func->standard_error('erroraddress');
 			}
-			$count = $DB->query_first('SELECT COUNT(pid) AS count
+			$count = $DB->queryFirst('SELECT COUNT(pid) AS count
 				FROM ' . TABLE_PREFIX . "$posttable
 				WHERE threadid = {$this->thread['tid']}");
 			if ($affected_ids >= $count['count'])
 			{
 				$forums->func->standard_error('erroraddress');
 			}
-			$DB->update(TABLE_PREFIX . $posttable, array('threadid' => $move_to_thread['tid'], 'newthread' => 0), $DB->sql_in('pid', $this->pids));
+			$DB->update(TABLE_PREFIX . $posttable, array('threadid' => $move_to_thread['tid'], 'newthread' => 0), $DB->sql->in('pid', $this->pids));
 			$DB->update(TABLE_PREFIX . $posttable, array('newthread' => 0), "threadid = {$this->thread['tid']}");
 
 			$this->modfunc->rebuild_thread($move_to_thread['tid']);
@@ -1599,7 +1613,7 @@ class moderate
 				{
 					$curtable = $tname;
 				}
-				$row = $DB->query_first("SELECT p.pid, t.forumid, t.title
+				$row = $DB->queryFirst("SELECT p.pid, t.forumid, t.title
 						FROM ".TABLE_PREFIX."$curtable p
 					LEFT JOIN ".TABLE_PREFIX."thread t
 						ON p.threadid = t.tid
@@ -1612,7 +1626,7 @@ class moderate
 					$del_tid = $del_tid[$pid];
 
 					$recountids[] = $row['forumid'];
-					$rawthread = $DB->query_first("SELECT count(*) as num, threadid FROM ".TABLE_PREFIX."$curtable WHERE rawthreadid={$del_tid} GROUP BY threadid");
+					$rawthread = $DB->queryFirst("SELECT count(*) as num, threadid FROM ".TABLE_PREFIX."$curtable WHERE rawthreadid={$del_tid} GROUP BY threadid");
 					if ($rawthread['num'] <= 0)
 					{
 						$newthread = array(
@@ -1636,14 +1650,14 @@ class moderate
 							'addtorecycle' => TIMENOW,
 						);
 						$DB->insert(TABLE_PREFIX . 'thread', $newthread);
-						$threadid = $DB->insert_id();
+						$threadid = $DB->insertId();
 
 						input::set('fid', $newthread['forumid']);
 						input::set('title', $newthread['title']);
 						input::set('description', $newthread['description']);
 					}
 					$threadid = $rawthread['threadid']?$rawthread['threadid']:$threadid;
-					$DB->query_unbuffered( "UPDATE ".TABLE_PREFIX."$curtable SET threadid=$threadid, newthread=0,  rawthreadid=$del_tid WHERE pid = $pid");
+					$DB->queryUnbuffered( "UPDATE ".TABLE_PREFIX."$curtable SET threadid=$threadid, newthread=0,  rawthreadid=$del_tid WHERE pid = $pid");
 					$forums->lang['movethreadtorecycle'] = sprintf($forums->lang['movethreadtorecycle'], $row['title']);
 					$this->moderate_log($forums->lang['movethreadtorecycle']);
 					$this->modfunc->rebuild_thread($del_tid);
@@ -1672,7 +1686,7 @@ class moderate
 			$forums->func->redirect_screen( $forums->lang['posthasdeleted'], "search.php?do=finduser&u=$userid");
 		}
 		$posttable = $this->thread['posttable']?$this->thread['posttable']:'post';
-		$post = $DB->query_first( "SELECT pid, userid, dateline, newthread
+		$post = $DB->queryFirst( "SELECT pid, userid, dateline, newthread
 		FROM ".TABLE_PREFIX."$posttable
 		WHERE pid IN (" . implode(",", $this->pids) . ')');
 		$passed = ($bbuserinfo['supermod'] || $this->moderator['candeleteposts'] || ($bbuserinfo['candeletepost'] && $bbuserinfo['id'] == $post['userid'])) ? TRUE : FALSE;
@@ -1721,7 +1735,7 @@ class moderate
 		$recountids = array();
 		$curtable = $this->thread['posttable']?$this->thread['posttable']:'post';
 		$result = $DB->query('SELECT * FROM ' . TABLE_PREFIX . "$curtable WHERE pid IN (" . implode(',', $this->pids) . ')');
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			if ($this->recycleforum && $row['forumid']!=$this->recycleforum)
 			{
@@ -1733,16 +1747,16 @@ class moderate
 			}
 			else
 			{
-				$rawthread = $DB->query_first('SELECT tid, forumid FROM ' . TABLE_PREFIX . 'thread WHERE tid ='.$row['rawthreadid']);
+				$rawthread = $DB->queryFirst('SELECT tid, forumid FROM ' . TABLE_PREFIX . 'thread WHERE tid ='.$row['rawthreadid']);
 				if (!$rawthread['tid'])
 				{
 					$forums->func->standard_error("errorrevertpost");
 				}
 				$DB->query('UPDATE '.TABLE_PREFIX . "$curtable SET threadid=" . $row['rawthreadid'] . ", rawthreadid='' WHERE pid=" . $row['pid']);
-				$addthread = $DB->query_first('SELECT count(*) as num FROM ' . TABLE_PREFIX . '$curtable WHERE threadid ='.$row['threadid']);
+				$addthread = $DB->queryFirst('SELECT count(*) as num FROM ' . TABLE_PREFIX . '$curtable WHERE threadid ='.$row['threadid']);
 				if ($addthread['num'] <= 0)
 				{
-					$DB->query_unbuffered('DELETE FROM ' . TABLE_PREFIX . 'thread WHERE tid=' . $row['threadid']);
+					$DB->queryUnbuffered('DELETE FROM ' . TABLE_PREFIX . 'thread WHERE tid=' . $row['threadid']);
 				}
 				else
 				{
@@ -1790,7 +1804,7 @@ class moderate
 				WHERE pid IN (".implode(",", $this->pids).")
 				ORDER BY dateline");
 			$post_count = 0;
-			while ( $row = $DB->fetch_array() )
+			while ( $row = $DB->fetch() )
 			{
 				if ( strlen($row['pagetext']) > 800 )
 				{
@@ -1820,7 +1834,7 @@ class moderate
 				$forums->func->standard_error("notselectsplit");
 			}
 
-			$count = $DB->query_first( "SELECT count(pid) as cnt FROM ".TABLE_PREFIX."$curtable WHERE threadid=".$this->thread['tid']."" );
+			$count = $DB->queryFirst( "SELECT count(pid) as cnt FROM ".TABLE_PREFIX."$curtable WHERE threadid=".$this->thread['tid']."" );
 			if ( $affected_ids >= $count['cnt'] )
 			{
 				$forums->func->standard_error("notselectsplit");
@@ -1839,7 +1853,7 @@ class moderate
 					$forums->func->standard_error("cannotsplit");
 				}
 			}
-			$rawthread = $DB->query_first("SELECT count(*) as num, threadid FROM ".TABLE_PREFIX."$curtable WHERE rawthreadid={$this->thread['tid']} GROUP BY threadid");
+			$rawthread = $DB->queryFirst("SELECT count(*) as num, threadid FROM ".TABLE_PREFIX."$curtable WHERE rawthreadid={$this->thread['tid']} GROUP BY threadid");
 			if (!$this->userecycle || ($this->userecycle && $rawthread['num'] <= 0))
 			{
 				$newthread = array(
@@ -1863,7 +1877,7 @@ class moderate
 				);
 				if ($this->userecycle) $newthread = array_merge($newthread, array('addtorecycle'=>TIMENOW));
 				$DB->insert(TABLE_PREFIX . 'thread', $newthread);
-				$threadid = $DB->insert_id();
+				$threadid = $DB->insertId();
 			}
 			if ($this->userecycle)
 			{
@@ -1871,7 +1885,7 @@ class moderate
 				$sql = ", rawthreadid={$this->thread['tid']}";
 			}
 
-			$DB->query_unbuffered( "UPDATE ".TABLE_PREFIX."$curtable SET threadid=$threadid, newthread=0 $sql WHERE pid IN($pids)" );
+			$DB->queryUnbuffered( "UPDATE ".TABLE_PREFIX."$curtable SET threadid=$threadid, newthread=0 $sql WHERE pid IN($pids)" );
 
 			$this->modfunc->rebuild_thread($threadid);
 			$this->modfunc->rebuild_thread($this->thread['tid']);
@@ -1913,7 +1927,7 @@ class moderate
 		}
 		if (in_array($this->thread['firstpostid'], $this->pids))
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET visible=" . $at . " WHERE tid=" . $this->thread['tid'] . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET visible=" . $at . " WHERE tid=" . $this->thread['tid'] . "");
 			$tmp = $this->pids;
 			$this->pids = array();
 			foreach($tmp AS $t)
@@ -1926,7 +1940,7 @@ class moderate
 		}
 		if (count($this->pids))
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "$curtable SET moderate=" . $ap . " WHERE pid IN (" . implode(",", $this->pids) . ")");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "$curtable SET moderate=" . $ap . " WHERE pid IN (" . implode(",", $this->pids) . ")");
 		}
 		$this->modfunc->rebuild_thread($this->thread['tid']);
 		$this->recount($this->thread['forumid']);
@@ -1942,7 +1956,7 @@ class moderate
 		}
 		$DB->query("SELECT a.*, u.name FROM " . TABLE_PREFIX . "announcement a LEFT JOIN " . TABLE_PREFIX . "user u on (a.userid=u.id) ORDER BY a.active, a.enddate DESC");
 		$content = "";
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$r['startdate'] = $r['startdate'] ? $forums->func->get_time($r['startdate'], 'Y-m-d') : '-';
 			$r['enddate'] = $r['enddate'] ? $forums->func->get_time($r['enddate'], 'Y-m-d') : '-';
@@ -1992,7 +2006,7 @@ class moderate
 		if ($id)
 		{
 			$button = $forums->lang['editannouncement'];
-			$announce = $DB->query_first("SELECT *
+			$announce = $DB->queryFirst("SELECT *
 				FROM " . TABLE_PREFIX . "announcement
 				WHERE id = $id");
 			if (!$announce)
@@ -2172,7 +2186,7 @@ class moderate
 			$forums->func->standard_error("erroroperation");
 		}
 		$id = input::int('id');
-		if (!$announce = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . ""))
+		if (!$announce = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . ""))
 		{
 			$forums->func->standard_error("cannotfindannounce");
 		}
@@ -2180,7 +2194,7 @@ class moderate
 		{
 			$forums->func->standard_error("cannotdelannounce");
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . "");
 		$forums->func->recache('announcement');
 		return $this->announcement();
 	}
@@ -2210,7 +2224,7 @@ class moderate
 		{
 			$forums->func->standard_error("erroroperation");
 		}
-		$count = $DB->query_first("SELECT COUNT(*) AS counts FROM " . TABLE_PREFIX . "user WHERE LOWER(name) LIKE concat('" . strtolower($username) . "','%') OR name LIKE concat('" . $username . "','%')");
+		$count = $DB->queryFirst("SELECT COUNT(*) AS counts FROM " . TABLE_PREFIX . "user WHERE LOWER(name) LIKE concat('" . strtolower($username) . "','%') OR name LIKE concat('" . $username . "','%')");
 		if (!$count['counts'])
 		{
 			$forums->func->standard_error("cannotfindmember");
@@ -2222,7 +2236,7 @@ class moderate
 				));
 		$forums->func->check_cache('usergroup');
 		$users = $DB->query("SELECT name, id, host, posts, joindate, usergroupid FROM " . TABLE_PREFIX . "user WHERE name LIKE '$username%' ORDER BY joindate DESC LIMIT $first, 20");
-		while ($user = $DB->fetch_array($users))
+		while ($user = $DB->fetch($users))
 		{
 			$user['joindate'] = $forums->func->get_date($user['joindate'], 3);
 			$user['grouptitle'] = $forums->cache['usergroup'][$user['usergroupid']]['opentag'] . $forum->lang[ $forums->cache['usergroup'][$user['usergroupid']]['grouptitle'] ] . $forums->cache['usergroup'][$user['usergroupid']]['closetag'];
@@ -2243,13 +2257,13 @@ class moderate
 	function sendpm($message, $title, $to_user)
 	{
 		global $forums, $DB, $bbuserinfo, $bboptions;
-		$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "pmtext
+		$DB->queryUnbuffered("INSERT INTO " . TABLE_PREFIX . "pmtext
 							(dateline, message, deletedcount, savedcount)
 						VALUES
 							(" . TIMENOW . ", '" . addslashes($message) . "', 0, 1)"
 			);
-		$pmtextid = $DB->insert_id();
-		$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "pm
+		$pmtextid = $DB->insertId();
+		$DB->queryUnbuffered("INSERT INTO " . TABLE_PREFIX . "pm
 								(messageid, dateline, title, fromuserid, touserid, folderid, userid)
 							VALUES
 								(" . $pmtextid . ", " . TIMENOW . ", '" . addslashes($title) . "', " . $bbuserinfo['id'] . ", " . $to_user . ", 0, " . $to_user . ")"
@@ -2263,7 +2277,7 @@ class moderate
 		$rebuild = array();
 		if (! $folders)
 		{
-			$user = $DB->query_first("SELECT pmfolders FROM " . TABLE_PREFIX . "user WHERE id=" . $userid . "");
+			$user = $DB->queryFirst("SELECT pmfolders FROM " . TABLE_PREFIX . "user WHERE id=" . $userid . "");
 			$def_folders = array('0' => array('pmcount' => 0, 'foldername' => $forums->lang['_inbox']),
 				'-1' => array('pmcount' => 0, 'foldername' => $forums->lang['_outbox']),
 				);
@@ -2280,7 +2294,7 @@ class moderate
 		$pmfolders = addslashes(serialize($rebuild));
 		if ($nosave != 'nosave')
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmfolders='" . $pmfolders . "' " . $extra . " WHERE id=" . $userid . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmfolders='" . $pmfolders . "' " . $extra . " WHERE id=" . $userid . "");
 		}
 		return $pmfolders;
 	}

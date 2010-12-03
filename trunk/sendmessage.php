@@ -54,7 +54,7 @@ class sendmessage
 		{
 			$forums->func->standard_error("cannotfindmailer");
 		}
-		if (!$user = $DB->query_first("SELECT id, name, email, emailcharset, options
+		if (!$user = $DB->queryFirst("SELECT id, name, email, emailcharset, options
 			FROM " . TABLE_PREFIX . "user
 			WHERE id = $u"))
 		{
@@ -112,7 +112,7 @@ class sendmessage
 		{
 			$forums->func->standard_error("erroraddress");
 		}
-		if (!$thread = $DB->query_first("SELECT *
+		if (!$thread = $DB->queryFirst("SELECT *
 			FROM " . TABLE_PREFIX . "thread
 			WHERE tid = $tid"))
 		{

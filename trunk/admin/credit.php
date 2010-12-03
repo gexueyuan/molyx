@@ -79,7 +79,7 @@ class credit
 		$forums->admin->print_cp_header($pagetitle);
 		$forums->admin->print_form_header(array(1 => array('do' , 'add')));
 
-		$row = $DB->query_first('SELECT count(creditid) as total
+		$row = $DB->queryFirst('SELECT count(creditid) as total
 			FROM ' . TABLE_PREFIX . 'credit');
 		$row_count = $row['total'];
 		$links = $forums->func->build_pagelinks(array('totalpages' => $row_count,
@@ -103,7 +103,7 @@ class credit
 			LIMIT $pp, 10");
 		if ($row_count > 0)
 		{
-			while ($credit = $DB->fetch_array($result))
+			while ($credit = $DB->fetch($result))
 			{
 				$used = $credit['used']?"<font color='red'>".$forums->lang['yes']."</font>":$forums->lang['no'];
 				$action = "<center><a href='credit.php?{$forums->sessionurl}do=editdefaultrule&amp;creditid={$credit['creditid']}'>{$forums->lang['editdefaultrule']}</a>
@@ -137,7 +137,7 @@ class credit
 		if ($type == "edit")
 		{
 			$id = input::int('id');
-			$credit = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "credit WHERE creditid = $id");
+			$credit = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "credit WHERE creditid = $id");
 			if (!$credit['creditid'])
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
@@ -196,7 +196,7 @@ class credit
 		}
 		if ($id)
 		{
-			$credit = $DB->query_first('SELECT * FROM ' . TABLE_PREFIX . "credit WHERE creditid = $id");
+			$credit = $DB->queryFirst('SELECT * FROM ' . TABLE_PREFIX . "credit WHERE creditid = $id");
 			if (!$credit['creditid'])
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
@@ -210,7 +210,7 @@ class credit
 			}
 			$key_already_used = false;
 			$result = $DB->query('DESCRIBE ' . TABLE_PREFIX . 'user');
-			while ($row = $DB->fetch_array($result))
+			while ($row = $DB->fetch($result))
 			{
 				if ($row['Field'] == input::get('tag', ''))
 				{
@@ -218,10 +218,10 @@ class credit
 					break;
 				}
 			}
-			$DB->free_result($result);
+			$DB->freeResult($result);
 			if (!$key_already_used)
 			{
-				$result = $DB->query_first('SELECT creditid FROM ' . TABLE_PREFIX . "credit WHERE tag = '" . input::get('tag', '') . "'");
+				$result = $DB->queryFirst('SELECT creditid FROM ' . TABLE_PREFIX . "credit WHERE tag = '" . input::get('tag', '') . "'");
 				if ($result['creditid'])
 				{
 					$key_already_used = true;
@@ -230,14 +230,14 @@ class credit
 			if (!$key_already_used)
 			{
 				$result = $DB->query('DESCRIBE ' . TABLE_PREFIX . 'userexpand');
-				while ($row = $DB->fetch_array($result))
+				while ($row = $DB->fetch($result))
 				{
 					if ($row['Field'] == input::get('tag', ''))
 					{
 						$key_already_used = true;
 					}
 				}
-				$DB->free_result($result);
+				$DB->freeResult($result);
 			}
 
 			if ($key_already_used)
@@ -263,14 +263,14 @@ class credit
 			$sql_array['initevalvalue'] = 20;
 			$sql_array['initevaltime'] = 24;
 			$DB->insert(TABLE_PREFIX . 'credit', $sql_array);
-			$id = $DB->insert_id();
-			$DB->query_unbuffered('ALTER TABLE ' . TABLE_PREFIX . 'userexpand
+			$id = $DB->insertId();
+			$DB->queryUnbuffered('ALTER TABLE ' . TABLE_PREFIX . 'userexpand
 				ADD `' . input::get('tag', '') . '` FLOAT( 10, 2 ) NOT NULL default 0, ADD `eval' . input::get('tag', '') . '` INT( 10 ) NOT NULL default 0');
 			//添加一套积分的默认规则
 			$result = $DB->query('SELECT eventtag, defaultvalue FROM ' . TABLE_PREFIX . "creditevent");
 			$params = array();
 
-			while ($r = $DB->fetch_array($result))
+			while ($r = $DB->fetch($result))
 			{
 				$params[$r['eventtag']] = $r['defaultvalue'];
 			}
@@ -298,7 +298,7 @@ class credit
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->print_form_header(array(1 => array('do' , 'addrule')));
 
-		$row = $DB->query_first('SELECT count(*) as total FROM ' . TABLE_PREFIX . 'creditrule');
+		$row = $DB->queryFirst('SELECT count(*) as total FROM ' . TABLE_PREFIX . 'creditrule');
 		$row_count = $row['total'];
 		$links = $forums->func->build_pagelinks(array('totalpages' => $row_count,
 			'perpage' => 10,
@@ -318,9 +318,9 @@ class credit
 			ON cr.creditid = c.creditid
 			ORDER BY cr.creditid ASC, cr.type ASC
 			LIMIT $pp, 10");
-		if ($DB->num_rows($result))
+		if ($DB->numRows($result))
 		{
-			while ($rule = $DB->fetch_array($result))
+			while ($rule = $DB->fetch($result))
 			{
 				$rulerange = '&nbsp;';
 				$range = array();
@@ -394,7 +394,7 @@ class credit
 			{
 				$wheresql = "WHERE creditid = '" . input::get('creditid', '') . "' AND type = 0";
 			}
-			$rule = $DB->query_first("SELECT *
+			$rule = $DB->queryFirst("SELECT *
 					FROM " . TABLE_PREFIX . "creditrule
 					$wheresql");
 			if ($type == "edit" && $rule['type'])
@@ -425,7 +425,7 @@ class credit
 
 		$creditlist = $forum = $usergroup = array();
 		$rs = $DB->query("SELECT * FROM " . TABLE_PREFIX . "credit");
-		while ($r = $DB->fetch_array($rs))
+		while ($r = $DB->fetch($rs))
 		{
 			$creditlist[] = array($r['creditid'], $r['name']);
 		}
@@ -494,7 +494,7 @@ class credit
 		//显示积分事件列表
 		$parms = $rule['parameters'] ? unserialize($rule['parameters']) : array();
 		$result = $DB->query("SELECT * FROM " . TABLE_PREFIX . "creditevent ORDER BY eventtype ASC");
-		while($row = $DB->fetch_array($result))
+		while($row = $DB->fetch($result))
 		{
 			$tag = $row['eventtag'];
 			$eventvalue = input::get($tag, $parms[$tag]);
@@ -532,15 +532,15 @@ class credit
 		}
 		//判断选择的版面或用户组是否在其他规则中已定义
 		$tmplists = input::str('lists');
-		
+
 		if (!empty($tmplists) && $type)
 		{
 			$result = $DB->query('SELECT lists
 				FROM ' . TABLE_PREFIX . "creditrule
 				WHERE creditid=$creditid AND type=$type AND ruleid!=$ruleid AND lists!=''");
-			if ($DB->num_rows())
+			if ($DB->numRows())
 			{
-				while ($row = $DB->fetch_array($result))
+				while ($row = $DB->fetch($result))
 				{
 					foreach (input::get('lists', '') as $id)
 					{
@@ -563,7 +563,7 @@ class credit
 		}
 		$params = $rule = array();
 		$result = $DB->query('SELECT eventtag FROM ' . TABLE_PREFIX . "creditevent");
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$value = trim($_REQUEST[$r['eventtag']]);
 			if (!$type && $ruleid)
@@ -604,7 +604,7 @@ class credit
 		global $forums, $DB;
 
 		$id = input::int('creditid');
-		$credit = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "credit WHERE creditid = $id");
+		$credit = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "credit WHERE creditid = $id");
 		if (!$credit['creditid'])
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
@@ -655,10 +655,10 @@ class credit
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$credit = $DB->query_first('SELECT * FROM ' . TABLE_PREFIX . 'credit WHERE creditid=' . $id);
+		$credit = $DB->queryFirst('SELECT * FROM ' . TABLE_PREFIX . 'credit WHERE creditid=' . $id);
 		$DB->delete(TABLE_PREFIX . 'credit', 'creditid = ' . $id);
 		$DB->delete(TABLE_PREFIX . 'creditrule', 'creditid = ' . $id);
-		$DB->query_unbuffered('ALTER TABLE ' . TABLE_PREFIX . "userexpand DROP " . $credit['tag'] . ',DROP eval' . $credit['tag']);
+		$DB->queryUnbuffered('ALTER TABLE ' . TABLE_PREFIX . "userexpand DROP " . $credit['tag'] . ',DROP eval' . $credit['tag']);
 		$forums->func->recache('creditlist');
 		$forums->func->recache('creditrule');
 		$forums->admin->redirect('credit.php', $forums->lang['creditlist'], $forums->lang['credit_deleted']);
@@ -686,7 +686,7 @@ class credit
 		$forums->admin->nav[] = array('credit.php?do=eventlist' , $forums->lang['crediteventlists']);
 
 		$forums->admin->print_cp_header($pagetitle);
-		$row = $DB->query_first('SELECT count(eventid) as total FROM ' . TABLE_PREFIX . 'creditevent');
+		$row = $DB->queryFirst('SELECT count(eventid) as total FROM ' . TABLE_PREFIX . 'creditevent');
 		$row_count = $row['total'];
 		$links = $forums->func->build_pagelinks(array('totalpages' => $row_count,
 			'perpage' => 10,
@@ -700,9 +700,9 @@ class credit
 		$forums->admin->columns[] = array($forums->lang['settingdefault'], '30%');
 		$forums->admin->print_table_start($forums->lang['crediteventlists']);
 		$result = $DB->query('SELECT * FROM ' . TABLE_PREFIX . "creditevent Limit $pp, 10");
-		if ($DB->num_rows($result))
+		if ($DB->numRows($result))
 		{
-			while ($event = $DB->fetch_array($result))
+			while ($event = $DB->fetch($result))
 			{
 				$forums->admin->print_cells_row(array(
 					"<center>" . $event['eventname'] . "</center>",

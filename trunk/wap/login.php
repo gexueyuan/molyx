@@ -115,7 +115,7 @@ class login
 		}
 		$password = md5($password);
 		$this->verify_strike_status($username);
-		$user = $DB->query_first("SELECT id, name, email, usergroupid, password, host, options, salt, avatar from " . TABLE_PREFIX . "user WHERE $where");
+		$user = $DB->queryFirst("SELECT id, name, email, usergroupid, password, host, options, salt, avatar from " . TABLE_PREFIX . "user WHERE $where");
 		if (empty($user['id']) OR ($user['id'] == ""))
 		{
 			$this->message = $forums->lang['nouser'];
@@ -140,7 +140,7 @@ class login
 		$invisible = input::int('invisible');
 		if ($sessionid)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "session SET username='" . $user['name'] . "', userid=" . $user['id'] . ", avatar=" . $user['avatar'] . ", lastactivity=" . TIMENOW . ", usergroupid=" . $user['usergroupid'] . ", invisible=" . $invisible . "  WHERE sessionhash='" . $sessionid . "'");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "session SET username='" . $user['name'] . "', userid=" . $user['id'] . ", avatar=" . $user['avatar'] . ", lastactivity=" . TIMENOW . ", usergroupid=" . $user['usergroupid'] . ", invisible=" . $invisible . "  WHERE sessionhash='" . $sessionid . "'");
 		}
 		else
 		{
@@ -161,9 +161,10 @@ class login
 		$bbuserinfo = $user;
 		$forums->sessionid = $sessionid;
 		$bbuserinfo['options'] = $forums->func->convert_array_to_bits(array_merge($bbuserinfo , array('invisible' => $invisible, 'loggedin' => 1)));
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET " . $style . "options=" . $bbuserinfo['options'] . " WHERE id='" . $bbuserinfo['id'] . "'");
-		$DB->shutdown_query("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid='" . $bbuserinfo['id'] . "' AND type=1");
-		$DB->shutdown_delete(TABLE_PREFIX . 'strikes', 'strikeip = ' . $DB->validate(IPADDRESS) . ' AND username = ' . $DB->validate($username));
+
+		$DB->update("UPDATE " . TABLE_PREFIX . "user", array('options' => $bbuserinfo['options']), 'id=' . $bbuserinfo['id'], SHUTDOWN_QUERY);
+		$DB->delete(TABLE_PREFIX . 'useractivation', 'userid=' . $bbuserinfo['id'] . ' AND type=1', SHUTDOWN_QUERY);
+		$DB->delete(TABLE_PREFIX . 'strikes', 'strikeip = ' . $DB->validate(IPADDRESS) . ' AND username = ' . $DB->validate($username), SHUTDOWN_QUERY);
 		$forums->func->set_cookie("userid", $user['id'], 31536000);
 		$forums->func->set_cookie("password", $user['password'], 31536000);
 		$forums->func->set_cookie("sessionid", $forums->sessionid, 31536000);
@@ -175,8 +176,19 @@ class login
 		global $forums, $DB, $bbuserinfo, $bboptions;
 		$bbuserinfo['loggedin'] = 0;
 		$bbuserinfo['options'] = $forums->func->convert_array_to_bits($bbuserinfo);
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "session SET username='', userid='0', invisible='0', avatar=0 WHERE sessionhash='" . $forums->sessionid . "'");
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET options=" . $bbuserinfo['options'] . ", lastvisit=" . TIMENOW . ", lastactivity=" . TIMENOW . " WHERE id='" . $bbuserinfo['id'] . "'");
+		$DB->update(TABLE_PREFIX . "session", array(
+			'username' => '',
+			'userid' => 0,
+			'invisible' => 0,
+			'avatar' => 0
+		), "sessionhash='" . $forums->sessionid . "'");
+
+		$DB->update(TABLE_PREFIX . "user", array(
+			'options' =>$bbuserinfo['options'],
+			'lastvisit' => TIMENOW,
+			'lastactivity' => TIMENOW
+		), 'id=' . $bbuserinfo['id'], SHUTDOWN_QUERY);
+
 		$forums->func->set_cookie('password' , '-1');
 		$forums->func->set_cookie('userid' , '-1');
 		$forums->func->set_cookie('sessionid', '-1');
@@ -206,7 +218,7 @@ class login
 			If ($userid AND $password)
 			{
 				$DB->query("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='$userid' AND password='$password'");
-				if ($user = $DB->fetch_array())
+				if ($user = $DB->fetch())
 				{
 					$bbuserinfo = $user;
 					$forums->func->load_style();
@@ -264,8 +276,8 @@ class login
 	function verify_strike_status($username = '')
 	{
 		global $DB, $forums;
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "strikes WHERE striketime < " . (TIMENOW - 3600));
-		$strikes = $DB->query_first('SELECT COUNT(*) AS strikes, MAX(striketime) AS lasttime
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "strikes WHERE striketime < " . (TIMENOW - 3600));
+		$strikes = $DB->queryFirst('SELECT COUNT(*) AS strikes, MAX(striketime) AS lasttime
 			FROM ' . TABLE_PREFIX . 'strikes
 			WHERE strikeip = ' . $DB->validate(IPADDRESS) . '
 				AND username = ' . $DB->validate($username));
@@ -275,7 +287,7 @@ class login
 			$this->message = $forums->lang['strikefailed1'];
 			return $this->loginpage();
 		}
-		$maxstrikes = $DB->query_first("SELECT COUNT(*) AS strikes
+		$maxstrikes = $DB->queryFirst("SELECT COUNT(*) AS strikes
 			FROM " . TABLE_PREFIX . 'strikes
 			WHERE strikeip = ' . $DB->validate(IPADDRESS));
 		if ($this->strikes >= 30 AND $strikes['lasttime'] > TIMENOW - 1800)
@@ -288,11 +300,12 @@ class login
 	function exec_strike_user($username = '')
 	{
 		global $DB, $forums;
-		$DB->shutdown_insert(TABLE_PREFIX . 'strikes', array(
+		$DB->insert(TABLE_PREFIX . 'strikes', array(
 			'striketime' => TIMENOW,
 			'strikeip' => IPADDRESS,
 			'username' => $username
-		));
+		), SHUTDOWN_QUERY);
+
 		$this->strikes++;
 		$times = $this->strikes;
 		$forums->lang['striketimes'] = sprintf($forums->lang['striketimes'], $times);

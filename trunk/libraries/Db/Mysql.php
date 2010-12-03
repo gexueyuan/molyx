@@ -110,7 +110,7 @@ class Db_Mysql extends Db_Base
 
 	public function insertId()
 	{
-		//$id = $this->query_first('SELECT LAST_INSERT_ID() as id');
+		//$id = $this->queryFirst('SELECT LAST_INSERT_ID() as id');
 		return @mysql_insert_id($this->connect_id);
 	}
 

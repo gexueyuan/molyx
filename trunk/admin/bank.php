@@ -43,7 +43,7 @@ class settings
 		$forums->admin->print_form_header(array(1 => array('do', 'banksetting_update')));
 
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE groupid = 18 ORDER BY displayorder, title");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$entry[$r['settingid']] = $r;
 		}
@@ -118,7 +118,7 @@ class settings
 					elseif ($r['dropextra'] == '#show_groups#')
 					{
 						$DB->query("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup");
-						while ($row = $DB->fetch_array())
+						while ($row = $DB->fetch())
 						{
 							$dropdown[] = array($row['usergroupid'], $row['grouptitle']);
 						}
@@ -142,7 +142,7 @@ class settings
 					elseif ($r['dropextra'] == '#show_formulacredit#')
 					{
 						$DB->query("SELECT tag_name, name FROM " . TABLE_PREFIX . "credit WHERE type = 2 ORDER BY creditid");
-						while ($row = $DB->fetch_array())
+						while ($row = $DB->fetch())
 						{
 							$dropdown[] = array($row['tag_name'], $row['name']);
 						}
@@ -207,7 +207,7 @@ class settings
 		}
 		$db_fields = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE varname IN ('" . implode("','", $fields) . "')");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$db_fields[ $r['varname'] ] = $r;
 		}
@@ -243,7 +243,7 @@ class settings
 		require_once(ROOT_PATH . 'includes/functions_credit.php');
 		$credit = new functions_credit();
 		$lists = $DB->query("SELECT * FROM " . TABLE_PREFIX . "credit WHERE type = 1 and used = 1");
-		while ($row = $DB->fetch_array($lists))
+		while ($row = $DB->fetch($lists))
 		{
 			$creditid = $row['creditid'];
 			$params = @unserialize($row['globalparams']);
@@ -273,7 +273,7 @@ class settings
 			$forums->main_msg = $forums->lang['noids'];
 			$this->banksetting_view();
 		}
-		$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
+		$conf = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
 		$DB->update(TABLE_PREFIX . 'setting', array('value' => ''), 'settingid = ' . input::int('id'));
 		$forums->main_msg = $forums->lang['bankrestored'];
 		$forums->func->recache('banksettings');

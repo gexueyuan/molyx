@@ -25,7 +25,7 @@ function send_mailto_user($input, $uid)
 		show_processinfo($forums->lang['cannotfindmailer']);
 		return $response;
 	}
-	if (!$user = $DB->query_first("SELECT id, name, email, emailcharset, options FROM " . TABLE_PREFIX . "user WHERE id=" . $uid))
+	if (!$user = $DB->queryFirst("SELECT id, name, email, emailcharset, options FROM " . TABLE_PREFIX . "user WHERE id=" . $uid))
 	{
 		$forums->func->load_lang('error');
 		show_processinfo($forums->lang['cannotfindmailer']);
@@ -95,7 +95,7 @@ function digg_thread($tid)
 		show_processinfo($forums->lang['select_digg_thread']);
 		return $response;
 	}
-	$digg = $DB->query_first('SELECT digg_id
+	$digg = $DB->queryFirst('SELECT digg_id
 							  FROM ' . TABLE_PREFIX . 'digg_log
 							  WHERE user_id=' . $bbuserinfo['id'] . '
 							  	AND threadid=' . $tid);
@@ -120,7 +120,7 @@ function digg_thread($tid)
 	$DB->insert(TABLE_PREFIX . 'digg_log', $digg_log);
 	$msg = sprintf($forums->lang['thread_digged_suc'], $digg_exp);
 	show_processinfo($msg);
-	$now_digg_exp = $DB->query_first('SELECT digg_users, digg_exps
+	$now_digg_exp = $DB->queryFirst('SELECT digg_users, digg_exps
 									FROM ' . TABLE_PREFIX . 'thread
 								WHERE tid = ' . $tid);
 	$digg_users = sprintf($forums->lang['how_digg_users'], intval($now_digg_exp['digg_users']));

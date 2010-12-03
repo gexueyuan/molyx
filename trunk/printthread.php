@@ -23,7 +23,7 @@ class printthread
 		{
 			$forums->func->standard_error("erroraddress");
 		}
-		$thread = $DB->query_first('SELECT tid, title, forumid, postusername, postuserid, sticky,posttable
+		$thread = $DB->queryFirst('SELECT tid, title, forumid, postusername, postuserid, sticky,posttable
 			FROM ' . TABLE_PREFIX . 'thread
 			WHERE tid = ' . $t);
 		$forum = $forums->forum->single_forum($thread['forumid']);
@@ -61,7 +61,7 @@ class printthread
 			WHERE threadid = ' . $thread['tid'] . "{$moderate}
 			ORDER BY pid
 			LIMIT 0, " . $maxposts);
-		while ($post = $DB->fetch_array($result))
+		while ($post = $DB->fetch($result))
 		{
 			$thispost[] = $post;
 			if ($post['userid'] != 0 && !in_array($post['userid'], $user_ids))
@@ -73,8 +73,8 @@ class printthread
 		{
 			$result = $DB->query('SELECT *
 				FROM ' . TABLE_PREFIX . 'user
-				WHERE ' . $DB->sql_in('id', $user_ids));
-			while ($user = $DB->fetch_array($result))
+				WHERE ' . $DB->sql->in('id', $user_ids));
+			while ($user = $DB->fetch($result))
 			{
 				if ($user['id'] && $user['name'])
 				{

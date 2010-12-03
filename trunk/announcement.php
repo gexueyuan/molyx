@@ -57,7 +57,7 @@ class announce
 		{
 			$where = ' WHERE a.userid = ' . intval($bbuserinfo['id']);
 		}
-		$acount = $DB->query_first('SELECT COUNT(*) AS count
+		$acount = $DB->queryFirst('SELECT COUNT(*) AS count
 			FROM ' . TABLE_PREFIX . 'announcement a' . $where);
 		$pages = $forums->func->build_pagelinks(array(
 			'totalpages' => $acount['count'],
@@ -72,9 +72,9 @@ class announce
 					{$where}
 			ORDER BY enddate DESC
 			LIMIT $start, $perpage");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($announce = $DB->fetch_array($result))
+			while ($announce = $DB->fetch($result))
 			{
 				$announce['title'] = strip_tags($announce['title']);
 				$announce['pagetext'] = preg_replace("/<!--emule1-->(.+?)<!--emule2-->/ie", "\$show->paste_emule('\\1')", $announce['pagetext']);
@@ -165,7 +165,7 @@ class announce
 		}
 		else
 		{
-			$acount = $DB->query_first('SELECT COUNT(*) AS count
+			$acount = $DB->queryFirst('SELECT COUNT(*) AS count
 				FROM ' . TABLE_PREFIX . 'announcement a
 				WHERE active = 1
 					AND (startdate = 0
@@ -193,7 +193,7 @@ class announce
 			ORDER BY enddate DESC
 			LIMIT $start, $perpage");
 		$announcement = array();
-		while ($announce = $DB->fetch_array($result))
+		while ($announce = $DB->fetch($result))
 		{
 			$announce['title'] = strip_tags($announce['title']);
 			$pass = false;
@@ -266,7 +266,7 @@ class announce
 		}
 		if (count($this->ids))
 		{
-			$DB->shutdown_update(TABLE_PREFIX . 'announcement', array('views' => array(1, '+')), $DB->sql_in('id', $this->ids));
+			$DB->update(TABLE_PREFIX . 'announcement', array('views' => array(1, '+')), $DB->sql->in('id', $this->ids), SHUTDOWN_QUERY);
 		}
 		require_once(ROOT_PATH . 'includes/ajax/ajax.php');
 		$pagetitle = $forums->lang['announcement'] . " - " . $bboptions['bbtitle'];
@@ -291,7 +291,7 @@ class announce
 		if ($id)
 		{
 			$button = $forums->lang['editannouncement'];
-			if (!$announce = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "announcement WHERE id = $id"))
+			if (!$announce = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "announcement WHERE id = $id"))
 			{
 				$forums->func->standard_error("cannotfindannounce");
 			}
@@ -492,7 +492,7 @@ class announce
 			$forums->func->standard_error("erroroperation");
 		}
 		$id = input::get('id', 0);
-		if (!$announce = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . ""))
+		if (!$announce = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . ""))
 		{
 			$forums->func->standard_error("cannotfindannounce");
 		}
@@ -500,7 +500,7 @@ class announce
 		{
 			$forums->func->standard_error("cannotdelannounce");
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . "");
 		$forums->func->recache('announcement');
 		if (input::get('ref', '') == 'showall')
 		{

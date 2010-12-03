@@ -18,11 +18,11 @@ class cron_cleanout
 		global $DB, $forums, $bboptions;
 		$forums->func->load_lang('cron');
 		$date = TIMENOW - (21600);
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "antispam WHERE dateline < " . $date . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "antispam WHERE dateline < " . $date . "");
 		$date = $bboptions['cookietimeout'] ? (TIMENOW - $bboptions['cookietimeout'] * 60) : (TIMENOW - 3600);
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "session WHERE lastactivity < " . $date . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "session WHERE lastactivity < " . $date . "");
 		$date = TIMENOW - 86400;
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "search WHERE dateline < " . $date . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "search WHERE dateline < " . $date . "");
 		$this->class->cronlog($this->cron, $forums->lang['cleandata']);
 	}
 

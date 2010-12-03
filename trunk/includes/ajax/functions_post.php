@@ -59,7 +59,7 @@ function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 	$forums->func->load_lang('showthread');
 	$forums->func->load_lang('post');
 	//查找主题帖子所存的表
-	$thread = $DB->query_first("SELECT t.*, u.usergroupid
+	$thread = $DB->queryFirst("SELECT t.*, u.usergroupid
 		FROM " . TABLE_PREFIX . "thread t
 			LEFT JOIN " . TABLE_PREFIX . "user u
 				ON u.id = t.postuserid
@@ -82,7 +82,7 @@ function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 			{
 				if ($liftban['banposts'] > 0)
 				{
-					$DB->query_unbuffered('UPDATE ' . TABLE_PREFIX . "$posttable p," . TABLE_PREFIX . "thread t
+					$DB->queryUnbuffered('UPDATE ' . TABLE_PREFIX . "$posttable p," . TABLE_PREFIX . "thread t
 										   SET p.state=0
 										   WHERE p.threadid=t.tid
 										   		AND p.userid={$bbuserinfo['id']}
@@ -179,35 +179,37 @@ function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 	$post_info['moderate'] = ($obj['moderate'] == 1 || $obj['moderate'] == 3) ? 1 : 0;
 	$post_info['hidepost'] = '';
 	$DB->insert(TABLE_PREFIX . $posttable, $post_info);
-	$postid = $DB->insert_id();
+	$postid = $DB->insertId();
 	$dopost->obj['moderate'] = $obj['moderate'];
 	$dopost->forum = $forum;
 	$dopost->stats_recount($thread['tid'], 'reply');
 
-	$DB->shutdown_update(TABLE_PREFIX . 'user', array(
+	$DB->update(TABLE_PREFIX . 'user', array(
 		'lastpost' => $post_info['dateline'],
 		'posts' => array(1, '+')
-	), 'id = ' . $bbuserinfo['id']);
-	$DB->shutdown_update(TABLE_PREFIX . 'thread', array(
+	), 'id = ' . $bbuserinfo['id'], SHUTDOWN_QUERY);
+	$DB->update(TABLE_PREFIX . 'thread', array(
 		'lastpost' => $post_info['dateline'],
 		'post' => array(1, '+'),
 		'lastposterid' => $lastposterid,
 		'lastposter' => $lastposter,
 		'lastpostid' => $postid
-	), 'tid = ' . intval($thread['tid']));
+	), 'tid = ' . intval($thread['tid']), SHUTDOWN_QUERY);
 
 	$hideposts = $DB->query("SELECT pid, userid, hidepost FROM " . TABLE_PREFIX . "$posttable
 							WHERE threadid='" . $thread['tid'] . "' AND hidepost!=''");
-	if ($DB->num_rows($hideposts))
+	if ($DB->numRows($hideposts))
 	{
-		while ($hidepost = $DB->fetch_array($hideposts))
+		while ($hidepost = $DB->fetch($hideposts))
 		{
 			$hideinfo = unserialize($hidepost['hidepost']);
 			if ($hideinfo['type'] == '111' AND $hidepost['userid'] != $bbuserinfo['id'])
 			{
 				if (is_array($hideinfo['buyers']) AND in_array($bbuserinfo['name'], $hideinfo['buyers'])) continue;
 				$hideinfo['buyers'][] = $bbuserinfo['name'];
-				$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "$posttable SET hidepost='" . addslashes(serialize($hideinfo)) . "' WHERE pid='" . $hidepost['pid'] . "'");
+				$DB->update(TABLE_PREFIX . $posttable, array(
+					'hidepost' => serialize($hideinfo)
+				), 'pid = ' . $DB->validate($hidepost['pid']), SHUTDOWN_QUERY);
 			}
 		}
 	}
@@ -217,7 +219,7 @@ function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 	{
 		return return_process_result($forums->lang["hasajaxpost"]);
 	}
-	$postcount = $DB->query_first("SELECT count(*) AS total FROM " . TABLE_PREFIX . $posttable . " WHERE threadid=" .$thread['tid']);
+	$postcount = $DB->queryFirst("SELECT count(*) AS total FROM " . TABLE_PREFIX . $posttable . " WHERE threadid=" .$thread['tid']);
 	if (input::int('pnum') > $bboptions['maxposts'])
 	{
 		$last_page = floor($postcount['total'] / $bboptions['maxposts']) * $bboptions['maxposts'];
@@ -226,7 +228,7 @@ function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 	}
 	$bbuserinfo['lastpost'] = $post_info['dateline'];
 	$bbuserinfo['posts'] += 1;
-	$credit_expand = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "userexpand
+	$credit_expand = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "userexpand
 										WHERE id= {$bbuserinfo['id']}");
 	foreach ($credit_expand as $name => $value)
 	{
@@ -469,9 +471,9 @@ function returnpagetext($pid, $fid, $uid, $tid, $dateline)
 
 	require_once(ROOT_PATH . 'includes/functions_codeparse.php');
 	$lib = new functions_codeparse();
-	$thread = $DB->query_first("SELECT posttable,forumid FROM " . TABLE_PREFIX . "thread WHERE tid = " . intval($tid)); //查询当前主题的帖子所在帖子表
+	$thread = $DB->queryFirst("SELECT posttable,forumid FROM " . TABLE_PREFIX . "thread WHERE tid = " . intval($tid)); //查询当前主题的帖子所在帖子表
 	$posttable = $thread['posttable'] ? $thread['posttable'] : 'post';
-	$post = $DB->query_first("SELECT userid, pagetext, threadid, allowsmile,dateline FROM " . TABLE_PREFIX . $posttable . " WHERE pid = " . intval($pid));
+	$post = $DB->queryFirst("SELECT userid, pagetext, threadid, allowsmile,dateline FROM " . TABLE_PREFIX . $posttable . " WHERE pid = " . intval($pid));
 	$forum = $forums->forum->single_forum($thread['forumid']);
 	$post['pagetext'] = $lib->unconvert($post['pagetext'], $forum['allowbbcode'], $forum['allowhtml'], 1, 1);
 	$post['pagetext'] = preg_replace("#\[code(.+?)?\](.+?)\[/code\]#ies" , "str_replace('&lt;br /&gt;', '<br />', '[code\\1]\\2[/code]')", $post['pagetext']);
@@ -525,7 +527,7 @@ function do_edit_post($pid, $fid, $uid, $tid, $content, $wMode, $dateline)
 	$uptpost['updateuid'] = $bbuserinfo['id'];
 	$uptpost['updateuname'] = $bbuserinfo['name'];
 	$uptpost['updatetime'] = TIMENOW;
-	$thread = $DB->query_first("SELECT posttable,forumid FROM " . TABLE_PREFIX . "thread WHERE tid = " . intval($tid));
+	$thread = $DB->queryFirst("SELECT posttable,forumid FROM " . TABLE_PREFIX . "thread WHERE tid = " . intval($tid));
 	$posttable = $thread['posttable'] ? $thread['posttable'] : 'post';
 	$DB->update(TABLE_PREFIX . $posttable, $uptpost, 'pid = ' . intval($pid));
 	if ($need_update_credit)
@@ -752,7 +754,7 @@ function process_post_form($input, $action, $pid = 0)
 	}
 	if ($input['t'])
 	{
-		$forums->this_thread = $DB->query_first('SELECT tid, title, posttable, forumid, firstpostid,post FROM '. TABLE_PREFIX . "thread
+		$forums->this_thread = $DB->queryFirst('SELECT tid, title, posttable, forumid, firstpostid,post FROM '. TABLE_PREFIX . "thread
 						  			WHERE tid = " . intval($input['t']));
 
 		if (!$forums->this_thread)
@@ -842,11 +844,11 @@ function process_post_form($input, $action, $pid = 0)
 			$pids = implode(',', $input['pid']);
 			$result = $DB->query('SELECT pagetext, pid, dateline, userid, username
 				FROM ' . TABLE_PREFIX . "{$forums->this_thread['posttable']}
-				WHERE " . $DB->sql_in('pid', $input['pid']) . '
+				WHERE " . $DB->sql->in('pid', $input['pid']) . '
 				ORDER BY dateline');
 			$post_count = 0;
 			$showpost = array();
-			while ($row = $DB->fetch_array($result))
+			while ($row = $DB->fetch($result))
 			{
 				if (utf8::strlen($row['pagetext']) > 100)
 				{
@@ -912,7 +914,7 @@ function do_movepost()
 		show_processinfo($forums->lang['erroraddress']);
 		return $response;
 	}
-	$move_to_thread = $DB->query_first('SELECT tid, forumid, title, posttable
+	$move_to_thread = $DB->queryFirst('SELECT tid, forumid, title, posttable
 		FROM ' . TABLE_PREFIX . "thread
 		WHERE tid = $old_id");
 	$move_to_thread['posttable'] = $move_to_thread['posttable'] ? $move_to_thread['posttable'] : 'post';
@@ -927,7 +929,7 @@ function do_movepost()
 	$pid = input::arr('pid');
 
 	$affected_ids = count($pid);
-	$count = $DB->query_first('SELECT COUNT(pid) AS count
+	$count = $DB->queryFirst('SELECT COUNT(pid) AS count
 		FROM ' . TABLE_PREFIX . "{$forums->this_thread['posttable']}
 		WHERE threadid = $t");
 	if ($affected_ids >= $count['count'])
@@ -938,14 +940,14 @@ function do_movepost()
 	}
 	if ($move_to_thread['posttable'] == $forums->this_thread['posttable'])
 	{
-		$DB->update(TABLE_PREFIX . $forums->this_thread['posttable'], array('threadid' => $move_to_thread['tid'], 'newthread' => 0), $DB->sql_in('pid', $pid));
+		$DB->update(TABLE_PREFIX . $forums->this_thread['posttable'], array('threadid' => $move_to_thread['tid'], 'newthread' => 0), $DB->sql->in('pid', $pid));
 	}
 	else
 	{
 		$table_fields = $DB->query('SHOW COLUMNS FROM ' . TABLE_PREFIX . $forums->this_thread['posttable']);
 		$fields = array();
 		$values = array();
-		while ($row = $DB->fetch_array($table_fields))
+		while ($row = $DB->fetch($table_fields))
 		{
 			if ($row['Field'] == 'pid')
 			{
@@ -966,7 +968,7 @@ function do_movepost()
 		FROM " . TABLE_PREFIX . $forums->this_thread['posttable'] . '
 		WHERE pid IN (' . implode(',', $pid) . ')';
 		$DB->query($sql);
-		$DB->delete(TABLE_PREFIX . $forums->this_thread['posttable'], $DB->sql_in('pid', $pid));
+		$DB->delete(TABLE_PREFIX . $forums->this_thread['posttable'], $DB->sql->in('pid', $pid));
 	}
 
 	$DB->update(TABLE_PREFIX . $forums->this_thread['posttable'], array('newthread' => 0), "threadid = $t");
@@ -999,7 +1001,7 @@ function do_splitthread()
 		return $response;
 	}
 
-	$count = $DB->query_first('SELECT count(pid) as cnt
+	$count = $DB->queryFirst('SELECT count(pid) as cnt
 		FROM ' . TABLE_PREFIX . $forums->this_thread['posttable'] . "
 		WHERE threadid=" . intval($forums->this_thread['tid']) );
 
@@ -1028,7 +1030,7 @@ function do_splitthread()
 			return $response;
 		}
 	}
-	$rawthread = $DB->query_first('SELECT count(*) as num, threadid
+	$rawthread = $DB->queryFirst('SELECT count(*) as num, threadid
 		FROM ' . TABLE_PREFIX . "{$forums->this_thread['posttable']}
 		WHERE rawthreadid = $t
 		GROUP BY threadid");
@@ -1060,7 +1062,7 @@ function do_splitthread()
 			$newthread = array_merge($newthread, array('addtorecycle' => TIMENOW));
 		}
 		$DB->insert(TABLE_PREFIX . 'thread', $newthread);
-		$threadid = $DB->insert_id();
+		$threadid = $DB->insertId();
 		$update_post['threadid'] = $threadid;
 	}
 	if ($userecycle == $fid)
@@ -1070,7 +1072,7 @@ function do_splitthread()
 		$update_post['rawthreadid'] = $forums->this_thread['tid'];
 	}
 
-	$DB->update(TABLE_PREFIX . $forums->this_thread['posttable'], $update_post, $DB->sql_in('pid', $pid));
+	$DB->update(TABLE_PREFIX . $forums->this_thread['posttable'], $update_post, $DB->sql->in('pid', $pid));
 
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
 	$mod_func = new modfunctions();
@@ -1124,7 +1126,7 @@ function do_approvepost($type = 'approvepost')
 					ON p.threadid=t.tid
 			WHERE pid IN (" . implode(',', $pids) . ')');
 
-		while ($row = $DB->fetch_array())
+		while ($row = $DB->fetch())
 		{
 			$threads[$row['threadid']][] = $row;
 			$forums_recount[$row['forumid']] = 1;
@@ -1151,7 +1153,7 @@ function do_approvepost($type = 'approvepost')
 	$pid = array_flip($tmp);
 	if (count($pid))
 	{
-		$DB->update(TABLE_PREFIX . $posttable, array('moderate' => $ap), $DB->sql_in('pid', $pid));
+		$DB->update(TABLE_PREFIX . $posttable, array('moderate' => $ap), $DB->sql->in('pid', $pid));
 	}
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
 	$mod_func = new modfunctions();
@@ -1199,7 +1201,7 @@ function do_deletepost()
 	$pm_touser = $posts = array();
 	$threadids = array();
 	$this_tids = array();
-	while ($row = $DB->fetch_array($result))
+	while ($row = $DB->fetch($result))
 	{
 		$posts[] = $row;
 		$threadids[$row['forumid']][] = $row['threadid'];
@@ -1233,7 +1235,7 @@ function do_deletepost()
 			WHERE rawthreadid IN (" . implode(',', array_keys($this_tids)) . ")
 			GROUP BY rawthreadid");
 		$rawthreads = array();
-		while ($row = $DB->fetch_array($query))
+		while ($row = $DB->fetch($query))
 		{
 			$rawthreads[$row['rawthreadid']] = $row;
 		}
@@ -1247,7 +1249,7 @@ function do_deletepost()
 		{
 			if ($single_delete)
 			{
-				$sigle_thread = $DB->query_first('SELECT title
+				$sigle_thread = $DB->queryFirst('SELECT title
 									FROM ' . TABLE_PREFIX . "thread
 									WHERE tid={$threadid}");
 				$title = sprintf( $forums->lang['fromdeleted'], $sigle_thread['title'] );
@@ -1283,7 +1285,7 @@ function do_deletepost()
 								   'posttable'			=> $posttable,
 									);
 				$DB->insert(TABLE_PREFIX . 'thread', $newthread);
-				$recyle_threadid = $DB->insert_id();
+				$recyle_threadid = $DB->insertId();
 				$post_recyle_threadid[$tid] = $recyle_threadid;
 			}
 			else
@@ -1300,7 +1302,7 @@ function do_deletepost()
 				{
 					$update_post['threadid'] = $post_recyle_threadid[$tid];
 					$update_post['rawthreadid'] = $tid;
-					$DB->update(TABLE_PREFIX . $posttable, $update_post, $DB->sql_in('pid', $pids));
+					$DB->update(TABLE_PREFIX . $posttable, $update_post, $DB->sql->in('pid', $pids));
 					$mod_func->rebuild_thread($tid);
 				}
 			}
@@ -1375,7 +1377,7 @@ function do_revertpost()
 
 	$pid = input::arr('pid');
 	$result = $DB->query('SELECT * FROM ' . TABLE_PREFIX . "$curtable WHERE pid IN (" . implode(',', $pid) . ')');
-	while ($row = $DB->fetch_array($result))
+	while ($row = $DB->fetch($result))
 	{
 		if (!$row['rawthreadid'])
 		{
@@ -1385,7 +1387,7 @@ function do_revertpost()
 		}
 		else
 		{
-			$rawthread = $DB->query_first('SELECT tid, forumid FROM ' . TABLE_PREFIX . 'thread WHERE tid =' . $row['rawthreadid']);
+			$rawthread = $DB->queryFirst('SELECT tid, forumid FROM ' . TABLE_PREFIX . 'thread WHERE tid =' . $row['rawthreadid']);
 			if (!$rawthread['tid'])
 			{
 				$forums->func->load_lang('error');
@@ -1446,7 +1448,7 @@ function send_mailto_friend($tid, $input = array())
 		show_processinfo($forums->lang['erroraddress']);
 		return $response;
 	}
-	if (!$thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . $tid))
+	if (!$thread = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . $tid))
 	{
 		$forums->func->load_lang('error');
 		show_processinfo($forums->lang['erroraddress']);

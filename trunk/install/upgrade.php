@@ -76,10 +76,10 @@ $DB->technicalemail = $config['technicalemail'];
 $DB->dbcharset = $config['dbcharset'];
 $DB->connect($config['servername'], $config['dbusername'], $config['dbpassword'], $config['dbname']);
 
-$r_registry = $DB->query_first("SELECT defaultvalue FROM " . TABLE_PREFIX . "setting WHERE varname='version'");
+$r_registry = $DB->queryFirst("SELECT defaultvalue FROM " . TABLE_PREFIX . "setting WHERE varname='version'");
 $version = $r_registry['defaultvalue'];
 
-$user = $DB->query_first("SELECT id,usergroupid,membergroupids,password, salt FROM " . TABLE_PREFIX . "user WHERE name='" . addslashes($l_username) . "'");
+$user = $DB->queryFirst("SELECT id,usergroupid,membergroupids,password, salt FROM " . TABLE_PREFIX . "user WHERE name='" . addslashes($l_username) . "'");
 
 if ($user['id'])
 {
@@ -119,21 +119,21 @@ switch ($action)
 		require_once(ROOT_PATH . 'includes/adminfunctions.php');
 		$forums->admin = new adminfunctions();
 
-		$DB->query_unbuffered("
+		$DB->queryUnbuffered("
 				REPLACE INTO " . TABLE_PREFIX . "style
 				(styleid, title, title_en, imagefolder, userselect, usedefault, parentid, parentlist, css, csscache, version)
 				VALUES
 				('1', 'Global Style', 'global', 'style_1', 0, 0, 0, 1, '', '', '" . $version . "')
 			");
-		$DB->query_unbuffered("
+		$DB->queryUnbuffered("
 				REPLACE INTO " . TABLE_PREFIX . "style
 				(title, title_en, imagefolder, userselect, usedefault, parentid, parentlist, css, csscache, version)
 				VALUES
 				('" . lng('defaultstyle') . "', 'default', 'style_1', 1, 1, 1, 1, '', '', '" . $version . "')
 			");
-		$styleid = $DB->insert_id();
+		$styleid = $DB->insertId();
 		$parentlist = $styleid . ',1';
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "style SET parentlist='" . $parentlist . "' WHERE styleid = $styleid");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "style SET parentlist='" . $parentlist . "' WHERE styleid = $styleid");
 
 		require_once(ROOT_PATH . 'includes/adminfunctions_template.php');
 		$recachestyle = new adminfunctions_template();

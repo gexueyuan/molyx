@@ -60,9 +60,9 @@ class statistics
 		$forums->admin->print_table_start($forums->lang['threadviews']
 			 . " ( " . $forums->lang['from'] . " {$human_from_date['year']}-{$human_from_date['mon']}-{$human_from_date['mday']} " . $forums->lang['to'] . " {$human_to_date['year']}-{$human_to_date['mon']}-{$human_to_date['mday']} )"
 			);
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				if ($row['result_count'] > $max_result)
 				{
@@ -182,9 +182,9 @@ class statistics
 		$forums->admin->print_table_start($table
 			 . " ( " . $forums->lang['from'] . " {$human_from_date['year']}-{$human_from_date['mon']}-{$human_from_date['mday']} " . $forums->lang['to'] . " {$human_to_date['year']}-{$human_to_date['mon']}-{$human_to_date['mday']} )"
 			);
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				if ($row['result_count'] > $max_result)
 				{

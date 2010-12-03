@@ -113,7 +113,7 @@ class functions_showcode
 		$sql = 'SELECT *
 			FROM ' . TABLE_PREFIX . 'antispam
 			WHERE regimagehash = ' . $DB->validate($rc);
-		if (!$row = $DB->query_first($sql))
+		if (!$row = $DB->queryFirst($sql))
 		{
 			return false;
 		}

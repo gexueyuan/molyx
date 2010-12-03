@@ -153,7 +153,7 @@ class threads
 		{
 			$forums->admin->print_cp_error($forums->lang['requirepruneoptions']);
 		}
-		if (!$user = $DB->query_first("SELECT id,name FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
+		if (!$user = $DB->queryFirst("SELECT id,name FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
 		{
 			$forums->admin->print_cp_error($forums->lang['cannotfindstarter']);
 		}
@@ -165,7 +165,7 @@ class threads
 			$forums->admin->print_cp_header($pagetitle, $detail);
 			if (input::get('forum_id', '') != -1)
 			{
-				$forum = $DB->query_first("SELECT name FROM " . TABLE_PREFIX . "forum WHERE id=" . input::get('forum_id', '') . "");
+				$forum = $DB->queryFirst("SELECT name FROM " . TABLE_PREFIX . "forum WHERE id=" . input::get('forum_id', '') . "");
 				$forums->lang['deleteuserthreads'] = sprintf($forums->lang['deleteuserthreads'], $user['user'], $forum['name']);
 				$forumtitle = $forums->lang['deleteuserthreads'];
 			}
@@ -207,7 +207,7 @@ class threads
 			}
 			$threadids = array();
 			$threads = $DB->query("SELECT tid,title FROM " . TABLE_PREFIX . "thread t LEFT JOIN " . TABLE_PREFIX . "forum f ON (t.forumid=f.id) WHERE $forumcheck postusername = '" . $user['name'] . "'");
-			while ($thread = $DB->fetch_array($threads))
+			while ($thread = $DB->fetch($threads))
 			{
 				$threadids[] = $thread['tid'];
 			}
@@ -233,7 +233,7 @@ class threads
 		{
 			$forums->admin->print_cp_error($forums->lang['requirepruneoptions']);
 		}
-		if (!$user = $DB->query_first("SELECT id,name FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
+		if (!$user = $DB->queryFirst("SELECT id,name FROM " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'"))
 		{
 			$forums->admin->print_cp_error($forums->lang['cannotfindstarter']);
 		}
@@ -264,7 +264,7 @@ class threads
 			}
 			$threads = $DB->query("SELECT t.tid,t.title FROM " . TABLE_PREFIX . "thread t LEFT JOIN " . TABLE_PREFIX . "forum f ON (t.forumid=f.id) WHERE $forumcheck postuserid = '" . $user['id'] . "' ORDER BY t.lastpost DESC
 			");
-			while ($thread = $DB->fetch_array($threads))
+			while ($thread = $DB->fetch($threads))
 			{
 				$threadids[] = $thread['tid'];
 				$forums->admin->print_cells_row(array("<a href='../showthread.php?{$forums->sessionurl}t=$thread[tid]' target='_blank'>$thread[title]</a>", $forums->admin->print_checkbox_row('deletethread[' . $thread['tid'] . ']', 1, 1)));
@@ -273,7 +273,7 @@ class threads
 			$forums->admin->print_table_start($forums->lang['deletepost']);
 
 			$posts = $DB->query("SELECT p.pid,t.tid,t.title FROM " . TABLE_PREFIX . "post p, " . TABLE_PREFIX . "thread t LEFT JOIN " . TABLE_PREFIX . "forum f ON (t.forumid=f.id) WHERE t.tid = p.threadid AND t.firstpostid <> p.pid AND $forumcheck p.userid='" . $user['id'] . "' ORDER BY p.threadid DESC, p.dateline DESC");
-			while ($post = $DB->fetch_array($posts))
+			while ($post = $DB->fetch($posts))
 			{
 				$forums->admin->print_cells_row(array("<a href='../redirect.php?t={$post[tid]}&amp;goto=findpost&amp;p=$post[pid]' target='_blank'>$post[title]</a>", $forums->admin->print_checkbox_row('deletepost[' . $post['pid'] . ']', 1, 1)));
 			}
@@ -366,7 +366,7 @@ class threads
 			LEFT JOIN " . TABLE_PREFIX . "forum f ON (f.id = t.forumid)
 			WHERE $this->query
 		";
-		$cnt = $DB->query_first($fullquery);
+		$cnt = $DB->queryFirst($fullquery);
 		if (!$cnt['count'])
 		{
 			$forums->admin->print_cp_error($forums->lang['nomatchresult']);
@@ -407,7 +407,7 @@ class threads
 				$forums->admin->print_cp_error($forums->lang['nopermissions']);
 			}
 			$threadids = array();
-			while ($thread = $DB->fetch_array($threads))
+			while ($thread = $DB->fetch($threads))
 			{
 				$threadids[] = $thread['tid'];
 			}
@@ -427,11 +427,11 @@ class threads
 			}
 			$move_id = intval($this->thread['move_id']);
 			$threadslist = '0';
-			while ($thread = $DB->fetch_array($threads))
+			while ($thread = $DB->fetch($threads))
 			{
 				$threadslist .= ",$thread[tid]";
 			}
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET forumid = $move_id WHERE tid IN ($threadslist)");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET forumid = $move_id WHERE tid IN ($threadslist)");
 			$this->recount($this->thread['forum_id']);
 			$this->recount($move_id);
 			$forums->lang['batchmoveforumthreads'] = sprintf($forums->lang['batchmoveforumthreads'], $thread['name']);
@@ -470,7 +470,7 @@ class threads
 			$forums->admin->columns[] = array($forums->lang['lastpost'], "22%");
 			$forums->admin->columns[] = array($forums->lang['delete'], "5%");
 			$forums->admin->print_table_start($pagetitle);
-			while ($thread = $DB->fetch_array($threads))
+			while ($thread = $DB->fetch($threads))
 			{
 				$forums->admin->print_cells_row(array("<a href=\"../showthread.php?{$forums->sessionurl}t=$thread[tid]\" target=\"_blank\">$thread[title]</a>", $thread['postusername'], $thread['post'], $forums->func->get_date($thread['lastpost'], 2), $forums->admin->print_checkbox_row('thread[' . $thread['tid'] . ']', 1, 1)));
 			}
@@ -496,7 +496,7 @@ class threads
 			$forums->admin->columns[] = array($forums->lang['lastpost'], "22%");
 			$forums->admin->columns[] = array($forums->lang['move'], "5%");
 			$forums->admin->print_table_start($pagetitle);
-			while ($thread = $DB->fetch_array($threads))
+			while ($thread = $DB->fetch($threads))
 			{
 				$forums->admin->print_cells_row(array("<a href=\"../showthread.php?{$forums->sessionurl}t=$thread[tid]\" target=\"_blank\">$thread[title]</a>", $thread['postusername'], $thread['post'], $forums->func->get_date($thread['lastpost'], 2), $forums->admin->print_checkbox_row('thread[' . $thread['tid'] . ']', 1, 1)));
 			}
@@ -636,7 +636,7 @@ class threads
 		}
 		if ($this->thread['threadstarter'])
 		{
-			if (!$user = $DB->query_first("SELECT id FROM " . TABLE_PREFIX . "user WHERE name = '" . addslashes($this->thread['threadstarter']) . "'"))
+			if (!$user = $DB->queryFirst("SELECT id FROM " . TABLE_PREFIX . "user WHERE name = '" . addslashes($this->thread['threadstarter']) . "'"))
 			{
 				$forums->admin->print_cp_error($forums->lang['cannotfindstarter']);
 			}

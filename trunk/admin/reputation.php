@@ -41,7 +41,7 @@ class reputation
 		$forums->func->check_cache('splittable');
 		$deftable = $forums->cache['splittable']['default'];
 		$posttable = $deftable['name']?$deftable['name']:'post';
-		$row = $DB->query_first("SELECT COUNT(pid) as count FROM " . TABLE_PREFIX . "$posttable WHERE reppost!=''" . $query . "");
+		$row = $DB->queryFirst("SELECT COUNT(pid) as count FROM " . TABLE_PREFIX . "$posttable WHERE reppost!=''" . $query . "");
 		$row_count = $row['count'];
 		$links = $forums->func->build_pagelinks(array('totalpages' => $row_count,
 				'perpage' => 20,
@@ -63,9 +63,9 @@ class reputation
 			LEFT JOIN " . TABLE_PREFIX . "user u ON (p.userid=u.id)
 			LEFT JOIN " . TABLE_PREFIX . "thread t ON (p.threadid=t.tid) 
 				WHERE reppost!=''" . $query . " ORDER BY p.pid DESC LIMIT " . $pp . ", 20");
-		if ($DB->num_rows($reputations))
+		if ($DB->numRows($reputations))
 		{
-			while ($reputation = $DB->fetch_array($reputations))
+			while ($reputation = $DB->fetch($reputations))
 			{
 				$rr = unserialize($reputation['reppost']);
 				$repnumber = intval($rr['number']);
@@ -120,15 +120,15 @@ class reputation
 		$deftable = $forums->cache['splittable']['default'];
 		$posttable = $deftable['name']?$deftable['name']:'post';
 		
-		$tarinfo = $DB->query_first("SELECT p.reppost,p.threadid,u.id, u.name
+		$tarinfo = $DB->queryFirst("SELECT p.reppost,p.threadid,u.id, u.name
 					     FROM " . TABLE_PREFIX . "$posttable p
 					     LEFT JOIN " . TABLE_PREFIX . "user u ON (p.userid = u.id) 
 						WHERE pid = " . input::get('id', ''));
 		$rr = unserialize($tarinfo['reppost']);
 		$rep = '-' . intval($rr['number']);
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET reputation = reputation+" . $rep . " WHERE id = " . $tarinfo['id'] . " LIMIT 1");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "$posttable SET reppost = '" . $reputation . "' WHERE pid = " . input::get('id', '') . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET allrep = allrep+" . $rep . " WHERE tid = " . $tarinfo['threadid'] . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET reputation = reputation+" . $rep . " WHERE id = " . $tarinfo['id'] . " LIMIT 1");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "$posttable SET reppost = '" . $reputation . "' WHERE pid = " . input::get('id', '') . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET allrep = allrep+" . $rep . " WHERE tid = " . $tarinfo['threadid'] . "");
 		$forums->lang['postreputationreset'] = sprintf($forums->lang['postreputationreset'], $tarinfo['name'], input::get('id', ''));
 		$forums->admin->print_popup_header();
 		$forums->admin->print_cells_single_row($forums->lang['postreputationreset'], 'center');

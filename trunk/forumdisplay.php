@@ -381,7 +381,7 @@ class forum
 		if ($threadfilter == 'replied')
 		{
 			$prune_filter = $threadprune ? "and (sticky != 0 OR lastpost > $threadprune)" : '';
-			$threadscount = $DB->query_first("SELECT COUNT(DISTINCT(p.threadid)) AS threads
+			$threadscount = $DB->queryFirst("SELECT COUNT(DISTINCT(p.threadid)) AS threads
 				FROM " . TABLE_PREFIX . "thread t
 					LEFT JOIN " . TABLE_PREFIX . "post p
 						ON (p.threadid = t.tid
@@ -391,7 +391,7 @@ class forum
 		}
 		else if ($addquery || $threadprune)
 		{
-			$threadscount = $DB->query_first('SELECT COUNT(*) AS threads
+			$threadscount = $DB->queryFirst('SELECT COUNT(*) AS threads
 				FROM ' . TABLE_PREFIX . "thread t
 			WHERE forumid = '{$this->forum['id']}' {$visible}
 				AND (sticky != 0
@@ -461,7 +461,7 @@ class forum
 					AND p.newthread=0
 				ORDER BY sticky DESC, t.$sortby $r_sort_by";
 				$result = $DB->query($sql);
-				while ($row = $DB->fetch_array($result))
+				while ($row = $DB->fetch($result))
 				{
 					$threads[] = $row;
 				}
@@ -486,7 +486,7 @@ class forum
 				WHERE sticky > 1 AND stickforumid IN (" . $this->forum['parentlist'] . ",0) $addquery
 				ORDER BY sticky DESC, t.$sortby $r_sort_by";
 				$result = $DB->query($sql);
-				while ($row = $DB->fetch_array($result))
+				while ($row = $DB->fetch($result))
 				{
 					$threads[] = $row;
 				}
@@ -500,7 +500,7 @@ class forum
 		}
 
 		$result = $DB->query($sql);
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			$threads[] = $row;
 		}
@@ -570,7 +570,7 @@ class forum
 					AND s.inforum = {$this->forum['id']}
 					AND s.badlocation != 1
 				ORDER BY s.lastactivity DESC");
-			while ($row = $DB->fetch_array($result))
+			while ($row = $DB->fetch($result))
 			{
 				$this->count_online($row, $online);
 			}
@@ -851,7 +851,7 @@ class forum
 		$content = @file_get_contents(ROOT_PATH . 'cache/cache/rule_' . $this->forum['id'].'.txt');
 		if (!$content)
 		{
-			$forumrule = $DB->query_first('SELECT forumrule
+			$forumrule = $DB->queryFirst('SELECT forumrule
 				FROM ' . TABLE_PREFIX . 'forum_attr
 				WHERE forumid = ' . $this->forum['id']
 			);

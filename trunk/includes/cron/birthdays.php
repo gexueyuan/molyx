@@ -20,9 +20,9 @@ class cron_birthdays
 
 		$send_user = false;
 		$show = $DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE varname IN ( 'birthday_send', 'birthday_send_type' )");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($s = $DB->fetch_array())
+			while ($s = $DB->fetch())
 			{
 				$value = $s['value'] ? $s['value'] : $s['defaultvalue'];
 				if ($s['varname'] == 'birthday_send' AND $value)
@@ -40,7 +40,7 @@ class cron_birthdays
 		$DB->query("SELECT ue.*, u.id, u.name, u.email, u.emailcharset, u.usergroupid, u.birthday, u.avatar FROM " . TABLE_PREFIX . "user u LEFT JOIN " . TABLE_PREFIX . "userexpand ue USING (id) WHERE u.birthday LIKE '%-$today'");
 		require_once(ROOT_PATH . "includes/functions_email.php");
 		$this->email = new functions_email();
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$birthdays[ $r['id'] ] = $r;
 			$birthday_ids[] = $r['id'];
@@ -53,9 +53,9 @@ class cron_birthdays
 			{
 				$lefttime = TIMENOW - 31536000;
 				$DB->query("SELECT * FROM " . TABLE_PREFIX . "birthday WHERE id IN (" . implode(", ", $birthday_ids) . ")");
-				if ($DB->num_rows())
+				if ($DB->numRows())
 				{
-					while ($sended = $DB->fetch_array())
+					while ($sended = $DB->fetch())
 					{
 						if ($sended['dateline'] > $lefttime)
 						{
@@ -76,11 +76,11 @@ class cron_birthdays
 				$this->db_update = true;
 				if (is_array($this->update_user))
 				{
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET " . implode(", ", $this->update_user) . " WHERE id = " . $uid . "");
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET " . implode(", ", $this->update_user) . " WHERE id = " . $uid . "");
 				}
 				if (is_array($this->update_expand))
 				{
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET " . implode(", ", $this->update_expand) . " WHERE id = " . $uid . "");
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET " . implode(", ", $this->update_expand) . " WHERE id = " . $uid . "");
 				}
 				if ($send['birthday_send_type'] == 1 OR $send['birthday_send_type'] == 2)
 				{
@@ -109,11 +109,11 @@ class cron_birthdays
 		}
 		if (count($update_id) > 0)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "birthday SET dateline = '" . TIMENOW . "' WHERE id IN (" . implode(",", $update_id) . ")");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "birthday SET dateline = '" . TIMENOW . "' WHERE id IN (" . implode(",", $update_id) . ")");
 		}
 		if (count($insert_birthday) > 0)
 		{
-			$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "birthday (id, dateline) VALUES " . implode(",", $insert_birthday) . "");
+			$DB->queryUnbuffered("INSERT INTO " . TABLE_PREFIX . "birthday (id, dateline) VALUES " . implode(",", $insert_birthday) . "");
 		}
 		$forums->func->update_cache(array('name' => 'birthdays', 'value' => $birthdays, 'array' => 1));
 		$forums->lang['updatebirthdays'] = sprintf($forums->lang['updatebirthdays'], intval(count($birthdays)));

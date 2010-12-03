@@ -49,7 +49,7 @@ class modlog
 				$forums->main_msg = $forums->lang['inputkeywords'];
 				return $this->list_current();
 			}
-			$row = $DB->query_first("SELECT COUNT(moderatorlogid) as count FROM " . TABLE_PREFIX . "moderatorlog WHERE userid='" . input::int('u') . "'");
+			$row = $DB->queryFirst("SELECT COUNT(moderatorlogid) as count FROM " . TABLE_PREFIX . "moderatorlog WHERE userid='" . input::int('u') . "'");
 			$row_count = $row['count'];
 			$query = "u=" . input::get('u', '') . "&amp;do=view&amp;pp={$start}";
 			$DB->query("SELECT m.*, f.id as forumid, f.name FROM " . TABLE_PREFIX . "moderatorlog m
@@ -67,7 +67,7 @@ class modlog
 			{
 				$where = input::get('search_type', '') . " LIKE '%" . input::get('search_string', '') . "%'";
 			}
-			$row = $DB->query_first("SELECT COUNT(moderatorlogid) as count FROM " . TABLE_PREFIX . "moderatorlog WHERE " . $where . "");
+			$row = $DB->queryFirst("SELECT COUNT(moderatorlogid) as count FROM " . TABLE_PREFIX . "moderatorlog WHERE " . $where . "");
 			$row_count = $row['count'];
 			$query = "do=view&amp;search_type=" . input::get('search_type', '') . "&amp;pp={$start}&amp;search_string=" . urlencode(input::str('search_string'));
 			$DB->query("SELECT m.*, f.id as forumid, f.name FROM " . TABLE_PREFIX . "moderatorlog m
@@ -89,9 +89,9 @@ class modlog
 		$forums->admin->columns[] = array($forums->lang['ipaddress'], "10%");
 		$forums->admin->print_table_start($forums->lang['savedmodlog']);
 		$forums->admin->print_cells_single_row($links, 'center', 'catrow');
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$row['dateline'] = $forums->func->get_date($row['dateline'], 2);
 				if ($row['threadid'])
@@ -125,7 +125,7 @@ class modlog
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "moderatorlog WHERE userid=" . input::int('u') . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "moderatorlog WHERE userid=" . input::int('u') . "");
 		$forums->admin->save_log($forums->lang['modlogdeleted']);
 		$forums->func->standard_redirect("modlog.php?" . $forums->sessionurl);
 		exit();
@@ -148,9 +148,9 @@ class modlog
 		$forums->admin->columns[] = array($forums->lang['actiontime'], "15%");
 		$forums->admin->columns[] = array($forums->lang['ipaddress'], "10%");
 		$forums->admin->print_table_start($forums->lang['recentlyfivelogs']);
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$row['dateline'] = $forums->func->get_date($row['dateline'], 2);
 				$threadid = "";
@@ -180,9 +180,9 @@ class modlog
 		$forums->admin->columns[] = array($forums->lang['deleteuseralllogs'], "30%");
 		$forums->admin->print_table_start($forums->lang['savedmodlog']);
 		$DB->query("SELECT m.*, count(m.moderatorlogid) as acount from " . TABLE_PREFIX . "moderatorlog m GROUP BY m.userid ORDER BY acount DESC");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$forums->admin->print_cells_row(array("<strong>{$r['username']}</strong>",
 						"<center>{$r['acount']}</center>",

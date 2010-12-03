@@ -61,7 +61,7 @@ class filter
 	function ban_delete()
 	{
 		global $forums, $DB;
-		
+
 		$ids = input::arr('id');
 
 		foreach ($ids AS $k => $v)
@@ -71,10 +71,10 @@ class filter
 				unset($ids[$k]);
 			}
 		}
-		
+
 		if (count($ids))
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "banfilter WHERE id IN(" . implode(",", $ids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "banfilter WHERE id IN(" . implode(",", $ids) . ")");
 		}
 		$forums->func->recache('banfilter');
 		$forums->main_msg = $forums->lang['banfilterdeleted'];
@@ -89,7 +89,7 @@ class filter
 			$forums->main_msg = $forums->lang['requirecontent'];
 			$this->ban_start();
 		}
-		if ($result = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "banfilter WHERE type='" . input::get('type', '') . "' AND content='" . input::get('content', '') . "'"))
+		if ($result = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "banfilter WHERE type='" . input::get('type', '') . "' AND content='" . input::get('content', '') . "'"))
 		{
 			$forums->main_msg = $forums->lang['filterexist'];
 			$this->ban_start();
@@ -109,7 +109,7 @@ class filter
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$ban = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "banfilter");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$ban[ $r['type'] ][ $r['id'] ] = $r;
 		}
@@ -193,9 +193,9 @@ class filter
 		$forums->admin->columns[] = array($forums->lang['delete'], "10%");
 		$forums->admin->print_table_start($forums->lang['badwordlist']);
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "badword ORDER BY badbefore");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$words[] = $r;
 			}
@@ -258,7 +258,7 @@ class filter
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (! $r = $DB->query_first("SELECT badbefore,badafter,type FROM " . TABLE_PREFIX . "badword WHERE id=" . input::int('id')))
+		if (! $r = $DB->queryFirst("SELECT badbefore,badafter,type FROM " . TABLE_PREFIX . "badword WHERE id=" . input::int('id')))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
@@ -284,7 +284,7 @@ class filter
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "badword WHERE id=" . input::int('id'));
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "badword WHERE id=" . input::int('id'));
 		$forums->func->recache('badword');
 		$forums->main_msg = $forums->lang['badworddeleted'];
 		$this->badword_start();
@@ -298,7 +298,7 @@ class filter
 			$forums->admin->print_cp_error($forums->lang['requirebadword']);
 		}
 		input::set('type', input::get('type', '') ? 1 : 0);
-		if ($badword = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "badword WHERE badbefore='" . input::get('badbefore', '') . "' AND type=" . input::get('type', '') . ""))
+		if ($badword = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "badword WHERE badbefore='" . input::get('badbefore', '') . "' AND type=" . input::get('type', '') . ""))
 		{
 			$forums->main_msg = $forums->lang['badwordexist'];
 			$this->badword_start();

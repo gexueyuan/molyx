@@ -34,11 +34,11 @@ class announce
 		$i = 0;
 
 		$DB->query("SELECT a.pagetext, a.forumid, a.userid, a.allowhtml, a.views, a.startdate, a.enddate, a.id AS announceid, a.title AS announcetitle, u.name FROM " . TABLE_PREFIX . "announcement a LEFT JOIN " . TABLE_PREFIX . "user u on (a.userid=u.id)  WHERE active = 1 AND (startdate=0 OR startdate < " . TIMENOW . ") AND (enddate=0 OR enddate > " . TIMENOW . ") ORDER BY enddate DESC LIMIT " . $this->pp . ", 5");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$forums->lang['from'] = convert($forums->lang['from']);
 			$forums->lang['to'] = convert($forums->lang['to']);
-			while ($announce = $DB->fetch_array())
+			while ($announce = $DB->fetch())
 			{
 				if ($this->endoutput)
 				{
@@ -70,7 +70,9 @@ class announce
 			{
 				$nextpage = "\n<p><a href='{$urllink}'>" . convert($forums->lang['nextlink']) . "</a></p>";
 			}
-			$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "announcement SET views=views+1 WHERE id  IN (0$ids)");
+			$DB->update(TABLE_PREFIX . 'announcement', array(
+				'views' => array(1, '+'),
+			), "id  IN (0$ids)", SHUTDOWN_QUERY);
 		}
 		else
 		{

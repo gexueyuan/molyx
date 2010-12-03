@@ -35,7 +35,7 @@ class profile
 		{
 			$forums->func->standard_error("cannotfindedituser");
 		}
-		$user = $DB->query_first("SELECT up.*, u.*, s.inforum, s.inthread, e.loanamount
+		$user = $DB->queryFirst("SELECT up.*, u.*, s.inforum, s.inthread, e.loanamount
 			FROM " . TABLE_PREFIX . "user u
 				LEFT JOIN " . TABLE_PREFIX . "session s
 					ON (s.userid = u.id)
@@ -58,7 +58,7 @@ class profile
 			}
 		}
 		$percent = 0;
-		$allposts = $DB->query_first('SELECT SUM(post) as allposts
+		$allposts = $DB->queryFirst('SELECT SUM(post) as allposts
 			FROM ' . TABLE_PREFIX . "forum
 			WHERE parentid = '-1'");
 		$allposts = $allposts['allposts'];
@@ -89,7 +89,7 @@ class profile
 			$where = "";
 			if ($user['inthread'])
 			{
-				$thread = $DB->query_first("SELECT tid, title, forumid FROM " . TABLE_PREFIX . "thread WHERE tid='" . $user['inthread'] . "'");
+				$thread = $DB->queryFirst("SELECT tid, title, forumid FROM " . TABLE_PREFIX . "thread WHERE tid='" . $user['inthread'] . "'");
 				if ($thread['tid'])
 				{
 					if ($forums->func->fetch_permissions($forums->forum->foruminfo[$thread['forumid']]['canread'], 'canread') == true)
@@ -154,7 +154,7 @@ class profile
 				ORDER BY pu.id DESC
 				LIMIT 20';
 		$DB->query($sql);
-		while ($row = $DB->fetch_array())
+		while ($row = $DB->fetch())
 		{
 			$row['avatar'] = $forums->func->get_avatar($row['id'], $row['avatar'], 1);//获取用户头像
 			$row['userdotime'] = $forums->func->get_date($row['userdotime']);
@@ -193,7 +193,7 @@ class profile
 		$showcondition = ' WHERE ' . implode(',', $showcondition);
 		$sql = 'SELECT count(*) AS count FROM ' . TABLE_PREFIX . 'userdo ud
 				' . $showcondition;
-		$sqlcount = $DB->query_first($sql);
+		$sqlcount = $DB->queryFirst($sql);
 		$perpage = 20;
 		$pagenav = $forums->func->build_pagelinks(array(
 			'totalpages' => $sqlcount['count'],
@@ -209,7 +209,7 @@ class profile
 				ORDER BY time DESC
 				LIMIT ' . $firstpost . ',' . $perpage;
 		$DB->query($sql);
-		while ($row = $DB->fetch_array())
+		while ($row = $DB->fetch())
 		{
 			$row['time'] = $forums->func->get_date($row['time']);
 			if ($row['touserid'])
@@ -237,7 +237,7 @@ class profile
 		global $forums, $DB, $bbuserinfo, $bboptions;
 		$doid = input::get('doid', 0);
 		$sql = 'SELECT userid FROM ' . TABLE_PREFIX . 'userdo WHERE did=' . $doid;
-		$ret = $DB->query_first($sql);
+		$ret = $DB->queryFirst($sql);
 		if (!$bbuserinfo['supermod'] && $ret['userid'] != $bbuserinfo['id'])
 		{
 			$forums->func->standard_error("cannotdeldoing");
@@ -251,7 +251,7 @@ class profile
 				WHERE userid=' . $bbuserinfo['id'] . '
 					AND touserid=0
 				ORDER BY time DESC';
-		$lastdoing = $DB->query_first($sql);
+		$lastdoing = $DB->queryFirst($sql);
 		$DB->update(TABLE_PREFIX . 'user', array('usercurdo' => $lastdoing['dowhat'], 'userdotime' => $lastdoing['time']), 'id = ' . intval($bbuserinfo['id']));
 		$this->showdelclew = true;
 	}

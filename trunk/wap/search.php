@@ -79,7 +79,7 @@ class search
 			{
 				$where = "host=" . $DB->validate(IPADDRESS);
 			}
-			if ($DB->query_first("SELECT searchid FROM " . TABLE_PREFIX . "search WHERE $where AND dateline > '" . $flood_time . "'"))
+			if ($DB->queryFirst("SELECT searchid FROM " . TABLE_PREFIX . "search WHERE $where AND dateline > '" . $flood_time . "'"))
 			{
 				$forums->func->load_lang('error');
 				$forums->lang['wapinfo'] = convert($forums->lang['wapinfo']);
@@ -124,7 +124,7 @@ class search
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		$results = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE visible=1 AND forumid IN($forumlist) AND postuserid=$userid");
+		$results = $DB->queryFirst("SELECT count(*) as count FROM " . TABLE_PREFIX . "thread WHERE visible=1 AND forumid IN($forumlist) AND postuserid=$userid");
 		if (!$results['count'])
 		{
 			$forums->func->load_lang('error');
@@ -187,7 +187,7 @@ class search
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		$results = $DB->query_first("SELECT count(*) as count
+		$results = $DB->queryFirst("SELECT count(*) as count
 													FROM " . TABLE_PREFIX . "thread
 													WHERE visible=1 AND forumid IN(" . $forumlist . ") AND lastpost > '" . $last_time . "'"
 			);
@@ -266,7 +266,7 @@ class search
 		{
 			$name_filter = str_replace('|', "&#124;", $name_filter);
 			$DB->query("SELECT id from " . TABLE_PREFIX . "user WHERE LOWER(name)='" . strtolower($name_filter) . "'");
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$user_string .= "'" . $row['id'] . "',";
 			}
@@ -353,12 +353,12 @@ class search
 		$threads = "";
 		$posts = "";
 		$DB->query($threads_query);
-		$maxthread = $DB->num_rows();
-		while ($row = $DB->fetch_array())
+		$maxthread = $DB->numRows();
+		while ($row = $DB->fetch())
 		{
 			$threads .= $row['tid'] . ",";
 		}
-		$DB->free_result();
+		$DB->freeResult();
 		$threads = preg_replace("/,$/", "", $threads);
 		$posts = preg_replace("/,$/", "", $posts);
 		if ($threads == "" AND $posts == "")
@@ -401,7 +401,7 @@ class search
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		$results = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "search WHERE searchid='" . $searchid . "'");
+		$results = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "search WHERE searchid='" . $searchid . "'");
 		$this->order = $results['sortorder'];
 		if (!$results['query'])
 		{
@@ -450,10 +450,10 @@ class search
 			}
 			$rows = $DB->query("SELECT *, title AS threadtitle FROM " . TABLE_PREFIX . "thread WHERE tid IN(" . $thread . ") ORDER BY sticky DESC, lastpost DESC LIMIT " . $this->page . ", 8");
 		}
-		if ($DB->num_rows($rows))
+		if ($DB->numRows($rows))
 		{
 			$i = 0;
-			while ($row = $DB->fetch_array($rows))
+			while ($row = $DB->fetch($rows))
 			{
 				++$i;
 				$showthread .= "<p>\n<img src='images/dot.gif' alt='-' /><a href='thread.php{$forums->sessionurl}t={$row['tid']}'>" . strip_tags($row['title']) . "</a><br />\n";

@@ -344,7 +344,7 @@ class newpoll
 			'posttable' => $posttable,
 		);
 		$DB->insert(TABLE_PREFIX . 'thread', $this->thread);
-		$this->post['threadid'] = $DB->insert_id();
+		$this->post['threadid'] = $DB->insertId();
 		$this->thread['tid'] = $this->post['threadid'];
 		$this->post['posthash'] = $this->posthash;
 		$this->post['newthread'] = 1;
@@ -353,7 +353,7 @@ class newpoll
 			$this->post['moderate'] = 0;
 		}
 		$DB->insert(TABLE_PREFIX . $posttable, $this->post);
-		$this->post['pid'] = $DB->insert_id();
+		$this->post['pid'] = $DB->insertId();
 
 		$sql_array['firstpostid'] = $this->post['pid'];
 		$sql_array['lastpostid'] = $this->post['pid'];
@@ -407,7 +407,7 @@ class newpoll
 		{
 			$forums->func->standard_error("erroraddress");
 		}
-		$this->thread = $DB->query_first("SELECT f.allowpollup, t.*, p.pollid, p.options, p.votes, p.voters, u.usergroupid
+		$this->thread = $DB->queryFirst("SELECT f.allowpollup, t.*, p.pollid, p.options, p.votes, p.voters, u.usergroupid
 			FROM " . TABLE_PREFIX . "poll p,
 				" . TABLE_PREFIX . "thread t,
 				" . TABLE_PREFIX . "user u,
@@ -451,11 +451,11 @@ class newpoll
 		$this->thread['voters'] = $this->thread['voters'] . $bbuserinfo['id'] . ',';
 		$pollcount = count($poll_vote);
 
-		$DB->shutdown_update(TABLE_PREFIX . 'poll', array(
+		$DB->update(TABLE_PREFIX . 'poll', array(
 			'votes' => array($pollcount,'+'),
 			'options' => $this->thread['options'],
 			'voters' => $this->thread['voters']
-		), "pollid='{$this->thread['pollid']}'");
+		), "pollid='{$this->thread['pollid']}'", SHUTDOWN_QUERY);
 
 		$sql_array = array();
 		if ($this->thread['allowpollup'])
@@ -463,7 +463,7 @@ class newpoll
 			$sql_array['lastpost'] = TIMENOW;
 		}
 		$sql_array['lastvote'] = TIMENOW;
-		$DB->shutdown_update(TABLE_PREFIX . 'thread', $sql_array, "tid={$this->thread['tid']}");
+		$DB->update(TABLE_PREFIX . 'thread', $sql_array, "tid={$this->thread['tid']}", SHUTDOWN_QUERY);
 		$this->credit->update_credit('replypoll', $bbuserinfo['id'], $bbuserinfo['usergroupid'], $this->thread['forumid']);
 		$this->credit->update_credit('threadpoll', $this->thread['postuserid'], $this->thread['usergroupid'], $this->thread['forumid']);
 		$forums->func->standard_redirect("showthread.php{$forums->sessionurl}f={$this->thread['forumid']}&amp;t={$this->thread['tid']}&amp;pp=" . input::int('pp'));

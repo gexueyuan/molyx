@@ -79,7 +79,7 @@ function check_user_account($username)
 		return $response;
 	}
 	$DB->query("SELECT content FROM " . TABLE_PREFIX . "banfilter WHERE type = 'name'");
-	while ($r = $DB->fetch_array())
+	while ($r = $DB->fetch())
 	{
 		$banfilter[] = $r['content'];
 		if ($r['content'])
@@ -91,7 +91,7 @@ function check_user_account($username)
 			}
 		}
 	}
-	$checkuser = $DB->query_first("SELECT id, name, email, usergroupid, password, host, salt
+	$checkuser = $DB->queryFirst("SELECT id, name, email, usergroupid, password, host, salt
 			FROM " . TABLE_PREFIX . "user
 			WHERE LOWER(name)='" . strtolower($username) . "' OR name='" . $username . "'");
 	if (($checkuser['id']) OR ($username == $forums->lang['guest']))
@@ -141,7 +141,7 @@ function check_user_email($email)
 		return $response;
 	}
 	$DB->query("SELECT content FROM " . TABLE_PREFIX . "banfilter WHERE type = 'email'");
-	while ($r = $DB->fetch_array())
+	while ($r = $DB->fetch())
 	{
 		if ($r['content'])
 		{
@@ -154,7 +154,7 @@ function check_user_email($email)
 		}
 	}
 	$DB->query("SELECT email FROM " . TABLE_PREFIX . "user WHERE email = '" . $email . "'");
-	if ($DB->num_rows() != 0)
+	if ($DB->numRows() != 0)
 	{
 		display_check_result('mail', $forums->lang['ajaxmailexist']);
 		return $response;
@@ -274,7 +274,7 @@ function report_post($input, $pid)
 		show_processinfo($forums->lang['cannotfindreport']);
 		return $response;
 	}
-	$thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . $tid);
+	$thread = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . $tid);
 	$this_forum = $forums->forum->single_forum($thread['forumid']);
 	$this_forumid = $this_forum['id'];
 	if (!$pid || !$this_forumid)
@@ -336,7 +336,7 @@ function do_report_post($input)
 		show_processinfo($forums->lang['plzinputallform']);
 		return $response;
 	}
-	$thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . intval($input['t']));
+	$thread = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid=" . intval($input['t']));
 	$this_forum = $forums->forum->single_forum($thread['forumid']);
 	$this_forumid = $this_forum['id'];
 	if (!check_forum_permissions($this_forum))
@@ -346,9 +346,9 @@ function do_report_post($input)
 	}
 	$mods = array();
 	$nmods = $DB->query("SELECT u.id, u.name, u.email, u.emailcharset, m.moderatorid FROM " . TABLE_PREFIX . "moderator m, " . TABLE_PREFIX . "user u WHERE m.forumid=" . $this_forumid . " and m.userid=u.id");
-	if ($DB->num_rows($nmods))
+	if ($DB->numRows($nmods))
 	{
-		while ($r = $DB->fetch_array($nmods))
+		while ($r = $DB->fetch($nmods))
 		{
 			$mods[] = $r;
 		}
@@ -356,9 +356,9 @@ function do_report_post($input)
 	else
 	{
 		$smods = $DB->query("SELECT u.id, u.name, u.email, u.emailcharset FROM " . TABLE_PREFIX . "user u, " . TABLE_PREFIX . "usergroup g WHERE g.supermod=1 AND u.usergroupid=g.usergroupid");
-		if ($DB->num_rows($smods))
+		if ($DB->numRows($smods))
 		{
-			while ($r = $DB->fetch_array($smods))
+			while ($r = $DB->fetch($smods))
 			{
 				$mods[] = $r;
 			}
@@ -366,7 +366,7 @@ function do_report_post($input)
 		else
 		{
 			$admin = $DB->query("SELECT u.id, u.name, u.email, u.emailcharset FROM " . TABLE_PREFIX . "user u, " . TABLE_PREFIX . "usergroup g WHERE g.cancontrolpanel=1 AND u.usergroupid=g.usergroupid");
-			while ($r = $DB->fetch_array($admin))
+			while ($r = $DB->fetch($admin))
 			{
 				$mods[] = $r;
 			}
@@ -430,7 +430,7 @@ function check_eval_prms($input)
 		show_processinfo($forums->lang['erroraddress']);
 		return false;
 	}
-	$forums->this_thread = $DB->query_first("SELECT tid, title, forumid, posttable, firstpostid, allrep FROM " . TABLE_PREFIX . "thread WHERE tid= $tid");
+	$forums->this_thread = $DB->queryFirst("SELECT tid, title, forumid, posttable, firstpostid, allrep FROM " . TABLE_PREFIX . "thread WHERE tid= $tid");
 	if (!$forums->this_thread)
 	{
 		$forums->func->load_lang('error');
@@ -438,7 +438,7 @@ function check_eval_prms($input)
 		return false;
 	}
 	$forums->this_thread['posttable'] = $forums->this_thread['posttable'] ? $forums->this_thread['posttable'] : 'post';
-	$forums->this_post = $DB->query_first("SELECT p.userid, p.username, u.usergroupid FROM " . TABLE_PREFIX . $forums->this_thread['posttable'] . " p
+	$forums->this_post = $DB->queryFirst("SELECT p.userid, p.username, u.usergroupid FROM " . TABLE_PREFIX . $forums->this_thread['posttable'] . " p
 		LEFT JOIN  " . TABLE_PREFIX . "user u ON u.id = p.userid
 		WHERE p.pid= $pid");
 	if (!$forums->this_post)
@@ -494,7 +494,7 @@ function evaluation_post($input, $pid)
 		//恢复会员默认评分值
 		if (intval($v['initevalvalue']) > 0 && intval($v['initevaltime']) > 0 && $bbuserinfo['eval' . $v['tag']] != $v['initevalvalue'])
 		{
-			$last_eval = $DB->query_first('SELECT dateline
+			$last_eval = $DB->queryFirst('SELECT dateline
 												FROM ' . TABLE_PREFIX . 'evaluationlog
 											WHERE actionuserid=' . intval($bbuserinfo['id']) . '
 												 AND creditid=' . intval($creditid));
@@ -573,7 +573,7 @@ function do_evaluation_post($input)
 	$amount = intval($input['amount']);
 	$evalmessage = trim($input['evalmessage']);
 	$allrep = unserialize($forums->this_thread['allrep']);
-	$thiscredit = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "credit WHERE tag='$actcredit'");
+	$thiscredit = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "credit WHERE tag='$actcredit'");
 	//判断用户用该积分进行的评价活动是否超出评价默认值
 	if ($bbuserinfo['eval'.$actcredit]<=0)
 	{
@@ -604,7 +604,7 @@ function do_evaluation_post($input)
 	$scorearrs = $this_credit->getactioncredit('evalthreadscore', $forums->this_post['usergroupid'], $forums->this_forumid);
 	$threadscore = $scorearrs[$thiscredit['creditid']]['action'];
 
-	$log = $DB->query_first("SELECT *
+	$log = $DB->queryFirst("SELECT *
 		FROM " . TABLE_PREFIX . "evaluationlog
 		WHERE postid = " . intval($input['p']) . " AND actionuserid = {$bbuserinfo['id']}");
 	if ($log['evaluationid'] && !$bbuserinfo['canevalsameuser'])
@@ -642,11 +642,11 @@ function do_evaluation_post($input)
 	);
 	$DB->insert(TABLE_PREFIX . "evaluationlog", $logarray);
 	//更新被评价的用户积分
-	$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $actcredit = $actcredit + ( $amount ) WHERE id = {$forums->this_post['userid']}");
+	$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $actcredit = $actcredit + ( $amount ) WHERE id = {$forums->this_post['userid']}");
 	//更新评价的用户积分
 	$evalcredit = 'eval'.$actcredit;
-	$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $evalcredit = $evalcredit - " . abs($amount) . " WHERE id = {$bbuserinfo['id']}");
-	$DB->shutdown_update(TABLE_PREFIX . "thread", array('allrep' => serialize($allrep)), "tid = " . intval($input['t']));
+	$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "userexpand SET $evalcredit = $evalcredit - " . abs($amount) . " WHERE id = {$bbuserinfo['id']}");
+	$DB->update(TABLE_PREFIX . "thread", array('allrep' => serialize($allrep)), "tid = " . intval($input['t']), SHUTDOWN_QUERY);
 
 	//发送短消息
 	if ($input['sendpm'] == 'yes')
@@ -675,7 +675,7 @@ function do_evaluation_post($input)
 		WHERE postid=" . intval($input['p']) . "
 		ORDER BY dateline DESC
 		LIMIT 0,5");
-	while ($r = $DB->fetch_array($rs))
+	while ($r = $DB->fetch($rs))
 	{
 		$split = array();
 		if (substr($r['affect'], 0, 1) != '-')
@@ -690,12 +690,12 @@ function do_evaluation_post($input)
 		WHERE postid=" . intval($input['p']) . "
 		GROUP BY creditid");
 	$postcredit = array();
-	while ($r = $DB->fetch_array($rs))
+	while ($r = $DB->fetch($rs))
 	{
 		$postcredit[] = $r;
 	}
 	$evallog['ac'] = $postcredit;
-	$DB->shutdown_update(TABLE_PREFIX . $forums->this_thread['posttable'], array('reppost' => serialize($evallog)), 'pid=' . intval($input['p']));
+	$DB->update(TABLE_PREFIX . $forums->this_thread['posttable'], array('reppost' => serialize($evallog)), 'pid=' . intval($input['p']), SHUTDOWN_QUERY);
 	$url = "showthread.php?{$forums->js_sessionurl}f=" . $forums->this_forumid . "&t=" . $input['t'] . "&pp=" . $input['pp'];
 	$response->redirect($url);
 	return $response;
@@ -707,7 +707,7 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 	input::set($input);
 	$uid = intval($uid);
 	$fid = intval($input['f']);
-	$user = $DB->query_first("SELECT id, name, liftban, usergroupid
+	$user = $DB->queryFirst("SELECT id, name, liftban, usergroupid
 		FROM " . TABLE_PREFIX . "user WHERE id=$uid");
 	if (!$user['id'])
 	{
@@ -808,7 +808,7 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 					$rs = $DB->query("SELECT tid, posttable
 						FROM " . TABLE_PREFIX . "thread
 						WHERE postuserid={$user['id']} AND forumid = $fid");
-					while($row = $DB->fetch_array($rs))
+					while($row = $DB->fetch($rs))
 					{
 						$table = $row['posttable']?$row['posttable']:'post';
 						$tidarrs[$table][] = $row['tid'];
@@ -817,8 +817,8 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 					{
 						foreach ($tidarrs as $tblname => $tids)
 						{
-							$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "$tblname SET state=2, logtext = '" . $opera . "'
-							WHERE " . $DB->sql_in('threadid', $tids));
+							$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "$tblname SET state=2, logtext = '" . $opera . "'
+							WHERE " . $DB->sql->in('threadid', $tids));
 						}
 					}
 				}
@@ -840,7 +840,7 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 					$rs = $DB->query("SELECT tid, posttable
 						FROM " . TABLE_PREFIX . "thread
 						WHERE postuserid={$user['id']} AND forumid = $fid");
-					while($row = $DB->fetch_array($rs))
+					while($row = $DB->fetch($rs))
 					{
 						$table = $row['posttable']?$row['posttable']:'post';
 						$tidarrs[$table][] = $row['tid'];
@@ -849,7 +849,7 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 					{
 						foreach ($tidarrs as $tblname => $tids)
 						{
-							$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "$tblname SET state=0, logtext = '' WHERE " . $DB->sql_in('threadid', $tids));
+							$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "$tblname SET state=0, logtext = '' WHERE " . $DB->sql->in('threadid', $tids));
 						}
 					}
 				}

@@ -52,7 +52,7 @@ class moderate
 	function remove()
 	{
 		global $forums, $DB;
-		if (input::str('id') == '' OR ! $mod = $DB->query_first('SELECT username, userid, usergroupid, usergroupname, isgroup FROM ' . TABLE_PREFIX . 'moderator WHERE moderatorid=' . input::int('id')))
+		if (input::str('id') == '' OR ! $mod = $DB->queryFirst('SELECT username, userid, usergroupid, usergroupname, isgroup FROM ' . TABLE_PREFIX . 'moderator WHERE moderatorid=' . input::int('id')))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
@@ -64,18 +64,18 @@ class moderate
 		else
 		{
 			$name = $mod['username'];
-			$user = $DB->query_first('SELECT usergroupid FROM ' . TABLE_PREFIX . 'user WHERE id=' . $mod['userid']);
+			$user = $DB->queryFirst('SELECT usergroupid FROM ' . TABLE_PREFIX . 'user WHERE id=' . $mod['userid']);
 			if ($user['usergroupid'] == 7)
 			{
-				$mod_number = $DB->query_first('SELECT COUNT(*) as count FROM ' . TABLE_PREFIX . 'moderator WHERE userid=' . intval($mod['userid']));
+				$mod_number = $DB->queryFirst('SELECT COUNT(*) as count FROM ' . TABLE_PREFIX . 'moderator WHERE userid=' . intval($mod['userid']));
 				if ($mod_number == 1)
 				{
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET usergroupid=3 WHERE id=" . $mod['userid']);
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET usergroupid=3 WHERE id=" . $mod['userid']);
 				}
 			}
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "moderator WHERE moderatorid=" . input::int('id') . "");		
-		if ($DB->query_first("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE userid=" . intval($mod['userid']))) 
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "moderator WHERE moderatorid=" . input::int('id') . "");		
+		if ($DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE userid=" . intval($mod['userid']))) 
 		{
 		}		
 		else 
@@ -95,7 +95,7 @@ class moderate
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$bantimelimit = input::int('bantimelimit')<0?0:input::int('bantimelimit');
-		$mod = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE moderatorid='" . input::int('u') . "'");
+		$mod = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE moderatorid='" . input::int('u') . "'");
 		$DB->update(TABLE_PREFIX . 'moderator', array(
 			'forumid' => input::get('forumid', ''),
 			'caneditposts' => input::get('caneditposts', ''),
@@ -162,7 +162,7 @@ class moderate
 			);
 		$forumids = array();
 		$DB->query("SELECT id FROM " . TABLE_PREFIX . "forum WHERE id IN(" . input::get('fid', '') . ")");
-		while ($i = $DB->fetch_array())
+		while ($i = $DB->fetch())
 		{
 			$forumids[ $i['id'] ] = $i['id'];
 		}
@@ -172,12 +172,12 @@ class moderate
 			{
 				$forums->admin->print_cp_error($forums->lang['groupnotmatch']);
 			}
-			if (! $group = $DB->query_first("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid='" . input::get('gid', '') . "'"))
+			if (! $group = $DB->queryFirst("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid='" . input::get('gid', '') . "'"))
 			{
 				$forums->admin->print_cp_error($forums->lang['groupnotmatch']);
 			}
 			$DB->query("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE forumid IN(" . input::get('fid', '') . ") AND usergroupid='" . input::get('gid', '') . "'");
-			while ($f = $DB->fetch_array())
+			while ($f = $DB->fetch())
 			{
 				unset($forumids[ $f['forumid'] ]);
 			}
@@ -195,12 +195,12 @@ class moderate
 			{
 				$forums->admin->print_cp_error($forums->lang['selectmoduser']);
 			}
-			if (! $user = $DB->query_first("SELECT id, name, usergroupid FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('userid') . "'"))
+			if (! $user = $DB->queryFirst("SELECT id, name, usergroupid FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('userid') . "'"))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
 			$DB->query("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE forumid IN(" . input::get('fid', '') . ") AND userid='" . input::int('userid') . "'");
-			while ($f = $DB->fetch_array())
+			while ($f = $DB->fetch())
 			{
 				unset($forumids[ $f['forumid'] ]);
 			}
@@ -241,7 +241,7 @@ class moderate
 			$mod = $this->get_default_prms();
 			$names = array();
 			$DB->query("SELECT name FROM " . TABLE_PREFIX . "forum WHERE id IN(" . input::get('fid', '') . ")");
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$names[] = $r['name'];
 			}
@@ -250,7 +250,7 @@ class moderate
 			$form_code = 'doadd';
 			if (input::str('mtype') == 'group')
 			{
-				if (! $group = $DB->query_first("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid='" . input::get('mod_group', '') . "'"))
+				if (! $group = $DB->queryFirst("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup WHERE usergroupid='" . input::get('mod_group', '') . "'"))
 				{
 					$forums->admin->print_cp_error($forums->lang['notfindmodgroup']);
 				}
@@ -266,7 +266,7 @@ class moderate
 				}
 				else
 				{
-					if (! $user = $DB->query_first("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('userid') . "'"))
+					if (! $user = $DB->queryFirst("SELECT name, id FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('userid') . "'"))
 					{
 						$forums->admin->print_cp_error($forums->lang['noids']);
 					}
@@ -288,7 +288,7 @@ class moderate
 			$form_code = "doedit";
 			$pagetitle = $forums->lang['editmoderator'];
 			$detail = $forums->lang['editmoderatordesc'];
-			if (! $mod = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE moderatorid='" . input::int('u') . "'"))
+			if (! $mod = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "moderator WHERE moderatorid='" . input::int('u') . "'"))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
@@ -314,7 +314,7 @@ class moderate
 		{
 			$forumlist = array();
 			$DB->query("SELECT id, name FROM " . TABLE_PREFIX . "forum");
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$forumlist[] = array($r['id'], $r['name']);
 			}
@@ -396,7 +396,7 @@ class moderate
 		{
 			$user_group = array();
 			$DB->query("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup ORDER BY grouptitle");
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$user_group[] = array($r['usergroupid'] , $forums->lang[ $r['grouptitle'] ]);
 			}
@@ -421,12 +421,12 @@ class moderate
 			$forums->admin->print_cp_error($forums->lang['selectmoduser']);
 		}
 		$DB->query("SELECT id, name FROM " . TABLE_PREFIX . "user WHERE LOWER(name) LIKE concat('" . strtolower(input::str('username')) . "','%') OR name LIKE concat('" . input::get('username', '') . "','%')");
-		if (! $DB->num_rows())
+		if (! $DB->numRows())
 		{
 			$forums->admin->print_cp_error($forums->lang['notfindmoduser']);
 		}
 		$form_array = array();
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$form_array[] = array($r['id'] , $r['name']);
 		}
@@ -462,7 +462,7 @@ class moderate
 		{
 			if (input::str('userid'))
 			{
-				$user = $DB->query_first("SELECT id,name FROM " . TABLE_PREFIX . "user WHERE id=" . input::int('userid') . "");
+				$user = $DB->queryFirst("SELECT id,name FROM " . TABLE_PREFIX . "user WHERE id=" . input::int('userid') . "");
 				echo "<input type='hidden' name='userid' value='" . $user['id'] . "'>";
 				$forums->lang['setmodforum'] = sprintf($forums->lang['setmodforum'], $user['name']);
 				$title = $forums->lang['setmodforum'];
@@ -477,7 +477,7 @@ class moderate
 			$forums->admin->print_table_start($title);
 			$forums->adminforum->moderator = array();
 			$DB->query("SELECT u.lastactivity,m.* FROM " . TABLE_PREFIX . "moderator m LEFT JOIN " . TABLE_PREFIX . "user u ON (u.id=m.userid)");
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$forums->adminforum->moderator[] = $r;
 			}
@@ -510,7 +510,7 @@ class moderate
 	function get_default_prms($type = 'mod_default_prms')
 	{
 		global $DB;
-		$prms = $DB->query_first('SELECT value FROM ' . TABLE_PREFIX . "setting WHERE varname='$type'");
+		$prms = $DB->queryFirst('SELECT value FROM ' . TABLE_PREFIX . "setting WHERE varname='$type'");
 		return unserialize($prms['value']);
 	}
 }

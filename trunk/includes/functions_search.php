@@ -45,7 +45,7 @@ class functions_search
 			{
 				$where = "host=" . $DB->validate(IPADDRESS);
 			}
-			if ($DB->query_first("SELECT searchid FROM " . TABLE_PREFIX . "search WHERE $where AND dateline > '" . $flood_time . "'"))
+			if ($DB->queryFirst("SELECT searchid FROM " . TABLE_PREFIX . "search WHERE $where AND dateline > '" . $flood_time . "'"))
 			{
 				$forums->func->standard_error("searchflood", false, $bbuserinfo['searchflood']);
 			}
@@ -59,7 +59,7 @@ class functions_search
 		{
 			$forums->func->standard_error("nosearchuserresult");
 		}
-		$results = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "search WHERE searchid='" . $this->uniqueid . "'");
+		$results = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "search WHERE searchid='" . $this->uniqueid . "'");
 		if (!$results['query'])
 		{
 			$forums->func->standard_error("searchresulttimeout");
@@ -74,7 +74,7 @@ class functions_search
 		$this->start_page($results['maxrecord']);
 		$results['query'] = $results['query'] . ' ORDER BY ' . $results['sortby'] . ' ' . $results['sortorder'];
 		$rows = $DB->query($results['query'] . " LIMIT " . $this->page . ", 15");
-		if ($DB->num_rows($rows))
+		if ($DB->numRows($rows))
 		{
 			$this->highlight = urldecode($this->highlight);
 			$hignlight_key = duality_word($this->highlight, 1);
@@ -83,7 +83,7 @@ class functions_search
 			{
 				$tokey[$k] = '<span class="highlight">' . $wd . '</span>';
 			}
-			while ($row = $DB->fetch_array($rows))
+			while ($row = $DB->fetch($rows))
 			{
 				$row['keywords'] = urlencode($this->highlight);
 				$row['threadtitle'] = str_replace($hignlight_key, $tokey, $row['threadtitle']);
@@ -106,7 +106,7 @@ class functions_search
 		{
 			$forums->func->standard_error("nosearchuserresult");
 		}
-		$results = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "search WHERE searchid='" . $this->uniqueid . "'");
+		$results = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "search WHERE searchid='" . $this->uniqueid . "'");
 		$this->order = $results['sortorder'];
 		$this->sortby = $results['sortby'];
 		if (!$results['query'])
@@ -122,11 +122,11 @@ class functions_search
 		$this->start_page($results['maxrecord']);
 		$results['query'] = $results['query'] . ' ORDER BY ' . $results['sortby'] . ' ' . $results['sortorder'];
 		$rows = $DB->query($results['query'] . " LIMIT " . $this->page . ", 15");
-		if ($DB->num_rows($rows))
+		if ($DB->numRows($rows))
 		{
 			require_once(ROOT_PATH . 'includes/functions_codeparse.php');
 			$codeparse = new functions_codeparse();
-			while ($row = $DB->fetch_array($rows))
+			while ($row = $DB->fetch($rows))
 			{
 				$row['keywords'] = urlencode($this->highlight);
 				$row['dateline'] = $row['pdateline'] ? $row['pdateline'] : $row['dateline'];

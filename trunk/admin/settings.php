@@ -171,7 +171,7 @@ class settings
 		global $forums, $DB;
 		if (input::str('id'))
 		{
-			$conf = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "setting WHERE groupid=" . input::get('id', '') . "");
+			$conf = $DB->queryFirst("SELECT count(*) as count FROM " . TABLE_PREFIX . "setting WHERE groupid=" . input::get('id', '') . "");
 			$count = intval($conf['count']);
 			if ($count > 0)
 			{
@@ -179,7 +179,7 @@ class settings
 			}
 			else
 			{
-				$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "settinggroup WHERE groupid=" . input::get('id', '') . "");
+				$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "settinggroup WHERE groupid=" . input::get('id', '') . "");
 				$forums->main_msg = $forums->lang['settinggroupdeleted'];
 			}
 		}
@@ -191,7 +191,7 @@ class settings
 		global $forums, $DB;
 		if ($gid)
 		{
-			$conf = $DB->query_first("SELECT count(*) as count FROM " . TABLE_PREFIX . "setting WHERE groupid=" . $gid . "");
+			$conf = $DB->queryFirst("SELECT count(*) as count FROM " . TABLE_PREFIX . "setting WHERE groupid=" . $gid . "");
 			$count = intval($conf['count']);
 			$DB->update(TABLE_PREFIX . 'settinggroup', array('groupcount' => $count), 'groupid=' . $gid);
 		}
@@ -208,7 +208,7 @@ class settings
 		}
 		else
 		{
-			$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "settinggroup WHERE groupid=" . input::get('id', '') . "");
+			$conf = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "settinggroup WHERE groupid=" . input::get('id', '') . "");
 			if (! $conf['groupid'])
 			{
 				$forums->main_msg = $forums->lang['noids'];
@@ -275,17 +275,17 @@ class settings
 			$conf = array('groupid' => input::get('groupid', ''), 'addcache' => 1);
 			if (input::str('groupid'))
 			{
-				$max = $DB->query_first("SELECT max(displayorder) as max FROM " . TABLE_PREFIX . "setting WHERE groupid=" . input::get('groupid', '') . "");
+				$max = $DB->queryFirst("SELECT max(displayorder) as max FROM " . TABLE_PREFIX . "setting WHERE groupid=" . input::get('groupid', '') . "");
 			}
 			else
 			{
-				$max = $DB->query_first("SELECT max(displayorder) as max FROM " . TABLE_PREFIX . "setting");
+				$max = $DB->queryFirst("SELECT max(displayorder) as max FROM " . TABLE_PREFIX . "setting");
 			}
 			$conf['displayorder'] = $max['max'] + 1;
 		}
 		else
 		{
-			$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::get('id', '') . "");
+			$conf = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::get('id', '') . "");
 			if (! $conf['settingid'])
 			{
 				$forums->main_msg = $forums->lang['noids'];
@@ -339,7 +339,7 @@ class settings
 		{
 			$keywords = strtolower(input::str('search'));
 			$DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE LOWER(title) LIKE '%" . $keywords . "%' OR LOWER(description) LIKE '%" . $keywords . "%' ORDER BY title LIMIT " . $start . ", " . $end . "");
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				if ($r['settingid'] == 7 && $r['groupid'] == 1)
 				{
@@ -357,7 +357,7 @@ class settings
 		else
 		{
 			$DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE groupid='" . input::get('groupid', '') . "' ORDER BY displayorder, title LIMIT " . $start . ", " . $end . "");
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				if ($r['settingid'] == 7 && $r['groupid'] == 1)
 				{
@@ -453,7 +453,7 @@ class settings
 					else if ($r['dropextra'] == '#show_groups#')
 					{
 						$DB->query("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup");
-						while ($row = $DB->fetch_array())
+						while ($row = $DB->fetch())
 						{
 							$dropdown[] = array($row['usergroupid'], $forums->lang[ $row['grouptitle'] ]);
 						}
@@ -548,7 +548,7 @@ class settings
 		}
 		$db_fields = array();
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE varname IN ('" . implode("','", $fields) . "')");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$db_fields[ $r['varname'] ] = $r;
 		}
@@ -645,8 +645,8 @@ class settings
 			$forums->main_msg = $forums->lang['noids'];
 			$this->setting_form();
 		}
-		$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "setting SET value='' WHERE settingid=" . input::int('id') . "");
+		$conf = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "setting SET value='' WHERE settingid=" . input::int('id') . "");
 		$forums->main_msg = $forums->lang['settingrestored'];
 		$forums->func->recache('settings');
 		$this->setting_view();
@@ -662,9 +662,9 @@ class settings
 		}
 		if (input::str('update'))
 		{
-			$conf = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "settinggroup SET groupcount=groupcount-1 WHERE groupid=" . $conf['groupid'] . "");
+			$conf = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "settinggroup SET groupcount=groupcount-1 WHERE groupid=" . $conf['groupid'] . "");
 			$forums->main_msg = $forums->lang['settingdeleted'];
 			$forums->func->recache('settings');
 			$this->group_recount($conf['groupid']);
@@ -690,7 +690,7 @@ class settings
 		global $forums, $DB;
 		$this->setting_groups = array();
 		$settings = $DB->query("SELECT * FROM " . TABLE_PREFIX . "settinggroup ORDER BY groupid");
-		while ($setting = $DB->fetch_array())
+		while ($setting = $DB->fetch())
 		{
 			if (!$setting['title']) continue;
 			$this->setting_groups[ $setting['groupid'] ] = $setting;

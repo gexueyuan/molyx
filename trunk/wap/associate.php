@@ -74,7 +74,7 @@ class associate
 			include $forums->func->load_template('wap_info');
 			exit;
 		}
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET mobile='' WHERE id=" . $bbuserinfo['id'] . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET mobile='' WHERE id=" . $bbuserinfo['id'] . "");
 		redirect("index.php{$forums->sessionurl}");
 	}
 }

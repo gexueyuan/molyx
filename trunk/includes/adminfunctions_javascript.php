@@ -79,9 +79,9 @@ class adminfunctions_javascript
 			$i = 0;
 			$rows = 0;
 			$DB->query("SELECT t.*{$add_pagetext} FROM " . TABLE_PREFIX . "thread t {$add_leftjoin} WHERE " . implode(" AND ", $query) . " {$order} {$limit}");
-			if ($DB->num_rows())
+			if ($DB->numRows())
 			{
-				while ($t = $DB->fetch_array())
+				while ($t = $DB->fetch())
 				{
 					$rows++;
 					if ($js['trimtitle'])
@@ -217,10 +217,10 @@ class adminfunctions_javascript
 
 			$DB->query("SELECT ue.*, u.* FROM " . TABLE_PREFIX . "user u LEFT JOIN " . TABLE_PREFIX . "userexpand ue ON (u.id = ue.id) ORDER BY {$where} {$orderby} {$limit}");
 
-			if ($DB->num_rows())
+			if ($DB->numRows())
 			{
 				$rows = 0;
-				while ($u = $DB->fetch_array())
+				while ($u = $DB->fetch())
 				{
 					$rows++;
 					$htmlcode = $bboptions['rewritestatus'] ? str_replace("{c1}", "<a href='{$bboptions['bburl']}/user_{$u['id']}.html' target='_blank'>" . $u['name'] . "</a>", $js['htmlcode']) :str_replace("{c1}", "<a href='{$bboptions['bburl']}/profile.php?u={$u['id']}' target='_blank'>" . $u['name'] . "</a>", $js['htmlcode']);

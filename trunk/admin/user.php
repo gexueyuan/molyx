@@ -137,7 +137,7 @@ class user
 		}
 		$newsalt = generate_user_salt(5);
 		$password = md5(trim(input::str('password')));
-		$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id=" . input::get('u', '') . "");
+		$user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id=" . input::get('u', '') . "");
 		$save_array = array();
 		if (input::str('newsalt'))
 		{
@@ -172,7 +172,7 @@ class user
 			2 => array('u' , input::get('u', '')),
 			);
 		$forums->admin->print_form_header($page_array);
-		if (! $user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id=" . input::get('u', '') . ""))
+		if (! $user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id=" . input::get('u', '') . ""))
 		{
 			$forums->admin->print_cp_error($forums->lang['cannotfounduser']);
 		}
@@ -200,7 +200,7 @@ class user
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (! $user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('u') . "'"))
+		if (! $user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('u') . "'"))
 		{
 			$forums->admin->print_cp_error($forums->lang['nouseraccounts']);
 		}
@@ -238,7 +238,7 @@ class user
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (! $user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('u') . "'"))
+		if (! $user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('u') . "'"))
 		{
 			$forums->admin->print_cp_error($forums->lang['nouseraccounts']);
 		}
@@ -259,7 +259,7 @@ class user
 				}
 				elseif ($liftban['banposts'] > 0 && $liftban['forumid'])
 				{
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "post p," . TABLE_PREFIX . "thread t SET p.state = 0
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "post p," . TABLE_PREFIX . "thread t SET p.state = 0
 						WHERE p.threadid=t.tid and p.userid={$user['id']} and t.forumid = {$liftban['forumid']}");
 				}
 			}
@@ -297,13 +297,13 @@ class user
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (! $user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'"))
+		if (! $user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . $userid . "'"))
 		{
 			$forums->admin->print_cp_error($forums->lang['nouseraccounts']);
 		}
 		$ban = banned_detect($user['liftban']);
 		$updategroup = $ban['groupid'] ? intval($ban['groupid']) : 3;
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET liftban = '', usergroupid='" . $updategroup . "' WHERE id=" . $userid . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET liftban = '', usergroupid='" . $updategroup . "' WHERE id=" . $userid . "");
 		$forums->admin->save_log($forums->lang['userunsuspend'] . " (" . $forums->lang['username'] . ": {$user['name']})");
 		$msg = "{$user['name']}" . $forums->lang['unsuspended'];
 		$forums->admin->redirect("user.php?do=ban", $forums->lang['manageuser'], $msg);
@@ -317,7 +317,7 @@ class user
 		$forums->admin->nav[] = array('', $forums->lang['managebanuser']);
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$banusers = $DB->query("SELECT id,name,liftban FROM " . TABLE_PREFIX . "user WHERE liftban != ''");
-		while ($banuser = $DB->fetch_array($banusers))
+		while ($banuser = $DB->fetch($banusers))
 		{
 			$ban = banned_detect($banuser['liftban']);
 			$ban['id'] = $banuser['id'];
@@ -387,7 +387,7 @@ class user
 			$this->changename($forums->lang['requirenewname']);
 			exit();
 		}
-		if (! $user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('u') . "'"))
+		if (! $user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('u') . "'"))
 		{
 			$forums->admin->print_cp_error($forums->lang['nouseraccounts']);
 		}
@@ -401,21 +401,21 @@ class user
 		$DB->query("SELECT u.*, g.*
 				FROM " . TABLE_PREFIX . "user u, " . TABLE_PREFIX . "usergroup g
 				WHERE (LOWER(u.name)='" . strtolower($newname) . "' OR u.name='" . $newname . "') AND u.usergroupid=g.usergroupid");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$forums->lang['newnameexist'] = sprintf($forums->lang['newnameexist'], $newname);
 			$this->changename($forums->lang['newnameexist']);
 			exit();
 		}
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET name='" . $newname . "' WHERE id=" . $userid . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pmuserlist SET contactname='" . $newname . "' WHERE contactid=" . $userid . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "forum SET lastposter='" . $newname . "' WHERE lastposterid=" . $userid . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "moderatorlog SET username='" . $newname . "' WHERE userid=" . $userid . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "moderator SET username='" . $newname . "' WHERE userid=" . $userid . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "post SET username='" . $newname . "' WHERE userid=" . $userid . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "session SET avatar='{$user['avatar']}', username='" . $newname . "' WHERE userid=" . $userid . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET postusername='" . $newname . "' WHERE postuserid=" . $userid . "");
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET lastposter='" . $newname . "' WHERE lastposterid=" . $userid . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET name='" . $newname . "' WHERE id=" . $userid . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "pmuserlist SET contactname='" . $newname . "' WHERE contactid=" . $userid . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum SET lastposter='" . $newname . "' WHERE lastposterid=" . $userid . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "moderatorlog SET username='" . $newname . "' WHERE userid=" . $userid . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "moderator SET username='" . $newname . "' WHERE userid=" . $userid . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "post SET username='" . $newname . "' WHERE userid=" . $userid . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "session SET avatar='{$user['avatar']}', username='" . $newname . "' WHERE userid=" . $userid . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET postusername='" . $newname . "' WHERE postuserid=" . $userid . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET lastposter='" . $newname . "' WHERE lastposterid=" . $userid . "");
 		$forums->func->recache('moderator');
 		if (input::str('send_email') == 1)
 		{
@@ -446,7 +446,7 @@ class user
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (! $user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('u') . "'"))
+		if (! $user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('u') . "'"))
 		{
 			$forums->admin->print_cp_error($forums->lang['nouseraccounts']);
 		}
@@ -498,7 +498,7 @@ class user
 			$a = $DB->query("SELECT u.id, u.email, u.emailcharset, u.usergroupid AS oldgroupid, ua.* FROM " . TABLE_PREFIX . "useractivation ua
 				 LEFT JOIN " . TABLE_PREFIX . "user u ON (ua.userid=u.id)
 				WHERE u.id IN(" . implode(",", $ids) . ")");
-			while ($row = $DB->fetch_array($a))
+			while ($row = $DB->fetch($a))
 			{
 				if ($row['oldgroupid'] != 1)
 				{
@@ -508,14 +508,14 @@ class user
 				{
 					$row['usergroupid'] = 3;
 				}
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET usergroupid=" . $row['usergroupid'] . " WHERE id=" . $row['id'] . "");
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET usergroupid=" . $row['usergroupid'] . " WHERE id=" . $row['id'] . "");
 				$forums->lang['userapproved'] = sprintf($forums->lang['userapproved'], $bboptions['bbtitle']);
 				$email->char_set = $row['emailcharset']?$row['emailcharset']:'GBK';
 				$email->subject = $forums->lang['userapproved'];
 				$email->to = $row['email'];
 				$email->send_mail();
 			}
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid IN(" . implode(",", $ids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid IN(" . implode(",", $ids) . ")");
 			$forums->admin->save_log($forums->lang['approveaccounts']);
 			$forums->lang['accountsapproved'] = sprintf($forums->lang['accountsapproved'], count($ids));
 			input::set('lastreg', 1);
@@ -525,13 +525,13 @@ class user
 		}
 		else
 		{
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "user WHERE id IN(" . implode(",", $ids) . ")");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE fromuserid IN(" . implode(",", $ids) . ")");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE fromuserid IN(" . implode(",", $ids) . ")");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pmuserlist WHERE userid IN(" . implode(",", $ids) . ") OR contactid IN(" . implode(",", $ids) . ")");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid IN(" . implode(",", $ids) . ")");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "post SET userid=0 WHERE userid  IN(" . implode(",", $ids) . ")");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET postuserid=0 WHERE postuserid IN(" . implode(",", $ids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "user WHERE id IN(" . implode(",", $ids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE fromuserid IN(" . implode(",", $ids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE fromuserid IN(" . implode(",", $ids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pmuserlist WHERE userid IN(" . implode(",", $ids) . ") OR contactid IN(" . implode(",", $ids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid IN(" . implode(",", $ids) . ")");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "post SET userid=0 WHERE userid  IN(" . implode(",", $ids) . ")");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET postuserid=0 WHERE postuserid IN(" . implode(",", $ids) . ")");
 			$forums->lang['accountsdeleted'] = sprintf($forums->lang['accountsdeleted'], count($ids));
 			$forums->admin->save_log($forums->lang['deleteaccounts']);
 			$forums->admin->redirect("user.php?do=mod", $forums->lang['managenewaccounts'], $forums->lang['accountsdeleted']);
@@ -545,7 +545,7 @@ class user
 		$detail = $forums->lang['userrequestdesc'];
 		$forums->admin->nav[] = array('', $forums->lang['manageactivation']);
 		$forums->admin->print_cp_header($pagetitle, $detail);
-		$row = $DB->query_first("SELECT COUNT(useractivationid) as count FROM " . TABLE_PREFIX . "useractivation WHERE type != 1");
+		$row = $DB->queryFirst("SELECT COUNT(useractivationid) as count FROM " . TABLE_PREFIX . "useractivation WHERE type != 1");
 		$totalpages = $row['count'] < 1 ? 0 : $row['count'];
 		$page = input::int('pp');
 		$ord = input::str('ord') == 'asc' ? 'asc' : 'desc';
@@ -595,7 +595,7 @@ class user
 				LEFT JOIN " . TABLE_PREFIX . "user u ON (ua.userid=u.id)
 				WHERE ua.type <> 1
 				ORDER BY " . $col . " " . $ord . " LIMIT " . $page . ",75");
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$where = ($r['type'] == 2 ? $forums->lang['regnewaccounts'] : ($r['type'] == 3 ? $forums->lang['changeusermail'] : $forums->lang['none']));
 				$hours = floor((TIMENOW - $r['dateline']) / 3600);
@@ -635,11 +635,11 @@ class user
 		$forums->admin->columns[] = array($forums->lang['miniposts'], "10%");
 		$forums->admin->columns[] = array($forums->lang['rankshow'], "20%");
 		$forums->admin->columns[] = array($forums->lang['option'], "20%");
-		$user = $DB->query_first("SELECT imagefolder FROM " . TABLE_PREFIX . "style WHERE usedefault=1");
+		$user = $DB->queryFirst("SELECT imagefolder FROM " . TABLE_PREFIX . "style WHERE usedefault=1");
 		$user['imagefolder'] .= '/' . $bboptions['language'];
 		$forums->admin->print_table_start($forums->lang['manageranks']);
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "usertitle ORDER BY post");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$img = "";
 			if (preg_match("/^\d+$/", $r['ranklevel']))
@@ -699,7 +699,7 @@ class user
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "usertitle WHERE id='" . input::get('id', '') . "'");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "usertitle WHERE id='" . input::get('id', '') . "'");
 		$forums->func->recache('ranks');
 		$forums->admin->save_log($forums->lang['userrankdeleted']);
 		$forums->admin->redirect("user.php?do=rankform", $forums->lang['manageranks'], $forums->lang['userrankdeleted']);
@@ -719,7 +719,7 @@ class user
 				$forums->admin->print_cp_error($forums->lang['inputallforms']);
 			}
 		}
-		$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "usertitle SET post=" . trim(input::str('post')) . ", title='" . trim(input::str('title')) . "', ranklevel='" . trim(input::str('ranklevel')) . "' WHERE id=" . input::get('id', '') . "");
+		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "usertitle SET post=" . trim(input::str('post')) . ", title='" . trim(input::str('title')) . "', ranklevel='" . trim(input::str('ranklevel')) . "' WHERE id=" . input::get('id', '') . "");
 		$forums->func->recache('ranks');
 		$forums->admin->save_log($forums->lang['userrankedited']);
 		$forums->admin->redirect("user.php?do=rankform", $forums->lang['manageranks'], $forums->lang['userrankedited']);
@@ -739,7 +739,7 @@ class user
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
-			$rank = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "usertitle WHERE id='" . input::get('id', '') . "'");
+			$rank = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "usertitle WHERE id='" . input::get('id', '') . "'");
 			$button = $forums->lang['dorankedit'];
 		}
 		else
@@ -801,9 +801,9 @@ class user
 		}
 		$ids = array();
 		$DB->query($query);
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($i = $DB->fetch_array())
+			while ($i = $DB->fetch())
 			{
 				$ids[] = $i['id'];
 			}
@@ -833,7 +833,7 @@ class user
 			require_once(ROOT_PATH . "includes/functions_moderate.php");
 			$mod = new modfunctions();
 			$users = $DB->query("SELECT id FROM " . TABLE_PREFIX . "user WHERE id" . $userids . "");
-			while ($user = $DB->fetch_array($users))
+			while ($user = $DB->fetch($users))
 			{
 				$userdir = split_todir($user['id'], $bboptions['uploadfolder'] . '/user');
 				@unlink($userdir[0] . '/a-' . $user['id'] . '-0.jpg');
@@ -843,12 +843,12 @@ class user
 				$forums->admin->rm_dir($bboptions['uploadfolder'] . '/' . implode('/', preg_split('//', intval($user['id']), -1, PREG_SPLIT_NO_EMPTY)));
 			}
 			$threads = $DB->query("SELECT tid FROM " . TABLE_PREFIX . "thread WHERE postuserid" . $userids . "");
-			while ($thread = $DB->fetch_array($threads))
+			while ($thread = $DB->fetch($threads))
 			{
 				$threadids[] = $thread['tid'];
 			}
 			$posts = $DB->query("SELECT pid FROM " . TABLE_PREFIX . "post WHERE userid" . $userids . "");
-			while ($post = $DB->fetch_array($posts))
+			while ($post = $DB->fetch($posts))
 			{
 				$postids[] = $post['pid'];
 			}
@@ -857,22 +857,22 @@ class user
 		}
 		else
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "post SET userid=0 WHERE userid" . $userids . "");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET postuserid=0 WHERE postuserid" . $userids . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "post SET userid=0 WHERE userid" . $userids . "");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET postuserid=0 WHERE postuserid" . $userids . "");
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "user WHERE id" . $userids . "");
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "userextra WHERE id" . $userids . "");
-		// $DB->query_unbuffered( "DELETE FROM ".TABLE_PREFIX."userblog WHERE id".$userids."" );
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE fromuserid" . $userids . "");
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE fromuserid" . $userids . "");
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pmuserlist WHERE userid" . $userids . " OR contactid" . $userids . "");
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "subscribethread WHERE userid" . $userids . "");
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "subscribeforum WHERE userid" . $userids . "");
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid" . $userids . "");
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid" . $userids . "");
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "session WHERE userid" . $userids . "");
-		// $DB->query_unbuffered( "DELETE FROM ".TABLE_PREFIX."blog WHERE userid".$userids."" );
-		// $DB->query_unbuffered( "DELETE FROM ".TABLE_PREFIX."blogcontents WHERE userid".$userids."" );
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "user WHERE id" . $userids . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "userextra WHERE id" . $userids . "");
+		// $DB->queryUnbuffered( "DELETE FROM ".TABLE_PREFIX."userblog WHERE id".$userids."" );
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE fromuserid" . $userids . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE fromuserid" . $userids . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pmuserlist WHERE userid" . $userids . " OR contactid" . $userids . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "subscribethread WHERE userid" . $userids . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "subscribeforum WHERE userid" . $userids . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid" . $userids . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid" . $userids . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "session WHERE userid" . $userids . "");
+		// $DB->queryUnbuffered( "DELETE FROM ".TABLE_PREFIX."blog WHERE userid".$userids."" );
+		// $DB->queryUnbuffered( "DELETE FROM ".TABLE_PREFIX."blogcontents WHERE userid".$userids."" );
 		input::get('users', 1);
 		input::get('lastreg', 1);
 		input::get('post', 0);
@@ -898,7 +898,7 @@ class user
 		}
 		$DB->query("SELECT id, name FROM " . TABLE_PREFIX . "user WHERE id IN (" . implode(",", $ids) . ")");
 		$names = array();
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			if ($r['id'] == $bbuserinfo['id'])
 			{
@@ -950,7 +950,7 @@ class user
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$user_group = array(0 => array('', $forums->lang['anyusergroup']));
 		$DB->query("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup ORDER BY grouptitle");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$user_group[] = array($r['usergroupid'] , $forums->lang[ $r['grouptitle'] ]);
 		}
@@ -1106,7 +1106,7 @@ class user
 		}
 		$query = "SELECT *, id as userid FROM " . TABLE_PREFIX . "user" . $where . " ORDER BY name$limit";
 		$pquery = "SELECT *, id as userid FROM " . TABLE_PREFIX . "user" . $where . "";
-		$count = $DB->query_first("SELECT COUNT(*) as count FROM " . TABLE_PREFIX . "user" . $where . "");
+		$count = $DB->queryFirst("SELECT COUNT(*) as count FROM " . TABLE_PREFIX . "user" . $where . "");
 		if ($count['count'] < 1)
 		{
 			$forums->main_msg = $forums->lang['nomatchresult'];
@@ -1116,7 +1116,7 @@ class user
 		{
 			$ids = array();
 			$DB->query($pquery);
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$ids[ $r['id'] ] = array($r['id'], $r['name']);
 			}
@@ -1155,7 +1155,7 @@ class user
 		$count = 0;
 		$forums->func->check_cache('usergroup');
 		$user = $DB->query($query);
-		while ($r = $DB->fetch_array($user))
+		while ($r = $DB->fetch($user))
 		{
 			$count++;
 			if ($r['liftban'] == "")
@@ -1206,7 +1206,7 @@ class user
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
 
-			if (!$user = $DB->query_first("SELECT up.*, u.* FROM " . TABLE_PREFIX . "user u LEFT JOIN " . TABLE_PREFIX . "userexpand up USING(id) WHERE u.id='" . input::get('u', '') . "'"))
+			if (!$user = $DB->queryFirst("SELECT up.*, u.* FROM " . TABLE_PREFIX . "user u LEFT JOIN " . TABLE_PREFIX . "userexpand up USING(id) WHERE u.id='" . input::get('u', '') . "'"))
 			{
 				$forums->admin->print_cp_error($forums->lang['cannotfounduser']);
 			}
@@ -1235,7 +1235,7 @@ class user
 		$member_group[] = array('-1' , $forums->lang['nomembergroupids']);
 
 		$DB->query("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup ORDER BY grouptitle");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$member_group[] = $user_group[] = array($r['usergroupid'] , $forums->lang[ $r['grouptitle'] ]);
 		}
@@ -1451,7 +1451,7 @@ class user
 		if ($type == 'edit')
 		{
 
-			$user = $DB->query_first("SELECT up.*, up.id AS expandid, u.* FROM " . TABLE_PREFIX . "user u LEFT JOIN " . TABLE_PREFIX . "user up USING(id) WHERE u.id='" . input::int('u') . "'");
+			$user = $DB->queryFirst("SELECT up.*, up.id AS expandid, u.* FROM " . TABLE_PREFIX . "user u LEFT JOIN " . TABLE_PREFIX . "user up USING(id) WHERE u.id='" . input::int('u') . "'");
 			if (!$user['expandid'])
 			{
 				$DB->query("INSERT INTO " . TABLE_PREFIX . "userexpand (id) VALUES (" . $user['id'] . ")");
@@ -1461,7 +1461,7 @@ class user
 			$user['options'] = $forums->func->convert_array_to_bits(array_merge($olduserinfo, input::get('options', array(''))));
 			if (input::get('email', '') != input::get('curemail', ''))
 			{
-				if ($DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE email='" . input::get('email', '') . "' AND id <> " . input::get('u', '') . ""))
+				if ($DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE email='" . input::get('email', '') . "' AND id <> " . input::get('u', '') . ""))
 				{
 					$forums->main_msg = $forums->lang['otheruserusemail'];
 					$this->useredit('edit');
@@ -1498,7 +1498,7 @@ class user
 			}
 
 			$in_username = trim(input::str('name'));
-			if ($DB->query_first("SELECT u.*, g.* FROM " . TABLE_PREFIX . "user u, " . TABLE_PREFIX . "usergroup g WHERE (LOWER(u.name)='" . strtolower($in_username) . "' OR u.name='" . $in_username . "') AND u.usergroupid=g.usergroupid"))
+			if ($DB->queryFirst("SELECT u.*, g.* FROM " . TABLE_PREFIX . "user u, " . TABLE_PREFIX . "usergroup g WHERE (LOWER(u.name)='" . strtolower($in_username) . "' OR u.name='" . $in_username . "') AND u.usergroupid=g.usergroupid"))
 			{
 				$forums->lang['usernameexist'] = sprintf($forums->lang['usernameexist'], $in_username);
 				$forums->main_msg = $forums->lang['usernameexist'];
@@ -1508,7 +1508,7 @@ class user
 
 			$in_password = md5(trim(input::str('password')));
 			$in_email = trim(strtolower(input::str('email')));
-			if ($email_check = $DB->query_first("SELECT id FROM " . TABLE_PREFIX . "user WHERE email='" . $in_email . "'"))
+			if ($email_check = $DB->queryFirst("SELECT id FROM " . TABLE_PREFIX . "user WHERE email='" . $in_email . "'"))
 			{
 				$forums->main_msg = $forums->lang['otheruserusemail'];
 				$this->useredit('add');
@@ -1645,7 +1645,7 @@ class user
 		}
 		if ($type == 'add')
 		{
-			$user['id'] = $DB->insert_id();
+			$user['id'] = $DB->insertId();
 			$userexpand = array();
 			if (is_array($user_data['userexpand']))
 			{
@@ -1658,7 +1658,7 @@ class user
 			}
 			$DB->insert(TABLE_PREFIX . 'userexpand', $userexpand);
 
-			$DB->update_case(CACHE_TABLE, 'title', array(
+			$DB->updateCase(CACHE_TABLE, 'title', array(
 				'data' => array(
 					'numbermembers' => array(1, '+'),
 					'newusername' => $newuserbit['name'],
@@ -1694,7 +1694,7 @@ class user
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$user = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id=$userid");
+		$user = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id=$userid");
 		$forums->lang['changeuseravatar'] = sprintf($forums->lang['changeuseravatar'], $user['name'], $user['id']);
 		$pagetitle = $forums->lang['changeuseravatar'];
 		$detail = $forums->lang['changeuseravatardesc'];
@@ -1832,14 +1832,14 @@ class user
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (!$user = $DB->query_first("SELECT id,name, usergroupid, membergroupids FROM " . TABLE_PREFIX . "user WHERE id=" . $userid . ""))
+		if (!$user = $DB->queryFirst("SELECT id,name, usergroupid, membergroupids FROM " . TABLE_PREFIX . "user WHERE id=" . $userid . ""))
 		{
 			if ($user['usergroupid'] != 4 AND !preg_match("/,4,/i", "," . $user['membergroupids'] . ",") AND !preg_match("/," . $user['id'] . ",/i", "," . SUPERADMIN . ","))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
 		}
-		$adminperms = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "administrator WHERE aid=" . $user['id'] . "");
+		$adminperms = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "administrator WHERE aid=" . $user['id'] . "");
 
 		$pagetitle = $forums->lang['manageadminperms'];
 		$detail = $forums->lang['manageadminpermsdesc'];
@@ -1887,7 +1887,7 @@ class user
 		{
 			$forums->admin->print_cp_error($forums->lang['nopermissions']);
 		}
-		$adminperms = $DB->query_first("SELECT aid FROM " . TABLE_PREFIX . "administrator WHERE aid=" . input::int('u') . "");
+		$adminperms = $DB->queryFirst("SELECT aid FROM " . TABLE_PREFIX . "administrator WHERE aid=" . input::int('u') . "");
 		$admin = array('aid' => input::int('u'),
 			'caneditsettings' => input::get('caneditsettings', ''),
 			'caneditforums' => input::get('caneditforums', ''),
@@ -1963,18 +1963,18 @@ class user
 		$forums->admin->columns[] = array($forums->lang['action'], "");
 		$forums->admin->print_table_start($forums->lang['adminpermslist']);
 		$sadmins = $DB->query("SELECT id,name FROM " . TABLE_PREFIX . "user WHERE id IN (" . implode(',', $admin) . ")");
-		if ($DB->num_rows($sadmins))
+		if ($DB->numRows($sadmins))
 		{
-			while ($supadmin = $DB->fetch_array($sadmins))
+			while ($supadmin = $DB->fetch($sadmins))
 			{
 				$cache[$supadmin['id']] = $supadmin['id'];
 				$forums->admin->print_cells_row(array($supadmin['name'], $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, $image, '&nbsp;'));
 			}
 		}
 		$nadmins = $DB->query("SELECT a.*,u.name, u.usergroupid, u.membergroupids FROM " . TABLE_PREFIX . "administrator a LEFT JOIN " . TABLE_PREFIX . "user u ON (a.aid=u.id)");
-		if ($DB->num_rows($nadmins))
+		if ($DB->numRows($nadmins))
 		{
-			while ($nadmin = $DB->fetch_array($nadmins))
+			while ($nadmin = $DB->fetch($nadmins))
 			{
 				if ($nadmin['usergroupid'] != 4 AND !preg_match("/,4,/i", "," . $nadmin['membergroupids'] . ",") AND !preg_match("/," . $nadmin['id'] . ",/i", "," . SUPERADMIN . ","))
 				{
@@ -2011,7 +2011,7 @@ class user
 			}
 			if (is_array($del_ids))
 			{
-				$DB->delete(TABLE_PREFIX . 'administrator', $DB->sql_in('aid', $del_ids));
+				$DB->delete(TABLE_PREFIX . 'administrator', $DB->sql->in('aid', $del_ids));
 			}
 		}
 
@@ -2055,12 +2055,12 @@ class user
 			{
 				$forums->admin->print_cp_error($forums->lang['joinusererror']);
 			}
-			$checkjoinuser = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('joinuser') . "'");
+			$checkjoinuser = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('joinuser') . "'");
 			if (!$checkjoinuser['id'])
 			{
 				$forums->admin->print_cp_error($forums->lang['cannotfinduser']);
 			}
-			$checktojoin = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('tojoinuser') . "'");
+			$checktojoin = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE id='" . input::int('tojoinuser') . "'");
 			if (!$checktojoin['id'])
 			{
 				$forums->admin->print_cp_error($forums->lang['cannotfinduser']);
@@ -2074,26 +2074,26 @@ class user
 			{
 				$forums->admin->print_cp_error($forums->lang['cannotjoinadmin']);
 			}
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "adminlog SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "announcement SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
-			// $DB->query_unbuffered("UPDATE ".TABLE_PREFIX."blog SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
-			// $DB->query_unbuffered("UPDATE ".TABLE_PREFIX."blogcontents SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
-			// $DB->query_unbuffered("UPDATE ".TABLE_PREFIX."blogsearch SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "moderator SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "moderatorlog SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pm SET fromuserid={$checkjoinuser['id']} WHERE fromuserid = {$checktojoin['id']}");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pm SET touserid={$checkjoinuser['id']} WHERE touserid = {$checktojoin['id']}");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "pmtext SET fromuserid={$checkjoinuser['id']} WHERE fromuserid = {$checktojoin['id']}");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE fromuserid = {$checktojoin['id']}");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "post SET userid={$checkjoinuser['id']}, username='{$checkjoinuser['name']}' WHERE userid = {$checktojoin['id']}");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "session WHERE userid = {$checktojoin['id']}");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET postuserid={$checkjoinuser['id']}, postusername='{$checkjoinuser['name']}' WHERE postuserid = {$checktojoin['id']}");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "thread SET lastposterid={$checkjoinuser['id']}, lastposter='{$checkjoinuser['name']}' WHERE lastposterid = {$checktojoin['id']}");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid = {$checktojoin['id']}");
-			// $DB->query_unbuffered("DELETE FROM ".TABLE_PREFIX."userblog WHERE id = {$checktojoin['id']}");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "userextra WHERE id = {$checktojoin['id']}");
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET posts={$checkjoinuser['posts']}+{$checktojoin['posts']}, pmunread={$checkjoinuser['pmunread']}+{$checktojoin['pmunread']}, pmtotal={$checkjoinuser['pmtotal']}+{$checktojoin['pmtotal']}, quintessence={$checkjoinuser['quintessence']}+{$checktojoin['quintessence']}, bank={$checkjoinuser['bank']}+{$checktojoin['bank']} WHERE id = {$checkjoinuser['id']}");
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "user WHERE id = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "adminlog SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "announcement SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
+			// $DB->queryUnbuffered("UPDATE ".TABLE_PREFIX."blog SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
+			// $DB->queryUnbuffered("UPDATE ".TABLE_PREFIX."blogcontents SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
+			// $DB->queryUnbuffered("UPDATE ".TABLE_PREFIX."blogsearch SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "moderator SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "moderatorlog SET userid={$checkjoinuser['id']} WHERE userid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "pm SET fromuserid={$checkjoinuser['id']} WHERE fromuserid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "pm SET touserid={$checkjoinuser['id']} WHERE touserid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "pmtext SET fromuserid={$checkjoinuser['id']} WHERE fromuserid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE fromuserid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "post SET userid={$checkjoinuser['id']}, username='{$checkjoinuser['name']}' WHERE userid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "session WHERE userid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET postuserid={$checkjoinuser['id']}, postusername='{$checkjoinuser['name']}' WHERE postuserid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET lastposterid={$checkjoinuser['id']}, lastposter='{$checkjoinuser['name']}' WHERE lastposterid = {$checktojoin['id']}");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "useractivation WHERE userid = {$checktojoin['id']}");
+			// $DB->queryUnbuffered("DELETE FROM ".TABLE_PREFIX."userblog WHERE id = {$checktojoin['id']}");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "userextra WHERE id = {$checktojoin['id']}");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET posts={$checkjoinuser['posts']}+{$checktojoin['posts']}, pmunread={$checkjoinuser['pmunread']}+{$checktojoin['pmunread']}, pmtotal={$checkjoinuser['pmtotal']}+{$checktojoin['pmtotal']}, quintessence={$checkjoinuser['quintessence']}+{$checktojoin['quintessence']}, bank={$checkjoinuser['bank']}+{$checktojoin['bank']} WHERE id = {$checkjoinuser['id']}");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "user WHERE id = {$checktojoin['id']}");
 
 			$forums->admin->redirect("user.php?do=joinuser", $forums->lang['manageuser'], $forums->lang['userhasjoined']);
 		}
@@ -2123,13 +2123,13 @@ class user
 				$where2 = "LOWER(name)='" . strtolower($tojoinuser) . "' OR name='" . $tojoinuser . "'";
 			}
 
-			$checkjoinuser = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE $where1");
+			$checkjoinuser = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE $where1");
 			if (!$checkjoinuser['id'])
 			{
 				$forums->admin->print_cp_error($forums->lang['cannotfinduser']);
 			}
 
-			$checktojoin = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "user WHERE $where2");
+			$checktojoin = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "user WHERE $where2");
 			if (!$checktojoin['id'])
 			{
 				$forums->admin->print_cp_error($forums->lang['cannotfinduser']);

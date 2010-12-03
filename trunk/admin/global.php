@@ -106,14 +106,14 @@ else if (input::get('login', '') != 'yes')
 		$DB->query('SELECT *
 			FROM ' . TABLE_PREFIX . "adminsession
 			WHERE sessionhash='" . input::get('s', '') . "'");
-		$row = $DB->fetch_array();
+		$row = $DB->fetch();
 		if ($row['sessionhash'] == '' || $row['userid'] == '')
 		{
 			$forums->admin->print_cp_login();
 		}
 		else
 		{
-			$user = $DB->query_first('SELECT u.*, g.*
+			$user = $DB->queryFirst('SELECT u.*, g.*
 				FROM ' . TABLE_PREFIX . 'user u, ' . TABLE_PREFIX . 'usergroup g
 				WHERE id=' . intval($row['userid']) . '
 					AND u.usergroupid=g.usergroupid');
@@ -160,7 +160,7 @@ else
 	{
 		$forums->admin->print_cp_login($forums->lang['requirepassword']);
 	}
-	$user = $DB->query_first('SELECT u.*, g.*
+	$user = $DB->queryFirst('SELECT u.*, g.*
 		FROM ' . TABLE_PREFIX . 'user u, ' . TABLE_PREFIX . "usergroup g
 		WHERE u.name = " . $DB->validate($username) . "
 			AND u.usergroupid=g.usergroupid");
@@ -219,7 +219,7 @@ if (!$validate)
 		$admin = explode(',', SUPERADMIN);
 		if (!in_array($bbuserinfo['id'], $admin))
 		{
-			$forums->adminperms = $DB->query_first('SELECT *
+			$forums->adminperms = $DB->queryFirst('SELECT *
 				FROM ' . TABLE_PREFIX . 'administrator
 			WHERE aid = ' . $bbuserinfo['id']);
 		}

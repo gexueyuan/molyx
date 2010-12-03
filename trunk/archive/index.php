@@ -205,7 +205,7 @@ class archive
 				$query = "and postuserid=" . $bbuserinfo['id'];
 			}
 			$threads = $DB->query("SELECT * FROM " . TABLE_PREFIX . "thread WHERE visible=1 and forumid=$id $query ORDER BY sticky desc, lastpost desc LIMIT {$pp}, {$bboptions['maxthreads']}");
-			while ($thread = $DB->fetch_array($threads))
+			while ($thread = $DB->fetch($threads))
 			{
 				if ($thread['sticky'])
 				{
@@ -239,7 +239,7 @@ class archive
 		require_once(ROOT_PATH . "includes/class_textparse.php");
 		require_once (ROOT_PATH . "includes/functions_showthread.php");
 		$this->lib = new functions_showthread();
-		$thread = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "thread WHERE visible=1 and tid=$id");
+		$thread = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "thread WHERE visible=1 and tid=$id");
 		$this->forum = $forums->forum->single_forum($thread['forumid']);
 		if (!$thread['tid'] || !$this->forum['id'] || $this->check_permissions($thread['forumid'], 0, 'thread'))
 		{
@@ -271,7 +271,7 @@ class archive
 			$root = './../../';
 		}
 		$forums->func->check_cache('usergroup');
-		while ($post = $DB->fetch_array($posts))
+		while ($post = $DB->fetch($posts))
 		{
 			$post['dateline'] = $forums->func->get_date($post['dateline'], 2);
 			if ($post['anonymous'])

@@ -60,7 +60,7 @@ class cronadmin
 			$forums->main_msg = $forums->lang['noids'];
 			$this->show_crons();
 		}
-		$cron = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "cron WHERE cronid=" . input::int('id'));
+		$cron = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "cron WHERE cronid=" . input::int('id'));
 		if (! $cron['cronid'])
 		{
 			$forums->main_msg = $forums->lang['noids'];
@@ -96,7 +96,7 @@ class cronadmin
 			$forums->main_msg = $forums->lang['noids'];
 			$this->show_crons();
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "cron WHERE cronid=" . input::int('id') . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "cron WHERE cronid=" . input::int('id') . "");
 		$this->functions->save_next_run();
 		$forums->main_msg = $forums->lang['crondeleted'];
 		$this->show_crons();
@@ -156,7 +156,7 @@ class cronadmin
 		if ($type == 'edit')
 		{
 			$id = input::int('id');
-			$cron = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "cron WHERE cronid=" . $id . "");
+			$cron = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "cron WHERE cronid=" . $id . "");
 			$button = $forums->lang['doedited'];
 			$code = 'doeditcron';
 			$title = $forums->lang['editcron'] . ': ' . $cron['title'];
@@ -255,7 +255,7 @@ class cronadmin
 		$forums->admin->columns[] = array($forums->lang['option'], "25%");
 		$forums->admin->print_table_start($forums->lang['managecron']);
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "cron ORDER BY enabled, nextrun ASC");
-		while ($row = $DB->fetch_array())
+		while ($row = $DB->fetch())
 		{
 			$row['minute'] = $row['minute'] != '-1' ? $row['minute'] : '-';
 			$row['hour'] = $row['hour'] != '-1' ? $row['hour'] : '-';

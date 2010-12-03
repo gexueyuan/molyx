@@ -74,7 +74,7 @@ class attachment
 		$result = $DB->query('SELECT extension, mimetype, usepost, useavatar, attachimg
 			FROM ' . TABLE_PREFIX . 'attachmenttype
 			WHERE usepost = 1');
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$forums->cache['attachmenttype'][$r['extension']] = $r;
 		}
@@ -113,7 +113,7 @@ class attachment
 		}
 		if (input::str('authorname'))
 		{
-			$user = $DB->query_first("SELECT id FROM " . TABLE_PREFIX . "user WHERE LOWER(name) LIKE '%" . strtolower(input::str('authorname')) . "%' OR name LIKE '%" . input::str('authorname') . "%'");
+			$user = $DB->queryFirst("SELECT id FROM " . TABLE_PREFIX . "user WHERE LOWER(name) LIKE '%" . strtolower(input::str('authorname')) . "%' OR name LIKE '%" . input::str('authorname') . "%'");
 			$query[] = 'a.userid = ' . intval($user['id']);
 		}
 		if (input::str('onlyimage'))
@@ -124,7 +124,7 @@ class attachment
 		{
 			$queryfinal = 'AND ' . implode(" AND ", $query);
 		}
-		$count = $DB->query_first("SELECT count(*) as cnt FROM " . TABLE_PREFIX . "attachment a WHERE a.postid != 0 " . $queryfinal . "");
+		$count = $DB->queryFirst("SELECT count(*) as cnt FROM " . TABLE_PREFIX . "attachment a WHERE a.postid != 0 " . $queryfinal . "");
 		$links = $forums->func->build_pagelinks(array('totalpages' => $count['cnt'],
 				'perpage' => $show,
 				'curpage' => $first,
@@ -149,7 +149,7 @@ class attachment
 		$forums->admin->columns[] = array($forums->lang['uploadtime'], "20%");
 		$forums->admin->columns[] = array("<input name='allbox' type='checkbox' value='" . $forums->lang['selectall'] . "' onClick='CheckAll(document.mutliact);' />", "1%");
 		$forums->admin->print_table_start($forums->lang['attachment'] . ": " . $forums->lang['searchresult']);
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$r['title'] = strip_tags($r['title']);
 			$r['extension'] = strtolower($r['extension']);
@@ -227,7 +227,7 @@ class attachment
 											FROM " . TABLE_PREFIX . "attachment a
 											 LEFT JOIN " . TABLE_PREFIX . "post p ON (p.pid=a.postid)
 											WHERE a.attachmentid IN(" . implode(",", $ids) . ")");
-			while ($attachment = $DB->fetch_array($attachments))
+			while ($attachment = $DB->fetch($attachments))
 			{
 				if ($attachment['location'])
 				{
@@ -239,7 +239,7 @@ class attachment
 				}
 				$attach_tid[ $attachment['threadid'] ] = $attachment['threadid'];
 			}
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid IN(" . implode(",", $ids) . ")");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid IN(" . implode(",", $ids) . ")");
 			require_once(ROOT_PATH . 'includes/functions_post.php');
 			$postlib = new functions_post(0);
 			foreach($attach_tid AS $apid => $tid)
@@ -272,7 +272,7 @@ class attachment
 		global $forums, $DB, $bboptions;
 		$forums->cache['attachmenttype'] = array();
 		$DB->query("SELECT extension,mimetype,usepost,useavatar,attachimg FROM " . TABLE_PREFIX . "attachmenttype WHERE usepost=1");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$r['extension'] = strtolower($r['extension']);
 			$forums->cache['attachmenttype'][ $r['extension'] ] = $r;
@@ -280,7 +280,7 @@ class attachment
 		$forums->admin->columns[] = array("", "30%");
 		$forums->admin->columns[] = array("", "70%");
 		$forums->admin->print_table_start($forums->lang['attachment'] . ": " . $forums->lang['summary']);
-		$stats = $DB->query_first("SELECT count(*) as count, sum(filesize) as sum FROM " . TABLE_PREFIX . "attachment");
+		$stats = $DB->queryFirst("SELECT count(*) as count, sum(filesize) as sum FROM " . TABLE_PREFIX . "attachment");
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['attachnums'] . "</strong>" , fetch_number_format($stats['count'])));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['diskused'] . "</strong>", fetch_number_format($stats['sum'], true)));
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['attachaverage'] . "</strong>", $stats['count'] ? fetch_number_format(($stats['sum'] / $stats['count']), true) : '0 ' . $forums->lang['bytes']));
@@ -308,7 +308,7 @@ class attachment
 				WHERE a.postid != 0
 				ORDER BY a.dateline DESC
 				LIMIT 0, 5");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$r['title'] = strip_tags($r['title']);
 			$r['stitle'] = $forums->func->fetch_trimmed_title($r['title'], 15);
@@ -337,7 +337,7 @@ class attachment
 				WHERE a.postid != 0
 				ORDER BY a.filesize DESC
 				LIMIT 0, 5");
-		while ($r = $DB->fetch_array($attach))
+		while ($r = $DB->fetch($attach))
 		{
 			$r['stitle'] = $forums->func->fetch_trimmed_title($r['title'], 15);
 			$forums->admin->print_cells_row(array("<img src='../images/{$forums->cache['attachmenttype'][ $r['extension'] ]['attachimg']}' border='0' alt='' />" ,
@@ -365,7 +365,7 @@ class attachment
 				WHERE a.postid != 0
 				ORDER BY a.counter DESC
 				LIMIT 0, 5");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			$r['title'] = strip_tags($r['title']);
 			$r['stitle'] = $forums->func->fetch_trimmed_title($r['title'], 15);
@@ -414,7 +414,7 @@ class attachment
 		);
 		if ($type == 'add')
 		{
-			$attach = $DB->query_first('SELECT *
+			$attach = $DB->queryFirst('SELECT *
 				FROM ' . TABLE_PREFIX . "attachmenttype
 				WHERE extension = '{$save_array['extension']}'");
 			if ($attach['id'])
@@ -448,7 +448,7 @@ class attachment
 			$result = $DB->query('SELECT *
 				FROM ' . TABLE_PREFIX . 'attachmenttype
 				ORDER BY extension');
-			while ($r = $DB->fetch_array($result))
+			while ($r = $DB->fetch($result))
 			{
 				$selected = '';
 				if (input::int('istype') && $r['id'] == input::int('istype'))
@@ -464,7 +464,7 @@ class attachment
 		{
 			$code = 'doedit';
 			$title = $forums->lang['editattachtype'];
-			$attach = $DB->query_first('SELECT *
+			$attach = $DB->queryFirst('SELECT *
 				FROM ' . TABLE_PREFIX . 'attachmenttype
 				WHERE id=' . input::int('id'));
 
@@ -536,7 +536,7 @@ class attachment
 		$result = $DB->query('SELECT *
 			FROM ' . TABLE_PREFIX . 'attachmenttype
 			ORDER BY extension');
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$apost_checked = $r['usepost'] ? $checked_img : '&nbsp;';
 			$aphoto_checked = $r['useavatar'] ? $checked_img : '&nbsp;';

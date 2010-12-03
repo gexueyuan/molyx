@@ -106,7 +106,7 @@ if (function_exists('date_default_timezone_set'))
     date_default_timezone_set(date_default_timezone_get());
 }
 define('TIMENOW', isset($_SERVER['REQUEST_TIME']) ? (int) $_SERVER['REQUEST_TIME'] : time());
-define('TODAY', strtotime(date('Y-m-d 00:00:00', TIMENOW)));
+define('TODAY', strtotime('today'));
 
 // PHP 6 以后不需要再执行下面的操作
 if (PHP_VERSION < '6.0.0')
@@ -235,24 +235,8 @@ define('USER_AGENT', isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AG
 define('REFERRER', isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
 define('SUPERADMIN', $config['superadmin']);
 
-$DB = null;
-if (!defined('WITHOUT_DB') || !WITHOUT_DB)
-{
-	define('TABLE_PREFIX', $config['tableprefix']);
-	define('CACHE_TABLE', $config['tableprefix'] . 'cache');
-
-	$db_file = 'mysql';
-	if (in_array($config['dbtype'], array('mysqli', 'pdo')))
-	{
-		$db_file = $config['dbtype'];
-	}
-	require_once(ROOT_PATH . 'includes/db/db_base.php');
-	require_once(ROOT_PATH . 'includes/db/db_' . $db_file . '.php');
-
-	$DB = new db;
-	$DB->technicalemail = $config['technicalemail'];
-	$DB->connect($config['servername'], $config['dbusername'], $config['dbpassword'], $config['dbname']);
-}
+define('CACHE_TABLE', $config['prefix'] . 'cache');
+$DB = db::base($config);
 unset($config);
 
 if (!defined('USE_SHUTDOWN'))

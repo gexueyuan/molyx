@@ -40,7 +40,7 @@ class cron_bankloancheck
 				$lists[$v['tag']] = $v['name'];
 			}
 		}
-		while ($thisuser = $DB->fetch_array($overloanusers))
+		while ($thisuser = $DB->fetch($overloanusers))
 		{
 			$property = 0;
 			foreach ($lists as $tagname => $name)

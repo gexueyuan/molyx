@@ -75,9 +75,9 @@ class league
 		$linesite = true;
 
 		$leagues = $DB->query("SELECT * FROM " . TABLE_PREFIX . "league ORDER BY type, displayorder");
-		if ($DB->num_rows($leagues))
+		if ($DB->numRows($leagues))
 		{
-			while ($league = $DB->fetch_array($leagues))
+			while ($league = $DB->fetch($leagues))
 			{
 				if ($linesite AND $league['type'] == 0)
 				{
@@ -124,7 +124,7 @@ class league
 		{
 			$pagetitle = $forums->lang['editlague'];
 			$detail = $forums->lang['editlaguedesc'];
-			if (!input::get('id', '') OR !$league = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "league WHERE leagueid=" . $leagueid . ""))
+			if (!input::get('id', '') OR !$league = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "league WHERE leagueid=" . $leagueid . ""))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
@@ -192,7 +192,7 @@ class league
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "league WHERE leagueid=" . input::int('id') . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "league WHERE leagueid=" . input::int('id') . "");
 		$forums->func->recache('league');
 		$forums->admin->save_log($forums->lang['deletelague']);
 		$forums->admin->redirect("league.php", $forums->lang['manageleague'], $forums->lang['leaguedeleted']);
@@ -205,7 +205,7 @@ class league
 		if (!empty($order))
 		{
 			$leagues = $DB->query("SELECT leagueid,displayorder FROM " . TABLE_PREFIX . "league");
-			while ($league = $DB->fetch_array($leagues))
+			while ($league = $DB->fetch($leagues))
 			{
 				if (!isset($order[$league['leagueid']]))
 				{
@@ -214,7 +214,7 @@ class league
 				$displayorder = intval($order[$league['leagueid']]);
 				if ($league['displayorder'] != $displayorder)
 				{
-					$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "league SET displayorder = $displayorder WHERE leagueid = " . $league['leagueid'] . "");
+					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "league SET displayorder = $displayorder WHERE leagueid = " . $league['leagueid'] . "");
 				}
 			}
 		}

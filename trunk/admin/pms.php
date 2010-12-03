@@ -51,12 +51,12 @@ class pms
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		if (!$pm = $DB->query_first("SELECT p.*, pt.* FROM " . TABLE_PREFIX . "pm p LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid) WHERE p.pmid=" . input::get('id', '') . ""))
+		if (!$pm = $DB->queryFirst("SELECT p.*, pt.* FROM " . TABLE_PREFIX . "pm p LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid) WHERE p.pmid=" . input::get('id', '') . ""))
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE pmid=" . intval($pm['pmid']) . "");
-		$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE pmtextid=" . intval($pm['pmtextid']) . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pm WHERE pmid=" . intval($pm['pmid']) . "");
+		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "pmtext WHERE pmtextid=" . intval($pm['pmtextid']) . "");
 		$forums->admin->save_log($forums->lang['deletedpms']);
 		$forums->func->standard_redirect("pms.php?" . $forums->sessionurl);
 		exit();
@@ -75,14 +75,14 @@ class pms
 		$forums->admin->print_form_header(array(1 => array('do', 'newpm')));
 		$forums->admin->print_table_start($forums->lang['pmslist']);
 		$usergroups = $DB->query("SELECT usergroupid,grouptitle FROM " . TABLE_PREFIX . "usergroup");
-		while ($usergroup = $DB->fetch_array($usergroups))
+		while ($usergroup = $DB->fetch($usergroups))
 		{
 			$groups[ $usergroup['usergroupid'] ] = $usergroup;
 		}
 		$DB->query("SELECT p.* FROM " . TABLE_PREFIX . "pm p WHERE p.usergroupid != 0 ORDER BY dateline");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$sendgroup = explode(',', $r['usergroupid']);
 				foreach ($sendgroup AS $ids)
@@ -120,7 +120,7 @@ class pms
 		}
 		else
 		{
-			if (!$pm = $DB->query_first("SELECT p.*, pt.* FROM " . TABLE_PREFIX . "pm p LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid) WHERE p.pmid=" . input::get('id', '') . ""))
+			if (!$pm = $DB->queryFirst("SELECT p.*, pt.* FROM " . TABLE_PREFIX . "pm p LEFT JOIN " . TABLE_PREFIX . "pmtext pt ON (p.messageid=pt.pmtextid) WHERE p.pmid=" . input::get('id', '') . ""))
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
@@ -132,7 +132,7 @@ class pms
 		}
 		$user_group[] = array ('-1', $forums->lang['allmembers']);
 		$DB->query("SELECT usergroupid, grouptitle FROM " . TABLE_PREFIX . "usergroup ORDER BY grouptitle");
-		while ($r = $DB->fetch_array())
+		while ($r = $DB->fetch())
 		{
 			if ($r['usergroupid'] == 2 OR $r['usergroupid'] == 5)
 			{
@@ -175,24 +175,24 @@ class pms
 		{
 			if ($ids == -1)
 			{
-				$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread = pmunread+1 WHERE id != 0");
+				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread = pmunread+1 WHERE id != 0");
 				$skip = true;
 			}
 			$groupids[] = $ids;
 		}
 		if (!$skip)
 		{
-			$DB->query_unbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread = pmunread+1 WHERE usergroupid IN (" . implode(',', $groupids) . ")");
+			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "user SET pmunread = pmunread+1 WHERE usergroupid IN (" . implode(',', $groupids) . ")");
 		}
 		if (!input::get('id', ''))
 		{
-			$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "pmtext
+			$DB->queryUnbuffered("INSERT INTO " . TABLE_PREFIX . "pmtext
 								(dateline, message, deletedcount, savedcount)
 							VALUES
 								(" . TIMENOW . ", '" . $DB->validate($message) . "', 0, 1)"
 				);
-			$pmtextid = $DB->insert_id();
-			$DB->query_unbuffered("INSERT INTO " . TABLE_PREFIX . "pm
+			$pmtextid = $DB->insertId();
+			$DB->queryUnbuffered("INSERT INTO " . TABLE_PREFIX . "pm
 									(messageid, dateline, title, usergroupid,fromuserid)
 								VALUES
 									(" . $pmtextid . ", " . TIMENOW . ", '" . $title . "', '" . implode(',', input::get('usergroupid', '')) . "', " . intval($bbuserinfo['id']) . ")"

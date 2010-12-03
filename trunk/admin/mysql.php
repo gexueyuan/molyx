@@ -162,7 +162,7 @@ class mysql
 		echo $sql_header;
 		if ($tbl_name == '')
 		{
-			$tmp_tbl = $DB->get_table_names();
+			$tmp_tbl = $DB->getTableNames();
 			foreach($tmp_tbl as $tbl)
 			{
 				if ($this->onlymolyx)
@@ -219,7 +219,7 @@ class mysql
 			}
 
 			$result = $DB->query("SHOW CREATE TABLE `$tbl`");
-			$ctable = $DB->fetch_array($result);
+			$ctable = $DB->fetch($result);
 			$ctable = $ctable['Create Table'];
 			if ($this->advbackup)
 			{
@@ -233,7 +233,7 @@ class mysql
 				echo $this->dbsql;
 				echo $ctable . ";\n\n";
 			}
-			$DB->free_result($result);
+			$DB->freeResult($result);
 		}
 
 		if ($this->skip == 1)
@@ -253,10 +253,10 @@ class mysql
 		}
 		$querys = $DB->select($sql_array);
 
-		$row_num = $DB->num_rows($querys);
+		$row_num = $DB->numRows($querys);
 		if ($row_num < 1)
 		{
-			$DB->free_result($querys);
+			$DB->freeResult($querys);
 			return;
 		}
 		else if ($row_num < $limit)
@@ -264,7 +264,7 @@ class mysql
 			$this->noshow = true;
 		}
 		$db_key = '';
-		$fields = $DB->get_result_fields($querys);
+		$fields = $DB->fetchFields($querys);
 		$cnt = count($fields);
 		for($i = 0; $i < $cnt; $i++)
 		{
@@ -273,7 +273,7 @@ class mysql
 		$db_key = substr($db_key, 0, -2);
 		$row_lines = 0;
 
-		while ($row = $DB->fetch_array($querys))
+		while ($row = $DB->fetch($querys))
 		{
 			$row_lines++;
 			$db_value = '';
@@ -320,7 +320,7 @@ class mysql
 
 		if ($this->dbblocksize)
 		{
-			$DB->free_result($querys);
+			$DB->freeResult($querys);
 			if (strlen($this->dbsql) > ($this->dbblocksize * 1024))
 			{
 				$this->to_write();
@@ -353,7 +353,7 @@ class mysql
 			$this->backup_form();
 		}
 
-		$tmp_tbl = $DB->get_table_names();
+		$tmp_tbl = $DB->getTableNames();
 		$t = 0;
 		$this->step = input::get('step', 1);
 		foreach ($tmp_tbl as $tbl)
@@ -715,7 +715,7 @@ class mysql
 		$forums->admin->print_form_header(array(1 => array('do' , 'changepttable')), 'pttableform');
 		$tables = array();
 		$rs = $DB->query('SHOW TABLE STATUS FROM `' . $DB->database . '`');
-		while ($r = $DB->fetch_array($rs))
+		while ($r = $DB->fetch($rs))
 		{
 			if (!preg_match('/^' . TABLE_PREFIX . 'post/', $r['Name']))
 			{
@@ -727,7 +727,7 @@ class mysql
 		}
 
 		$result = $DB->query("SELECT * FROM " . TABLE_PREFIX . "splittable");
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			$desc = '&nbsp;';
 			if ($row['isdefaulttable'])
@@ -740,7 +740,7 @@ class mysql
 			}
 			$tablename = TABLE_PREFIX . $row['name'];
 			$data = date('Y-m-d H:i:s', $row['dateline']);
-			$records = $DB->query_first("SELECT count(*) as num FROM $tablename");
+			$records = $DB->queryFirst("SELECT count(*) as num FROM $tablename");
 			$forums->admin->print_cells_row(array(
 				'<center>' . $tablename . '</center>',
 				'<center>' . $records['num'] . '</center>',
@@ -779,7 +779,7 @@ class mysql
 
 		$splittable = array();
 		$result = $DB->query('SELECT * FROM ' . TABLE_PREFIX . "splittable");
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			$splittable[$row['id']] = TABLE_PREFIX . $row['name'];
 		}
@@ -1100,7 +1100,7 @@ class mysql
 								}
 							}
 						}
-						$DB->query_unbuffered($sql);
+						$DB->queryUnbuffered($sql);
 						$sql = '';
 					}
 					$line_number++;
@@ -1153,7 +1153,7 @@ class mysql
 		$nextid = 0;
 		$defaulttable = 'post';
 		$rs = $DB->query("SELECT * FROM " . TABLE_PREFIX . "splittable");
-		while ($row = $DB->fetch_array($rs))
+		while ($row = $DB->fetch($rs))
 		{
 			$id = intval(str_replace('post', '', $row['name']));
 			$nextid = $nextid < $id ? $id : $nextid;
@@ -1170,12 +1170,12 @@ class mysql
 			//判断表是否存在
 
 			$DB->query("SHOW TABLES LIKE '" . TABLE_PREFIX . "$tablename'");
-			if($DB->num_rows() > 0)
+			if($DB->numRows() > 0)
 			{
 				$forums->admin->print_cp_error(sprintf($forums->lang['createtableexist'], $tablename));
 			}
 			$result = $DB->query("SHOW CREATE TABLE " . TABLE_PREFIX . "post");
-			while ($row=$DB->fetch_array($result))
+			while ($row=$DB->fetch($result))
 			{
 				$createsql = $row['Create Table'];
 			}
@@ -1205,7 +1205,7 @@ class mysql
 			{
 				$forums->admin->print_cp_error($forums->lang['requireselectdeftable']);
 			}
-			$total = $DB->query_first("SELECT Max(pid) as maxpid, Min(pid) as minpid
+			$total = $DB->queryFirst("SELECT Max(pid) as maxpid, Min(pid) as minpid
 				FROM " . TABLE_PREFIX . $defaulttable);
 
 			$DB->update(TABLE_PREFIX . 'splittable', array('maxpid'=>intval($total['maxpid']), 'minpid'=>intval($total['minpid']), 'isempty'=>0, 'isdefaulttable'=>0), "name='$defaulttable'");
@@ -1240,18 +1240,18 @@ class mysql
 			$forums->admin->print_cp_error($forums->lang['tofromtablediff']);
 		}
 		$DB->query("SHOW TABLES LIKE '" . TABLE_PREFIX . "$fromtable'");
-		if($DB->num_rows() < 0)
+		if($DB->numRows() < 0)
 		{
 			$forums->admin->print_cp_error(sprintf($forums->lang['fromtablenotexist'], $fromtable));
 		}
 		$DB->query("SHOW TABLES LIKE '" . TABLE_PREFIX . "$totable'");
-		if($DB->num_rows() < 0)
+		if($DB->numRows() < 0)
 		{
 			$forums->admin->print_cp_error(sprintf($forums->lang['totablenotexist'], $totable));
 		}
 		$table_fields = $DB->query('SHOW COLUMNS FROM ' . TABLE_PREFIX . 'post');
 		$fields = array();
-		while ($row = $DB->fetch_array($table_fields))
+		while ($row = $DB->fetch($table_fields))
 		{
 			if ($row['Field'] == 'pid')
 			{
@@ -1293,7 +1293,7 @@ class mysql
 		}
 		$result = $DB->query("SELECT tid, title FROM " . TABLE_PREFIX . "thread WHERE tid > $start AND tid <= $end" . $ext_cond);
 		$output = $tids = array();
-		while ($row = $DB->fetch_array($result))
+		while ($row = $DB->fetch($result))
 		{
 			$tid = intval($row['tid']);
 			$tids[] = $tid;
@@ -1306,13 +1306,13 @@ class mysql
 		if ($tids)
 		{
 			$DB->query("INSERT INTO " . $totable . " (" . implode(',', $fields) . ") SELECT " . implode(',', $fields) . " FROM " . $fromtable . "  WHERE threadid IN (" . implode(",", $tids) . ")");
-			$DB->update(TABLE_PREFIX . 'thread', array('posttable'=>$uptotable), $DB->sql_in('tid', $tids));
-			$DB->delete($fromtable, $DB->sql_in('threadid', $tids));
+			$DB->update(TABLE_PREFIX . 'thread', array('posttable'=>$uptotable), $DB->sql->in('tid', $tids));
+			$DB->delete($fromtable, $DB->sql->in('threadid', $tids));
 		}
 		if (!$done && $end == $maxtid)
 		{
-			$tors = $DB->query_first("SELECT count(*) as num, Max(pid) as maxpid, Min(pid) as minpid FROM $totable");
-			$fromrs = $DB->query_first("SELECT count(*) as num, Max(pid) as maxpid, Min(pid) as minpid FROM $fromtable");
+			$tors = $DB->queryFirst("SELECT count(*) as num, Max(pid) as maxpid, Min(pid) as minpid FROM $totable");
+			$fromrs = $DB->queryFirst("SELECT count(*) as num, Max(pid) as maxpid, Min(pid) as minpid FROM $fromtable");
 			$fromupdate = array('maxpid'=>$fromrs['maxpid'], 'minpid'=>$fromrs['minpid']);
 			if ($fromrs['num']<=0)
 			{
@@ -1411,7 +1411,7 @@ class mysql
 		{
 			if (!preg_match('/LIMIT[ 0-9,]+$/i', $sql))
 			{
-				$rows_returned = $DB->num_rows();
+				$rows_returned = $DB->numRows();
 				if ($rows_returned > $limit)
 				{
 					$links = $forums->func->build_pagelinks(array(
@@ -1425,7 +1425,7 @@ class mysql
 				}
 			}
 		}
-		$fields = $DB->get_result_fields($result);
+		$fields = $DB->fetchFields($result);
 		$cnt = count($fields);
 		for($i = 0; $i < $cnt; $i++)
 		{
@@ -1436,7 +1436,7 @@ class mysql
 		{
 			$forums->admin->print_cells_single_row($links, 'left', 'tdrow2');
 		}
-		while ($r = $DB->fetch_array($result))
+		while ($r = $DB->fetch($result))
 		{
 			$rows = array();
 			for($i = 0; $i < $cnt; $i++)
@@ -1475,8 +1475,8 @@ class mysql
 		foreach($tables as $table)
 		{
 			$result = $DB->query(strtoupper(input::str('tool')) . " TABLE $table");
-			$fields = $DB->get_result_fields($result);
-			$data = $DB->fetch_array($result);
+			$fields = $DB->fetchFields($result);
+			$data = $DB->fetch($result);
 			$cnt = count($fields);
 			for($i = 0; $i < $cnt; $i++)
 			{
@@ -1518,7 +1518,7 @@ class mysql
 			$forums->admin->columns[] = array('<input name="allbox" type="checkbox" value="' . $forums->lang['selectall'] . '" onClick="CheckAll(document.mutliact);" />' , '10%');
 			$forums->admin->print_table_start($forums->lang['managesqltables']);
 			$result = $DB->query('SHOW TABLE STATUS FROM `' . $DB->database . '`');
-			while ($r = $DB->fetch_array($result))
+			while ($r = $DB->fetch($result))
 			{
 				if (!preg_match('/^' . TABLE_PREFIX . '/', $r['Name']))
 				{
@@ -1559,14 +1559,14 @@ class mysql
 			$forums->admin->columns[] = array($forums->lang['sqlrows'], "30%");
 			$forums->admin->columns[] = array('<input name="allbox" type="checkbox" value="' . $forums->lang['selectall'] . '" onClick="CheckAll(document.mutliact);" />' , "10%");
 			$forums->admin->print_table_start($forums->lang['managesqltables']);
-			$tables = $DB->get_table_names();
+			$tables = $DB->getTableNames();
 			foreach($tables as $tbl)
 			{
 				if (strpos($tbl, TABLE_PREFIX) !== 0)
 				{
 					continue;
 				}
-				$cnt = $DB->query_first("SELECT COUNT(*) AS Rows FROM $tbl");
+				$cnt = $DB->queryFirst("SELECT COUNT(*) AS Rows FROM $tbl");
 				$forums->admin->print_cells_row(array("<strong>$tbl</strong>",
 					"<center>{$cnt['Rows']}</center>",
 					"<center><input name='table[]' value='$tbl' type='checkbox' /></center>",

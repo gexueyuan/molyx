@@ -141,7 +141,7 @@ class hidefunc
 					if (!$hidecredit[$hideinfo['credit_type']])
 					{
 						$skip_hide = true;
-						$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "post SET hidepost = '' WHERE pid='" . $row['pid'] . "'");
+						$DB->update(TABLE_PREFIX . 'post', array('hidepost' => ''), 'pid=' . $DB->validate($row['pid']), SHUTDOWN_QUERY);
 					}
 					$hidestatus = sprintf($forums->lang['requirecredit'] , $condition , $hidecredit[$hideinfo['credit_type']]);
 					break;
@@ -173,7 +173,7 @@ class hidefunc
 					if (!$hidecredit[$hideinfo['credit_type']])
 					{
 						$skip_hide = true;
-						$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "post SET hidepost = '' WHERE pid='" . $row['pid'] . "'");
+						$DB->update(TABLE_PREFIX . 'post', array('hidepost' => ''), 'pid=' . $DB->validate($row['pid']), SHUTDOWN_QUERY);
 					}
 					$hidestatus = sprintf($forums->lang['requirecredit'] , $condition , $hidecredit[$hideinfo['credit_type']]);
 					break;
@@ -369,7 +369,7 @@ class hidefunc
 		{
 			if(!$forumid)
 			{
-				$forumid = $DB->query_first("SELECT f.id as forumid FROM ". TABLE_PREFIX . "post p
+				$forumid = $DB->queryFirst("SELECT f.id as forumid FROM ". TABLE_PREFIX . "post p
 					LEFT JOIN " . TABLE_PREFIX . "thread t ON p.threadid =t.tid
 					LEFT JOIN " . TABLE_PREFIX . "forum f ON t.forumid = f.id
 					WHERE p.pid = '".$postid."'");
@@ -397,7 +397,7 @@ class hidefunc
 		{
 			if(!in_array($conditions[0],$extracreditc))
 			{
-				$extracredit = $DB->query_first("SELECT id FROM ".TABLE_PREFIX."userexpand
+				$extracredit = $DB->queryFirst("SELECT id FROM ".TABLE_PREFIX."userexpand
 				WHERE id='".$bbuserinfo['id']."' AND ".$conditions[0]."");
 
 				$extracredits = $extracredit['id']?true:false;
@@ -419,7 +419,7 @@ class hidefunc
 			if(!in_array($conditions[1],$extracreditc))
 			{
 				$sendposttime = preg_replace('/^(posts)(<|>)([\d]+)$/i','\$postcount[\'postcount\']\\2\\3',$conditions[1]);
-				$postcount = $DB->query_first("SELECT count(*) AS postcount FROM ".TABLE_PREFIX."post
+				$postcount = $DB->queryFirst("SELECT count(*) AS postcount FROM ".TABLE_PREFIX."post
 				WHERE userid = '".$bbuserinfo['id']."'");
 
 				eval("\$sendposttimes = $sendposttime?true:false;");
@@ -440,7 +440,7 @@ class hidefunc
 			if(!in_array($conditions[2],$extracreditc))
 			{
 				$groupids = preg_replace('/-:::-/',',',$conditions[2]);
-				$usergroupid = $DB->query_first("SELECT id FROM ".TABLE_PREFIX."user
+				$usergroupid = $DB->queryFirst("SELECT id FROM ".TABLE_PREFIX."user
 				WHERE usergroupid  IN(".$groupids.") AND id = '".$bbuserinfo['id']."'");
 
 				$ingroups =  $usergroupid['id']?true:false;
@@ -460,7 +460,7 @@ class hidefunc
 		{
 			if(!in_array($conditions[3],$extracreditc))
 			{
-				$reply = $DB->query_first("SELECT count(pid) AS replycount FROM ".TABLE_PREFIX."post
+				$reply = $DB->queryFirst("SELECT count(pid) AS replycount FROM ".TABLE_PREFIX."post
 				WHERE threadid = '".$threadid."' AND  newthread = '0' AND  userid ='".$bbuserinfo['id']."'");
 
 				$replyeds = $reply['replycount']?true:false;
@@ -494,7 +494,7 @@ class hidefunc
 			}
 			else if($tid)
 			{
-				$hidetype = $DB->query_first("SELECT hidetype FROM ".TABLE_PREFIX."attachment WHERE tid = '".intval($tid)."'");
+				$hidetype = $DB->queryFirst("SELECT hidetype FROM ".TABLE_PREFIX."attachment WHERE tid = '".intval($tid)."'");
 				if(!empty($hidetype['hidetype']))
 				{
 					$conditions = explode(']::[',$hidetype['hidetype']);

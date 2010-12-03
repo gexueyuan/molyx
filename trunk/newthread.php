@@ -298,7 +298,7 @@ class newthread
 			'logtext' => '',
 		);
 		$DB->insert(TABLE_PREFIX . 'thread', $this->thread);
-		$this->post['threadid'] = $DB->insert_id();
+		$this->post['threadid'] = $DB->insertId();
 		$this->thread['tid'] = $this->post['threadid'];
 
 		$this->post['posthash'] = $this->posthash;
@@ -309,7 +309,7 @@ class newthread
 		$splittable = $forums->func->getposttable();
 		$posttable = $splittable['name'] ? $splittable['name'] : 'post';
 		$DB->insert(TABLE_PREFIX . $posttable, $this->post);
-		$this->post['pid'] = $DB->insert_id();
+		$this->post['pid'] = $DB->insertId();
 		$sql_array = array(
 			'firstpostid' => $this->post['pid'],
 			'lastpostid' => $this->post['pid'],

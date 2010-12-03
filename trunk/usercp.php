@@ -112,7 +112,7 @@ class usercp
 			$days = $days < 1 ? 1 : $days;
 			$info['daily_average'] = sprintf('%.2f', ($bbuserinfo['posts'] / $days));
 		}
-		$safe = $DB->query_first("SELECT answer, question FROM " . TABLE_PREFIX . "userextra WHERE id = {$bbuserinfo['id']}");
+		$safe = $DB->queryFirst("SELECT answer, question FROM " . TABLE_PREFIX . "userextra WHERE id = {$bbuserinfo['id']}");
 		if (!$safe['answer'])
 		{
 			$forums->lang['nosafedesc'] = preg_replace("#(.*)(^|\.php)#", '\\1\\2' . $forums->sessionurl, str_replace("?", '', $forums->lang['nosafedesc']));
@@ -123,10 +123,10 @@ class usercp
 						 LEFT JOIN " . TABLE_PREFIX . "user u ON ( p.fromuserid=u.id )
 						WHERE p.userid='" . $bbuserinfo['id'] . "' AND p.folderid=0 AND p.touserid='" . $bbuserinfo['id'] . "'  AND p.pmread=0
 						ORDER BY dateline DESC LIMIT 0, 5");
-		if ($DB->num_rows($pms))
+		if ($DB->numRows($pms))
 		{
 			$show['message'] = true;
-			while ($row = $DB->fetch_array($pms))
+			while ($row = $DB->fetch($pms))
 			{
 				if ($row['attach'])
 				{
@@ -149,7 +149,7 @@ class usercp
 				$show['thread'] = true;
 				$DB->query("SELECT * FROM " . TABLE_PREFIX . "thread WHERE tid IN (" . implode(",", $thread_array) . ") LIMIT 0, 5");
 				$thread = array();
-				while ($row = $DB->fetch_array())
+				while ($row = $DB->fetch())
 				{
 					if ($forums->forum->foruminfo[$row['forumid']])
 					{
@@ -161,10 +161,10 @@ class usercp
 		}
 		$forums->func->check_cache('attachmenttype');
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE userid='" . $bbuserinfo['id'] . "' ORDER BY dateline DESC LIMIT 0, 5");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$show['attachment'] = true;
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$row['method'] = $row['pmid'] ? 'msg' : 'post';
 				$row['image'] = $forums->cache['attachmenttype'][ strtolower($row['extension']) ]['attachimg'];
@@ -193,13 +193,13 @@ class usercp
 										LEFT JOIN " . TABLE_PREFIX . "thread t ON (t.tid=s.threadid)
 									WHERE s.userid='" . $bbuserinfo['id'] . "' " . $date_query . " ORDER BY s.subscribethreadid DESC
 								");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$show['subscribe'] = true;
 			$last_forumid = -1;
 			$this->threadread = $forums->func->get_cookie('threadread');
 			$this->read_array = unserialize($this->threadread);
-			while ($thread = $DB->fetch_array())
+			while ($thread = $DB->fetch())
 			{
 				$thread = $this->parse_data($thread);
 				$thread['description'] = empty($thread['description']) ? '' : $thread['description'] . ' | ';
@@ -231,10 +231,10 @@ class usercp
 				FROM " . TABLE_PREFIX . "subscribeforum s
 				 LEFT JOIN " . TABLE_PREFIX . "forum f ON (s.forumid=f.id)
 				WHERE s.userid='" . $bbuserinfo['id'] . "'");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$show['subscribe'] = true;
-			while ($forum = $DB->fetch_array())
+			while ($forum = $DB->fetch())
 			{
 				$forum['foldericon'] = $forums->forum->forums_new_post($forum);
 				$forum['lastpost'] = $forums->func->get_date($forum['lastpost'], 2);
@@ -286,7 +286,7 @@ class usercp
 		{
 			$forums->func->standard_error("noperms");
 		}
-		$safe = $DB->query_first("SELECT answer, question FROM " . TABLE_PREFIX . "userextra WHERE id = {$bbuserinfo['id']}");
+		$safe = $DB->queryFirst("SELECT answer, question FROM " . TABLE_PREFIX . "userextra WHERE id = {$bbuserinfo['id']}");
 		if (is_array($safe))
 		{
 			$bbuserinfo = @array_merge($safe, $bbuserinfo);
@@ -559,7 +559,7 @@ class usercp
 										  LEFT JOIN " . TABLE_PREFIX . "post p ON ( a.postid=p.pid )
 										 WHERE a.attachmentid IN (" . implode(",", $ids) . ")
 										 AND a.userid='" . $bbuserinfo['id'] . "'");
-			if ($attachment = $DB->fetch_array($attachments))
+			if ($attachment = $DB->fetch($attachments))
 			{
 				if ($attachment['location'])
 				{
@@ -571,13 +571,15 @@ class usercp
 				}
 				if ($attachment['threadid'])
 				{
-					$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "thread SET attach=attach-1 WHERE tid='" . $attachment['threadid'] . "'");
+					$DB->update(TABLE_PREFIX . "thread", array(
+						'attach' => array(1, '-')
+					), "tid='" . $attachment['threadid'] . "'", SHUTDOWN_QUERY);
 				}
 			}
-			$DB->query_unbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid IN (" . implode(",", $ids) . ") AND userid='" . $bbuserinfo['id'] . "'");
+			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid IN (" . implode(",", $ids) . ") AND userid='" . $bbuserinfo['id'] . "'");
 		}
 		$maxspace = intval($bbuserinfo['attachlimit']);
-		$stats = $DB->query_first("SELECT count(*) as count, sum(filesize) as sum FROM " . TABLE_PREFIX . "attachment WHERE userid='" . $bbuserinfo['id'] . "'");
+		$stats = $DB->queryFirst("SELECT count(*) as count, sum(filesize) as sum FROM " . TABLE_PREFIX . "attachment WHERE userid='" . $bbuserinfo['id'] . "'");
 		$info['used_space'] = fetch_number_format(intval($stats['sum']), true);
 		if ($maxspace > 0)
 		{
@@ -603,7 +605,7 @@ class usercp
 										 WHERE a.userid='" . $bbuserinfo['id'] . "'
 										 ORDER BY " . $sortby . "
 										 LIMIT " . $start . ", " . $perpage . "");
-		while ($row = $DB->fetch_array($posts))
+		while ($row = $DB->fetch($posts))
 		{
 			if ($forums->func->fetch_permissions($forums->forum->foruminfo[$row['forumid']]['canread'], 'canread') != true)
 			{
@@ -770,12 +772,12 @@ class usercp
 			$type = input::str('type');
 			if ($type == 'thread')
 			{
-				$DB->shutdown_query("DELETE FROM " . TABLE_PREFIX . "subscribethread WHERE userid='" . $bbuserinfo['id'] . "' AND subscribethreadid IN (" . implode(",", $ids) . ")");
+				$DB->delete(TABLE_PREFIX . "subscribethread", "userid='" . $bbuserinfo['id'] . "' AND subscribethreadid IN (" . implode(",", $ids) . ")", SHUTDOWN_QUERY);
 				$forums->func->standard_redirect("usercp.php{$forums->sessionurl}do=subscribethread");
 			}
 			if ($type == 'forum')
 			{
-				$DB->shutdown_query("DELETE FROM " . TABLE_PREFIX . "subscribeforum WHERE userid='" . $bbuserinfo['id'] . "' AND forumid IN (" . implode(",", $ids) . ")");
+				$DB->delete(TABLE_PREFIX . "subscribeforum", "userid='" . $bbuserinfo['id'] . "' AND forumid IN (" . implode(",", $ids) . ")", SHUTDOWN_QUERY);
 				$forums->func->standard_redirect("usercp.php{$forums->sessionurl}do=subscribeforum");
 			}
 		}
@@ -873,10 +875,10 @@ class usercp
 		}
 
 		$safes = $DB->query("SELECT answer, question FROM " . TABLE_PREFIX . "userextra WHERE id = {$bbuserinfo['id']}");
-		if ($DB->num_rows())
+		if ($DB->numRows())
 		{
 			$has_update = true;
-			$safe = $DB->fetch_array($safes);
+			$safe = $DB->fetch($safes);
 			$bbuserinfo = array_merge($safe, $bbuserinfo);
 		}
 
@@ -905,7 +907,10 @@ class usercp
 				{
 					$forums->func->standard_error("cannotsame");
 				}
-				$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "userextra SET question= '" . addslashes($userinfo['newquestion']) . "', answer= '" . addslashes($userinfo['newanswer']) . "' WHERE id='" . $bbuserinfo['id'] . "'");
+				$DB->update(TABLE_PREFIX . "userextra", array(
+					'question' => $userinfo['newquestion'],
+					'answer' => $userinfo['newanswer']
+				), "tid='" .  $bbuserinfo['id'] . "'", SHUTDOWN_QUERY);
 			}
 		}
 		else
@@ -922,11 +927,18 @@ class usercp
 				}
 				if ($has_update)
 				{
-					$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "userextra SET question= '" . addslashes($userinfo['question']) . "', answer= '" . addslashes($userinfo['answer']) . "' WHERE id='" . $bbuserinfo['id'] . "'");
+					$DB->update(TABLE_PREFIX . "userextra", array(
+						'question' => $userinfo['newquestion'],
+						'answer' => $userinfo['newanswer']
+					), "tid='" .  $bbuserinfo['id'] . "'", SHUTDOWN_QUERY);
 				}
 				else
 				{
-					$DB->shutdown_query("INSERT INTO " . TABLE_PREFIX . "userextra (id, question, answer) VALUES (" . $bbuserinfo['id'] . ", '" . addslashes($userinfo['question']) . "', '" . addslashes($userinfo['answer']) . "')");
+					$DB->insert(TABLE_PREFIX . "userextra", array(
+						'id' => $bbuserinfo['id'],
+						'question' => $userinfo['question'],
+						'answer' => $userinfo['answer']
+					), SHUTDOWN_QUERY);
 				}
 			}
 		}
@@ -1073,7 +1085,9 @@ class usercp
 			}
 		}
 
-		$DB->shutdown_query("UPDATE " . TABLE_PREFIX . "user SET signature = '" . addslashes($signature) . "' WHERE id=" . $bbuserinfo['id'] . "");
+		$DB->update(TABLE_PREFIX . "user", array(
+			'signature' => $signature,
+		), "tid='" .  $bbuserinfo['id'] . "'", SHUTDOWN_QUERY);
 		$forums->func->standard_redirect("usercp.php{$forums->sessionurl}do=editsignature");
 	}
 
@@ -1448,12 +1462,12 @@ class usercp
 			{
 				$forums->func->standard_error("erroremail");
 			}
-			if ($DB->query_first("SELECT id FROM " . TABLE_PREFIX . "user WHERE email='" . $email . "'"))
+			if ($DB->queryFirst("SELECT id FROM " . TABLE_PREFIX . "user WHERE email='" . $email . "'"))
 			{
 				$forums->func->standard_error("mailalreadyexist");
 			}
 			$DB->query("SELECT * FROM " . TABLE_PREFIX . "banfilter WHERE type='email'");
-			while ($r = $DB->fetch_array())
+			while ($r = $DB->fetch())
 			{
 				$banemail = $r['content'];
 				$banemail = preg_replace("/\*/", '.*' , $banemail);

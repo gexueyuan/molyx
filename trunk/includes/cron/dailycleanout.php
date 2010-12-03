@@ -26,14 +26,14 @@ class cron_dailycleanout
 				FROM ' . TABLE_PREFIX . 'subscribethread s, ' . TABLE_PREFIX . "thread t
 				WHERE t.tid = s.threadid
 					AND t.lastpost < '$time'");
-			while ($row = $DB->fetch_array($result))
+			while ($row = $DB->fetch($result))
 			{
 				$subscribethreadids[] = $row['subscribethreadid'];
 			}
 
 			if (count($subscribethreadids) > 0)
 			{
-				$DB->delete(TABLE_PREFIX . 'subscribethread', $DB->sql_in('subscribethreadid', $subscribethreadids));
+				$DB->delete(TABLE_PREFIX . 'subscribethread', $DB->sql->in('subscribethreadid', $subscribethreadids));
 			}
 		}
 		$this->class->cronlog($this->cron, $forums->lang['cleansubscribe']);

@@ -86,8 +86,8 @@ class search
 		$achive = array();
 		foreach ($tables as $id => $v)
 		{
-			$maxtid = $DB->query_first('SELECT MAX(threadid) AS tid FROM ' . TABLE_PREFIX . $v['name']);
-			$achive_time = $DB->query_first('SELECT dateline FROM ' . TABLE_PREFIX .'thread WHERE tid=' . intval($maxtid['tid']));
+			$maxtid = $DB->queryFirst('SELECT MAX(threadid) AS tid FROM ' . TABLE_PREFIX . $v['name']);
+			$achive_time = $DB->queryFirst('SELECT dateline FROM ' . TABLE_PREFIX .'thread WHERE tid=' . intval($maxtid['tid']));
 			if ($achive_time['dateline'])
 			{
 				$achive_time['table'] = $v['name'];
@@ -251,7 +251,7 @@ class search
 			}
 			//数据库查询
 			$DB->query($sql_query);
-			while ($row = $DB->fetch_array())
+			while ($row = $DB->fetch())
 			{
 				$user_string .= "'" . $row['id'] . "',";
 			}
@@ -395,7 +395,7 @@ class search
 		}
 		$uniqueid = md5(uniqid(microtime()));
 		$DB->query($query_to_cache . ' ORDER BY ' . $this->sortby . ' ' . $this->order . ' LIMIT 1');
-		$results = $DB->query_first(str_replace('*, title AS threadtitle', 'COUNT(*) as count', $query_to_cache) . ' ORDER BY ' . $this->sortby . ' ' . $this->order . ' LIMIT 1');
+		$results = $DB->queryFirst(str_replace('*, title AS threadtitle', 'COUNT(*) as count', $query_to_cache) . ' ORDER BY ' . $this->sortby . ' ' . $this->order . ' LIMIT 1');
 
 		//写入查询表中
 		$DB->insert(TABLE_PREFIX . 'search', array(
@@ -448,7 +448,7 @@ class search
 						AND forumid IN ($forumlist)
 						AND visible=1
 							" . $queryconds;
-		$results = $DB->query_first($sql);
+		$results = $DB->queryFirst($sql);
 		$query_to_cache = "SELECT *, title AS threadtitle,
 					MATCH( titletext ) AGAINST( '{$ft}' IN BOOLEAN MODE ) AS score
 					FROM " . TABLE_PREFIX . "thread
@@ -494,7 +494,7 @@ class search
 		{
 			$forums->func->standard_error("keywordtooshort", false, $bboptions['minsearchlength']);
 		}
-		$results = $DB->query_first("SELECT * FROM " . TABLE_PREFIX . "search WHERE searchid='" . $this->search->uniqueid . "'");
+		$results = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "search WHERE searchid='" . $this->search->uniqueid . "'");
 		if (!$results['query'])
 		{
 			$forums->func->standard_error("searchresulttimeout");
@@ -508,7 +508,7 @@ class search
 						FROM (" . $prequery . ") AS thread
 						WHERE MATCH( titletext ) AGAINST( '{$ft}' IN BOOLEAN MODE )
 							" . $queryconds;
-		$results = $DB->query_first($sql);
+		$results = $DB->queryFirst($sql);
 	 	$query_to_cache = "SELECT *, title AS threadtitle,
 					MATCH( titletext ) AGAINST( '{$ft}' IN BOOLEAN MODE ) AS score
 					FROM (" . $prequery . ") AS t

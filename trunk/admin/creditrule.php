@@ -32,7 +32,7 @@ class creditrule
 			break;
 			case 'edit':
 				$this->creditrule_form('edit');
-			break;	
+			break;
 			case 'delete':
 				$this->delete_creditrule();
 			break;
@@ -48,7 +48,7 @@ class creditrule
 	function creditrulelist()
 	{
 		global $forums, $DB;
-		
+
 		$pp = input::int('pp');
 		$pagetitle = $forums->lang['managecredit'];
 		$detail = $forums->lang['managecreditruledesc'];
@@ -57,7 +57,7 @@ class creditrule
 		$forums->admin->print_cp_header($pagetitle, $detail);
 		$forums->admin->print_form_header(array(1 => array('do' , 'add')));
 
-		$row = $DB->query_first('SELECT count(ruleid) as total FROM ' . TABLE_PREFIX . 'creditrule');
+		$row = $DB->queryFirst('SELECT count(ruleid) as total FROM ' . TABLE_PREFIX . 'creditrule');
 		$row_count = $row['total'];
 		$links = $forums->func->build_pagelinks(array('totalpages' => $row_count,
 			'perpage' => 10,
@@ -72,11 +72,11 @@ class creditrule
 		$forums->admin->columns[] = array($forums->lang['credit_rule_text'], '15%');
 		$forums->admin->columns[] = array($forums->lang['action'], '25%');
 		$forums->admin->print_table_start($pagetitle);
-		
+
 		$result = $DB->query('SELECT * FROM ' . TABLE_PREFIX . "creditrule order by grouptype Limit $pp, 10");
-		if ($DB->num_rows($result))
+		if ($DB->numRows($result))
 		{
-			while ($rule = $DB->fetch_array($result))
+			while ($rule = $DB->fetch($result))
 			{
 				switch ($rule['grouptype'])
 				{
@@ -106,7 +106,7 @@ class creditrule
 					"<center>" . $rule['rule_tag'] . "</center>",
 					"<center>" . $ruletype . "</center>",
 					"<center>" . $texttype . "</center>",
-					$rule['isdefault'] != 1?"<center><a href='creditrule.php?{$forums->sessionurl}do=edit&amp;id={$rule['ruleid']}'>{$forums->lang['edit']}</a> | 
+					$rule['isdefault'] != 1?"<center><a href='creditrule.php?{$forums->sessionurl}do=edit&amp;id={$rule['ruleid']}'>{$forums->lang['edit']}</a> |
 					<a href='creditrule.php?{$forums->sessionurl}do=delete&amp;id={$rule['ruleid']}'>{$forums->lang['delete']}</a></center>":'&nbsp;',
 				));
 			}
@@ -115,7 +115,7 @@ class creditrule
 		{
 			$forums->admin->print_cells_single_row("<strong>{$forums->lang['no_any_creditrules']}</strong>", 'center');
 		}
-		
+
 		$forums->admin->print_form_submit($forums->lang['add_new_creditrule']);
 		$forums->admin->print_table_footer();
 		$forums->admin->print_form_end();
@@ -133,7 +133,7 @@ class creditrule
 			{
 				$forums->admin->print_cp_error($forums->lang['noids']);
 			}
-			$rule = $DB->query_first("SELECT *
+			$rule = $DB->queryFirst("SELECT *
 				FROM " . TABLE_PREFIX . "creditrule
 				WHERE ruleid = $id");
 			if (!$rule['ruleid'])
@@ -151,7 +151,7 @@ class creditrule
 		$forums->admin->nav[] = array('creditrule.php' , $forums->lang['creditrulelist']);
 		$forums->admin->print_cp_header($pagetitle);
 		$forums->admin->print_form_header(array(
-			1 => array('do' , 'doedit'), 
+			1 => array('do' , 'doedit'),
 			2 => array('id', $rule['ruleid']),
 			3 => array('grouptype', $rule['grouptype']?$rule['grouptype']:input::get('grouptype', '')),
 		));
@@ -166,7 +166,7 @@ class creditrule
 	    $extra = $type == "edit"?'disabled="disabled"':'';
 		$rulejs = "$extra onchange=\"document.cpform['do'].value ='changetype';this.form.submit();\"";
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_rule_group']}</strong>", $forums->admin->print_input_select_row('grouptype', $rulegroup, input::get('grouptype', $rule['grouptype']), $rulejs)));
-		
+
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_rule_name']}</strong>", $forums->admin->print_input_row('rule_name', input::get('rule_name', $rule['rule_name']))));
 
 		$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_tag_name']}</strong><div class='description'>{$forums->lang['credit_tag_name_desc']}</div>", $rule['rule_tag'] ? $rule['rule_tag'] : $forums->admin->print_input_row('rule_tag', input::get('rule_tag', ''))));
@@ -175,13 +175,13 @@ class creditrule
 		{
 			$normalrule = $existrule = array();
 			$DB->query("SELECT action_tag FROM " . TABLE_PREFIX . "creditrule WHERE grouptype = 'revise'");
-			while($row = $DB->fetch_array())
+			while($row = $DB->fetch())
 			{
 				$existrule[] = $row['action_tag'];
 			}
-			$DB->query("SELECT * FROM " . TABLE_PREFIX . "creditrule 
+			$DB->query("SELECT * FROM " . TABLE_PREFIX . "creditrule
 			  WHERE texttype = 'fixvalue' and grouptype != 'revise' and grouptype != 'global'");
-			while($row = $DB->fetch_array())
+			while($row = $DB->fetch())
 			{
 				if (!in_array($row['rule_tag'], $existrule)) $normalrule[] = array($row['rule_tag'],$row['rule_name']);
 			}
@@ -193,7 +193,7 @@ class creditrule
 		    	1=>array('rangevalue',$forums->lang['credit_rangevalue']),
 			);
 			$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_rule_text']}</strong>", $forums->admin->print_input_select_row('texttype', $ruletext, input::get('texttype', $rule['texttype']))));
-			
+
 			$forums->admin->print_cells_row(array("<strong>{$forums->lang['credit_rule_desction']}</strong>", $forums->admin->print_textarea_row('description', $rule['description'])));
 		}
 		$forums->admin->print_form_submit($button);
@@ -214,7 +214,7 @@ class creditrule
 		}
 		if ($id)
 		{
-			$rule = $DB->query_first('SELECT *
+			$rule = $DB->queryFirst('SELECT *
 				FROM ' . TABLE_PREFIX . "creditrule
 				WHERE ruleid = $id");
 			if (!$rule['ruleid'])
@@ -228,7 +228,7 @@ class creditrule
 			{
 				$forums->admin->print_cp_error($forums->lang['only_letter_num']);
 			}
-			$rule = $DB->query_first('SELECT ruleid
+			$rule = $DB->queryFirst('SELECT ruleid
 				FROM ' . TABLE_PREFIX . "creditrule
 				WHERE rule_tag = '". input::get('rule_tag', '') . "'");
 			if ($rule['ruleid'] > 0)
@@ -236,7 +236,7 @@ class creditrule
 				$forums->admin->print_cp_error($forums->lang['key_already_used']);
 			}
 		}
-		
+
 		$sql_array = array(
 			'rule_name' => input::get('rule_name', ''),
 			'description' => convert_andstr(trim(input::str('description'))),
@@ -254,13 +254,13 @@ class creditrule
 		{
 			$sql_array['rule_tag'] = input::get('rule_tag', '');
 			$DB->insert(TABLE_PREFIX . 'creditrule', $sql_array);
-			$id = $DB->insert_id();
+			$id = $DB->insertId();
 			$type = 'added';
 		}
 		$forums->func->recache('creditrule');
 		$forums->admin->redirect("creditrule.php", $forums->lang['creditrule_' . $type], $forums->lang['creditrule_' . $type]);
 	}
-	
+
 	function delete_creditrule()
 	{
 		global $forums, $DB;
@@ -272,7 +272,7 @@ class creditrule
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$rule = $DB->query_first('SELECT *
+		$rule = $DB->queryFirst('SELECT *
 			FROM ' . TABLE_PREFIX . "creditrule
 			WHERE ruleid = $id");
 		if (!$rule['ruleid'])

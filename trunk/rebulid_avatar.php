@@ -44,7 +44,7 @@ $q = $DB->query($sql);
 $i = 0;
 $old_avatar_dir = $bboptions['uploadfolder'] . '/avatar';
 $default_avatar_dir = ROOT_PATH . 'images/avatars';
-while ($r = $DB->fetch_array($q))
+while ($r = $DB->fetch($q))
 {
 	$path = split_todir($r['id'], $bboptions['uploadfolder'] . '/user');
 	checkdir($path[0]);
@@ -89,7 +89,7 @@ while ($r = $DB->fetch_array($q))
 	echo $r['name'] . '头像更新完毕<br />';
 }
 $end = $pp + $offset;
-if($DB->num_rows($q))
+if($DB->numRows($q))
 {
 	echo "<meta http-equiv=\"refresh\" content=\"0;URL=?pp=".intval($end)."&amp;offset={$offset}\">";
 }
