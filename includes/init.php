@@ -59,21 +59,6 @@ if (!defined('DEVELOPER_MODE'))
 }
 else if (DEVELOPER_MODE)
 {
-	/**
-	 * 获得两次执行之间代码的运行时间
-	 */
-	function runtime()
-	{
-		static $starttime = 0;
-		if ($starttime === 0)
-		{
-			$starttime = microtime(true);
-			return;
-		}
-		printf('%6fs', microtime(true) - $starttime);
-		$starttime = 0;
-	}
-
 	$base_memory_usage = memory_get_usage();
 }
 
@@ -85,15 +70,12 @@ if (defined('DISPLAY_ERRORS') && DISPLAY_ERRORS)
 	//{
 	//	@ini_set('display_errors', 1);
 	//}
-	if (!defined('E_DEPRECATED'))
-	{
-		define('E_DEPRECATED', 8192);
-	}
+
 	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
 
 	require_once(ROOT_PATH . 'includes/error/error_handler.php');
 	$error_handler = new error_handler();
-	set_error_handler(array(&$error_handler, 'handler'));
+	set_error_handler(array($error_handler, 'handler'));
 }
 else
 {
