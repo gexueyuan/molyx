@@ -18,10 +18,7 @@ echo "\n<strong>Error Message:</strong> " . $errstr;
 echo "\n";
 echo '<strong>File:</strong> ';
 echo $errfile;
-if (self::$debug)
-{
-	echo ' (<a onmouseout="this.style.color=\'#007700\'" onmouseover="this.style.color=\'#FF6600\'" style="color: #007700; text-decoration: none;" target="_blank" href="' . ROOT_PATH . 'showsource.php?file=' . urlencode($errfile) . '&line=' . $errline . '"> Line: ' . $errline . '</a>) ';
-}
+echo ' ( Line: ' . $errline . ') ';
 echo "\n\n";
 
 $count_trace = count($trace);
@@ -126,14 +123,7 @@ if ($count_trace)
 		}
 
 		echo '<span id="file' . $k . '" style="display: none; color: gray;">';
-		if ($v['file'] != 'Unknown' && $v['line'] != 'Unknown')
-		{
-			echo 'File: <a onmouseout="this.style.color=\'#007700\'" onmouseover="this.style.color=\'#FF6600\'" style="color: #007700; text-decoration: none;" target="_blank" href="' . ROOT_PATH . 'showsource.php?file=' . urlencode($v['file']) . '&line=' . $v['line'] . '">' . basename($v['file']) . '</a>';
-		}
-		else
-		{
-			echo 'File: <span style="color: #007700">' . basename($v['file']) . '</span>';
-		}
+		echo 'File: <span style="color: #007700">' . basename($v['file']) . '</span>';
 		echo "\n";
 		echo 'Line: <span style="color: #007700">' . $v['line'] . '</span>' . "\n";
 		echo 'Path:  <span style="color: #007700">' . dirname($v['file']) . '</span>';
