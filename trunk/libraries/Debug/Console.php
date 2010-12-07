@@ -15,39 +15,8 @@
  * 修改自 debugConsole 1.3 <http://www.debugconsole.de>
  * 原作者 Andreas Demmer <info@debugconsole.de>
  */
-
-$_debugConsoleConfig = array();
-
-/**
- * focus debugConsole at end of debug-run
- */
-$_debugConsoleConfig['focus'] = true;
-
-/**
- * logfile configuration
- */
-$_debugConsoleConfig['logfile'] = array(
-	'enable' => false,
-	'path' => ROOT_DIR,
-	'filename' => 'log.txt',
-	'disablePopup' => false
-);
-
-/**
- * popup dimensions in px
- */
-$_debugConsoleConfig['dimensions'] = array(
-	'width' => 300,
-	'height' => 525
-);
-
 class Debug_Console
 {
-	/**
-	 * events which are shown in debug console
-	 */
-	protected $filters;
-
 	/**
 	 * all watched variables with their current content
 	 */
@@ -57,11 +26,6 @@ class Debug_Console
 	 * debugConsole configuration values
 	 */
 	protected $config;
-
-	/**
-	 * URL where template can be found
-	 */
-	protected $template;
 
 	/**
 	 * javascripts to control popup
@@ -74,11 +38,6 @@ class Debug_Console
 	protected $html;
 
 	/**
-	 * time of debugrun start in milliseconds
-	 */
-	protected $starttime;
-
-	/**
 	 * time of timer start in milliseconds
 	 */
 	protected $timers;
@@ -87,12 +46,28 @@ class Debug_Console
 	/**
 	 * constructor, opens popup window
 	 */
-	public function __construct()
+	public function __construct($log)
 	{
-		/* initialize class vars */
-		$this->starttime = STARTTIME;
 		$this->watches = array();
-		$this->config = $GLOBALS['_debugConsoleConfig'];
+
+		$this->config = array(
+			// focus debugConsole at end of debug-run
+			'focus' => true,
+
+			// logfile configuration
+			'logfile' => array(
+				'enable' => !empty($log),
+				'filename' => $log,
+				'disablePopup' => false
+			),
+
+			// popup dimensions in px
+			'dimensions' => array(
+				'width' => 300,
+				'height' => 525
+			),
+		);
+
 		$this->html = array(
 			'header' => '
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
@@ -193,15 +168,8 @@ class Debug_Console
 			'focus' => 'debugConsole.focus()'
 		);
 
-		/* replace PHP's errorhandler */
-		set_error_handler(array(
-			$this, 'errorHandlerCallback'
-		));
-
 		/* open popup */
-		$popupOptions = "', 'debugConsole', 'width=" . $this->config['dimensions']['width'] . ",height=" . $this->config['dimensions']['height'] . ',scrollbars=yes';
-
-		$this->sendCommand('openPopup', $popupOptions);
+		$this->sendCommand('openPopup', "', 'debugConsole', 'width=" . $this->config['dimensions']['width'] . ",height=" . $this->config['dimensions']['height'] . ',scrollbars=yes');
 		$this->sendCommand('write', $this->html['header']);
 
 		$this->startDebugRun();
@@ -212,7 +180,7 @@ class Debug_Console
 	 */
 	public function __destruct()
 	{
-		$runtime = $this->getMicrotime() - $this->starttime;
+		$runtime = microtime(true) - STARTTIME;
 		$runtime = number_format((float) $runtime, 4, '.', NULL);
 
 		$info = '<p class="runtime">This debug-run took ' . $runtime . ' seconds to complete.</p>';
@@ -249,7 +217,7 @@ class Debug_Console
 	 * debugConsole with additional information where the
 	 * changes happened.
 	 */
-	public function watchVariable($variableName)
+	public function watchVariable($variable_name)
 	{
 		if (count($this->watches) === 0)
 		{
@@ -258,14 +226,16 @@ class Debug_Console
 			));
 		}
 
-		if (isset($GLOBALS[$variableName]))
+		if (isset($GLOBALS[$variable_name]))
 		{
-			$this->watches[$variableName] = $GLOBALS[$variableName];
+			$this->watches[$variable_name] = $GLOBALS[$variable_name];
 		}
 		else
 		{
-			$this->watches[$variableName] = NULL;
+			$this->watches[$variable_name] = NULL;
 		}
+
+		return "global \${$variable_name};";
 	}
 
 	/**
@@ -273,19 +243,19 @@ class Debug_Console
 	 */
 	public function watchesCallback()
 	{
-		foreach ($this->watches as $variableName => $variableValue)
+		foreach ($this->watches as $name => $value)
 		{
-			if (isset($GLOBALS[$variableName]) && ($GLOBALS[$variableName] !== $this->watches[$variableName]))
+			if (isset($GLOBALS[$name]) && ($GLOBALS[$name] !== $this->watches[$name]))
 			{
-				$info = '<p class="watch"><strong>$' . $variableName;
+				$info = '<p class="watch"><strong>$' . $name;
 				$info .= '</strong> changed from "';
-				$info .= $this->watches[$variableName];
-				$info .= '" (' . gettype($this->watches[$variableName]) . ')';
-				$info .= ' to "' . $GLOBALS[$variableName] . '" (';
-				$info .= gettype($GLOBALS[$variableName]) . ')';
+				$info .= $this->watches[$name];
+				$info .= '" (' . gettype($this->watches[$name]) . ')';
+				$info .= ' to "' . $GLOBALS[$name] . '" (';
+				$info .= gettype($GLOBALS[$name]) . ')';
 				$info .= $this->getTraceback() . '</p>';
 
-				$this->watches[$variableName] = $GLOBALS[$variableName];
+				$this->watches[$name] = $GLOBALS[$name];
 				$this->sendCommand('write', $info);
 			}
 		}
@@ -314,8 +284,7 @@ class Debug_Console
 			$command = $this->javascripts[$command] . ';';
 		}
 
-		$command = str_replace("\n\r", NULL, $command);
-		$command = str_replace("\n", NULL, $command);
+		$command = str_replace(array("\r", "\n"), '', $command);
 
 		if (!$this->config['logfile']['disablePopup'])
 		{
@@ -337,25 +306,21 @@ class Debug_Console
 	{
 		if ($this->config['logfile']['enable'])
 		{
-			$logfile = $this->config['logfile']['path'] . $this->config['logfile']['filename'];
 			/* log only useful entries, no html header and footer */
-			if ($command === 'write' && !strpos($value, '<html>') && !strpos($value, '</html>'))
+			if ($command === 'write' && strpos($value, '<html>') === false && strpos($value, '</html>') === false)
 			{
 				/* convert html to text */
 				$value = html_entity_decode($value);
 				$value = str_replace('>', '> ', $value);
 				$value = strip_tags($value);
-
-				$fp = fopen($logfile, 'a+');
-				fputs($fp, $value . "\n\n");
-				fclose($fp);
+				$value .= "\n\n";
 			}
-			elseif (strpos($value, '</html>'))
+			elseif (strpos($value, '</html>') !== false)
 			{
-				$fp = fopen($logfile, 'a+');
-				fputs($fp, "-----------\n");
-				fclose($fp);
+				$value = "-----------\n";
 			}
+
+			file_put_contents($this->config['logfile']['filename'], $value, FILE_APPEND);
 		}
 	}
 
@@ -377,17 +342,6 @@ class Debug_Console
 	}
 
 	/**
-	 * returns microtime as float value
-	 *
-	 * @return float
-	 */
-	protected function getMicrotime()
-	{
-		return microtime(true);
-	}
-
-
-	/**
 	 * show debug info for variable in debugConsole,
 	 * added by custom text for documentation and hints
 	 *
@@ -399,7 +353,7 @@ class Debug_Console
 		@ob_start();
 
 		/* grab current ob content */
-		$obContents = ob_get_clean();
+		$content = ob_get_clean();
 		ob_clean();
 
 		/* grap var dump from ob */
@@ -408,23 +362,23 @@ class Debug_Console
 		ob_end_clean();
 
 		/* restore previous ob content */
-		if (!empty($obContents))
+		if (!empty($content))
 		{
-			echo $obContents;
+			echo $content;
 		}
 
 		/* render debug */
-		$variableDebug = htmlspecialchars($variableDebug);
+		$variable_debug = htmlspecialchars($variable_debug);
 		$infos = '<p class="dump">' . $text . '<br />';
 
 		if (is_array($variable))
 		{
-			$variableDebug = str_replace(' ', '&nbsp;', $variableDebug);
-			$infos .= '<span class="source">' . $variableDebug . '</span>';
+			$variable_debug = str_replace(' ', '&nbsp;', $variable_debug);
+			$infos .= '<span class="source">' . $variable_debug . '</span>';
 		}
 		else
 		{
-			$infos .= '<strong>' . $variableDebug . '</strong>';
+			$infos .= '<strong>' . $variable_debug . '</strong>';
 		}
 
 		$infos .= $this->getTraceback() . '</p>';
@@ -436,36 +390,46 @@ class Debug_Console
 	 *
 	 * @TODO implement more errorlevels
 	 */
-	public function errorHandlerCallback()
+	public function errorHandlerCallback($errno, $errstr, $errfile, $errline)
 	{
-		$details = func_get_args();
-		$details[1] = str_replace("'", '"', $details[1]);
-		$details[1] = str_replace('href="function.', 'target="_blank" href="http://www.php.net/', $details[1]);
-
-		/* determine error level */
-		switch ($details[0])
+		if (!($errno & error_reporting()))
 		{
-			case 2 :
-				$errorlevel = 'warning';
-			break;
-
-			case 8 :
-				$errorlevel = 'notice';
-			break;
-
-			case 2048 :
-				$errorlevel = 'suggestion';
-			break;
+			return;
 		}
 
-		$fullTraceback = $details[2] . ' on line ' . $details[3];
-		$file = $this->cropScriptPath($details[2]);
+		static $errtype = array (
+			1 => array('Error', 'E_ERROR'),
+			2 => array('Warning', 'E_WARNING'),
+			4 => array('Error', 'E_PARSE'),
+			8 => array('Notice', 'E_NOTICE'),
+			16 => array('Error', 'E_CORE_ERROR'),
+			32 => array('Error', 'E_CORE_WARNING'),
+			64 => array('Error', 'E_COMPILE_ERROR'),
+			128 => array('Error', 'E_COMPILE_WARNING'),
+			256 => array('Error', 'E_USER_ERROR'),
+			512 => array('Warning', 'E_USER_WARNING'),
+			1024 => array('Notice', 'E_USER_NOTICE'),
+			2047 => array('Error', 'E_ALL'),
+			2048 => array('Suggestion', 'E_STRICT'),
+			8192 => array('Deprecated', 'E_DEPRECATED'),
+			16384 => array('Deprecated', 'E_USER_DEPRECATED'),
+		);
+
+//		$errstr = str_replace("'", '"', $errstr);
+//		$errstr = str_replace('href="function.', 'target="_blank" href="http://www.php.net/', $errstr);
+
+		/* determine error level */
+
+		$errorlevel = $errtype[0];
+
+		$full_path = $errfile . ' on line ' . $errline;
+		$file = $this->cropScriptPath($errfile);
 
 		$infos = '<p class="' . $errorlevel . '"><strong>';
-		$infos .= 'PHP ' . strtoupper($errorlevel) . '</strong>';
-		$infos .= $details[1] . '<br /><acronym class="backtrace" title="' . $fullTraceback . '">';
+		$infos .= 'PHP ' . $errorlevel . '</strong>';
+		$infos .= $errstr . '<br /><acronym class="backtrace" title="' . $full_path . '">';
 		$infos .= $file . ' on line ';
-		$infos .= $details[3] . '</span></p>';
+		$infos .= $errline . '</span></p>';
 
 		$this->sendCommand('write', $infos);
 	}
@@ -478,7 +442,8 @@ class Debug_Console
 		$handler = $this->timer_count++;
 
 		$this->timers[$handler] = array(
-			'starttime' => $this->getMicrotime(), 'comment' => $comment
+			'starttime' => microtime(true),
+			'comment' => $comment
 		);
 
 		return $handler;
@@ -497,7 +462,7 @@ class Debug_Console
 		if (isset($this->timers[$handler]))
 		{
 			$exists = true;
-			$timespan = $this->getMicrotime() - $this->timers[$handler]['starttime'];
+			$timespan = microtime(true) - $this->timers[$handler]['starttime'];
 
 			$info = '<p class="timer"><strong>' . $this->timers[$handler]['comment'];
 			$info .= '</strong><br />The timer ran ';
@@ -521,20 +486,15 @@ class Debug_Console
 	 */
 	public function getTraceback()
 	{
-		$callStack = debug_backtrace();
+		$trace = debug_backtrace();
 
-		$debugConsoleFiles = array(
-			'Console.php', 'debug.php'
-		);
-
-		$call = array(
-			'file' => 'Console.php'
-		);
-
-		while (in_array(basename($call['file']), $debugConsoleFiles))
+		do
 		{
-			$call = array_shift($callStack);
+			$call = array_shift($trace);
 		}
+		while (in_array(basename($call['file']), array(
+			'Console.php', 'debug.php'
+		)));
 
 		$fullTraceback = $call['file'] . ' on line ' . $call['line'];
 		$call['file'] = $this->cropScriptPath($call['file']);
