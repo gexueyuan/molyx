@@ -62,6 +62,7 @@ else if (DEVELOPER_MODE)
 	$base_memory_usage = memory_get_usage();
 }
 
+$display_error = 0;
 if (defined('DISPLAY_ERRORS') && DISPLAY_ERRORS)
 {
 	// 如果打开 DISPLAY_ERRORS 后不显示错误信息可以去掉下面三行的注释符
@@ -71,16 +72,10 @@ if (defined('DISPLAY_ERRORS') && DISPLAY_ERRORS)
 	//	@ini_set('display_errors', 1);
 	//}
 
-	error_reporting(E_ALL ^ E_NOTICE ^ E_DEPRECATED);
-
-	require_once(ROOT_PATH . 'includes/error/error_handler.php');
-	$error_handler = new error_handler();
-	set_error_handler(array($error_handler, 'handler'));
+	$display_error = DEVELOPER_MODE ? E_ALL : E_ALL ^ E_NOTICE ^ E_DEPRECATED;
+	set_error_handler(array('debug', 'handler'));
 }
-else
-{
-	error_reporting(0);
-}
+error_reporting($display_error);
 
 // 防止 PHP 5.1.x 使用时间函数报错
 if (function_exists('date_default_timezone_set'))
@@ -93,10 +88,10 @@ define('TODAY', strtotime('today'));
 // PHP 6 以后不需要再执行下面的操作
 if (PHP_VERSION < '6.0.0')
 {
-//	if (version_compare(PHP_VERSION, '5.3.0', '<'))
-//	{
-//		@set_magic_quotes_runtime(0);
-//	}
+	//if (function_exists('ini_set') && @ini_get('magic_quotes_runtime'))
+	//{
+	//	@ini_set('magic_quotes_runtime', 0);
+	//}
 
 	// 删除全局注册的变量
 	$register_globals = @ini_get('register_globals');

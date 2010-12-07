@@ -1419,34 +1419,50 @@ function generate_user_salt($length = 5)
 function file_write($filename, $content, $mode = 'rb+')
 {
 	$length = strlen($content);
-	@touch($filename);
+
+	if (!file_exists($filename))
+	{
+		@touch($filename);
+	}
+
 	if (!is_writeable($filename))
 	{
 		@chmod($filename, 0666);
 	}
 
-	if (($fp = @fopen($filename, $mode)) === false)
+	switch ($mode)
 	{
-		trigger_error('file_write() failed to open stream: Permission denied', E_USER_WARNING);
-		return false;
+		case 'a':
+			$bytes = file_put_contents($filename, $content, FILE_APPEND);
+		break;
+
+		case 'w':
+			$bytes = file_put_contents($filename, $content, LOCK_EX);
+		break;
+
+		default:
+			if (($fp = @fopen($filename, $mode)) === false)
+			{
+				trigger_error('file_write() failed to open stream: Permission denied', E_USER_WARNING);
+				return false;
+			}
+
+			@flock($fp, LOCK_EX | LOCK_NB);
+
+			$bytes = 0;
+			if (($bytes = @fwrite($fp, $content)) === false)
+			{
+				$errormsg = sprintf('file_write() Failed to write %d bytes to %s', $length, $filename);
+				trigger_error($errormsg, E_USER_WARNING);
+				return false;
+			}
+
+			if ($mode == 'rb+')
+			{
+				@ftruncate($fp, $length);
+			}
+			@fclose($fp);
 	}
-
-	flock($fp, LOCK_EX | LOCK_NB);
-
-	$bytes = 0;
-	if (($bytes = @fwrite($fp, $content)) === false)
-	{
-		$errormsg = sprintf('file_write() Failed to write %d bytes to %s', $length, $filename);
-		trigger_error($errormsg, E_USER_WARNING);
-		return false;
-	}
-
-	if ($mode == 'rb+')
-	{
-		@ftruncate($fp, $length);
-	}
-
-	@fclose($fp);
 
 	// 检查是否写入了所有的数据
 	if ($bytes != $length)
