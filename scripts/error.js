@@ -50,12 +50,12 @@ function showFile(id)
 	if ($('file' + id).style.display == 'none') showElement('file' + id);
 	else hideElement('file' + id);
 }
-function showDetails(cnt)
+function showDetails(hash, cnt)
 {
-	for (i = 0; i < cnt; ++i) showElement('file' + i);
+	for (i = 0; i < cnt; ++i) showElement('file' + hash + '-' + i);
 }
-function hideDetails(cnt)
+function hideDetails(hash, cnt)
 {
-	for (i = 0; i < cnt; ++i) hideElement('file' + i);
+	for (i = 0; i < cnt; ++i) hideElement('file' + hash + '-' + i);
 }
 var currentParam = -1;
