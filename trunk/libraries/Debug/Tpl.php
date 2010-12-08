@@ -9,7 +9,7 @@
 # $Id$
 # **************************************************************************#
 ?>
-<fieldset style="margin-left: 1%; margin-right: 1%; border: 4px double #000; font-size: 12px; font-family: Tahoma, Verdana, Georgia, Courier, Simsun;">
+<fieldset style="margin-left: 1%; margin-right: 1%; border: 4px double #000; font-size: 12px; font-family: Tahoma, Verdana, Georgia, Courier, Simsun; background-color: #FFF;">
 <legend style="color: #22229C; font-weight: bold; font-size: 14px;"><?php echo $errtype[$errno][0]; ?></legend>
 <pre style="margin-left: 1%; margin-right: 1%;">
 <strong>Type:</strong> <?php echo $errtype[$errno][1]; ?>
