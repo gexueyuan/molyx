@@ -15,7 +15,7 @@ class debug
 	static private $debug = false;
 	static private $log_file = '';
 
-	public static function init()
+	public static function register()
 	{
 		self::$debug = (defined('DEVELOPER_MODE') && DEVELOPER_MODE);
 
@@ -28,6 +28,8 @@ class debug
 		{
 			self::$obj = new Debug_Console(self::$log_file);
 		}
+
+		set_error_handler(array('debug', 'handler'));
 	}
 
 	public static function handler($errno, $errstr, $errfile, $errline)
@@ -76,23 +78,16 @@ class debug
 		$errfile = self::replace_root($errfile);
 
 		$trace = array();
-		if ($this->debug)
+		if (self::$debug)
 		{
-			while (ob_get_level())
-			{
-				ob_end_clean();
-			}
+			$trace = debug_backtrace(false);
+			array_shift($trace);
 
-			if (function_exists('debug_backtrace'))
-			{
-				$trace = debug_backtrace();
-				array_shift($trace);
-
-				echo '<script type="text/javascript" src="' . ROOT_PATH . 'scripts/error.js" defer="defer" charset="UTF-8"></script>';
-			}
+			echo '<script type="text/javascript" src="' . ROOT_PATH . 'scripts/error.js" defer="defer" charset="UTF-8"></script>';
 		}
 
-		include ROOT_DIR . '/libraries/Debug/Tpl.php';
+		$hash = md5($errno . '-' .  $errstr . '-' . $errfile . '-' . $errline);
+		include ROOT_DIR . 'libraries/Debug/Tpl.php';
 
 		if (self::$debug)
 		{
@@ -188,5 +183,3 @@ class debug
 		return self::$obj->stopTimer($handle);
 	}
 }
-
-debug::init();

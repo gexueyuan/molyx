@@ -25,8 +25,8 @@ $count_trace = count($trace);
 if ($count_trace)
 {
 	echo 'Backtrace: ' . $count_trace . ' ';
-	echo '<span style="cursor: pointer;" onclick="showDetails('.$count_trace.')">[SHOW]</span> ';
-	echo '<span style="cursor: pointer;" onclick="hideDetails('.$count_trace.')">[HIDE]</span>';
+	echo '<span style="cursor: pointer;" onclick="showDetails(\''. $hash . "', " . $count_trace.')">[SHOW]</span> ';
+	echo '<span style="cursor: pointer;" onclick="hideDetails(\''. $hash . "', " . $count_trace.')">[HIDE]</span>';
 	echo "\n\n";
 
 	echo '<ul>';
@@ -38,13 +38,13 @@ if ($count_trace)
 		echo '<li style="list-style-type: square;">';
 		if (isset($v['class']))
 		{
-			echo '<span onmouseover="this.style.color=\'#0000ff\'" onmouseout="this.style.color=\'' . $c['keyword'] . '\'" style="color: ' . $c['keyword'] . '; cursor: pointer;" onclick="showFile(' . $k . ')"     >';
+			echo '<span onmouseover="this.style.color=\'#0000ff\'" onmouseout="this.style.color=\'' . $c['keyword'] . '\'" style="color: ' . $c['keyword'] . '; cursor: pointer;" onclick="showFile(\'' . $hash . '-' . $k . '\')"     >';
 			echo $v['class'];
 			echo '.';
 		}
 		else
 		{
-			echo '<span onmouseover="this.style.color=\'#0000ff\'" onmouseout="this.style.color=\'' . $c['keyword'] . '\'" style="color: ' . $c['keyword'] . '; cursor: pointer;" onclick="showFile(' . $k . ')">';
+			echo '<span onmouseover="this.style.color=\'#0000ff\'" onmouseout="this.style.color=\'' . $c['keyword'] . '\'" style="color: ' . $c['keyword'] . '; cursor: pointer;" onclick="showFile(\'' . $hash . '-' . $k . '\')">';
 		}
 
 		echo $v['function'];
@@ -106,10 +106,10 @@ if ($count_trace)
 				break;
 			}
 
-			echo '<span style="cursor: pointer; color: ' . $color . ';" onclick="showOrHideParam(' . $current_param . ')" onmouseout="this.style.color=\'' . $color . '\'" onmouseover="this.style.color=\'#dd0000\'">';
+			echo '<span style="cursor: pointer; color: ' . $color . ';" onclick="showOrHideParam(\'' . $hash . '-' . $current_param . '\')" onmouseout="this.style.color=\'' . $color . '\'" onmouseover="this.style.color=\'#dd0000\'">';
 			echo $string;
 			echo '</span>';
-			echo '<span id="param'.$current_param.'" style="display: none;">' . $param . '</span>';
+			echo '<span id="param' . $hash . '-' . $current_param . '" style="display: none;">' . $param . '</span>';
 		}
 
 		echo ")\n";
@@ -122,7 +122,7 @@ if ($count_trace)
 			$v['file'] = 'Unknown';
 		}
 
-		echo '<span id="file' . $k . '" style="display: none; color: gray;">';
+		echo '<span id="file' . $hash . '-' . $k . '" style="display: none; color: gray;">';
 		echo 'File: <span style="color: #007700">' . basename($v['file']) . '</span>';
 		echo "\n";
 		echo 'Line: <span style="color: #007700">' . $v['line'] . '</span>' . "\n";

@@ -419,8 +419,7 @@ class Debug_Console
 //		$errstr = str_replace('href="function.', 'target="_blank" href="http://www.php.net/', $errstr);
 
 		/* determine error level */
-
-		$errorlevel = $errtype[0];
+		$errorlevel = $errtype[$errno][0];
 
 		$full_path = $errfile . ' on line ' . $errline;
 		$file = $this->cropScriptPath($errfile);

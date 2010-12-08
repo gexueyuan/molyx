@@ -73,7 +73,7 @@ if (defined('DISPLAY_ERRORS') && DISPLAY_ERRORS)
 	//}
 
 	$display_error = DEVELOPER_MODE ? E_ALL : E_ALL ^ E_NOTICE ^ E_DEPRECATED;
-	set_error_handler(array('debug', 'handler'));
+	debug::register();
 }
 error_reporting($display_error);
 
