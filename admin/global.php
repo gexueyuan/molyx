@@ -17,11 +17,6 @@ if (function_exists('set_time_limit') && !SAFE_MODE)
 	@set_time_limit(0);
 }
 
-if (!isset($content_type))
-{
-	header('Content-Type:text/html; charset=UTF-8');
-}
-
 $forums = new stdClass();
 $forums->noheader = 0;
 $forums->forum_read = $forums->lang = array();

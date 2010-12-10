@@ -9,10 +9,6 @@
 # $Id$
 # **************************************************************************#
 define('IN_SQL', true);
-if (isset($_REQUEST['do']) && $_REQUEST['do'] === 'dobackup')
-{
-	$content_type = true;
-}
 require ('./global.php');
 
 class mysql

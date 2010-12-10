@@ -9,7 +9,6 @@
 # $Id$
 # **************************************************************************#
 define('THIS_SCRIPT', 'cron');
-$content_type = true;
 require_once('./global.php');
 require_once(ROOT_PATH . 'includes/functions_cron.php');
 

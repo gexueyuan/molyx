@@ -9,10 +9,6 @@
 # $Id$
 # **************************************************************************#
 define('THIS_SCRIPT', 'register');
-if (isset($_GET['do']) && $_GET['do'] === 'showimage')
-{
-	$content_type = true;
-}
 require_once('./global.php');
 
 class register
