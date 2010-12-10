@@ -1397,6 +1397,17 @@ class functions
 }
 
 /**
+ * 获得文件扩展名
+ *
+ * @param string $filename 文件名
+ * @return string 扩展名
+ */
+function file_extension($filename)
+{
+	return strtolower(substr(strrchr($filename, '.'), 1));
+}
+
+/**
  * 生成用户加密干扰码
  *
  * @param intager $length 干扰码长度

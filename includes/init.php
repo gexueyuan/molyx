@@ -220,3 +220,5 @@ if (!defined('USE_SHUTDOWN'))
 {
 	define('USE_SHUTDOWN', true);
 }
+
+define(LANGUAGE_DIR, ROOT_DIR . 'languanges/');
