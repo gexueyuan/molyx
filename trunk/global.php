@@ -11,10 +11,6 @@
 define('IN_MXB', true);
 define('ROOT_PATH' , './');
 require_once(ROOT_PATH . 'includes/init.php');
-if (!isset($content_type))
-{
-	header('Content-Type:text/html; charset=UTF-8');
-}
 
 $forums = new stdClass();
 $forums->noheader = 0;

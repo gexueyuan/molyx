@@ -8,10 +8,16 @@
 #
 # $Id$
 # **************************************************************************#
+
 if (!defined('IN_MXB') || isset($_REQUEST['GLOBALS']) || isset($_FILES['GLOBALS']))
 {
 	exit();
 }
+
+header('Content-Type:text/html; charset=UTF-8');
+
+date_default_timezone_set(date_default_timezone_get());
+
 define('STARTTIME', microtime(true)); // 统计PHP执行时间开始
 define('IS_WIN', DIRECTORY_SEPARATOR == '\\'); // 服务器是否 Windows
 
@@ -32,7 +38,11 @@ else
 {
 	$dir = ROOT_PATH;
 }
+
 define('ROOT_DIR', $dir);
+define('DATA_DIR', ROOT_DIR . 'data/');
+define('CACHE_DIR', ROOT_DIR . 'cache/');
+define('LANGUAGE_DIR', ROOT_DIR . 'languanges/');
 
 // 判断是否已安装
 if (!@include(ROOT_PATH . 'includes/config.php'))
@@ -67,31 +77,30 @@ if (defined('DISPLAY_ERRORS') && DISPLAY_ERRORS)
 {
 	// 如果打开 DISPLAY_ERRORS 后不显示错误信息可以去掉下面三行的注释符
 	// 如果依然不显示请打开 ERROR_LOG, 通过 data/errorlog 下的日志文件查看错误
-	//if (function_exists('ini_set') && !@ini_get('display_errors'))
-	//{
-	//	@ini_set('display_errors', 1);
-	//}
+	/*
+	if (function_exists('ini_set') && !@ini_get('display_errors'))
+	{
+		@ini_set('display_errors', 1);
+	}
+	*/
 
-	$display_error = DEVELOPER_MODE ? E_ALL : E_ALL ^ E_NOTICE ^ E_DEPRECATED;
+	$display_error = DEVELOPER_MODE ? (E_ALL | E_STRICT) : (E_ALL ^ E_NOTICE ^ E_DEPRECATED);
 	debug::register();
 }
 error_reporting($display_error);
 
-// 防止 PHP 5.1.x 使用时间函数报错
-if (function_exists('date_default_timezone_set'))
-{
-    date_default_timezone_set(date_default_timezone_get());
-}
 define('TIMENOW', isset($_SERVER['REQUEST_TIME']) ? (int) $_SERVER['REQUEST_TIME'] : time());
 define('TODAY', strtotime('today'));
 
 // PHP 6 以后不需要再执行下面的操作
 if (PHP_VERSION < '6.0.0')
 {
-	//if (function_exists('ini_set') && @ini_get('magic_quotes_runtime'))
-	//{
-	//	@ini_set('magic_quotes_runtime', 0);
-	//}
+	/*
+	if (function_exists('ini_set') && @ini_get('magic_quotes_runtime'))
+	{
+		@ini_set('magic_quotes_runtime', 0);
+	}
+	*/
 
 	// 删除全局注册的变量
 	$register_globals = @ini_get('register_globals');
@@ -101,8 +110,7 @@ if (PHP_VERSION < '6.0.0')
 	}
 
 	// 去掉所有输入变量的魔法引号
-	define('MAGIC_QUOTES_GPC', @get_magic_quotes_gpc() ? true : false);
-	if (MAGIC_QUOTES_GPC)
+	if (@get_magic_quotes_gpc())
 	{
 		stripslashes_deep($_REQUEST);
 		stripslashes_deep($_GET);
@@ -123,33 +131,23 @@ if (PHP_VERSION < '6.0.0')
 }
 else
 {
-	define('MAGIC_QUOTES_GPC', false);
 	define('SAFE_MODE', false);
 }
 
-$ip = $_SERVER['REMOTE_ADDR'];
-define('IPADDRESS', $ip);
-
-if (isset($_SERVER['HTTP_CLIENT_IP']))
+$ip = '';
+foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_FROM') as $v)
 {
-	$ip = $_SERVER['HTTP_CLIENT_IP'];
-}
-else if (isset($_SERVER['HTTP_X_FORWARDED_FOR']) && preg_match_all('#\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}#s', $_SERVER['HTTP_X_FORWARDED_FOR'], $matches))
-{
-	foreach ($matches[0] as $v)
+	if (isset($_SERVER[$v]))
 	{
-		if (!preg_match("#^(10|172\.16|192\.168)\.#", $v))
+		$ip = filter_var($_SERVER[$v], FILTER_VALIDATE_IP, ($v === 'HTTP_X_FORWARDED_FOR') ? FILTER_FLAG_NO_PRIV_RANGE : NULL);
+		if ($ip !== false)
 		{
-			$ip = $v;
 			break;
 		}
 	}
 }
-else if (isset($_SERVER['HTTP_FROM']))
-{
-	$ip = $_SERVER['HTTP_FROM'];
-}
-define('ALT_IP', $ip);
+define('IPADDRESS', $_SERVER['REMOTE_ADDR']);
+define('ALT_IP', empty($ip) ? IPADDRESS : $ip);
 
 if (isset($_SERVER['REQUEST_URI']) && $_SERVER['REQUEST_URI'])
 {
@@ -212,6 +210,8 @@ define('USER_AGENT', isset($_SERVER['HTTP_USER_AGENT']) ? $_SERVER['HTTP_USER_AG
 define('REFERRER', isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '');
 define('SUPERADMIN', $config['superadmin']);
 
+define('VISIT_HASH', md5(IPADDRESS . '&' .  USER_AGENT));
+
 define('CACHE_TABLE', $config['prefix'] . 'cache');
 $DB = db::base($config);
 unset($config);
@@ -220,5 +220,3 @@ if (!defined('USE_SHUTDOWN'))
 {
 	define('USE_SHUTDOWN', true);
 }
-
-define(LANGUAGE_DIR, ROOT_DIR . 'languanges/');
