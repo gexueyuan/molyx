@@ -130,5 +130,6 @@ var imageurl = "' . $bbuserinfo['imgurl'] . '";
 var sessionid = "' . $forums->sessionid . '";');
 add_head_element('js', $forums->func->load_lang_js('global'));
 add_head_element('js', $forums->func->load_lang_js('ajax'));
+add_head_element('js', ROOT_PATH . 'scripts/jquery.js');
 add_head_element('js', ROOT_PATH . 'scripts/global.js');
 add_head_element('js', ROOT_PATH . 'scripts/mxajax.js');
