@@ -109,11 +109,6 @@ class Db_Mysqli extends Db_Base
 		return "'" . @mysqli_real_escape_string($this->connect_id, $str) . "'";
 	}
 
-	protected function _likeExpression($expression)
-	{
-		return $expression;
-	}
-
 	protected function _freeResult($query_id)
 	{
 		return @mysqli_free_result($query_id);

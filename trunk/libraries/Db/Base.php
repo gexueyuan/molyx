@@ -20,8 +20,8 @@ abstract class Db_Base
 	protected $type = '';
 	protected $version = 0;
 	protected $config;
-	protected $any_char;
-	protected $one_char;
+	protected $any_char = '%';
+	protected $one_char = '_';
 
 	private $slave = NULL;
 
@@ -55,9 +55,6 @@ abstract class Db_Base
 
 	public function __construct($config)
 	{
-		$this->any_char = chr(0) . '%';
-		$this->one_char = chr(0) . '_';
-
 		$this->type = strtolower(substr(get_class($this), 3));
 		$this->cache_prefix = md5($config['server'] . $config['database']);
 
@@ -538,14 +535,38 @@ abstract class Db_Base
 	 *
 	 * @param boolean $expression 语句
 	 */
-	public function like($expression, $search = '*', $any = true)
+	public function like($expression)
 	{
-		$replace = $any ? $this->any_char : $this->one_char;
-		$expression = str_replace($search, $replace, $expression);
-		$expression = str_replace(array('_', '%'), array('\\_', '\\%'), $expression);
-		$expression = str_replace(array(chr(0) . '\\_', chr(0) . '\\%'), array('_', '%'), $expression);
+		static $chr = NULL;
+		if ($chr === NULL)
+		{
+			$chr = chr(0);
+		}
 
-		return $this->_likeExpression(' LIKE ' . $this->_escape($expression));
+		$expression = str_replace(
+			array('*', '?'),
+			array($chr . $this->any_char, $chr . $this->one_char),
+			$expression
+		);
+
+		$expression = str_replace(
+			array($this->one_char, $this->any_char),
+			array("\\{$this->one_char}", "\\{$this->any_char}"),
+			$expression
+		);
+
+		$expression = str_replace(
+			array("{$chr}\\{$this->one_char}", "{$chr}\\{$this->any_char}"),
+			array($this->one_char, $this->any_char),
+			$expression
+		);
+
+		return $this->_likeExpression($this->_escape($expression));
+	}
+
+	protected function _likeExpression($expression)
+	{
+		return ' LIKE ' . $expression;
 	}
 
 	/**

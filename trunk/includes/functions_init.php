@@ -161,18 +161,44 @@ function read_serialize_file($filename)
 {
 	if ($return = @file_get_contents($filename))
 	{
-		if (strrchr($filename, '.') == '.php')
+		if (strpos($return, '<?php exit; ?' . '>') === 0)
 		{
 			$return = substr($return, 14);
 		}
-		if ($return === 'a:0:{}')
-		{
-			return array();
-		}
-		else
-		{
-			return @unserialize($return);
-		}
+
+		return @unserialize($return);
 	}
 	return false;
+}
+
+
+/**
+ * 数字目录分布
+ */
+function number_hash($number)
+{
+	$number = (int) $number;
+	if ($number > 99)
+	{
+		$number = implode('/', str_split($number, 2));
+	}
+	return $number;
+}
+
+/**
+ * 字符串哈希函数
+ */
+function str_hash($str)
+{
+	// DJB
+	//$hash = 0;
+	//$n = strlen($str);
+	//for ($i = 0; $i < $n; $i++)
+	//{
+	//	$hash += ($hash << 5) + ord($str[$i]);
+	//}
+
+	$hash = crc32($str);
+	$hash = sprintf("%u\n", $hash);
+	return $hash % 701819;
 }
