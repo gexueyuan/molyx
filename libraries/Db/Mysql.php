@@ -129,11 +129,6 @@ class Db_Mysql extends Db_Base
 		return "'$return'";
 	}
 
-	protected function _likeExpression($expression)
-	{
-		return $expression;
-	}
-
 	protected function _freeResult($query_id)
 	{
 		return @mysql_free_result($query_id);

@@ -89,6 +89,73 @@ class Db_Postgres extends Db_Base
 		return true;
 	}
 
+	public function replace($table, $array, $main_field = '')
+	{
+		if($main_field == '')
+		{
+			$main_field = $this->queryFirst("SELECT column_name
+				FROM information_schema.constraint_column_usage
+				WHERE table_name = '$table'
+					AND constraint_name = '{$table}_pkey'");
+			$main_field = $main_field['column_name'];
+		}
+
+		if (empty($main_field))
+		{
+			return false;
+		}
+
+		$update = false;
+		if(is_array($main_field))
+		{
+			$search = array();
+			foreach($main_field as $field)
+			{
+				$search[] = "{$field} = " . $this->validate($array[$field]);
+			}
+
+			$search = implode(" AND ", $search);
+			$count = $this->queryFirst("SELECT COUNT({$main_field[0]}) as count
+				FROM $table
+				WHERE $search");
+		}
+		else
+		{
+			$count = $this->queryFirst("SELECT COUNT({$main_field}) as count
+				FROM $table
+				WHERE $main_field = {$array[$main_field]}");
+		}
+
+		if($count['count'] == 1)
+		{
+			$update = true;
+		}
+
+		if($update === true)
+		{
+			if(is_array($main_field))
+			{
+				return $this->update($table, $array, $search);
+			}
+			else
+			{
+				return $this->update($table, $array, "{$main_field} = ". $this->validate($array[$main_field]));
+			}
+		}
+		else
+		{
+			return $this->insert($table, $array);
+		}
+	}
+
+	public function replaceMulti($table, $array)
+	{
+		foreach ($array as $v)
+		{
+			$this->replace($table, $v);
+		}
+	}
+
 	protected function _query($sql)
 	{
 		$this->query_id = @pg_query($this->connect_id, $sql);
@@ -156,11 +223,6 @@ class Db_Postgres extends Db_Base
 	{
 		$return = @pg_escape_string($str);
 		return "'$return'";
-	}
-
-	protected function _likeExpression($expression)
-	{
-		return $expression;
 	}
 
 	protected function _freeResult($query_id)

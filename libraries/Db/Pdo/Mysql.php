@@ -80,11 +80,6 @@ class Db_Pdo_Mysql extends Db_Pdo_Base
 		return $this->query($sql, $cache_ttl, $cache_prefix);
 	}
 
-	protected function _likeExpression($expression)
-	{
-		return $expression;
-	}
-
 	public function getTableNames()
 	{
 		$stmt = $this->pdo->query('SHOW TABLES FROM ' . $this->config['database']);

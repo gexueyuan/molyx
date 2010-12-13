@@ -95,15 +95,9 @@ class Db_Sqlite extends Db_Base
 		return "'$return'";
 	}
 
-	public function like($expression, $search = '*', $any = true)
+	protected function _likeExpression($expression)
 	{
-		$replace = $any ? $this->any_char : $this->one_char;
-		$expression = str_replace($search, $replace, $expression);
-
-		$expression = str_replace(array('?', '*'), array('\\?', '\\*'), $expression);
-		$expression = str_replace(array(chr(0) . '\\?', chr(0) . '\\*'), array('?', '*'), $expression);
-
-		return 'GLOB ' . $this->_escape($expression);
+		return 'GLOB ' . $expression;
 	}
 
 	protected function _freeResult($query_id)
