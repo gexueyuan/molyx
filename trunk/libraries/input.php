@@ -8,6 +8,9 @@
 #
 # $Id$
 # **************************************************************************#
+define('INPUT_STRING_CLEAN', true);
+define('INPUT_STRING_NOCLEAN', false);
+
 /**
  * 获得 input 值 (POST GET)
  */
@@ -16,9 +19,7 @@ class input
 	static private $type = array(
 		'integer' => 'intval',
 		'double' => 'floatval',
-		'string' => array('self', 'clean_value'),
 	);
-	static private $clear = true;
 	static private $empty = array();
 	static private $preg_find = array('/&(?!#[0-9]+|shy;)/si', '/<script/i');
 	static private $preg_replace = array('&amp;', '&#60;script');
@@ -42,11 +43,11 @@ class input
 	/**
 	 * 获得字符串
 	 * @param string $name
-	 * @param boolean $clear
+	 * @param boolean $clean
 	 */
-	static public function str($name, $clear = true)
+	static public function str($name, $clean = INPUT_STRING_CLEAN)
 	{
-		return self::get($name, '', $clear);
+		return self::get($name, '', $clean);
 	}
 
 	/**
@@ -63,10 +64,10 @@ class input
 	 *
 	 * @param string $name input key
 	 * @param mixed $default 默认值， input 值会被设置成 default 变量的类型
-	 * @param boolean $clear 是否清理数据
+	 * @param boolean $clean 是否清理数据
 	 * @return mixed
 	 */
-	static public function get($name, $default = NULL, $clear = true)
+	static public function get($name, $default = NULL, $clean = INPUT_STRING_CLEAN)
 	{
 		// 防止获取到 cookie 中的内容
 		if (isset($_COOKIE[$name]))
@@ -89,18 +90,13 @@ class input
 			}
 		}
 
-		if ($clear !== self::$clear)
-		{
-			self::$clear = $clear;
-		}
-
 		if (isset($_REQUEST[$name]))
 		{
 			if ($default === NULL)
 			{
 				$default = $_REQUEST[$name];
 			}
-			return self::get_value($_REQUEST[$name], $default);
+			return self::_value($_REQUEST[$name], $default, $clean);
 		}
 		else if (is_array($default))
 		{
@@ -119,7 +115,7 @@ class input
 	 * @param mixed $default 同 get
 	 * @return mixed
 	 */
-	static private function get_value($value, $default)
+	static private function _value($value, $default, $clean)
 	{
 		$type = gettype($default);
 
@@ -138,7 +134,11 @@ class input
 				}
 
 				// array_map 大概比 foreach 快 2 倍
-				if (isset(self::$type[$type]))
+				if ($type == 'string')
+				{
+					$value = array_map(array('self', 'clean'), $value, array_fill(0, count($value), $clean));
+				}
+				else if (isset(self::$type[$type]))
 				{
 					$value = array_map(self::$type[$type], $value);
 				}
@@ -156,7 +156,7 @@ class input
 			settype($value, $type);
 			if ($type === 'string')
 			{
-				$value = self::clean_value($value);
+				$value = self::clean($value, $clean);
 			}
 		}
 
@@ -168,7 +168,7 @@ class input
 	 *
 	 * @param mixed $val
 	 */
-	static public function clean_value($val)
+	static public function clean($val, $clean = INPUT_STRING_CLEAN)
 	{
 		if (empty($val))
 		{
@@ -177,7 +177,7 @@ class input
 
 		$val = trim($val);
 
-		if (!is_numeric($val) && self::$clear)
+		if (!is_numeric($val) && $clean == INPUT_STRING_CLEAN)
 		{
 			$val = str_replace(self::$empty, '', $val);
 			$val = preg_replace(self::$preg_find, self::$preg_replace, $val);
