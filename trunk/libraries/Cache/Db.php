@@ -18,7 +18,7 @@ class Cache_Db extends Cache_Base
 			)
 		);
 
-		$this->_db = db::{$this->_options['db']}($this->_options['config']);
+		$this->_db = db::get($this->_options['db'], $this->_options['config']);
 
 		parent::__construct();
 	}
@@ -39,10 +39,9 @@ class Cache_Db extends Cache_Base
      */
 	public function get($name)
 	{
-		$name = $this->_db->validate($name);
 		$sql = "SELECT {$this->_options['expire']}, {$this->_options['value']}
 			FROM {$this->_options['table']}
-			WHERE {$this->_options['key']} = {$name}");
+			WHERE {$this->_options['key']} = " . $this->_db->validate($name);
 
 		$data = $this->_db->queryFirst($sql);
 		if (!empty($data) &&
@@ -73,7 +72,7 @@ class Cache_Db extends Cache_Base
 			$this->_options['expire'] => ($ttl <= CACHE_NEVER_EXPIRE) ? CACHE_NEVER_EXPIRE : (TIMENOW + $ttl),
 		);
 
-		return $this->_db->replace($this->_options['table']}, $sql_array);
+		return $this->_db->replace($this->_options['table'], $sql_array);
 
 	}
 
