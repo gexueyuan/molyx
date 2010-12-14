@@ -7,7 +7,7 @@ class Cache_Shmop extends Cache_Base
 	private $_h;
 	private $_options;
 
-	publicfunction __construct($options)
+	public function __construct($options)
 	{
 		$this->_options = $this->_default($options,
 			array

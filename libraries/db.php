@@ -14,14 +14,18 @@ class db
 
 	public static function __callstatic($name, $args)
 	{
+		return self::get($name, $args[0]);
+	}
+
+	public static function get($name, $config)
+	{
 		if (!isset(self::$db[$name]))
 		{
-			if (empty($args))
+			if (empty($config))
 			{
 				return null;
 			}
 
-			$config = $args[0];
 			$classname = 'Db_' . ucfirst($config['type']);
 			self::$db[$name] = new $classname($config);
 

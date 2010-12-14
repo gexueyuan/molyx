@@ -90,7 +90,7 @@ class Cache_File extends Cache_Base
 			$content = '<?php ';
 			if ($expire != CACHE_NEVER_EXPIRE)
 			{
-				$content .= 'if (TIMENOW > ' . $expire . ') {return;} '
+				$content .= 'if (TIMENOW > ' . $expire . ') {return;} ';
 			}
 			$content .= '$data = ' . var_export($value, true) . '; ?>';
 		}
