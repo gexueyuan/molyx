@@ -19,10 +19,12 @@ class cron_birthdays
 		$forums->func->load_lang('cron');
 
 		$send_user = false;
-		$show = $DB->query("SELECT * FROM " . TABLE_PREFIX . "setting WHERE varname IN ( 'birthday_send', 'birthday_send_type' )");
-		if ($DB->numRows())
+		$result = $DB->query("SELECT *
+			FROM " . TABLE_PREFIX . "setting
+			WHERE varname IN ( 'birthday_send', 'birthday_send_type' )");
+		if ($DB->numRows($result))
 		{
-			while ($s = $DB->fetch())
+			while ($s = $DB->fetch($result))
 			{
 				$value = $s['value'] ? $s['value'] : $s['defaultvalue'];
 				if ($s['varname'] == 'birthday_send' AND $value)
@@ -33,7 +35,6 @@ class cron_birthdays
 			}
 		}
 
-		$forums->cache['birthdays'] = array();
 		$birthdays = array();
 		$today = $forums->func->get_time(TIMENOW, 'm-d');
 		$send_title = $forums->lang['happybirthday'];
@@ -115,9 +116,11 @@ class cron_birthdays
 		{
 			$DB->queryUnbuffered("INSERT INTO " . TABLE_PREFIX . "birthday (id, dateline) VALUES " . implode(",", $insert_birthday) . "");
 		}
-		$forums->func->update_cache(array('name' => 'birthdays', 'value' => $birthdays, 'array' => 1));
+
 		$forums->lang['updatebirthdays'] = sprintf($forums->lang['updatebirthdays'], intval(count($birthdays)));
 		$this->class->cronlog($this->cron, $forums->lang['updatebirthdays']);
+
+		return $birthdays;
 	}
 
 	function check_count($this_key, $this_value)
