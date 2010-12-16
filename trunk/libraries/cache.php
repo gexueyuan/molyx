@@ -34,7 +34,7 @@ class cache
 	 * @param boolean $recache 是否重建缓存, false 时将不重新生成缓存
 	 * @return array
 	 */
-	public static function &get($cache_name, $extra = '', $recache = true)
+	public static function &get($cache_name, $extra = '', $recache = CACHE_NEVER_EXPIRE)
 	{
 		if ($extra !== '' && !is_array($extra))
 		{
@@ -49,8 +49,10 @@ class cache
 			{
 				self::$value[$cache_name] = $value;
 			}
-			else if ($recache)
+			else if ($recache !== false)
 			{
+				$recache = (int) $recache;
+
 				if (empty($extra))
 				{
 					$pos = strpos($cache_name, '-');
@@ -66,7 +68,8 @@ class cache
 						$extra = $cache_name;
 					}
 				}
-				self::rebuild($extra);
+
+				self::set($cache_name, self::value($extra), $recache);
 			}
 		}
 
@@ -86,18 +89,18 @@ class cache
 	}
 
 	/**
-	 * 重建缓存
+	 * 读取数据库中的值
 	 *
 	 * @param string $name 缓存名字
-	 * @param mixed $param 参数
 	 */
-	public static function rebuild($name, $param = NULL)
+	public static function value($name)
 	{
 		if (empty($name))
 		{
 			return false;
 		}
 
+		$param = NULL;
 		if (is_array($name))
 		{
 			$param = $name['param'];
@@ -105,9 +108,7 @@ class cache
 		}
 
 		require_once (ROOT_DIR . 'recaches/' . $name . '.php');
-		$value = call_user_func('recache_' . $name, $param);
-
-		self::set($name, $value);
+		return call_user_func('recache_' . $name, $param);
 	}
 
 	/**

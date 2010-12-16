@@ -16,5 +16,5 @@ function recache_birthdays()
 	require_once(ROOT_PATH . 'includes/cron/birthdays.php');
 	$cron = new cron_birthdays();
 	$cron->register_class($func);
-	$cron->docron();
+	return $cron->docron();
 }
