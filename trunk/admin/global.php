@@ -12,7 +12,7 @@ define('IN_MXB', true);
 define('ROOT_PATH', './../');
 define ('IN_ACP', true);
 require_once(ROOT_PATH . 'includes/init.php');
-if (function_exists('set_time_limit') && !SAFE_MODE)
+if (function_exists('set_time_limit'))
 {
 	@set_time_limit(0);
 }

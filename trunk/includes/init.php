@@ -126,13 +126,8 @@ if (PHP_VERSION < '6.0.0')
 			stripslashes_deep($_FILES);
 		}
 	}
+}
 
-	define('SAFE_MODE', (@ini_get('safe_mode') || @strtolower(ini_get('safe_mode')) == 'on') ? true : false);
-}
-else
-{
-	define('SAFE_MODE', false);
-}
 
 $ip = '';
 foreach (array('HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'HTTP_FROM') as $v)

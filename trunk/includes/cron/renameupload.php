@@ -17,7 +17,7 @@ class cron_renameupload
 	function docron()
 	{
 		global $DB, $forums, $bboptions;
-		if (SAFE_MODE) return;
+
 		$forums->func->load_lang('cron');
 		$tmp = mt_rand(100000, 999999);
 		$cur_path = $bboptions['uploadfolder'] ? str_replace($this->root_path . 'data/', '', $bboptions['uploadfolder']) : 'uploads';

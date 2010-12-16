@@ -17,12 +17,11 @@ define('TIMENOW', time());
 if (PHP_VERSION < '6' && function_exists('ini_get'))
 {
 	$safe_mode = @ini_get('safe_mode') ? 1 : 0;
+	if ($safe_mode)
+	{
+		exit('MolyX can not run with PHP Safe Mode!');
+	}
 }
-else
-{
-	$safe_mode = 0;
-}
-define('SAFE_MODE', $safe_mode);
 
 require_once(ROOT_PATH . 'install/install_functions.php');
 require_once(ROOT_PATH . 'includes/functions_init.php');

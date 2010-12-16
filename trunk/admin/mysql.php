@@ -388,40 +388,25 @@ class mysql
 		$savefolder = input::get('dbexportfolder', '') ? input::get('dbexportfolder', '') : $this->savedate;
 		if (is_writeable(ROOT_PATH . 'data/dbbackup'))
 		{
-			if (SAFE_MODE)
+			$dir = ROOT_PATH . 'data/dbbackup/' . $savefolder . '/';
+			$filename = $dir . $this->md5_check . '_' . $this->step . '.sql';
+			if (checkdir($dir) === false)
 			{
-				$filename = ROOT_PATH . 'data/dbbackup/' . $savefolder . '_' . $this->md5_check . '_' . $this->step . '.sql';
-				if (file_exists($filename))
-				{
-					if (!is_writeable($filename))
-					{
-						$forums->main_msg = $filename . $forums->lang['filecannotwrite'];
-						$this->backup_form();
-					}
-				}
+				$forums->main_msg = $dir . $forums->lang['cannotcreate'];
+				$this->backup_form();
 			}
-			else
+
+			if ($this->step == 1)
 			{
-				$dir = ROOT_PATH . 'data/dbbackup/' . $savefolder . '/';
-				$filename = $dir . $this->md5_check . '_' . $this->step . '.sql';
-				if (checkdir($dir) === false)
+				$forums->admin->rm_dir($dir, false);
+			}
+
+			if (file_exists($filename))
+			{
+				if (!is_writeable($filename))
 				{
-					$forums->main_msg = $dir . $forums->lang['cannotcreate'];
+					$forums->main_msg = $filename . $forums->lang['filecannotwrite'];
 					$this->backup_form();
-				}
-
-				if ($this->step == 1)
-				{
-					$forums->admin->rm_dir($dir, false);
-				}
-
-				if (file_exists($filename))
-				{
-					if (!is_writeable($filename))
-					{
-						$forums->main_msg = $filename . $forums->lang['filecannotwrite'];
-						$this->backup_form();
-					}
 				}
 			}
 		}
@@ -861,26 +846,10 @@ class mysql
 	{
 		global $forums;
 		$delfolder = trim(input::str('id'));
-		if (SAFE_MODE)
-		{
-			$dh = opendir(ROOT_PATH . 'data/dbbackup');
-			while ($file = readdir($dh))
-			{
-				if ($file != '.' && $file != '..')
-				{
-					if (preg_match('/^' . $delfolder . '_(\w){32}_(\d+)\.sql$/', $file))
-					{
-						@unlink(ROOT_PATH . 'data/dbbackup/' . $file);
-					}
-				}
-			}
-			closedir($dh);
-		}
-		else
-		{
-			$forums->admin->rm_dir(ROOT_PATH . 'data/dbbackup/' . $delfolder);
-			@rmdir($delfolder);
-		}
+
+		$forums->admin->rm_dir(ROOT_PATH . 'data/dbbackup/' . $delfolder);
+		@rmdir($delfolder);
+
 		$forums->main_msg = $forums->lang['backupfolderdeleted'];
 		$this->restore_form();
 	}
@@ -931,73 +900,37 @@ class mysql
 		else
 		{
 			$type = $forums->lang['server'];
-			if (SAFE_MODE)
+
+			$datapath = ROOT_PATH . 'data/dbbackup/' . input::get('selectid', '');
+			$dh = opendir($datapath);
+			$file_nums = 0;
+			while (false !== ($file = readdir($dh)))
 			{
-				$dh = opendir(ROOT_PATH . 'data/dbbackup');
-				while (false !== ($file = readdir($dh)))
+				if ($file != '.' && $file != '..')
 				{
-					if ($file != '.' && $file != '..')
-					{
-						$allfolder[] = $file;
-					}
+					$allfolder[] = $file;
 				}
-				if (is_array($allfolder))
-				{
-					natcasesort($allfolder);
-					foreach ($allfolder AS $file)
-					{
-						if (preg_match('/^' . input::get('selectid', '') . '_(\w){32}_(\d+)\.sql$/', $file))
-						{
-							if ($fp = @fopen(ROOT_PATH . 'data/dbbackup/' . $file, 'rb'))
-							{
-								$filesize += filesize(ROOT_PATH . 'data/dbbackup/' . $file);
-								$info = explode(",", base64_decode(preg_replace('/^# key:\s*(\w+).*/s', '\\1', fgets($fp, 256))));
-								if ($file_nums == 0)
-								{
-									$datafile = $file;
-								}
-								$files[] = $file;
-								@fclose($fp);
-							}
-							$file_nums++;
-						}
-					}
-				}
-				closedir($dh);
 			}
-			else
+			if (is_array($allfolder))
 			{
-				$datapath = ROOT_PATH . 'data/dbbackup/' . input::get('selectid', '');
-				$dh = opendir($datapath);
-				$file_nums = 0;
-				while (false !== ($file = readdir($dh)))
+				natcasesort($allfolder);
+				foreach ($allfolder as $file)
 				{
-					if ($file != '.' && $file != '..')
+					if ($fp = @fopen($datapath . '/' . $file, 'rb'))
 					{
-						$allfolder[] = $file;
-					}
-				}
-				if (is_array($allfolder))
-				{
-					natcasesort($allfolder);
-					foreach ($allfolder as $file)
-					{
-						if ($fp = @fopen($datapath . '/' . $file, 'rb'))
+						$filesize += filesize($datapath . '/' . $file);
+						$info = explode(',', base64_decode(preg_replace('/^# key:\s*(\w+).*/s', '\\1', fgets($fp, 256))));
+						if ($file_nums == 0)
 						{
-							$filesize += filesize($datapath . '/' . $file);
-							$info = explode(',', base64_decode(preg_replace('/^# key:\s*(\w+).*/s', '\\1', fgets($fp, 256))));
-							if ($file_nums == 0)
-							{
-								$datafile = $file;
-							}
-							$files[] = $file;
-							@fclose($fp);
+							$datafile = $file;
 						}
-						$file_nums++;
+						$files[] = $file;
+						@fclose($fp);
 					}
+					$file_nums++;
 				}
-				closedir($dh);
 			}
+			closedir($dh);
 		}
 		$pagetitle = 'MySQL ' . $DB->version . ' ' . $forums->lang['mysqlrestore'];
 		$detail = $forums->lang['mysqlrestoredesc'];
@@ -1030,7 +963,7 @@ class mysql
 		$pp = input::get('pp', 1);
 		$file = trim(rawurldecode(input::str('file')));
 		$filepath = trim(input::str('filepath'));
-		if ($type || SAFE_MODE)
+		if ($type)
 		{
 			$urlfile = ROOT_PATH . 'data/dbbackup/' . $file;
 		}
@@ -1126,7 +1059,7 @@ class mysql
 				if ($info[1] != 'Standard Backup')
 				{
 					$pp++;
-					$nextfile =  SAFE_MODE ? preg_replace('/^(\d+)_(\w{32})_(\d+).sql$/', "\\1_\\2_$pp.sql", $file) : preg_replace('/^(\w{32})_(.+?).sql/', "\\1_$pp.sql" , $file);
+					$nextfile = preg_replace('/^(\w{32})_(.+?).sql/', "\\1_$pp.sql" , $file);
 				}
 
 				$line_number = $offset = 0;

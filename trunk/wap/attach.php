@@ -129,7 +129,7 @@ class attachment
 		}
 		if ($bboptions['remoteattach'])
 		{
-			$subpath = SAFE_MODE ? '' : implode('/', preg_split('//', intval($attachment['userid']), -1, PREG_SPLIT_NO_EMPTY));
+			$subpath = implode('/', preg_split('//', intval($attachment['userid']), -1, PREG_SPLIT_NO_EMPTY));
 			$subpath = $bboptions['remoteattach'] . "/" . $subpath;
 			$attachment['location'] = str_replace("\\", "/", $attachment['location']);
 			$attachment['location'] = str_replace("/", "", substr($attachment['location'], strrpos($attachment['location'], '/')));

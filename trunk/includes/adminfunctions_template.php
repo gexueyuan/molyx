@@ -56,7 +56,7 @@ class adminfunctions_template
 		);
 		$css = $this->optimize_css($css);
 
-		$dot = SAFE_MODE ? '_' : '/';
+		$dot = '/';
 		$styles = IN_ACP ? $forums->admin->stylecache : $forums->cache['style'];
 
 		if (!$recache_childs)
@@ -69,7 +69,7 @@ class adminfunctions_template
 		{
 			if ($v['styleid'] == $id || (strpos($v['parentlist'], ",$id,") !== false && in_array($this->get_template_dir($v['styleid'], 'style.css'), array('global', $styles[$id]['title_en']))))
 			{
-				if (!SAFE_MODE && !checkdir($dir))
+				if (!checkdir($dir))
 				{
 					$this->messages[] = '<strong>' . $forums->lang['cssdirnotwrite'] . '</strong>';
 					continue;
@@ -115,7 +115,7 @@ class adminfunctions_template
 
 		$style = isset($forums->admin->stylecache) ? $forums->admin->stylecache[$id] : $forums->cache['style'][$id];
 		$imagefolder = $style['imagefolder'];
-		$dot = SAFE_MODE ? '_' : '/';
+		$dot = '/';
 
 		$cache_header = "<?php\n// Template Cach for MolyX 2.8\n";
 		$cache_header .= "if(!defined('IN_MXB')) exit('Access denied.Sorry, you can not access this file directly.');\n?>\n";
@@ -145,7 +145,7 @@ class adminfunctions_template
 		}
 		$return = 0;
 		$good_to_go = 1;
-		$dot = SAFE_MODE ? '_' : '/';
+		$dot = '/';
 		$dir = ROOT_PATH . "cache/templates/style_$id";
 		$good_to_go = checkdir($dir);
 		if ($good_to_go)
