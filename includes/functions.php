@@ -135,7 +135,7 @@ class functions
 	 */
 	function convert_cache_name($name, $check_dir = false)
 	{
-		if (!SAFE_MODE && strpos($name, '-') !== false)
+		if (strpos($name, '-') !== false)
 		{
 			$name = str_replace('-', '/', $name);
 			if ($check_dir && !checkdir(ROOT_PATH . 'cache/cache/' . $name, true))
@@ -180,7 +180,7 @@ class functions
 			$ob_started = true;
 		}
 
-		$dot = SAFE_MODE ? '_' : '/';
+		$dot = '/';
 		$styleid = $bbuserinfo['style'];
 		$tplfile = ROOT_PATH . "cache/templates/style_{$styleid}{$dot}{$template}.php";
 
@@ -2017,7 +2017,7 @@ function split_todir($userid, $subfolder = '')
 	$userid_path = explode(',', $userid_path);
 	$userid_path[0] = sprintf("%03s",$userid_path[0]);
 	$count = count($userid_path);
-	$filepath = SAFE_MODE ? '' : implode('/', $userid_path);
+	$filepath = implode('/', $userid_path);
 	$filepath = $subfolder . '/' . $filepath;
 	return array($filepath, $count);
 }

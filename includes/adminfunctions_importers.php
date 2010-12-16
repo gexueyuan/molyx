@@ -375,7 +375,7 @@ class adminfunctions_importers
 		{
 			$attachment['image'] = 1;
 			$thumb_data = array();
-			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $attachment['userid'], -1, PREG_SPLIT_NO_EMPTY));
+			$subpath = implode('/', preg_split('//', $attachment['userid'], -1, PREG_SPLIT_NO_EMPTY));
 			$image->filepath = $bboptions['uploadfolder'] . '/' . $subpath;
 			$image->filename = $attachment['location'];
 			$image->thumbswidth = $bboptions['thumbswidth'];

@@ -595,7 +595,7 @@ class functions_post
 					if (in_array($row['extension'], array('jpg', 'gif', 'png')))
 					{
 						$thumb_path = $row['userid'] ? $row['userid'] : $bbuserinfo['id'];
-						$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $thumb_path, -1, PREG_SPLIT_NO_EMPTY));
+						$subpath = implode('/', preg_split('//', $thumb_path, -1, PREG_SPLIT_NO_EMPTY));
 						$path = $bboptions['uploadurl'] . '/' . $subpath;
 						$row['thumb'] = "<img src='" . $path . "/" . ($row['thumblocation'] ? $row['thumblocation'] : $row['location']) . "' width='100' alt='' />";
 					}
@@ -723,7 +723,7 @@ class functions_post
 					$attach_data['filename'] = $upload->original_file_name[$key];
 					$attach_data['image'] = intval($upload->is_image[$key]);
 					$attach_data['extension'] = $upload->real_file_extension[$key];
-					$attach_data['attachpath'] = SAFE_MODE ? '' : implode('/', preg_split('//', $userid, -1, PREG_SPLIT_NO_EMPTY));
+					$attach_data['attachpath'] = implode('/', preg_split('//', $userid, -1, PREG_SPLIT_NO_EMPTY));
 					if ($attach_data['image'] == 1 && $bboptions['sigimgdimension'])
 					{
 						$thumb_data = $upload->create_thumbnail($attach_data);

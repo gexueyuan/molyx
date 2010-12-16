@@ -26,17 +26,11 @@ class cache_page
 		$this->ttl = $ttl;
 		$this->name = ROOT_PATH . 'cache/pages/';
 		$prefix = $prefix ? THIS_SCRIPT . '_' . $prefix : THIS_SCRIPT;
-		if (!SAFE_MODE)
-		{
-			$prefix = str_replace('_', '/', $prefix);
-			$count = count(explode('/', $prefix));
-			$this->name .= $prefix . '/';
-			checkdir($this->name);
-		}
-		else
-		{
-			$this->name .= $prefix . '_';
-		}
+
+		$prefix = str_replace('_', '/', $prefix);
+		$count = count(explode('/', $prefix));
+		$this->name .= $prefix . '/';
+		checkdir($this->name);
 	}
 
 	/**
@@ -120,7 +114,7 @@ class cache_page
 	function clear($prefix = '')
 	{
 		$prefix = $prefix ? $prefix . '_' : '';
-		$dir = ROOT_PATH . 'cache/pages/' . (!SAFE_MODE ? str_replace('_', '/', $prefix) : '');
+		$dir = ROOT_PATH . 'cache/pages/' . str_replace('_', '/', $prefix);
 		$dh = opendir($dir);
 		while (($entry = readdir($dh)) !== false)
 		{
@@ -129,18 +123,12 @@ class cache_page
 				continue;
 			}
 			$name = $dir . $entry;
-			if (!SAFE_MODE)
+
+			if (is_dir($name))
 			{
-				if (is_dir($name))
-				{
-					$this->clear($name);
-				}
-				else if (is_file($name) && strrchr($entry, '.') == '.php')
-				{
-					@unlink($name);
-				}
+				$this->clear($name);
 			}
-			else if (is_file($name) && strpos($entry, $prefix) === 0)
+			else if (is_file($name) && strrchr($entry, '.') == '.php')
 			{
 				@unlink($name);
 			}

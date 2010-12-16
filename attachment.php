@@ -132,7 +132,7 @@ class attachment
 
 		if ($bboptions['remoteattach'])
 		{
-			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
+			$subpath = implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
 			$subpath = $bboptions['remoteattach'] . "/" . $subpath;
 			$attack = str_replace("\\", "/", $attack);
 			$attack = str_replace("/", "", substr($attack, strrpos($attack, '/')));
@@ -142,7 +142,7 @@ class attachment
 		else
 		{
 
-			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
+			$subpath = implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
 			$subpath = input::get('attachpath', $subpath);
 			if (strpos($subpath, '..') !== false)
 			{
@@ -207,7 +207,7 @@ class attachment
 		$u = input::get('u', 0);
 		if ($bboptions['remoteattach'])
 		{
-			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
+			$subpath = implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
 			$subpath = $bboptions['remoteattach'] . "/" . $subpath;
 			$attach = str_replace("\\", "/", $attach);
 			$attach = str_replace("/", "", substr($attach, strrpos($attach, '/')));
@@ -216,7 +216,7 @@ class attachment
 		}
 		else
 		{
-			$subpath = SAFE_MODE ? "" : implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
+			$subpath = implode('/', preg_split('//', $u, -1, PREG_SPLIT_NO_EMPTY));
 			$subpath = input::get('attachpath', $subpath);
 			if (strpos($subpath, '..') !== false)
 			{

@@ -140,7 +140,7 @@ class functions_upload
 		global $bboptions;
 		$userid_path = preg_split('//', intval($userid), -1, PREG_SPLIT_NO_EMPTY);
 		$count = count($userid_path);
-		$subpath = SAFE_MODE ? '' : implode('/', $userid_path);
+		$subpath = implode('/', $userid_path);
 		$filepath = $bboptions['uploadfolder'] . '/' . $subpath;
 		if (checkdir($filepath))
 		{

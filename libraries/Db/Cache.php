@@ -90,7 +90,7 @@ class Db_Cache
 	public function clear($prefix = '')
 	{
 		$prefix = $prefix ? $prefix . '_' : '';
-		$dir = ROOT_PATH . 'cache/sql/' . (!SAFE_MODE ? str_replace('_', '/', $prefix) : '');
+		$dir = ROOT_PATH . 'cache/sql/' . str_replace('_', '/', $prefix);
 		$dh = opendir($dir);
 		while (($entry = readdir($dh)) !== false)
 		{
@@ -99,18 +99,12 @@ class Db_Cache
 				continue;
 			}
 			$name = $dir . $entry;
-			if (!SAFE_MODE)
+
+			if (is_dir($name))
 			{
-				if (is_dir($name))
-				{
-					$this->clear($name);
-				}
-				else if (is_file($name) && strrchr($entry, '.') == '.php')
-				{
-					@unlink($name);
-				}
+				$this->clear($name);
 			}
-			else if (is_file($name) && strpos($entry, $prefix) === 0)
+			else if (is_file($name) && strrchr($entry, '.') == '.php')
 			{
 				@unlink($name);
 			}
@@ -161,19 +155,13 @@ class Db_Cache
 	 */
 	private function getPath($path)
 	{
-		if (!SAFE_MODE)
+		$filename = str_replace('_', '/', $path) . 'php';
+		$filename = ROOT_PATH . 'cache/sql/' . $filename;
+		if (!checkdir($filename, true))
 		{
-			$filename = str_replace('_', '/', $path) . 'php';
-			$filename = ROOT_PATH . 'cache/sql/' . $filename;
-			if (!checkdir($filename, true))
-			{
-				return false;
-			}
+			return false;
 		}
-		else
-		{
-			$filename = $path . '.php';
-		}
+
 		return $filename;
 	}
 
