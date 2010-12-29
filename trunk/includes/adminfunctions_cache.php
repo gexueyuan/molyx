@@ -13,7 +13,6 @@ class adminfunctions_cache
 	function all_recache()
 	{
 		$this->forum_recache();
-		$this->recycle_recache();
 		$this->usergroup_recache();
 		$this->style_recache();
 		$this->moderator_recache();
@@ -412,22 +411,6 @@ class adminfunctions_cache
 		$forums->func->rmcache('adminforum');
 	}
 
-	//重建回收站缓存
-	function recycle_recache()
-	{
-		global $forums, $DB, $bboptions;
-		$forums->cache['recycle'] = array();
-		if ($bboptions['enablerecyclebin'] && $bboptions['recycleforumid'])
-		{
-			$row = $DB->queryFirst('SELECT id
-				FROM ' . TABLE_PREFIX . 'forum
-				WHERE id = ' . $bboptions['recycleforumid']);
-			$forums->cache['recycle'] = $row;
-		}
-
-		$forums->func->update_cache(array('name' => 'recycle'));
-	}
-
 	function league_recache()
 	{
 		global $forums, $DB;
@@ -540,14 +523,6 @@ class adminfunctions_cache
 			$forums->cache['st'][$r['id']] = $r;
 		}
 		$forums->func->update_cache(array('name' => 'st'));
-	}
-
-	function blog_cache_recache()
-	{
-		global $forums, $DB;
-		require_once(ROOT_PATH . "includes/adminfunctions_blogcache.php");
-		$forums->blogcache = new adminfunctions_blogcache();
-		$forums->blogcache->all_recache();
 	}
 
 	function ad_recache()
