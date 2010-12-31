@@ -43,7 +43,7 @@ class functions_showcode
 	function construct_extrabuttons()
 	{
 		global $forums, $DB, $bboptions, $bbuserinfo;
-		$forums->func->check_cache('bbcode');
+		cache::get('bbcode');
 		if ($bbuserinfo['canuseflash'])
 		{
 			$forums->cache['bbcode']['flash'] = array('bbcodetag' => 'flash', 'imagebutton' => 'images/editor/flash.gif');

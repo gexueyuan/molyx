@@ -260,7 +260,7 @@ class settings
 			$DB->update(TABLE_PREFIX . 'settinggroup', $array, 'groupid=' . input::get('id', ''));
 			$forums->main_msg = $forums->lang['settinggroupedited'];
 		}
-		$forums->func->recache('settings');
+		cache::update('settings');
 		$this->setting_start();
 	}
 
@@ -468,7 +468,7 @@ class settings
 					}
 					else if ($r['dropextra'] == '#show_lang#')
 					{
-						$forums->func->check_cache('lang_list');
+						cache::get('lang_list');
 						require(ROOT_PATH . 'languages/list.php');
 						foreach ($lang_list as $dir => $name)
 						{
@@ -579,7 +579,7 @@ class settings
 			}
 		}
 		input::set('groupid', input::int('id'));
-		$forums->func->recache('settings');
+		cache::update('settings');
 		if (! $donothing)
 		{
 			if (input::str('id'))
@@ -632,7 +632,7 @@ class settings
 			$DB->update(TABLE_PREFIX .'setting', $array, 'settingid=' . input::int('id'));
 			$forums->main_msg = $forums->lang['settingedited'];
 		}
-		$forums->func->recache('settings');
+		cache::update('settings');
 		$this->setting_view();
 	}
 
@@ -648,7 +648,7 @@ class settings
 		$conf = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
 		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "setting SET value='' WHERE settingid=" . input::int('id') . "");
 		$forums->main_msg = $forums->lang['settingrestored'];
-		$forums->func->recache('settings');
+		cache::update('settings');
 		$this->setting_view();
 	}
 
@@ -666,7 +666,7 @@ class settings
 			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
 			$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "settinggroup SET groupcount=groupcount-1 WHERE groupid=" . $conf['groupid'] . "");
 			$forums->main_msg = $forums->lang['settingdeleted'];
-			$forums->func->recache('settings');
+			cache::update('settings');
 			$this->group_recount($conf['groupid']);
 			$this->setting_start();
 		}

@@ -450,7 +450,7 @@ class functions_post
 	function construct_smiles()
 	{
 		global $forums, $bboptions;
-		$forums->func->check_cache('smile');
+		cache::get('smile');
 		$smile_count = count($forums->cache['smile']);
 		$all_smiles = $bboptions['smilenums'];
 		$smiles = array();
@@ -471,7 +471,7 @@ class functions_post
 	function construct_icons()
 	{
 		global $forums;
-		$forums->func->check_cache('icon');
+		cache::get('icon');
 		foreach($forums->cache['icon'] AS $icon)
 		{
 			$icons[] = $icon;
@@ -576,8 +576,8 @@ class functions_post
 			{
 				$upload_files = "<table cellpadding='4' cellspacing='0' border='0'><tbody>";
 				$upload_size = 0;
-				$forums->func->check_cache('attachmenttype');
-				$forums->func->check_cache('usergroup');
+				cache::get('attachmenttype');
+				cache::get('usergroup');
 				$usergrp = $forums->cache['usergroup'];
 
 				$i = 0;
@@ -635,7 +635,7 @@ class functions_post
 	function process_upload($userid = '')
 	{
 		global $forums, $DB, $bbuserinfo, $bboptions;
-		$forums->func->check_cache('attachmenttype');
+		cache::get('attachmenttype');
 
 		$attach_data = array(
 			'extension' => '',
@@ -817,7 +817,7 @@ class functions_post
 			}
 			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "attachment WHERE attachmentid=" . $attachment['attachmentid'] . "");
 
-			$forums->func->check_cache('splittable');
+			cache::get('splittable');
 			$deftable = $forums->cache['splittable']['default'];
 			$deftable = $deftable ? $deftable : 'post';
 			$posttable = $attachment['posttable'] ? $attachment['posttable'] : $deftable;

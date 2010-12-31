@@ -455,7 +455,7 @@ function check_eval_prms($input)
 		show_processinfo($forums->lang['cannotevalself']);
 		return false;
 	}
-	$forums->func->check_cache('usergroup');
+	cache::get('usergroup');
 	$usergroups = $forums->cache['usergroup'];
 	//判断用户权重
 	if ($usergroups[$bbuserinfo['usergroupid']]['grouppower'] < $usergroups[$forums->this_post['usergroupid']]['grouppower'])
@@ -486,7 +486,7 @@ function evaluation_post($input, $pid)
 	$author = $forums->this_post['username'];
 	$authorid = $forums->this_post['userid'];
 
-	$forums->func->check_cache('creditlist');
+	cache::get('creditlist');
 	$list_key = $list_value = array();
 	foreach ($forums->cache['creditlist'] as $creditid => $v)
 	{
@@ -757,7 +757,7 @@ function ban_user_post($input, $uid = 0, $do_ban = 0)
 		}
 		$liftban = "";
 		$splittable = array();
-		$forums->func->check_cache('splittable');
+		cache::get('splittable');
 		$splittable = $forums->cache['splittable']['all'];
 		$time = $forums->func->get_date(TIMENOW, 2, 1);
 		if ($permanent == -1 || $permanent == 1)

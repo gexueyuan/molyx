@@ -56,7 +56,7 @@ class bbcode
 			$this->showcode();
 		}
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "bbcode WHERE bbcodeid=" . input::int('id') . "");
-		$forums->func->recache('bbcode');
+		cache::update('bbcode');
 		$this->showcode();
 	}
 
@@ -146,7 +146,7 @@ class bbcode
 			$DB->update(TABLE_PREFIX . 'bbcode', $bbcode, 'bbcodeid=' . input::int('id'));
 			$forums->main_msg = $forums->lang['bbcodeedited'];
 		}
-		$forums->func->recache('bbcode');
+		cache::update('bbcode');
 		$this->showcode();
 	}
 

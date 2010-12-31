@@ -40,9 +40,9 @@ require_once(ROOT_PATH . 'includes/init.php');
 require_once(ROOT_PATH . 'includes/functions.php');
 
 $forums->func = new functions();
-$forums->func->check_cache('settings');
+cache::get('settings');
 $bboptions = $forums->cache['settings'];
-$forums->func->check_cache('style');
+cache::get('style');
 
 $forums->sessionurl = '?';
 $forums->si_sessionurl = '';

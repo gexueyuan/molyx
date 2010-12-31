@@ -20,134 +20,6 @@ class functions
 	var $errheader = true;
 
 	/**
-	 * 检查/载入缓存
-	 *
-	 * @param string $cache_name 缓存名
-	 * @param string $extra 缓存使用函数名, 可选
-	 * @param boolean $return 是否返回缓存内容, true 时将不重新生成缓存
-	 */
-	function check_cache($cache_name = '', $extra = '', $return = false)
-	{
-		global $forums;
-		if (isset($forums->cache[$cache_name]))
-		{
-			return $return ? $forums->cache[$cache_name] : true;
-		}
-		$cache_file = ROOT_PATH . 'cache/cache/' . $this->convert_cache_name($cache_name) . '.php';
-		if (!@include($cache_file))
-		{
-			$forums->cache[$cache_name] = false;
-		}
-
-		if ($return)
-		{
-			return $forums->cache[$cache_name];
-		}
-		else if ($forums->cache[$cache_name] === false)
-		{
-			$cache_name = $extra ? $extra : $cache_name;
-			$this->recache($cache_name);
-		}
-		return true;
-	}
-
-	function update_cache($v = array())
-	{
-		global $forums;
-		if (is_string($v) && !empty($v))
-		{
-			$v['name'] = $v;
-		}
-		if ($v['name'])
-		{
-			if (empty($v['value']))
-			{
-				$v['value'] = $forums->cache[$v['name']];
-			}
-			else
-			{
-				$forums->cache[$v['name']] = $v['value'];
-			}
-			$cache_file = ROOT_PATH . 'cache/cache/' . $this->convert_cache_name($v['name'], true) . '.php';
-			if ($v['value'] === false)
-			{
-				$v['value'] = 0;
-			}
-			$content = '<'. "?php\n\$forums->cache['{$v['name']}'] = " . var_export($v['value'], true) . ";\n?" . '>';
-			file_write($cache_file, $content);
-		}
-	}
-
-	/**
-	 * 重建缓存
-	 *
-	 * @param string $cache_name 缓存名字
-	 */
-	function recache($cache_name = '')
-	{
-		if (empty($cache_name))
-		{
-			return false;
-		}
-
-		static $cache = null;
-		if ($cache === null)
-		{
-			require_once(ROOT_PATH . 'includes/adminfunctions_cache.php');
-			$cache = new adminfunctions_cache();
-		}
-		$cache_name .= '_recache';
-		if (method_exists($cache, $cache_name))
-		{
-			$cache->$cache_name();
-			return true;
-		}
-		return false;
-	}
-
-	/**
-	 * 删除缓存
-	 *
-	 * @param string $cache_name 缓存名字
-	 */
-	function rmcache($cache_name = '')
-	{
-		if (empty($cache_name))
-		{
-			return false;
-		}
-
-		if (is_array($cache_name))
-		{
-			return array_map(array(&$this, 'rmcache'), $cache_name);
-		}
-		else
-		{
-			return @unlink(ROOT_PATH . 'cache/cache/' . $this->convert_cache_name($cache_name) . '.php');
-		}
-	}
-
-	/**
-	 * 转换缓存名, 将其中的 - 变为 /
-	 *
-	 * @param string $name 缓存名
-	 * @param boolean $check_dir 是否检查目录, 生成时用
-	 */
-	function convert_cache_name($name, $check_dir = false)
-	{
-		if (strpos($name, '-') !== false)
-		{
-			$name = str_replace('-', '/', $name);
-			if ($check_dir && !checkdir(ROOT_PATH . 'cache/cache/' . $name, true))
-			{
-				$this->standard_error('cachewriteerror');
-			}
-		}
-
-		return $name;
-	}
-
-	/**
 	 * 载入模板
 	 *
 	 * @param string $template 模板名
@@ -1235,7 +1107,7 @@ class functions
 	function check_ad($type = '', $fid = 0)
 	{
 		global $forums;
-		$forums->func->check_cache('ad');
+		cache::get('ad');
 		if (!empty($forums->cache['ad']))
 		{
 			if (is_null($forums->ads))

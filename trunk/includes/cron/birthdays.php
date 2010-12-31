@@ -127,7 +127,7 @@ class cron_birthdays
 	{
 		global $DB, $forums;
 
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		$usedcredit = array();
 		if ($forums->cache['creditlist'])
 		{

@@ -36,7 +36,7 @@ class evaluation
 		$this->postid = input::get('p', 0);
 		$this->pp = input::get('pp', 0);
 		//分表
-		$forums->func->recache('splittable');
+		cache::update('splittable');
 		$splittable = $forums->cache['splittable']['all'];
 		$deftable = $forums->cache['splittable']['default'];
 		foreach ($splittable as $id => $v)
@@ -69,7 +69,7 @@ class evaluation
 		{
 			$forums->func->standard_error('cannotfindeval');
 		}
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		$usergroups = $forums->cache['usergroup'];
 		//判断用户权重
 		if ($usergroups[$bbuserinfo['usergroupid']]['grouppower'] < $usergroups[$this->post['usergroupid']]['grouppower'])
@@ -101,7 +101,7 @@ class evaluation
 		$author = $this->post['username'];
 		$authorid = $this->post['userid'];
 
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		foreach ($forums->cache['creditlist'] as $creditid => $v)
 		{
 			if (!$v['used']) continue;

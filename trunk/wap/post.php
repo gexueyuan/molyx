@@ -124,7 +124,7 @@ class newthread
 		$this->post['posthash'] = $this->posthash;
 		//$this->post['pagetext'] = convert($this->post['pagetext']) . "<br /><br /><div><font class='editinfo'>" . $forums->lang['fromwap'] . "</font></div>";
 		$this->post['pagetext'] = convert($this->post['pagetext']);
-		$forums->func->check_cache('banksettings');
+		cache::get('banksettings');
 		if ($this->type == 'new')
 		{
 			$title = $this->lib->parser->censoredwords($title);

@@ -20,7 +20,7 @@ class adminfunctions_template
 		{
 			return;
 		}
-		$forums->func->check_cache('style');
+		cache::get('style');
 		$style = $forums->cache['style'][$id];
 		$forums->lang['recachestylescss'] = sprintf($forums->lang['recachestylescss'], $style['title']);
 		$forums->lang['recachetemplates'] = sprintf($forums->lang['recachetemplates'], $style['title']);
@@ -28,7 +28,7 @@ class adminfunctions_template
 		$this->writecsscache($id, false);
 		$this->messages[] = '<br /><strong>' . $forums->lang['recachetemplates'] . '</strong>';
 		$this->recachetemplates($id);
-		$forums->func->recache('style');
+		cache::update('style');
 		return $message;
 	}
 
@@ -496,7 +496,7 @@ class adminfunctions_template
 		}
 		else
 		{
-			$forums->func->check_cache('style');
+			cache::get('style');
 			$styles = $forums->cache['style'];
 		}
 

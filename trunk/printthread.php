@@ -89,7 +89,7 @@ class printthread
 				}
 			}
 		}
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		foreach ($thispost as $row)
 		{
 			$poster = array();

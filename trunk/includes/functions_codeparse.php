@@ -36,10 +36,10 @@ class functions_codeparse
 	function check_caches()
 	{
 		global $forums;
-		$forums->func->check_cache('icon');
-		$forums->func->check_cache('smile');
-		$forums->func->check_cache('bbcode');
-		$forums->func->check_cache('badword');
+		cache::get('icon');
+		cache::get('smile');
+		cache::get('bbcode');
+		cache::get('badword');
 	}
 
 	function strip_quote_tags($text = '')
@@ -174,7 +174,7 @@ class functions_codeparse
 		if ($in['allowsmilies'])
 		{
 			$text = ' ' . $text . ' ';
-			$forums->func->check_cache('smile');
+			cache::get('smile');
 			$smile = $forums->cache['smile'];
 			usort($smile, array('functions_codeparse', 'smile_length_sort'));
 			if (count($smile) > 0)
@@ -377,7 +377,7 @@ class functions_codeparse
 	{
 		global $forums;
 		$count = array();
-		$forums->func->check_cache('bbcode');
+		cache::get('bbcode');
 		if (is_array($forums->cache['bbcode']) AND count($forums->cache['bbcode']))
 		{
 			foreach($forums->cache['bbcode'] AS $i => $r)
@@ -426,7 +426,7 @@ class functions_codeparse
 		{
 			return $text;
 		}
-		$forums->func->check_cache('badword');
+		cache::get('badword');
 		if (is_array($forums->cache['badword']))
 		{
 			usort($forums->cache['badword'] , array('functions_codeparse', 'word_length_sort'));
@@ -563,7 +563,7 @@ class functions_codeparse
 	function parse_attach_contents($text = '')
 	{
 		global $DB, $forums, $bbuserinfo, $bboptions;
-		$forums->func->check_cache('attachmenttype');
+		cache::get('attachmenttype');
 		$result = $DB->query('SELECT *
 			FROM ' . TABLE_PREFIX . 'attachment
 			WHERE ' . $DB->sql->in('attachmentid', $this->aip));

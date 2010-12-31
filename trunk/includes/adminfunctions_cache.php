@@ -580,7 +580,7 @@ info;
 		$error_function_code = "\n\n".'//check error function';
 		$trim_data_str = "\n\n";
 
-        $forums->func->check_cache('new_column');
+        cache::get('new_column');
 
         if(count($forums->cache['new_column']))
 		{
@@ -801,7 +801,7 @@ str;
 	function userinfo_form_recache()
 	{
         global $forums,$DB;
-        $forums->func->check_cache('new_column');
+        cache::get('new_column');
 
 		$userinfo_field = array();
         if($forums->cache['new_column'])

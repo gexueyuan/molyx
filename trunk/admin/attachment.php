@@ -390,7 +390,7 @@ class attachment
 	{
 		global $forums, $DB;
 		$DB->delete(TABLE_PREFIX . 'attachmenttype', 'id=' . input::int('id'));
-		$forums->func->recache('attachmenttype');
+		cache::update('attachmenttype');
 		$forums->main_msg = $forums->lang['attachtypedeleted'];
 		$this->attachtypes_start();
 	}
@@ -431,7 +431,7 @@ class attachment
 			$DB->update(TABLE_PREFIX . 'attachmenttype', $save_array, 'id=' . input::int('id'));
 			$forums->main_msg = $forums->lang['attachtypeedited'];
 		}
-		$forums->func->recache('attachmenttype');
+		cache::update('attachmenttype');
 		$this->attachtypes_start();
 	}
 

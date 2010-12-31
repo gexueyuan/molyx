@@ -60,9 +60,9 @@ class newpoll
 		{
 			$forums->func->standard_error("cannotpostpoll");
 		}
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		$usergrp = $forums->cache['usergroup'];
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		$hidecredit = array();
 		if ($forums->cache['creditlist'])
 		{
@@ -137,7 +137,7 @@ class newpoll
 		}
 		if ($this->lib->forum['specialtopic'])
 		{
-			$forums->func->check_cache('st');
+			cache::get('st');
 			$special_selected[0] = ' selected="selected"';
 			$specialtopic = explode(',', $this->lib->forum['specialtopic']);
 			$forumsspecial = $forums->cache['st'];

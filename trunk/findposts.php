@@ -122,7 +122,7 @@ class findposts
 		}
 		//取得搜索的帖子表
 		$splittable = array();
-		$forums->func->check_cache('splittable');
+		cache::get('splittable');
 		$splittable = $forums->cache['splittable']['default'];
 		//只查询用户在当前帖子表的发帖
 		$all_post_table = $forums->cache['splittable']['all'];
@@ -284,7 +284,7 @@ class findposts
 		}
 		//取得搜索的帖子表
 		$splittable = array();
-		$forums->func->check_cache('splittable');
+		cache::get('splittable');
 		$splittable = $forums->cache['splittable']['default'];
 		//只查询用户在当前帖子表的发帖
 		$all_post_table = $forums->cache['splittable']['all'];

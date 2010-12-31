@@ -210,11 +210,11 @@ class area
 	function recache()
 	{
 		global $forums;
-		$forums->func->check_cache('forum');
+		cache::get('forum');
 		foreach ($forums->cache['forum'] AS $fid => $v)
 		{
 			input::set('f', $fid);
-			$forums->func->recache('forum_area');
+			cache::update('forum_area');
 		}
 	}
 }

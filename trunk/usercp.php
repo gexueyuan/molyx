@@ -159,7 +159,7 @@ class usercp
 				}
 			}
 		}
-		$forums->func->check_cache('attachmenttype');
+		cache::get('attachmenttype');
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "attachment WHERE userid='" . $bbuserinfo['id'] . "' ORDER BY dateline DESC LIMIT 0, 5");
 		if ($DB->numRows())
 		{
@@ -344,7 +344,7 @@ class usercp
 	function get_usrext_form()
 	{
 		global $forums, $bbuserinfo;
-		$forums->func->check_cache('userextrafield');
+		cache::get('userextrafield');
 
 		$return = array('must' => array(), 'other' => array());
 		if(!isset($forums->cache['userextrafield']['a'])) $forums->cache['userextrafield']['a'] = array();
@@ -597,7 +597,7 @@ class usercp
 				'curpage' => $start,
 				'pagelink' => "usercp.php{$forums->sessionurl}do=attach&amp;sort=$sort",
 				));
-		$forums->func->check_cache('attachmenttype');
+		cache::get('attachmenttype');
 		$posts = $DB->query("SELECT a.*, t.*, p.pid
 										 FROM " . TABLE_PREFIX . "attachment a
 										  LEFT JOIN " . TABLE_PREFIX . "post p ON ( a.postid=p.pid )
@@ -1232,7 +1232,7 @@ class usercp
 			$forums->func->standard_error("badposthash");
 		}
 		//检查允许上传的头像附件类型
-		$forums->func->check_cache('attachmenttype');
+		cache::get('attachmenttype');
 		$allow_extension = array();
 		if (is_array($forums->cache['attachmenttype']) AND count($forums->cache['attachmenttype']))
 		{

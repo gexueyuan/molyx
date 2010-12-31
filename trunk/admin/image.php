@@ -90,7 +90,7 @@ class image
 		{
 			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "smile WHERE id IN (" . implode(',', $delids) . ")");
 		}
-		$forums->func->recache('smile');
+		cache::update('smile');
 		$forums->main_msg = $forums->lang['smiliesupdated'];
 		$this->smile_start();
 	}
@@ -159,7 +159,7 @@ class image
 				}
 			}
 		}
-		$forums->func->recache('smile');
+		cache::update('smile');
 		$forums->main_msg = $forums->lang['smiliesuploaded'];
 		$this->smile_start();
 	}
@@ -552,7 +552,7 @@ class image
 		{
 			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "icon WHERE id IN (" . implode(',', $delids) . ")");
 		}
-		$forums->func->recache('icon');
+		cache::update('icon');
 		$forums->main_msg = $forums->lang['iconsupdated'];
 		$this->icon_start();
 	}
@@ -584,7 +584,7 @@ class image
 				}
 			}
 		}
-		$forums->func->recache('icon');
+		cache::update('icon');
 		$forums->main_msg = $forums->lang['iconsuploaded'];
 		$this->icon_start();
 	}

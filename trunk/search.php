@@ -80,7 +80,7 @@ class search
 		$nav = array($forums->lang['search']);
 
 		$tables = array();
-		$forums->func->check_cache('splittable');
+		cache::get('splittable');
 		$tables = $forums->cache['splittable']['all'];
 		$splittable = '';
 		$achive = array();

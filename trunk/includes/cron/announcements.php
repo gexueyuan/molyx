@@ -17,7 +17,7 @@ class cron_announcements
 	{
 		global $DB, $forums;
 		$forums->func->load_lang('cron');
-		$forums->func->recache('announcement');
+		cache::update('announcement');
 		$this->class->cronlog($this->cron, $forums->lang['updateannounce']);
 	}
 

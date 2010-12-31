@@ -17,7 +17,7 @@ $forums->func->load_lang('index');
 if ($bbuserinfo['id'])
 {
 	//积分
-	$forums->func->check_cache('creditlist');
+	cache::get('creditlist');
 	if (is_array($forums->cache['creditlist']))
 	{
 		$expand_credit = "";
@@ -32,7 +32,7 @@ if ($bbuserinfo['id'])
 }
 
 // 论坛信息
-$forums->func->check_cache('stats');
+cache::get('stats');
 if ($bboptions['showstatus'])
 {
 	$show['stats'] = true;
@@ -71,7 +71,7 @@ if ($bboptions['showloggedin'])
 
 	//用户组列表
 	$usergroups = array();
-	$forums->func->check_cache('usergroup');
+	cache::get('usergroup');
 	$usergroups = $forums->cache['usergroup'];
 	foreach ($usergroups as $groupid => $info)
 	{
@@ -121,7 +121,7 @@ if ($bboptions['showloggedin'])
 		}
 		else
 		{
-			$forums->func->check_cache('usergroup');
+			cache::get('usergroup');
 
 			/**
 			 * 根据会员资料设置在线列表资料和更新在线人数信息
@@ -257,7 +257,7 @@ if ($bboptions['showbirthday'])
 	$show['stats'] = true;
 	$birthusers = '';
 	$bcount = 0;
-	$forums->func->check_cache('birthdays');
+	cache::get('birthdays');
 	if (is_array($forums->cache['birthdays']) && $forums->cache['birthdays'])
 	{
 		$today = $forums->func->get_time(TIMENOW, 'Y');
@@ -292,7 +292,7 @@ if ($bboptions['showbirthday'])
 //推荐主题
 if ($bboptions['top_digg_thread_num'])
 {
-	$forums->func->check_cache('top_digg_thread');
+	cache::get('top_digg_thread');
 	$top_digg_thread = $forums->cache['top_digg_thread'];
 	if ($top_digg_thread)
 	{
@@ -309,7 +309,7 @@ if ($bboptions['top_digg_thread_num'])
 }
 
 // 联盟论坛(友情链接)
-$forums->func->check_cache('league');
+cache::get('league');
 $league = $forums->cache['league'];
 
 require_once(ROOT_PATH . 'includes/ajax/ajax.php');

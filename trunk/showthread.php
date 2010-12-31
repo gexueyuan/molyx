@@ -89,7 +89,7 @@ class showthread
 		$this->lib = new functions_showthread();
 		require_once(ROOT_PATH . 'includes/class_textparse.php');
 
-		$forums->func->check_cache('ranks');
+		cache::get('ranks');
 
 		if ($this->thread['open'] == 2)
 		{
@@ -347,9 +347,9 @@ class showthread
 			$attachment_inpost = $attachment['attachments_inpost'];
 			$attachment = $attachment['attachments'];
 		}
-		$forums->func->check_cache('usergroup');
-		$forums->func->check_cache('icon');
-		$forums->func->check_cache('creditlist');
+		cache::get('usergroup');
+		cache::get('icon');
+		cache::get('creditlist');
 		if ($this->moderator['bantimelimit'])
 		{
 			$bantimelimit = $this->moderator['bantimelimit'];

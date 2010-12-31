@@ -9,7 +9,7 @@
 # $Id$
 # **************************************************************************#
 
-function recache_attachment_type()
+function recache_attachmenttype()
 {
 	$db = db::base();
 

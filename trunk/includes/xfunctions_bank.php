@@ -71,11 +71,11 @@ class bankfunc
 	function bank_savepick_money($costamount = 0, $saveamount = 0, $tag = '', $type = '')
 	{
 		global $DB, $bbuserinfo, $forums;
-		$forums->func->check_cache('banksettings');
+		cache::get('banksettings');
 		$banksettings = $forums->cache['banksettings'];
-		$forums->func->check_cache('credit_'.$tag, 'credit');
+		cache::get('credit_'.$tag, 'credit');
 		$actcredit = $forums->cache['credit_'.$tag];
-		$forums->func->check_cache('credit_'.$banksettings['bankcredit'], 'credit');
+		cache::get('credit_'.$banksettings['bankcredit'], 'credit');
 		$defcredit = $forums->cache['credit_'.$banksettings['bankcredit']];
 		$saveamount = intval($saveamount);
 		if (!$bbuserinfo['id'] OR $costamount < 1 OR $saveamount < 1 OR $tag == '')
@@ -138,7 +138,7 @@ class bankfunc
 		{
 			return 0;
 		}
-		$forums->func->check_cache('credit_'.$tag, 'credit');
+		cache::get('credit_'.$tag, 'credit');
 		$savecredit = $forums->cache['credit_'.$tag];
 		$savelog = $costlog = "";
 		$costsql = array();
@@ -147,7 +147,7 @@ class bankfunc
 		foreach ($costamount as $key => $val)
 		{
 			if ($val < 1) return 0;
-			$forums->func->check_cache('credit_'.$key, 'credit');
+			cache::get('credit_'.$key, 'credit');
 			$costcredit = $forums->cache['credit_'.$key];
 			$costsql[] = "$key = $key - $val";
 			$costlog .= round($val)."{$costcredit['unit']}{$costcredit['name']} ";
@@ -205,11 +205,11 @@ class bankfunc
 		global $forums;
 		$return = array();
 		if ($num == 0 || $intag == '' || $outtag == '' || $type == '') return $return;
-		$forums->func->check_cache('banksettings');
+		cache::get('banksettings');
 		$banksettings = $forums->cache['banksettings'];
-		$forums->func->check_cache('credit_'.$intag, 'credit');
+		cache::get('credit_'.$intag, 'credit');
 		$increditinfo = $forums->cache['credit_'.$intag];
-		$forums->func->check_cache('credit_'.$outtag, 'credit');
+		cache::get('credit_'.$outtag, 'credit');
 		$outcreditinfo = $forums->cache['credit_'.$outtag];
 		if (!$increditinfo['ratio'] || !$outcreditinfo['ratio']) return $return;
 		if ($type == 'clean' && $banksettings['bankpurgeexcost'])
@@ -247,7 +247,7 @@ class bankfunc
 	{
 		global $forums;
 		if (!$k) return;
-		$forums->func->check_cache('credit_'.$k, 'credit');
+		cache::get('credit_'.$k, 'credit');
 		$exchange = unserialize($forums->cache['credit_'.$k]['exchange']);
 		$handexchange = explode(',', $exchange['hand']);
 		$autoexchange = explode(',', $exchange['auto']);

@@ -85,8 +85,8 @@ class sptopic
 					}
 				}
 			}
-			$forums->func->recache('forum');
-			$forums->func->recache('st');
+			cache::update('forum');
+			cache::update('st');
 			$forums->admin->redirect("sptopic.php", $forums->lang['st_deleted'], $forums->lang['st_deleted']);
 		}
 		else
@@ -102,7 +102,7 @@ class sptopic
 			$forums->admin->print_cells_single_row($forums->lang['confirm_deleted_desc'], "center");
 
 			$stlist[] = array('0', $forums->lang['other_default']);
-			$forums->func->check_cache('st');
+			cache::get('st');
 			foreach($forums->cache['st'] AS $id => $value)
 			{
 				if ($value['id'] == $st['id']) continue;
@@ -290,8 +290,8 @@ class sptopic
 				continue;
 			}
 		}
-		$forums->func->recache('forum');
-		$forums->func->recache('st');
+		cache::update('forum');
+		cache::update('st');
 	}
 }
 

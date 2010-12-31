@@ -1144,7 +1144,7 @@ class mysql
 			$msgcontent = $forums->lang['changedefaulttable'];
 			$msgtitle = $forums->lang['databasepttable'];
 		}
-		$forums->func->recache('splittable');
+		cache::update('splittable');
 		$forums->admin->redirect("mysql.php?{$forums->sessionurl}&do=pttable", $msgtitle, $msgcontent);
 	}
 
@@ -1262,7 +1262,7 @@ class mysql
 			}
 			$DB->update(TABLE_PREFIX . 'splittable', $toupdate, "name='$uptotable'");
 			$DB->update(TABLE_PREFIX . 'splittable', $fromupdate, "name='$upfromtable'");
-			$forums->func->recache('splittable');
+			cache::update('splittable');
 			$text = "<strong>" . $forums->lang['movedthreadsuccess'] . "</strong><br />" . implode("<br />", $output);
 			$url = "mysql.php?{$forums->sessionurl}&amp;do=movedata";
 			$time = 2;

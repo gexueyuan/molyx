@@ -16,7 +16,7 @@ header("Content-Type:text/html; charset=UTF-8");
 require_once(ROOT_PATH . 'includes/functions.php');
 $forums->func = new functions();
 $bboptions['language'] = 'en-us';
-$forums->func->check_cache('settings');
+cache::get('settings');
 $bboptions = $forums->cache['settings'];
 $forums->func->check_lang();
 $forums->func->load_lang('editor');

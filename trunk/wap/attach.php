@@ -143,7 +143,7 @@ class attachment
 			$attachment['location'] = str_replace("\\", "/", $attachment['location']);
 			$attachment['location'] = str_replace("/", "", substr($attachment['location'], strrpos($attachment['location'], '/')));
 			$showfile = $path . "/" . $attachment['location'];
-			$forums->func->check_cache('attachmenttype');
+			cache::get('attachmenttype');
 			if (file_exists($showfile) AND ($forums->cache['attachmenttype'][ $attachment['extension'] ]['mimetype'] != ""))
 			{
 				@ob_end_clean();

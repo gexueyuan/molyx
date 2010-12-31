@@ -135,7 +135,7 @@ class usergroup
 		$forums->admin->print_table_start($forums->lang['promotionlist']);
 		if (count($promotions) > 0)
 		{
-			$forums->func->check_cache('usergroup');
+			cache::get('usergroup');
 			foreach($promotions AS $groupid => $promos)
 			{
 				$forums->admin->print_cells_single_row($forums->lang['pusergroup'] . " - " . $forums->lang[ $forums->cache['usergroup'][$groupid]['grouptitle'] ] . "", "left", "pformstrip");
@@ -715,7 +715,7 @@ class usergroup
 				))
 			), 'id=' . $row['id']);
 		}
-		$forums->func->recache('forum');
+		cache::update('forum');
 		$forums->lang['grouppermsedited'] = sprintf($forums->lang['grouppermsedited'], $change);
 		$forums->admin->save_log($forums->lang['grouppermsedited']);
 		$forums->admin->redirect("usergroup.php?do=permission", $forums->lang['managepermission'], $forums->lang['grouppermsupdated']);
@@ -805,8 +805,7 @@ class usergroup
 			adminfunctions_language::writefile($file, $lang);
 		}
 
-		$forums->func->rmcache('usergroup_' . input::get('id', ''));
-		$forums->func->recache('usergroup');
+		cache::update('usergroup', input::int('id'));
 		$forums->admin->save_log($forums->lang['usergroupedited'] . " - '{$forums->lang[ input::get('grouptitle', '') ]}'");
 		$forums->admin->redirect("usergroup.php", $forums->lang['manageusergroup'], $forums->lang['usergroupdeleted']);
 	}
@@ -924,7 +923,7 @@ class usergroup
 		}
 		$DB->update(TABLE_PREFIX . 'usergroup', $groupvar, 'usergroupid=' . $usergroupid);
 		$this->updatelanguage($langvar);
-		$forums->func->recache('usergroup');
+		cache::update('usergroup');
 
 		if ($type == 'edit')
 		{
@@ -1235,7 +1234,7 @@ class usergroup
 					WHERE usergroupid IN (0$ugids)");
 			}
 		}
-		$forums->func->recache('usergroup');
+		cache::update('usergroup');
 		$forums->func->standard_redirect("usergroup.php?" . $forums->sessionurl);
 	}
 

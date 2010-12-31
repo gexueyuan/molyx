@@ -19,7 +19,7 @@ $output = new attachment();
 
 $id = input::get('id', 0);
 
-$forums->func->check_cache('attachmenttype');
+cache::get('attachmenttype');
 switch (input::get('do', ''))
 {
 	case 'showthread':

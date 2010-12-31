@@ -180,8 +180,8 @@ class rebuild
 		$end += $start;
 		$output = $splittable = array();
 
-		$forums->func->recache('splittable');
-		$forums->func->check_cache('splittable');
+		cache::update('splittable');
+		cache::get('splittable');
 		$splittable = $forums->cache['splittable']['all'];
 
 		$usercount = $DB->query("SELECT id, name
@@ -227,8 +227,8 @@ class rebuild
 		$tmp = $DB->queryFirst("SELECT id FROM " . TABLE_PREFIX . "user WHERE id > " . $end . "");
 		$max = intval($tmp['id']);
 
-		$forums->func->recache('splittable');
-		$forums->func->check_cache('splittable');
+		cache::update('splittable');
+		cache::get('splittable');
 		$splittable = $forums->cache['splittable']['all'];
 
 		$user = $DB->query("SELECT id, name FROM " . TABLE_PREFIX . "user WHERE id >= " . $start . " AND id < " . $end . " ORDER BY id ASC");
@@ -276,8 +276,8 @@ class rebuild
 
 		//查询当前帖子所在的帖子表
 		$splittable = $posttable = $endtable = array();
-		$forums->func->recache('splittable');
-		$forums->func->check_cache('splittable');
+		cache::update('splittable');
+		cache::get('splittable');
 		$splittable = $forums->cache['splittable']['all'];
 
 		foreach ($splittable as $id => $v)

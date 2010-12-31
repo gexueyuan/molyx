@@ -190,7 +190,7 @@ class register
 	function get_usrext_form()
 	{
 		global $forums;
-		$forums->func->check_cache('userextrafield');
+		cache::get('userextrafield');
 
 		$return = array('must' => array(), 'other' => array());
 		if (!empty($forums->cache['userextrafield']['a']))
@@ -925,7 +925,7 @@ class register
 			)
 		));
 
-		$forums->func->check_cache('stats');
+		cache::get('stats');
 		$forums->cache['stats']['newusername'] = $user['name'];
 		$forums->cache['stats']['newuserid'] = $user['id'];
 		$forums->cache['stats']['numbermembers']++;

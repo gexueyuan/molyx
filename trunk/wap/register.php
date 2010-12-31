@@ -242,7 +242,7 @@ class register
 				)
 			));
 
-			$forums->func->check_cache('stats');
+			cache::get('stats');
 			$forums->cache['stats']['newusername'] = $user['name'];
 			$forums->cache['stats']['newuserid'] = $user['id'];
 			$forums->cache['stats']['numbermembers']++;

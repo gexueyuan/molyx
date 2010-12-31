@@ -161,7 +161,7 @@ switch ($action)
 		));
 		$adminid = $DB->insertId();
 		define('CACHE_TABLE', $prefix . 'cache');
-		$forums->func->recache('all');
+		cache::update('all');
 
 		require_once(ROOT_PATH . 'includes/adminfunctions.php');
 		adminfunctions::recount_stats();
