@@ -175,7 +175,7 @@ class adminfunctions_javascript
 		}
 		else if ($js['type'] == 1)
 		{
-			$forums->func->check_cache('creditlist');
+			cache::get('creditlist');
 			$usedcredit = array();
 			if ($forums->cache['creditlist'])
 			{

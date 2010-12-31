@@ -110,8 +110,8 @@ class hidefunc
 		}
 		$hideinfo = unserialize($row['hidepost']);
 		$condition = $hideinfo['cond'];
-		$forums->func->check_cache('usergroup');
-		$forums->func->check_cache('creditlist');
+		cache::get('usergroup');
+		cache::get('creditlist');
 		$hidecredit = array();
 		if ($forums->cache['creditlist'])
 		{
@@ -246,7 +246,7 @@ class hidefunc
 				{
 					$errmsg = $forums->lang['notzero'];
 				}
-				$forums->func->check_cache('banksettings');
+				cache::get('banksettings');
 				if (($hidetype == 1 OR $hidetype == 2) AND $hidecond * 2 > $bbuserinfo['cash'])
 				{
 					$errmsg = $forums->lang['exceedlimit'];
@@ -261,7 +261,7 @@ class hidefunc
 				$cond = $hidecond;
 				break;
 			case 11 :
-				$forums->func->check_cache('usergroup');
+				cache::get('usergroup');
 				$usergrp = $forums->cache['usergroup'];
 				$hidegrpid = input::int('hidegrpid');
 				if (!count($usergrp[$hidegrpid]))
@@ -280,7 +280,7 @@ class hidefunc
 				{
 					$errmsg = $forums->lang['notzero'];
 				}
-				$forums->func->check_cache('creditlist');
+				cache::get('creditlist');
 				$hidecredit = array();
 				if ($forums->cache['creditlist'])
 				{
@@ -333,7 +333,7 @@ class hidefunc
 		$hide_list[] = array("val" => 11, "des" => $forums->lang['onlyusergroup']);
 		$hide_list[] = array("val" => 111, "des" => $forums->lang['viewrequirereply']);
 
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		if (count($forums->cache['creditlist']))
 		{
 			$hide_list[] = array("val" => 999, "des" => $forums->lang['viewrequirecredit']);
@@ -508,7 +508,7 @@ class hidefunc
 		}
 
 
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		$hidecredit = array();
 		if ($forums->cache['creditlist'])
 		{
@@ -517,7 +517,7 @@ class hidefunc
 				$hidecredit[$v['tag']] = $v['name'];
 			}
 		}
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		$usergrp = $forums->cache['usergroup'];
 		$extracredit = $sendposttimes = $usergroupids = $usergroupslang = $needreply = '';
 

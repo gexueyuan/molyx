@@ -237,7 +237,7 @@ class userregfield
 			$msg = $forums->lang['editregfieldsuccess'];
 		}
 		$this->processdata($type);
-		$forums->func->recache('regextrafield');
+		cache::update('regextrafield');
 		$forums->admin->redirect('regfield.php', $forums->lang['userextrafieldlist'], $msg);
 	}
 	
@@ -249,7 +249,7 @@ class userregfield
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$this->processdata('drop');
-		$forums->func->recache('regextrafield');
+		cache::update('regextrafield');
 		$forums->admin->redirect('regfield.php', $forums->lang['userextrafieldlist'], $forums->lang['delregfieldsuccess']);
 	}
 	

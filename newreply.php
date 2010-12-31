@@ -81,9 +81,9 @@ class newreply
 		}
 		$content = utf8::htmlspecialchars($content);
 		$content = preg_replace("#\[code\](.+?)\[/code\]#ies" , "utf8::unhtmlspecialchars('[code]\\1[/code]')", $content);
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		$usergrp = $forums->cache['usergroup'];
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		$hidecredit = array();
 		if ($forums->cache['creditlist'])
 		{

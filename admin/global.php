@@ -18,6 +18,7 @@ if (function_exists('set_time_limit'))
 }
 
 $forums = new stdClass();
+$forums->cache = &cache::all();
 $forums->noheader = 0;
 $forums->forum_read = $forums->lang = array();
 
@@ -43,8 +44,8 @@ if (USE_SHUTDOWN)
 {
 	register_shutdown_function(array(&$forums->func, 'do_shutdown'));
 }
-$forums->func->check_cache('settings');
-$forums->func->check_cache('cron');
+cache::get('settings');
+cache::get('cron');
 $bboptions = $forums->cache['settings'];
 
 $forums->imageurl = '../images/controlpanel';
@@ -66,7 +67,7 @@ $forums->admin = new adminfunctions();
 
 require_once(ROOT_PATH . 'includes/adminfunctions_forum.php');
 $forums->adminforum = new adminfunctions_forum();
-$forums->func->check_cache('adminforum');
+cache::get('adminforum');
 if (empty($forums->adminforum->forumcache))
 {
 	$forums->adminforum->forumcache = $forums->cache['adminforum'];

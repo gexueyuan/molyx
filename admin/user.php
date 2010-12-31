@@ -416,7 +416,7 @@ class user
 		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "session SET avatar='{$user['avatar']}', username='" . $newname . "' WHERE userid=" . $userid . "");
 		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET postusername='" . $newname . "' WHERE postuserid=" . $userid . "");
 		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "thread SET lastposter='" . $newname . "' WHERE lastposterid=" . $userid . "");
-		$forums->func->recache('moderator');
+		cache::update('moderator');
 		if (input::str('send_email') == 1)
 		{
 			require_once(ROOT_PATH . "includes/functions_email.php");
@@ -688,7 +688,7 @@ class user
 			'title' => trim(input::str('title')),
 			'ranklevel' => trim(input::str('ranklevel'))
 		));
-		$forums->func->recache('ranks');
+		cache::update('ranks');
 		$forums->admin->redirect("user.php?do=rankform", $forums->lang['manageranks'], $forums->lang['userrankadded']);
 	}
 
@@ -700,7 +700,7 @@ class user
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "usertitle WHERE id='" . input::get('id', '') . "'");
-		$forums->func->recache('ranks');
+		cache::update('ranks');
 		$forums->admin->save_log($forums->lang['userrankdeleted']);
 		$forums->admin->redirect("user.php?do=rankform", $forums->lang['manageranks'], $forums->lang['userrankdeleted']);
 	}
@@ -720,7 +720,7 @@ class user
 			}
 		}
 		$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "usertitle SET post=" . trim(input::str('post')) . ", title='" . trim(input::str('title')) . "', ranklevel='" . trim(input::str('ranklevel')) . "' WHERE id=" . input::get('id', '') . "");
-		$forums->func->recache('ranks');
+		cache::update('ranks');
 		$forums->admin->save_log($forums->lang['userrankedited']);
 		$forums->admin->redirect("user.php?do=rankform", $forums->lang['manageranks'], $forums->lang['userrankedited']);
 	}
@@ -1153,7 +1153,7 @@ class user
 		$per_row = 3;
 		$td_width = 100 / $per_row;
 		$count = 0;
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		$user = $DB->query($query);
 		while ($r = $DB->fetch($user))
 		{
@@ -1372,7 +1372,7 @@ class user
 		$forums->admin->print_cells_single_row($avatar . "<div><input type='submit' name='changeavatar' value='" . $forums->lang['changeavatar'] . "' id='button' /></div>", 'center');
 		$forums->admin->print_table_footer();
 
-		$forums->func->check_cache('userextrafield');
+		cache::get('userextrafield');
 		$userextrafield = $forums->cache['userextrafield'];
 		if ($userextrafield['a'])
 		{
@@ -1418,7 +1418,7 @@ class user
 
 		$forums->admin->print_table_footer();
 
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		if ($forums->cache['creditlist'])
 		{
 			$forums->admin->print_table_footer();
@@ -1665,7 +1665,7 @@ class user
 					'newuserid' => intval($user['id'])
 				)
 			));
-			$forums->func->recache('stats');
+			cache::update('stats');
 		}
 		$forums->admin->save_log($mod_log);
 		if (input::str('changeavatar'))
@@ -2048,7 +2048,7 @@ class user
 	function dojoin()
 	{
 		global $forums, $DB;
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		if (input::str('update'))
 		{
 			if (input::str('joinuser') == input::get('tojoinuser', ''))

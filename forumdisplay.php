@@ -125,7 +125,7 @@ class forum
 		$this->recycleforum = $bboptions['recycleforumid'];
 		$posthash = $this->posthash;
 		$forum = $this->forum;
-		$forums->func->check_cache('announcement');
+		cache::get('announcement');
 		$show['announce'] = false;
 		if (is_array($forums->cache['announcement']) && count($forums->cache['announcement']))
 		{
@@ -200,7 +200,7 @@ class forum
 		$st = input::get('st', 0);
 		if ($this->forum['specialtopic'])
 		{
-			$forums->func->check_cache('st');
+			cache::get('st');
 			$forums->cache['st'][0]['name'] = $forums->lang['st_all'];
 			$this->forum['specialtopic'] = '0,' . $this->forum['specialtopic'];
 			$sts = explode(',', $this->forum['specialtopic']);
@@ -440,7 +440,7 @@ class forum
 			$this->extra .= "&amp;pp=$pp";
 			$this->extra = urlencode(str_replace('&amp;', '&', $this->extra));
 		}
-		$forums->func->check_cache('icon');
+		cache::get('icon');
 		$query = "forumid=" . $this->forum['id']  . $visible . ' AND sticky <= 1';
 		if ( $threadprune )
 		{
@@ -551,7 +551,7 @@ class forum
 		// 查看论坛的用户
 		if ($bboptions['showforumusers'])
 		{
-			$forums->func->check_cache('usergroup');
+			cache::get('usergroup');
 			$online = array('guests' => 0, 'invisible' => 0, 'users' => 0, 'username' => '');
 
 			$this_user = array(
@@ -581,7 +581,7 @@ class forum
 		//取本版面推荐主题
 		if ($bboptions['commend_thread_num'])
 		{
-			$forums->func->check_cache('forum_commend_thread_' . $this->forum['id'], 'forum_commend_thread');
+			cache::get('forum_commend_thread_' . $this->forum['id'], 'forum_commend_thread');
 			$forum_commend_thread = $forums->cache['forum_commend_thread_' . $this->forum['id']];
 			if ($forum_commend_thread)
 			{
@@ -597,7 +597,7 @@ class forum
 		//版面内活跃会员
 		if ($bboptions['forum_active_user'])
 		{
-			$forums->func->check_cache('forum_active_user_' . $this->forum['id'], 'forum_active_user');
+			cache::get('forum_active_user_' . $this->forum['id'], 'forum_active_user');
 			$forum_active_user = $forums->cache['forum_active_user_' . $this->forum['id']];
 			if ($forum_active_user)
 			{
@@ -610,7 +610,7 @@ class forum
 			}
 		}
 		//自定义版面模块
-		$forums->func->check_cache('forum_area_' . $this->forum['id'], 'forum_area');
+		cache::get('forum_area_' . $this->forum['id'], 'forum_area');
 		$forum_area = $forums->cache['forum_area_' . $this->forum['id']];
 
 		$mxajax_register_functions = array(

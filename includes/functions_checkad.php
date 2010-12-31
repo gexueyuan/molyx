@@ -24,7 +24,7 @@ class functions_checkad
 		else
 		{
 			$i = 0;
-			$forums->func->check_cache('ad');
+			cache::get('ad');
 			if (isset($forums->cache['ad'][$type]['all']) && is_array($forums->cache['ad'][$type]['all']))
 			{
 				foreach ($forums->cache['ad'][$type]['all'] AS $code)
@@ -61,7 +61,7 @@ class functions_checkad
 	{
 		global $forums, $bboptions;
 		$forum_ad = array();
-		$forums->func->check_cache('ad');
+		cache::get('ad');
 		if (isset($forums->cache['ad']['thread']['all']))
 		{
 			foreach ((array) $forums->cache['ad']['thread']['all'] AS $code)
@@ -98,7 +98,7 @@ class functions_checkad
 		{
 			return;
 		}
-		$forums->func->check_cache('ad');
+		cache::get('ad');
 		if (is_array($forums->cache['ad']['post']['all']))
 		{
 			foreach ($forums->cache['ad']['post']['all'] AS $code)

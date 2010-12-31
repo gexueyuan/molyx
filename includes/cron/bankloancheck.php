@@ -22,16 +22,16 @@ class cron_bankloancheck
 			LEFT JOIN " . TABLE_PREFIX . "userexpand ex ON (e.id = ex.id)	
 			LEFT JOIN " . TABLE_PREFIX . "user u ON (e.id = u.id) 
 			WHERE e.loanamount > 0 AND e.loanreturn < " . TIMENOW);
-		$forums->func->check_cache('banksettings');
+		cache::get('banksettings');
 		$banksettings = $forums->cache['banksettings'];
 		require_once(ROOT_PATH . 'includes/xfunctions_bank.php');
 		$this->bankfunc = new bankfunc();
 		require_once(ROOT_PATH . "includes/functions_credit.php");
 		$this->credit = new functions_credit();
-		$forums->func->check_cache('credit_'.$banksettings['bankcredit'], 'credit');
+		cache::get('credit_'.$banksettings['bankcredit'], 'credit');
 		$bankcredit = $forums->cache['credit_'.$banksettings['bankcredit']];
 		$defaultration = $bankcredit['ratio'];
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		$lists = array();
 		if ($forums->cache['creditlist']) 
 		{
@@ -45,7 +45,7 @@ class cron_bankloancheck
 			$property = 0;
 			foreach ($lists as $tagname => $name)
 			{
-				$forums->func->check_cache("credit_$tagname", 'credit');
+				cache::get("credit_$tagname", 'credit');
 				$ruptcycredit = $forums->cache["credit_$tagname"]['bankruptcy'];
 				$ruptcycredit = str_replace(' ', '', $ruptcycredit);
 				$c_limit = $forums->cache["credit_$tagname"]['c_limit'];

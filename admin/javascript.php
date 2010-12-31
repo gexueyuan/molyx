@@ -251,7 +251,7 @@ class javascript
 		$s_type[] = array(1, $forums->lang['type_money']);
 		$s_type[] = array(2, $forums->lang['type_reputation']);
 		$s_type[] = array(3, $forums->lang['type_joindate']);
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		if (is_array($forums->cache['creditlist']))
 		{
 			foreach ($forums->cache['creditlist'] AS $k => $v)
@@ -314,7 +314,7 @@ class javascript
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$this->lib->createjs($js, 1);
-		$forums->func->recache('realjs');
+		cache::update('realjs');
 		$forums->admin->redirect("javascript.php", $forums->lang['jsmanage'], $forums->lang['jsrefreshed']);
 	}
 
@@ -344,7 +344,7 @@ class javascript
 					$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "javascript SET nextrun='" . $next_do_cron . "' WHERE id = " . $js['id'] . "");
 				}
 			}
-			$forums->func->recache('realjs');
+			cache::update('realjs');
 		}
 		else
 		{
@@ -364,7 +364,7 @@ class javascript
 		}
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "javascript WHERE id=" . $id . "");
 		@unlink(ROOT_PATH . 'data/' . $js['jsname']);
-		$forums->func->recache('realjs');
+		cache::update('realjs');
 		$forums->admin->redirect("javascript.php", $forums->lang['jsmanage'], $forums->lang['jsdeleted']);
 	}
 
@@ -483,7 +483,7 @@ class javascript
 			$DB->insert(TABLE_PREFIX . 'javascript', $js);
 		}
 		$this->lib->createjs($js, 1, $oldname);
-		$forums->func->recache('realjs');
+		cache::update('realjs');
 		$forums->admin->redirect("javascript.php", $forums->lang['jsmanage'], $forums->lang['jsupdated']);
 	}
 

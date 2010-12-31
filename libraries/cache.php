@@ -8,6 +8,7 @@
 #
 # $Id$
 # **************************************************************************#
+define('CACHE_FORCE_REBUILD', -1);
 
 class cache
 {
@@ -26,6 +27,17 @@ class cache
 		return self::$value;
 	}
 
+	private static function _name($cache_name, $extra)
+	{
+		if ($extra !== '' && !is_array($extra))
+		{
+			$extra = array('func' => $cache_name, 'param' => $extra);
+			$cache_name .= '-' . $extra['param'];
+		}
+
+		return array($cache_name, $extra);
+	}
+
 	/**
 	 * 读取缓存
 	 *
@@ -36,11 +48,7 @@ class cache
 	 */
 	public static function &get($cache_name, $extra = '', $recache = CACHE_NEVER_EXPIRE)
 	{
-		if ($extra !== '' && !is_array($extra))
-		{
-			$extra = array('func' => $cache_name, 'param' => $extra);
-			$cache_name .= '-' . $extra['param'];
-		}
+		list($cache_name, $extra) = self::_name($cache_name, $extra);
 
 		if (!isset(self::$value[$cache_name]))
 		{
@@ -51,29 +59,38 @@ class cache
 			}
 			else if ($recache !== false)
 			{
-				$recache = (int) $recache;
-
-				if (empty($extra))
-				{
-					$pos = strpos($cache_name, '-');
-					if ($pos !== false)
-					{
-						$extra = array(
-							'func' => substr($cache_name, 0, $pos),
-							'param' => substr($cache_name, $pos + 1)
-						);
-					}
-					else
-					{
-						$extra = $cache_name;
-					}
-				}
-
-				self::set($cache_name, self::value($extra), $recache);
+				self::update($cache_name, $extra, $recache);
 			}
 		}
 
 		return self::$value[$cache_name];
+	}
+
+	public static function update($cache_name, $extra = '', $expire = CACHE_NEVER_EXPIRE)
+	{
+		list($cache_name, $extra) = self::_name($cache_name, $extra);
+
+		$expire = (int) $expire;
+
+		if (empty($extra))
+		{
+			$pos = strpos($cache_name, '-');
+			if ($pos !== false)
+			{
+				$extra = array(
+					'func' => substr($cache_name, 0, $pos),
+					'param' => substr($cache_name, $pos + 1)
+				);
+			}
+			else
+			{
+				$extra = $cache_name;
+			}
+		}
+
+		self::set($cache_name, self::value($extra), $expire);
+
+		return true;
 	}
 
 	/**

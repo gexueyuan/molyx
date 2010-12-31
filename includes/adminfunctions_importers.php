@@ -54,7 +54,7 @@ class adminfunctions_importers
 			$forums->cache['settings']['bbactive'] = '1';
 			$forums->func->update_cache(array('name' => 'cron', 'array' => 0));
 			$forums->func->update_cache(array('name' => 'settings', 'array' => 1));
-			$forums->func->recache('all');
+			cache::update('all');
 			$forums->admin->redirect(ROOT_PATH . "admin/importers.php", $forums->lang['tablecleaned'], $forums->lang['redirectusersetting']);
 		}
 	}

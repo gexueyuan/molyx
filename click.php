@@ -12,7 +12,7 @@ define('THIS_SCRIPT', 'click');
 require_once('./global.php');
 
 $id = input::get('id', 0);
-$forums->func->check_cache('ad');
+cache::get('ad');
 if ($id && $forums->cache['ad']['content'][$id])
 {
 	$DB->update(TABLE_PREFIX . 'ad', array(

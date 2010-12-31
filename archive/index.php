@@ -20,9 +20,9 @@ require_once(ROOT_PATH . 'includes/sessions.php');
 require_once(ROOT_PATH . 'includes/functions_forum.php');
 $forums->forum = new functions_forum();
 $forums->url = REFERRER;
-$forums->func->check_cache('settings');
+cache::get('settings');
 $bboptions = $forums->cache['settings'];
-$forums->func->check_cache('style');
+cache::get('style');
 $forums->func->check_lang();
 $forums->func->load_lang('global');
 $forums->func->load_lang('archive');
@@ -270,7 +270,7 @@ class archive
 		{
 			$root = './../../';
 		}
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		while ($post = $DB->fetch($posts))
 		{
 			$post['dateline'] = $forums->func->get_date($post['dateline'], 2);

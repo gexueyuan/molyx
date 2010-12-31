@@ -13,6 +13,8 @@ define('ROOT_PATH' , './');
 require_once(ROOT_PATH . 'includes/init.php');
 
 $forums = new stdClass();
+$forums->cache = &cache::all();
+
 $forums->noheader = 0;
 $forums->forum_read = $forums->lang = array();
 $forums->ads = null;
@@ -26,7 +28,7 @@ if (USE_SHUTDOWN && THIS_SCRIPT != 'cron')
 	register_shutdown_function(array(&$forums->func, 'do_shutdown'));
 }
 
-$forums->func->check_cache('cron');
+cache::get('cron');
 if (TIMENOW >= $forums->cache['cron'])
 {
 	define('CRON', '<img src="' . ROOT_PATH . 'cron.php" border="0" height="1" width="1" alt="" />');
@@ -36,7 +38,7 @@ else
 	define('CRON', '');
 }
 
-$forums->func->check_cache('settings');
+cache::get('settings');
 $bboptions = &$forums->cache['settings'];
 $bboptions['mxemode'] = intval($bboptions['mxemode']);
 $bboptions['quickeditordisplaymenu'] = intval($bboptions['quickeditordisplaymenu']);
@@ -54,8 +56,8 @@ if (defined('GUEST_PAGE_CACHE') && GUEST_PAGE_CACHE && !$bbuserinfo['id'])
 {
 	require_once(ROOT_PATH . 'includes/page_cache.php');
 }
-$forums->func->check_cache('announcement');
-$forums->func->check_cache('style');
+cache::get('announcement');
+cache::get('style');
 require_once(ROOT_PATH . 'includes/functions_forum.php');
 $forums->forum = new functions_forum();
 

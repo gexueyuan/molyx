@@ -12,7 +12,7 @@ define('THIS_SCRIPT', 'real_js');
 require_once('./global.php');
 
 $id = input::get('id', 0);
-$forums->func->check_cache('realjs');
+cache::get('realjs');
 if (is_array($forums->cache['realjs'][$id]))
 {
 	require_once(ROOT_PATH . 'includes/adminfunctions_javascript.php');

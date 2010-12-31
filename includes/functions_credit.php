@@ -42,7 +42,7 @@ class functions_credit
 	{
 		global $forums, $DB, $bbuserinfo;
 		if (!$event || !$gid) return false;
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		if (!is_array($forums->cache['creditlist']) && !$forums->cache['creditlist'])
 		{
 			return false;
@@ -55,12 +55,12 @@ class functions_credit
 			
 			//取得该积分事件用户组修正值,版面修正值和默认值
 			$default = $groupalter = $forumalter = 0;
-			$forums->func->check_cache('creditrulegroup_'.$gid);
+			cache::get('creditrulegroup_'.$gid);
 			$groupalter = $forums->cache['creditrulegroup_'.$gid][$creditid]['alter'][$event];
 			$default = $forums->cache['creditrulegroup_'.$gid][$creditid]['default'][$event];
 			if ($fid)
 			{
-				$forums->func->check_cache('creditruleforum_'.$fid);
+				cache::get('creditruleforum_'.$fid);
 				$forumalter = $forums->cache['creditruleforum_'.$fid][$creditid]['alter'][$event];
 			}
 			

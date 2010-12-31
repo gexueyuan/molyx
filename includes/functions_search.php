@@ -184,7 +184,7 @@ class functions_search
 			$thread['folder_img'] = array('icons' => 'sticky.gif',
 				'title' => $forums->lang['threadgstick'],);
 		}
-		$forums->func->check_cache('st');
+		cache::get('st');
 		$thread['st'] = $forums->cache['st'][$thread['stopic']]['name'];
 		$thread['forum_full_name'] = $forums->forum->foruminfo[ $thread['forumid'] ]['name'];
 		if (strlen($thread['forum_full_name']) > 50)
@@ -212,7 +212,7 @@ class functions_search
 			$thread['prefix'] = $bboptions['pollprefix'] . ' ';
 		}
 		$thread['folder_img'] = $forums->func->folder_icon($thread, $last_time);
-		$forums->func->check_cache('icon');
+		cache::get('icon');
 		$thread['thread_icon'] = $thread['iconid'] ? 1 : 0;
 		$thread['thread_cache_icon'] = $forums->cache['icon'][$thread['iconid']]['image'];
 		$thread['showpages'] = $forums->func->build_threadpages(

@@ -48,7 +48,7 @@ class cache
 		{
 			input::set('id', 'forum');
 		}
-		$forums->func->check_cache(input::str('id'));
+		cache::get(input::str('id'));
 		$out = print_r($forums->cache[input::get('id', '')], true);
 		$forums->admin->print_popup_header();
 		echo "<pre>" . $out . "</pre>";
@@ -71,103 +71,103 @@ class cache
 		switch ($action)
 		{
 			case 'all':
-				$forums->func->recache('all');
+				cache::update('all');
 				$forums->main_msg = sprintf($forums->lang['cacheupdated'], $forums->lang[ $action ]);
 				break;
 			case 'forum_cache':
-				$forums->func->recache('forum');
+				cache::update('forum');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'usergroup':
-				$forums->func->recache('usergroup');
+				cache::update('usergroup');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'style':
-				$forums->func->recache('style');
+				cache::update('style');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'moderator':
-				$forums->func->recache('moderator');
+				cache::update('moderator');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'stats':
-				$forums->func->recache('stats');
+				cache::update('stats');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'ranks':
-				$forums->func->recache('ranks');
+				cache::update('ranks');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'olranks':
-				$forums->func->recache('olranks');
+				cache::update('olranks');
 				$forums->main_msg = sprintf($forums->lang['cacheupdated'], $forums->lang['olranks']);
 				break;
 			case 'birthdays':
-				$forums->func->recache('birthdays');
+				cache::update('birthdays');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'bbcode':
-				$forums->func->recache('bbcode');
+				cache::update('bbcode');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'banksettings':
-				$forums->func->recache('banksettings');
+				cache::update('banksettings');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'settings':
-				$forums->func->recache('settings');
+				cache::update('settings');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'smile':
-				$forums->func->recache('smile');
+				cache::update('smile');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'icon':
-				$forums->func->recache('icon');
+				cache::update('icon');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'badword':
-				$forums->func->recache('badword');
+				cache::update('badword');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'banfilter':
-				$forums->func->recache('banfilter');
+				cache::update('banfilter');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'attachtype':
-				$forums->func->recache('attachmenttype');
+				cache::update('attachmenttype');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'announcement':
-				$forums->func->recache('announcement');
+				cache::update('announcement');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'league':
-				$forums->func->recache('league');
+				cache::update('league');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'credit':
-				$forums->func->recache('credit');
+				cache::update('credit');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'realjs':
-				$forums->func->recache('realjs');
+				cache::update('realjs');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'st':
-				$forums->func->recache('st');
+				cache::update('st');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'ad':
-				$forums->func->recache('ad');
+				cache::update('ad');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'cron':
-				$forums->func->recache('cron');
+				cache::update('cron');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'splittable':
-				$forums->func->recache('splittable');
+				cache::update('splittable');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			default:

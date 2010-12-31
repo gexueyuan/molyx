@@ -459,7 +459,7 @@ function do_change_forumrule($fid, $forumrule = '', $wmode = 1)
 			'forumid' => $fid,
 			'forumrule' => $forumrule,
 		));
-		$forums->func->recache('forum');
+		cache::update('forum');
 		show_processinfo($forums->lang['forumrule_change_succ']);
 		$response->script('mxe = mxeWin = mxeDoc = mxeTxa = mxeTxH = mxeEbox = mxeStatus = mxeWidth = mxeHeight = eWidth = null;');
 		$response->assign('forum_rule', 'innerHTML', $forumrule);
@@ -627,7 +627,7 @@ function process_form($input, $action)
 		);
 		if ($action == 'moveclearthreads')
 		{
-			$forums->func->check_cache('forum');
+			cache::get('forum');
 			$foruminfo = $forums->cache['forum'];
 			$forums_info = list_forums();
 			$forums->lang['movethreadto'] = sprintf($forums->lang['movethreadto'], $foruminfo[$fid]['name'], $forum['name']);
@@ -635,7 +635,7 @@ function process_form($input, $action)
 		}
 		elseif ($action == 'stickorcancel')
 		{
-			$forums->func->check_cache('forum');
+			cache::get('forum');
 			$this_forum = $forums->forum->single_forum($fid);
 			$forums_info = '<option value="' . $fid . '">' . $forums->lang['currentforumstick'] . '</option>';
 			if (check_moderate_prms('canqstickthread', $fid))
@@ -655,7 +655,7 @@ function process_form($input, $action)
 				show_processinfo($forums->lang['nospecials']);
 				return $response;
 			}
-			$forums->func->check_cache('st');
+			cache::get('st');
 			$forumsspecial = $forums->cache['st'];
 			if (!$forumsspecial)
 			{
@@ -1036,7 +1036,7 @@ function move_threads()
 		show_processinfo($forums->lang['cannotmove']);
 		return $response;
 	}
-	$forums->func->check_cache('forum');
+	cache::get('forum');
 	require_once(ROOT_PATH . "includes/functions_moderate.php");
 	$mod_func = new modfunctions();
 	$tid = input::arr('tid');
@@ -1443,7 +1443,7 @@ function do_specialtopic($type = 'specialtopic')
 			show_processinfo($forums->lang['nospecials']);
 			return $response;
 		}
-		$forums->func->check_cache('st');
+		cache::get('st');
 		if (!$forums->cache['st'])
 		{
 			show_processinfo($forums->lang['nospecials']);
@@ -1593,7 +1593,7 @@ function mod_commend_thread()
 
 	$tid = input::arr('tid');
 	$DB->update(TABLE_PREFIX . 'thread', array('mod_commend' => $commend_exp), $DB->sql->in('tid', $tid));
-	$forums->func->recache('forum_commend_thread');
+	cache::update('forum_commend_thread');
 	if ($commend_exp)
 	{
 		$log = $forums->lang['commend_thread'];

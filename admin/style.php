@@ -579,7 +579,7 @@ class style
 		}
 		$DB->update(TABLE_PREFIX . 'style', $new, "styleid = $newid");
 
-		$forums->func->recache('style');
+		cache::update('style');
 
 		$dir = ROOT_PATH . 'templates/' . $new['title_en'] . '/';
 		if (checkdir($dir))
@@ -660,7 +660,7 @@ class style
 		$forums->admin->rm_dir(ROOT_PATH . 'cache/templates/style_' . $styleid);
 		$forums->admin->rm_dir(ROOT_PATH . 'templates/' . $this_style['title_en']);
 		$message[] = $forums->lang['templatedeleted'];
-		$forums->func->recache('style');
+		cache::update('style');
 		$this->build_template_parentlists();
 
 		$msg = '<div align="left" width="100%">' . $forums->lang['styledeleted'] . '<br />' . implode("<br />", array_merge($message, $this->template->messages)) . '</div>';
@@ -822,7 +822,7 @@ class style
 			$this->build_template_parentlists();
 		}
 
-		$forums->func->recache('style');
+		cache::update('style');
 
 		$dir = ROOT_PATH . 'templates/' . $this_style['title_en'] . '/';
 		if (checkdir($dir))
@@ -1595,7 +1595,7 @@ class style
 		$import = new template_import();
 		$import->importxmlstyle($xml, input::get('mergestyle', ''), input::get('parentstyle', ''), input::get('changetitle', ''), input::get('checkversion', ''), input::get('usedefault', ''), input::get('userselect', ''));
 
-		$forums->func->recache('style');
+		cache::update('style');
 		$this->template->delstylecache($styleid);
 		$forums->admin->redirect('style.php', $forums->lang['styleimported'], $forums->lang['styleimporteddesc']);
 	}
@@ -1768,7 +1768,7 @@ class style
 		$newbits = array('parentlist' => $styleid . ',' . $imparentstyle['parentlist']);
 		$DB->update(TABLE_PREFIX . 'style', $newbits, 'styleid=' . $styleid);
 
-		$forums->func->recache('style');
+		cache::update('style');
 		$this->template->delstylecache($styleid);
 
 		$forums->admin->redirect("style.php?{$forums->sessionurl}do=fileshtm", $forums->lang['managestyle'], $forums->lang['styleimportsuccess']);

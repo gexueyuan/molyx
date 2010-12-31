@@ -25,10 +25,10 @@ class memberlist
 			$forums->func->standard_error("cannotviewthispage");
 		}
 		$usergroups = array();
-		$forums->func->check_cache('ranks');
+		cache::get('ranks');
 		$this->usertitle = $forums->cache['ranks'];
 
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		foreach($forums->cache['usergroup'] AS $id => $row)
 		{
 			if ($row['hidelist'])

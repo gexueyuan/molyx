@@ -408,7 +408,7 @@ class adminlog
 		{
 			$DB->insert(TABLE_PREFIX . 'ad', $array);
 		}
-		$forums->func->recache('ad');
+		cache::update('ad');
 		$forums->admin->redirect("bill.php", $forums->lang['admanage'], $forums->lang['adupdated']);
 	}
 
@@ -542,7 +542,7 @@ class adminlog
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "ad WHERE id={$ad['id']}");
-		$forums->func->recache('ad');
+		cache::update('ad');
 		$forums->admin->redirect("bill.php", $forums->lang['admanage'], $forums->lang['adupdated']);
 	}
 
@@ -566,7 +566,7 @@ class adminlog
 				}
 			}
 		}
-		$forums->func->recache('ad');
+		cache::update('ad');
 		$forums->admin->redirect("bill.php", $forums->lang['admanage'], $forums->lang['adordered']);
 	}
 }

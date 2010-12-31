@@ -473,7 +473,7 @@ class announce
 		{
 			$DB->update(TABLE_PREFIX . 'announcement', $save_array, 'id = ' . $id);
 		}
-		$forums->func->recache('announcement');
+		cache::update('announcement');
 		if (input::get('ref', '') == 'showall')
 		{
 			$this->all_announcement();
@@ -501,7 +501,7 @@ class announce
 			$forums->func->standard_error("cannotdelannounce");
 		}
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . "");
-		$forums->func->recache('announcement');
+		cache::update('announcement');
 		if (input::get('ref', '') == 'showall')
 		{
 			$this->all_announcement();

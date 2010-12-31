@@ -586,7 +586,7 @@ class modfunctions
 		$todaypostcount = 0;
 
 		$splittable = $deftable = array();
-		$forums->func->check_cache('splittable');
+		cache::get('splittable');
 		$splittable = $forums->cache['splittable']['all'];
 		$deftable = $forums->cache['splittable']['default'];
 

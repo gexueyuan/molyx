@@ -227,14 +227,15 @@ class forums
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "forum WHERE id=" . $id);
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "moderator WHERE forumid=" . $id);
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "subscribeforum WHERE forumid=" . $id);
-		$forums->func->rmcache(array('subforum_' . $id, 'forum_' . $id));
+		cache::update('subforum', $id);
+		cache::update('forum', $id);
 		if (!input::int('new_parentid'))
 		{
 			input::set('new_parentid', -1);
 		}
 		$DB->update(TABLE_PREFIX . 'forum', array('parentid' => input::get('new_parentid', '')), "parentid = $id");
-		$forums->func->recache('forum');
-		$forums->func->recache('moderator');
+		cache::update('forum');
+		cache::update('moderator');
 		$forums->adminforum->build_forum_child_lists($forums->adminforum->forumcache[input::int('f')]['parentid']);
 		$forums->admin->save_log($forums->lang['manageforum'] . " '{$this->forum['name']}'");
 		$forums->admin->redirect("forums.php", $forums->lang['manageforum'], $forums->lang['forumdeleted']);
@@ -363,7 +364,7 @@ class forums
 			SET childlist = concat(childlist,'," . $forumid . "')
 			WHERE " . $DB->sql->in('id', $parentlist));
 		$this->update_specialtopic(input::get('st', ''), $forumid);
-		$forums->func->recache('forum');
+		cache::update('forum');
 		$forums->lang['forumcreated'] = sprintf($forums->lang['forumcreated'], input::get('name', ''));
 		$forums->admin->save_log($forums->lang['forumcreated']);
 		$forums->admin->redirect("forums.php", $forums->lang['manageforum'], $forums->lang['forumcreated']);
@@ -523,7 +524,7 @@ class forums
 		$forums->admin->print_cells_row(array("<strong>" . $forums->lang['forcespecial'] . "</strong>" ,
 				$forums->admin->print_yes_no_row("forcespecial", $this->forum['forcespecial'])
 				));
-		$forums->func->check_cache('st');
+		cache::get('st');
 		if (is_array($forums->cache['st']) && $forums->cache['st'])
 		{
 			$specialtopic = $forum_specialtopic = array();
@@ -702,7 +703,7 @@ class forums
 		$forums->adminforum->build_forum_child_lists($forumid);
 		$forums->adminforum->build_forum_child_lists($oldforuminfo['parentid']);
 		$this->update_specialtopic(input::get('st', ''), input::int('f'));
-		$forums->func->recache('forum');
+		cache::update('forum');
 		$forums->admin->redirect("forums.php", $forums->lang['manageforum'], $forums->lang['forumedited']);
 	}
 
@@ -713,8 +714,8 @@ class forums
 		{
 			$stids = array();
 		}
-		$forums->func->check_cache('st');
-		$forums->func->check_cache('forum_' . $fid, 'forum');
+		cache::get('st');
+		cache::get('forum_' . $fid, 'forum');
 		if (!empty($forums->cache['forum_' . $fid]['self']['specialtopic']))
 		{
 			$forum_st = explode(',', $forums->cache['forum_' . $fid]['self']['specialtopic']);
@@ -769,7 +770,7 @@ class forums
 				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "specialtopic SET forumids = '" . $update_forumid . "' WHERE id = {$stid}");
 			}
 		}
-		$forums->func->recache('st');
+		cache::update('st');
 	}
 
 	function editpermissions()
@@ -882,7 +883,7 @@ class forums
 		), 'id=' . input::int('f'));
 		$forums->lang['permissionedited'] = sprintf($forums->lang['permissionedited'], input::get('name', ''));
 		$forums->admin->save_log($forums->lang['permissionedited']);
-		$forums->func->recache('forum');
+		cache::update('forum');
 		if (input::get('doprevious', '') AND input::int('previd') > 0)
 		{
 			$forums->main_msg = $forums->lang['permissionedited'];
@@ -937,7 +938,7 @@ class forums
 					WHERE id IN (0$fids)");
 			}
 		}
-		$forums->func->recache('forum');
+		cache::update('forum');
 		$forums->func->standard_redirect("forums.php?" . $forums->sessionurl);
 	}
 

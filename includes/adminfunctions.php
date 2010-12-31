@@ -1006,7 +1006,7 @@ class adminfunctions
 			$stats[] = array('maxonline', 1);
 		}
 		$DB->updateCache($stats);
-		$forums->func->recache('stats');
+		cache::update('stats');
 	}
 
 	function mkuserfield($field, $value = array())

@@ -270,7 +270,7 @@ function quick_reply($submit_data, $post_content, $wmode = 'wysiwyg')
 	$this_post['host'] = IPADDRESS;
 	$this_post['dateline'] = TIMENOW;
 
-	$forums->func->check_cache('usergroup');
+	cache::get('usergroup');
 	require_once(ROOT_PATH . 'includes/class_textparse.php');
 	$return = parse_row($this_post, $dopost->forum['allowhtml'], $postcount['total'], $forum);
 	$return['poster']['status'] = 1;
@@ -392,7 +392,7 @@ function parse_row($row = array(), $allowhtml, $postcount, $forum)
 	$row['edit_button'] = $edit_delete_button[0];
 	$row['ajaxeditpostevent'] = $edit_delete_button['ajaxeditpostevent'];
 	$row['dateline'] = $forums->func->get_date($row['dateline'], 2);
-	$forums->func->check_cache('icon');
+	cache::get('icon');
 	$row['post_icon'] = $row['iconid'] ? 1 : 0;
 	$row['post_icon_hash'] = $forums->cache['icon'][$row['iconid']]['image'];
 	$row['host'] = "IP: " . $row['host'] . " &#0124;";
@@ -681,7 +681,7 @@ function dopreview_post($content, $fid, $allow_smile)
 function smiles_page($num, $p)
 {
 	global $forums, $bboptions, $response;
-	$forums->func->check_cache('smile');
+	cache::get('smile');
 	$smile_count = count($forums->cache['smile']);
 	$all_smiles = $bboptions['smilenums'];
 	if ($smile_count == 0 || $all_smiles == 0)
@@ -792,7 +792,7 @@ function process_post_form($input, $action, $pid = 0)
 		$prms_fids = ' AND forumid IN (' . implode(',', $prms_fid) . ')';
 	}
 
-	$forums->func->check_cache('forum');
+	cache::get('forum');
 	if ($input['do'])
 	{
 		switch ($input['do'])

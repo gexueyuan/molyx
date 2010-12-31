@@ -18,9 +18,9 @@ class cron_cleantoday
 		$forums->func->load_lang('cron');
 		$stats = $DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "forum SET todaypost = 0");
 		$DB->updateCache('todaypost', 0);
-		$forums->func->recache('stats');
-		$forums->func->recache('ad');
-		$forums->func->recache('forum');
+		cache::update('stats');
+		cache::update('ad');
+		cache::update('forum');
 		$this->class->cronlog($this->cron, $forums->lang['cleantoday']);
 	}
 

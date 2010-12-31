@@ -85,7 +85,7 @@ class online
 		$thread = array();
 		$user = array();
 		$userlist = array();
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		$DB->query("SELECT * FROM " . TABLE_PREFIX . "session WHERE lastactivity > $t_time" . $group . " ORDER BY $db_key $db_order LIMIT " . $pp . ", 40");
 		while ($r = $DB->fetch())
 		{

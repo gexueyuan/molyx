@@ -18,11 +18,11 @@ class cron_forum_active_user
 		global $DB, $forums, $bboptions;
 		if ($bboptions['forum_active_user'])
 		{
-			$forums->func->check_cache('forum');
+			cache::get('forum');
 			foreach ($forums->cache['forum'] AS $fid => $v)
 			{
 				input::set('f', $fid);
-				$forums->func->recache('forum_active_user');
+				cache::update('forum_active_user');
 			}
 		}
 	}

@@ -133,7 +133,7 @@ class settings
 					}
 					elseif ($r['dropextra'] == '#show_credit#')
 					{
-						$forums->func->check_cache('creditlist');
+						cache::get('creditlist');
 						foreach($forums->cache['creditlist'] as $creditid => $credit)
 						{
 							$dropdown[] = array($credit['tag'], $credit['name']);
@@ -230,7 +230,7 @@ class settings
 
 		input::set('groupid', input::int('id'));
 		$forums->main_msg = $forums->lang['bankupdated'];
-		$forums->func->recache('banksettings');
+		cache::update('banksettings');
 		if (! $donothing)
 		{
 			$this->banksetting_view();
@@ -261,7 +261,7 @@ class settings
 			$DB->update(TABLE_PREFIX . 'credit', array('globalparams' => serialize($params)), "creditid = $creditid");
 		}
 
-		$forums->func->recache('credit');
+		cache::update('credit');
 	}*/
 
 	function setting_revert()
@@ -276,7 +276,7 @@ class settings
 		$conf = $DB->queryFirst("SELECT * FROM " . TABLE_PREFIX . "setting WHERE settingid=" . input::int('id') . "");
 		$DB->update(TABLE_PREFIX . 'setting', array('value' => ''), 'settingid = ' . input::int('id'));
 		$forums->main_msg = $forums->lang['bankrestored'];
-		$forums->func->recache('banksettings');
+		cache::update('banksettings');
 		$this->banksetting_view();
 	}
 

@@ -140,7 +140,7 @@ class index
 			$forums->lang['totalthreads'] . ": " . fetch_number_format($total['totalthreads']),
 			$forums->lang['totalposts'] . ": " . fetch_number_format($total['totalposts']),)
 		);
-		$forums->func->check_cache('stats');
+		cache::get('stats');
 		$forums->admin->print_cells_row(array($forums->lang['totalusers'] . ": " . fetch_number_format($forums->cache['stats']['numbermembers']), "<a href='user.php?{$forums->sessionurl}do=mod'>" . $forums->lang['totalmodusers'] . "</a>: " . fetch_number_format($reg['reg'])));
 		$forums->admin->print_table_footer();
 		$admin = explode(',', SUPERADMIN);

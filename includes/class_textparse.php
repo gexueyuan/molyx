@@ -53,7 +53,7 @@ class textparse
 	function parse_bbcode($text = '')
 	{
 		global $forums;
-		$forums->func->check_cache('bbcode');
+		cache::get('bbcode');
 		if (is_array($forums->cache['bbcode']) && count($forums->cache['bbcode']))
 		{
 			foreach($forums->cache['bbcode'] as $row)

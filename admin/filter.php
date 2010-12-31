@@ -76,7 +76,7 @@ class filter
 		{
 			$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "banfilter WHERE id IN(" . implode(",", $ids) . ")");
 		}
-		$forums->func->recache('banfilter');
+		cache::update('banfilter');
 		$forums->main_msg = $forums->lang['banfilterdeleted'];
 		$this->ban_start();
 	}
@@ -95,7 +95,7 @@ class filter
 			$this->ban_start();
 		}
 		$DB->insert(TABLE_PREFIX . 'banfilter', array('type' => input::get('type', ''), 'content' => input::get('content', '')));
-		$forums->func->recache('banfilter');
+		cache::update('banfilter');
 		$forums->main_msg = $forums->lang['filteradded'];
 		$this->ban_start();
 	}
@@ -242,7 +242,7 @@ class filter
 			'badafter' => input::get('badafter', ''),
 			'type' => input::get('type', '')
 		), "id='" . input::get('id', '') . "'");
-		$forums->func->recache('badword');
+		cache::update('badword');
 		$forums->main_msg = $forums->lang['badwordedited'];
 		$this->badword_start();
 	}
@@ -285,7 +285,7 @@ class filter
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "badword WHERE id=" . input::int('id'));
-		$forums->func->recache('badword');
+		cache::update('badword');
 		$forums->main_msg = $forums->lang['badworddeleted'];
 		$this->badword_start();
 	}
@@ -308,7 +308,7 @@ class filter
 			'badafter' => input::get('badafter', ''),
 			'type' => input::get('type', ''))
 		);
-		$forums->func->recache('badword');
+		cache::update('badword');
 		$forums->main_msg = $forums->lang['badwordadded'];
 		$this->badword_start();
 	}

@@ -20,7 +20,7 @@ class functions_forum
 	function functions_forum()
 	{
 		global $forums;
-		$forums->func->check_cache('forum');
+		cache::get('forum');
 		$this->foruminfo = $forums->cache['forum'];
 	}
 
@@ -33,8 +33,8 @@ class functions_forum
 		}
 		$name = 'forum_' . $forumid;
 
-		$forums->func->check_cache($name, 'forum');
-		if ($forumid != 0 && $forums->func->check_cache("sub$name", 'forum', true))
+		cache::get($name, 'forum');
+		if ($forumid != 0 && cache::get("sub$name", 'forum', true))
 		{
 			$forums->cache[$name]['childs'] = &$forums->cache["sub$name"];
 		}
@@ -105,7 +105,7 @@ class functions_forum
 		$this->total = array('thread' => 0, 'post' => 0, 'todaypost' => 0);
 
 		$splittable = array();
-		$forums->func->check_cache('splittable');
+		cache::get('splittable');
 		$splittable = $forums->cache['splittable']['all'];
 		$deftable = $forums->cache['splittable']['default'];
 
@@ -174,7 +174,7 @@ class functions_forum
 		global $forums;
 		if ($forumid)
 		{
-			$forums->func->check_cache('forum_' . $forumid, 'forum');
+			cache::get('forum_' . $forumid, 'forum');
 			$this->foruminfo[$forumid] = array_merge($this->foruminfo[$forumid], $forums->cache['forum_' . $forumid]['self']);
 			return $this->foruminfo[$forumid];
 		}
@@ -187,7 +187,7 @@ class functions_forum
 	function forums_moderator_cache()
 	{
 		global $forums;
-		$forums->func->check_cache('moderator');
+		cache::get('moderator');
 		foreach((array) $forums->cache['moderator'] as $i => $r)
 		{
 			$this->mod_cache[$r['forumid']][$r['moderatorid']] = array(
@@ -353,7 +353,7 @@ class functions_forum
 		global $forums;
 		if (!$this->foruminfo[$forumid])
 		{
-			$forums->func->check_cache('forums_' . $forumid, 'forum');
+			cache::get('forums_' . $forumid, 'forum');
 			$this->foruminfo[$forumid] = &$forums->cache['forums_' . $forumid]['self'];
 		}
 

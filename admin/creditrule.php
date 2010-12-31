@@ -257,7 +257,7 @@ class creditrule
 			$id = $DB->insertId();
 			$type = 'added';
 		}
-		$forums->func->recache('creditrule');
+		cache::update('creditrule');
 		$forums->admin->redirect("creditrule.php", $forums->lang['creditrule_' . $type], $forums->lang['creditrule_' . $type]);
 	}
 
@@ -282,7 +282,7 @@ class creditrule
 		if (input::str('update'))
 		{
 			$DB->delete(TABLE_PREFIX . 'creditrule', 'ruleid = ' . $rule['ruleid']);
-			$forums->func->recache('creditrule');
+			cache::update('creditrule');
 			$forums->admin->redirect('creditrule.php', $forums->lang['credit_deleted'], $forums->lang['credit_deleted']);
 		}
 		else

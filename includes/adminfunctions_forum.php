@@ -40,7 +40,7 @@ class adminfunctions_forum
 	{
 		global $DB, $forums;
 		static $forumarraycache;
-		$forums->func->check_cache('forum_' . $forumid, 'forum');
+		cache::get('forum_' . $forumid, 'forum');
 		if (isset($forums->cache['forum_' . $forumid]['self']['parentlist']))
 		{
 			return $forums->cache['forum_' . $forumid]['self']['parentlist'];

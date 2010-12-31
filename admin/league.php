@@ -180,7 +180,7 @@ class league
 		{
 			$DB->insert(TABLE_PREFIX . 'league', $league);
 		}
-		$forums->func->recache('league');
+		cache::update('league');
 		$forums->admin->save_log($forums->lang['addlague'] . " - " . input::get('sitename', '') . "");
 		$forums->admin->redirect("league.php", $forums->lang['manageleague'], $forums->lang['leaguechanged']);
 	}
@@ -193,7 +193,7 @@ class league
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "league WHERE leagueid=" . input::int('id') . "");
-		$forums->func->recache('league');
+		cache::update('league');
 		$forums->admin->save_log($forums->lang['deletelague']);
 		$forums->admin->redirect("league.php", $forums->lang['manageleague'], $forums->lang['leaguedeleted']);
 	}

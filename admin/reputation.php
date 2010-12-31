@@ -37,8 +37,8 @@ class reputation
 		if (input::str('key')) $query = "AND " . input::get('type', '') . "='" . input::get('key', '') . "'";
 		$pagetitle = $forums->lang['reputationlist'];
 		$detail = $forums->lang['reputationlistdesc'];
-		$forums->func->recache('splittable');
-		$forums->func->check_cache('splittable');
+		cache::update('splittable');
+		cache::get('splittable');
 		$deftable = $forums->cache['splittable']['default'];
 		$posttable = $deftable['name']?$deftable['name']:'post';
 		$row = $DB->queryFirst("SELECT COUNT(pid) as count FROM " . TABLE_PREFIX . "$posttable WHERE reppost!=''" . $query . "");
@@ -115,8 +115,8 @@ class reputation
 		{
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
-		$forums->func->recache('splittable');
-		$forums->func->check_cache('splittable');
+		cache::update('splittable');
+		cache::get('splittable');
 		$deftable = $forums->cache['splittable']['default'];
 		$posttable = $deftable['name']?$deftable['name']:'post';
 		

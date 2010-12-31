@@ -986,7 +986,7 @@ class moderate
 		}
 		if ($this->forum['specialtopic'])
 		{
-			$forums->func->check_cache('st');
+			cache::get('st');
 			$this->st = explode(",", $this->forum['specialtopic']);
 			$specialtopic = '';
 			foreach ($this->st as $id)
@@ -1036,7 +1036,7 @@ class moderate
 			$forums->func->standard_error('cannotsetst', false, $this->forum['name']);
 		}
 		$this->modfunc->thread_st($this->tids, $st_id);
-		$forums->func->check_cache('st');
+		cache::get('st');
 		$forums->lang['settospecialtopic'] = sprintf($forums->lang['settospecialtopic'], $forums->cache['st'][$st_id]['name']);
 		$this->moderate_log($forums->lang['settospecialtopic']);
 		$this->thread_log($this->tids, $forums->lang['settospecialtopic']);
@@ -1591,7 +1591,7 @@ class moderate
 			$torecyclepost = $delpids = array();
 
 			$splittable = array();
-			$forums->func->check_cache('splittable');
+			cache::get('splittable');
 			$splittable = $forums->cache['splittable']['all'];
 
 			foreach ($this->pids as $pid)
@@ -2174,7 +2174,7 @@ class moderate
 		{
 			$DB->update(TABLE_PREFIX . 'announcement', $save_array, 'id=' . $id);
 		}
-		$forums->func->recache('announcement');
+		cache::update('announcement');
 		return $this->announcement();
 	}
 
@@ -2195,7 +2195,7 @@ class moderate
 			$forums->func->standard_error("cannotdelannounce");
 		}
 		$DB->queryUnbuffered("DELETE FROM " . TABLE_PREFIX . "announcement WHERE id=" . $id . "");
-		$forums->func->recache('announcement');
+		cache::update('announcement');
 		return $this->announcement();
 	}
 
@@ -2234,7 +2234,7 @@ class moderate
 				'curpage' => $first,
 				'pagelink' => "moderate.php{$forums->sessionurl}do=dofindmember&amp;username=$username",
 				));
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		$users = $DB->query("SELECT name, id, host, posts, joindate, usergroupid FROM " . TABLE_PREFIX . "user WHERE name LIKE '$username%' ORDER BY joindate DESC LIMIT $first, 20");
 		while ($user = $DB->fetch($users))
 		{

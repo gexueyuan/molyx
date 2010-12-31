@@ -280,9 +280,9 @@ class credit
 								 'parameters' => $params);
 			$DB->insert(TABLE_PREFIX . 'creditrule', $defaultrule);
 			$type = 'added';
-			$forums->func->recache('creditrule');
+			cache::update('creditrule');
 		}
-		$forums->func->recache('creditlist');
+		cache::update('creditlist');
 		$forums->admin->redirect('credit.php', $forums->lang['creditlist'], $forums->lang['credit_' . $type]);
 	}
 
@@ -336,7 +336,7 @@ class credit
 					}
 					else
 					{
-						$forums->func->check_cache('usergroup');
+						cache::get('usergroup');
 						foreach ($lists as $id)
 						{
 							$range[] = $forums->lang[ $forums->cache['usergroup'][$id]['grouptitle'] ];
@@ -433,7 +433,7 @@ class credit
 		{
 			$forum[] = array($v['id'], $v['name'], $v['depth']);
 		}
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		foreach ($forums->cache['usergroup'] as $k => $v)
 		{
 			$usergroup[] = array($v['usergroupid'], $forums->lang[ $v['grouptitle'] ]);
@@ -548,7 +548,7 @@ class credit
 						{
 							if ($type == 1)
 							{
-								$forums->func->check_cache('usergroup');
+								cache::get('usergroup');
 								$iddesc = $forums->lang[$forums->cache['usergroup'][$id]['grouptitle']].$forums->lang['credittypegroup'];
 							}
 							else
@@ -595,7 +595,7 @@ class credit
 		{
 			$DB->update(TABLE_PREFIX . 'creditrule', $rule, "ruleid=$ruleid");
 		}
-		$forums->func->recache('creditrule');
+		cache::update('creditrule');
 		$forums->admin->redirect('credit.php?do=rulelist', $forums->lang['creditrulelist'], $msg);
 	}
 
@@ -641,7 +641,7 @@ class credit
 			$array = array('initevalvalue' => $initvalue,
 						   'initevaltime' => $inittime);
 			$DB->update(TABLE_PREFIX . 'credit', $array, "creditid=$id");
-			$forums->func->recache('creditlist');
+			cache::update('creditlist');
 			$forums->admin->redirect('credit.php', $forums->lang['creditlist'], $forums->lang['evalsetsuccess']);
 		}
 	}
@@ -659,8 +659,8 @@ class credit
 		$DB->delete(TABLE_PREFIX . 'credit', 'creditid = ' . $id);
 		$DB->delete(TABLE_PREFIX . 'creditrule', 'creditid = ' . $id);
 		$DB->queryUnbuffered('ALTER TABLE ' . TABLE_PREFIX . "userexpand DROP " . $credit['tag'] . ',DROP eval' . $credit['tag']);
-		$forums->func->recache('creditlist');
-		$forums->func->recache('creditrule');
+		cache::update('creditlist');
+		cache::update('creditrule');
 		$forums->admin->redirect('credit.php', $forums->lang['creditlist'], $forums->lang['credit_deleted']);
 	}
 
@@ -673,7 +673,7 @@ class credit
 			$forums->admin->print_cp_error($forums->lang['noids']);
 		}
 		$DB->delete(TABLE_PREFIX . 'creditrule', "ruleid = " . input::get('ruleid', ''));
-		$forums->func->recache('creditrule');
+		cache::update('creditrule');
 		$forums->admin->redirect('credit.php?do=rulelist', $forums->lang['creditrulelist'], $forums->lang['creditrule_deleted']);
 	}
 

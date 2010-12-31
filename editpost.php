@@ -75,14 +75,14 @@ class editpost
 	{
 		global $forums, $DB, $bbuserinfo, $bboptions;
 		$this->fetch_permission();
-		$forums->func->check_cache('usergroup');
+		cache::get('usergroup');
 		$usergrp = $forums->cache['usergroup'];
 		foreach ($usergrp AS $k => $v)
 		{
 			$v['grouptitle'] = $forums->lang[$v['grouptitle']];
 			$usergrp[$k] = $v;
 		}
-		$forums->func->check_cache('creditlist');
+		cache::get('creditlist');
 		$hidecredit = array();
 		if ($forums->cache['creditlist'])
 		{
@@ -168,7 +168,7 @@ class editpost
 			}
 			if ($this->lib->forum['specialtopic'])
 			{
-				$forums->func->check_cache('st');
+				cache::get('st');
 				$special_selected[$this->thread['stopic']] = ' selected="selected"';
 				$specialtopic = explode(',', $this->lib->forum['specialtopic']);
 				$forumsspecial = $forums->cache['st'];
@@ -210,7 +210,7 @@ class editpost
 		$iconid = input::get('iconid', $this->getpost['iconid']);
 		input::set('iconid', $iconid);
 
-		$forums->func->check_cache('icon');
+		cache::get('icon');
 		if (!$this->getpost['iconid'])
 		{
 			$this->getpost['iconid'] = 2;

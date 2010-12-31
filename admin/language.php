@@ -350,7 +350,7 @@ class language
 		}
 
 		$DB->update(TABLE_PREFIX . 'setting', array('value' => $defaultlang), "varname = 'default_lang'");
-		$forums->func->recache('settings');
+		cache::update('settings');
 		$forums->admin->redirect("language.php", $forums->lang['languagemanage'], $forums->lang['defaultlangsetsucess']);
 	}
 
@@ -703,7 +703,7 @@ class language
 
 		$forums->admin->rm_dir($this->root . $language);
 
-		$forums->func->recache('lang_list');
+		cache::update('lang_list');
 		$forums->admin->redirect("language.php", $forums->lang['languageedit'], $forums->lang['langdeletesucess']);
 	}
 
@@ -1229,7 +1229,7 @@ class language
 			}
 		}
 
-		$forums->func->recache('lang_list');
+		cache::update('lang_list');
 		$forums->admin->redirect("language.php?do=langxml", $forums->lang['languagemanage'], $forums->lang['langimportsucess']);
 	}
 }

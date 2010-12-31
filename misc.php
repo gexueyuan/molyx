@@ -197,7 +197,7 @@ class misc
 			}
 			$liftban = "";
 			$splittable = array();
-			$forums->func->check_cache('splittable');
+			cache::get('splittable');
 			$splittable = $forums->cache['splittable']['all'];
 			$time = $forums->func->get_date(TIMENOW, 2, 1);
 			if ($permanent == -1 || $permanent == 1)
@@ -417,7 +417,7 @@ class misc
 		}
 		if ($hideinfo['type'] == 999)
 		{
-			$forums->func->check_cache('creditlist');
+			cache::get('creditlist');
 			$hidecredit = array();
 			if ($forums->cache['creditlist'])
 			{
@@ -549,7 +549,7 @@ class misc
 	function show_icon()
 	{
 		global $forums, $DB, $bboptions, $bbuserinfo;
-		$forums->func->check_cache('smile');
+		cache::get('smile');
 		$emoticons = $forums->cache['smile'];
 		$pagetitle = $forums->lang['smiles'] . " - " . $bboptions['bbtitle'];
 		include $forums->func->load_template('show_smile');

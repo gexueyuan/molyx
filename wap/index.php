@@ -62,7 +62,7 @@ if ($bboptions['showstatus'])
 	$totalposts = fetch_number_format($forums->forum->total['post']);
 	$todaypost = fetch_number_format($forums->forum->total['todaypost']);
 
-	$forums->func->check_cache('stats');
+	cache::get('stats');
 	$numbermembers = fetch_number_format($forums->cache['stats']['numbermembers']);
 
 	$statusinfo[] = $forums->lang['status_info'];

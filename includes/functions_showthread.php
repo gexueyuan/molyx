@@ -35,7 +35,7 @@ class functions_showthread
 				}
 			}
 			
-			$forums->func->check_cache('attachmenttype');
+			cache::get('attachmenttype');
 
 			foreach ($final_attachment AS $pid => $data)
 			{

@@ -82,7 +82,7 @@ class moderate
 		{
 			@unlink(ROOT_PATH . 'cache/cache/moderator_user_' . $mod['userid'] . '.php');
 		}
-		$forums->func->recache('moderator');
+		cache::update('moderator');
 		$forums->admin->save_log($forums->lang['moderatedeleted'] . " '{$name}'");
 		$forums->admin->redirect("moderate.php", $forums->lang['managemoderate'], $forums->lang['moderatedeleted']);
 	}
@@ -122,7 +122,7 @@ class moderate
 			'bantimelimit' => $bantimelimit . input::get('bantimeunit', ''),
 			'sendbanmsg' => input::get('sendbanmsg', ''),
 		), 'moderatorid=' . input::int('u'));
-		$forums->func->recache('moderator');
+		cache::update('moderator');
 		$forums->admin->save_log($forums->lang['moderateedited'] . " '{$mod['username']}'");
 		$forums->admin->redirect("moderate.php", $forums->lang['managemoderate'], $forums->lang['moderateedited']);
 	}
@@ -224,7 +224,7 @@ class moderate
 			$DB->insert(TABLE_PREFIX . 'moderator', $moderator);
 		}
 		$forums->admin->save_log($ad_log);
-		$forums->func->recache('moderator');
+		cache::update('moderator');
 		$forums->admin->redirect("moderate.php", $forums->lang['managemoderate'], $forums->lang['moderatoradded']);
 	}
 

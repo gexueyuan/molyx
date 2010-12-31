@@ -28,7 +28,7 @@ class session
 				}
 			}
 		}
-		$forums->func->check_cache('banfilter');
+		cache::get('banfilter');
 		if ($forums->cache['banfilter'])
 		{
 			foreach ((array) $forums->cache['banfilter'] as $banip)
@@ -59,7 +59,7 @@ class session
 		if (preg_match('/(' . $bboptions['spiderid'] . ')/i', $_SERVER['HTTP_USER_AGENT'], $match))
 		{
 			$this->user = $forums->func->set_up_guest();
-			$forums->func->check_cache("usergroup_{$bboptions['spider_roup']}", 'usergroup');
+			cache::get("usergroup_{$bboptions['spider_roup']}", 'usergroup');
 			$this->user = array_merge($this->user, $forums->cache["usergroup_{$bboptions['spider_roup']}"]);
 			$this->build_group_permissions();
 			$forums->sessiontype = 'cookie';
@@ -239,7 +239,7 @@ class session
 			$this->user['lastvisit'] = TIMENOW;
 		}
 
-		$forums->func->check_cache("usergroup_{$this->user['usergroupid']}", 'usergroup');
+		cache::get("usergroup_{$this->user['usergroupid']}", 'usergroup');
 		$this->user = array_merge($this->user, $forums->cache["usergroup_{$this->user['usergroupid']}"]);
 		$this->build_group_permissions();
 		if ($this->user['usergroupid'] != 2)
@@ -252,7 +252,7 @@ class session
 			{
 				foreach (array('moderator_user_' . $this->user['id'], 'moderator_group_' . $this->user['usergroupid']) as $cache_name)
 				{
-					$forums->func->check_cache($cache_name, 'moderator', true);
+					cache::get($cache_name, 'moderator', true);
 					if (false !== $forums->cache[$cache_name])
 					{
 						foreach((array) $forums->cache[$cache_name] as $i => $r)
@@ -260,7 +260,7 @@ class session
 							//萧山的超版处理
 							if ($r['forumid'] == 0)
 							{
-								$forums->func->check_cache('forum');
+								cache::get('forum');
 								foreach($forums->cache['forum'] AS $k => $v)
 								{
 									$r['forumid'] = $k;
@@ -318,7 +318,7 @@ class session
 
 				//更新用户评价和积分默认值
 				$lefttime = TIMENOW - $this->user['lastvisit'];
-				$forums->func->check_cache('creditlist');
+				cache::get('creditlist');
 				foreach ($forums->cache['creditlist'] as $id => $credit)
 				{
 					if (!$credit['used']) continue;
@@ -390,7 +390,7 @@ class session
 			{
 				foreach($groups_id as $pid)
 				{
-					$forums->func->check_cache("usergroup_{$pid}", 'usergroup');
+					cache::get("usergroup_{$pid}", 'usergroup');
 					if ($forums->cache["usergroup_{$pid}"]['usergroupid'])
 					{
 						$this->user['membergroupid'] .= ',' . $pid;
