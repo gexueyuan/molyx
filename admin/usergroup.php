@@ -923,6 +923,8 @@ class usergroup
 		}
 		$DB->update(TABLE_PREFIX . 'usergroup', $groupvar, 'usergroupid=' . $usergroupid);
 		$this->updatelanguage($langvar);
+
+		cache::update('usergroup', $usergroupid);
 		cache::update('usergroup');
 
 		if ($type == 'edit')
@@ -1214,27 +1216,33 @@ class usergroup
 				}
 			}
 		}
+
 		if (count($ids))
 		{
-			$orderssql = $ugids = '';
-			foreach($ids as $usergroupid => $new_position)
+			$sql_array = array();
+			foreach($ids as $k => $v)
 			{
-				if ($usergroupid > 0)
+				if ($k > 0)
 				{
-					$orderssql .= " WHEN usergroupid = $usergroupid THEN $new_position";
-					$ugids .= ",$usergroupid";
+					$sql_array[$k] = (int) $v;
 				}
-
-				$DB->update(TABLE_PREFIX . 'usergroup',array('displayorder' => intval($new_position)), 'usergroupid=' . $usergroupid);
 			}
-			if (!empty($ugids))
+
+			if (!empty($sql_array))
 			{
-				$DB->queryUnbuffered("UPDATE " . TABLE_PREFIX . "usergroup
-					SET displayorder = CASE $orderssql ELSE 0 END
-					WHERE usergroupid IN (0$ugids)");
+				$DB->updateCase(TABLE_PREFIX . 'usergroup', 'usergroupid', array('displayorder' => $sql_array));
+
+				foreach (array_keys($sql_array) as $v)
+				{
+					if ($v > 0)
+					{
+						cache::update('usergroup', $v);
+					}
+				}
+				cache::update('usergroup');
 			}
 		}
-		cache::update('usergroup');
+
 		$forums->func->standard_redirect("usergroup.php?" . $forums->sessionurl);
 	}
 

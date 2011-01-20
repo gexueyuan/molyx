@@ -75,11 +75,27 @@ class cache
 				$forums->main_msg = sprintf($forums->lang['cacheupdated'], $forums->lang[ $action ]);
 				break;
 			case 'forum_cache':
+				$result = $db->query('SELECT id
+					FROM ' . TABLE_PREFIX . "forum");
+				while ($row = $db->fetch($result))
+				{
+					cache::update('forum', $row['id']);
+					cache::update('subforum', $row['id']);
+				}
+
 				cache::update('forum');
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'usergroup':
 				cache::update('usergroup');
+
+				$result = $DB->query('SELECT usergroupid
+					FROM ' . TABLE_PREFIX . "usergroup");
+				while ($row = $DB->fetch($result))
+				{
+					cache::update('usergroup', $row['usergroupid']);
+				}
+
 				$forums->main_msg = $forums->lang['cacheupdated'];
 				break;
 			case 'style':
