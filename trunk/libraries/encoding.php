@@ -140,7 +140,7 @@ class encoding
 					}
 					else if (self::$from_encoding != 'html-entities')
 					{
-						return iconv(self::$from_encoding, self::$to_encoding . '//IGNORE', $str);
+						return iconv(self::$from_encoding, self::$to_encoding . '//IGNORE//TRANSLIT', $str);
 					}
 
 				default:
