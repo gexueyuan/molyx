@@ -124,8 +124,9 @@ class cache
 			$name = $name['func'];
 		}
 
+		$func = 'recache_' . $name;
 		require_once (ROOT_DIR . 'recaches/' . $name . '.php');
-		return call_user_func('recache_' . $name, $param);
+		return $func($param);
 	}
 
 	/**
