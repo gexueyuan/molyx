@@ -509,7 +509,7 @@ class functions
 	function build_pagelinks($data)
 	{
 		global $forums;
-		$results['pages'] = ($data['totalpages'] + $data['perpage'] - 1) / $data['perpage'];
+		$results['pages'] = (int) (($data['totalpages'] + $data['perpage'] - 1) / $data['perpage']);
 		$results['total_page'] = $results['pages'] ? $results['pages'] : 1;
 		$results['current_page'] = $data['curpage'] > 0 ? (int) ($data['curpage'] / $data['perpage']) + 1 : 1;
 		$prevlink = '';
