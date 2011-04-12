@@ -32,6 +32,19 @@ class input
 	}
 
 	/**
+	 * 根据数组批量获得 Input
+	 * @param array $array
+	 */
+	static public function walk($array)
+	{
+		foreach ($array as $k => $v)
+		{
+			$array[$k] = self::get($k, $v);
+		}
+		return $array;
+	}
+
+	/**
 	 * 获得整数
 	 * @param string $name
 	 */
