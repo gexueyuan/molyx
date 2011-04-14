@@ -24,6 +24,10 @@ class Db_Sql
 			case 'pdo_mysql':
 				$this->sign = '`';
 			break;
+
+			case 'postgres':
+				$this->sign = '"';
+			break;
 		}
 	}
 
