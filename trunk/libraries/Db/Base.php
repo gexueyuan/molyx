@@ -24,8 +24,6 @@ abstract class Db_Base
 	protected $one_char = '_';
 
 	private $slave = NULL;
-
-	private $error = '';
 	private $shutdown_queries = array();
 
 	private $transaction = false;
@@ -694,9 +692,8 @@ abstract class Db_Base
 			@include(ROOT_PATH . "cache/languages/{$bboptions['language']}/db.php");
 		}
 
-		$message = $lang['db_errors'] . ": \n\n";
-		$message .= $message . "\n\n";
-		$message .= $lang['mysql_errors'] . ': ' . $this->error . "\n\n";
+		$message = "{$lang['db_errors']}: \n\n{$message}\n\n";
+		$message .= $lang['mysql_errors'] . ': ' . $this->getError() . "\n\n";
 		echo "<html><head><title>{$bboptions['bbtitle']} {$lang['mysql_errors']}</title><style type=\"text/css\"><!--.error { font: 11px tahoma, verdana, arial, sans-serif, simsun; }--></style></head>\r\n<body>\r\n<blockquote><p class=\"error\">&nbsp;</p><p class=\"error\"><strong>{$bboptions['bbtitle']} {$lang['db_found_errors']}</strong><br />\r\n";
 		$db_sendmail = sprintf($lang['db_sendmail'], $this->config['email']);
 		echo $db_sendmail . "</p>";
