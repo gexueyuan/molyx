@@ -657,7 +657,7 @@ abstract class Db_Base
 	/**
 	 * 返回执行过的查询数
 	 */
-	function getCount($type = '')
+	public function getCount($type = '')
 	{
 		$this->count['total'] = array_sum($this->count);
 
@@ -669,12 +669,12 @@ abstract class Db_Base
 		return $this->count;
 	}
 
-	function getType()
+	public function getType()
 	{
 		return $this->type;
 	}
 
-	function halt($message = '')
+	public function halt($message = '')
 	{
 		global $forums, $bboptions;
 

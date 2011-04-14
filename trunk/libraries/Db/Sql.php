@@ -12,14 +12,38 @@
 class Db_Sql
 {
 	private $db;
+	private $sign = '';
 	public function __construct($db)
 	{
 		$this->db = $db;
+
+		switch ($db->getType())
+		{
+			case 'mysql':
+			case 'mysqli':
+			case 'pdo_mysql':
+				$this->sign = '`';
+			break;
+		}
 	}
 
 	public function __destruct()
 	{
 		unset($this->db);
+	}
+
+	private function field($name)
+	{
+		if (is_array($name))
+		{
+			$name = implode($this->sign . ', ' . $this->sign, $name);
+		}
+		else if (strpos($name, '.') !== false)
+		{
+			$name = str_replace('.', $this->sign . '.' . $this->sign, $name);
+		}
+
+		return $this->sign . $name . $this->sign;
 	}
 
 	private function insertClause($array)
@@ -32,7 +56,7 @@ class Db_Sql
 		$fields = $values = '';
 		foreach ($array as $key => $var)
 		{
-			$fields .= ', `' . $key . '`';
+			$fields .= ', ' . $this->field($key);
 			$values .= ', ' . $this->db->validate($var);
 		}
 		$fields = substr($fields, 2);
@@ -52,8 +76,8 @@ class Db_Sql
 		$fields = $values = '';
 		foreach ($array as $key => $var)
 		{
-			$fields .= ', `' . $key . '`';
-			$values .= ', `' . $var . '`';
+			$fields .= ', ' . $this->field($key);
+			$values .= ', ' . $this->field($var);
 		}
 		$fields = substr($fields, 2);
 		$values = substr($values, 2);
@@ -88,7 +112,7 @@ class Db_Sql
 			}
 		}
 		$values = substr($values, 2);
-		$query = ' (`' . implode('`, `', array_keys($array[0])) . '`) VALUES ' . $values;
+		$query = ' (' . $this->field(array_keys($array[0])) . ') VALUES ' . $values;
 
 		return $query;
 	}
@@ -103,11 +127,7 @@ class Db_Sql
 		$fields = $values = '';
 		foreach ($array as $key => $var)
 		{
-			if (strpos($key, '.') !== false)
-			{
-				$key = str_replace('.', '`.`', $key);
-			}
-			$values .= ", `$key` = " . $this->db->validate($var, $key);
+			$values .= ', ' . $this->field($key) . ' = ' . $this->db->validate($var, $key);
 		}
 		$query = substr($values, 2);
 
@@ -124,11 +144,7 @@ class Db_Sql
 		$fields = $values = '';
 		foreach ($array as $key => $var)
 		{
-			if (strpos($key, '.') !== false)
-			{
-				$key = str_replace('.', '`.`', $key);
-			}
-			$values .= " AND `$key` = " . $this->db->validate($var, $key);
+			$values .= ' AND ' . $this->field($key) . ' = ' . $this->db->validate($var, $key);
 		}
 		$query = substr($values, 5);
 
@@ -207,12 +223,12 @@ class Db_Sql
 				{
 					foreach ($alias as $multi_alias)
 					{
-						$table_str .= ', `' . $table_name . '` ' . $multi_alias;
+						$table_str .= ', ' . $this->field($table_name) . ' ' . $multi_alias;
 					}
 				}
 				else
 				{
-					$table_str .= ', `' . $table_name . '` ' . $alias;
+					$table_str .= ', ' . $this->field($table_name) . ' ' . $alias;
 				}
 			}
 
@@ -221,7 +237,7 @@ class Db_Sql
 		}
 		else
 		{
-			$sql .= '`' . $array['FROM'] . '`';
+			$sql .= $this->field($array['FROM']);
 		}
 
 
@@ -329,7 +345,7 @@ class Db_Sql
 	 * @param string $id_filed ID 字段名
 	 * @param array $sql_array
 	 */
-	public function updateCase($table, $id_filed, $sql_array)
+	public function updateCase($table, $id_field, $sql_array)
 	{
 		if (!is_array($sql_array) || empty($sql_array))
 		{
@@ -337,13 +353,13 @@ class Db_Sql
 		}
 
 		$ids = '';
-		$sql = "UPDATE `$table` SET";
+		$sql = 'UPDATE ' . $this->field($table) . ' SET';
 		foreach ($sql_array as $set_field => $array)
 		{
-			$sql .= " `$set_field` = ";
+			$sql .= ' ' . $this->field($set_field) . ' = ';
 			if (isset($array[1]) && in_array($array[1], array('+', '-', '*', '/'), true))
 			{
-				$sql .= "`$set_field` {$array[1]}";
+				$sql .= $this->field($set_field) . " {$array[1]}";
 				$array = $array[0];
 			}
 
@@ -357,7 +373,7 @@ class Db_Sql
 					{
 						$k = $this->db->validate($k);
 						$v = $this->db->validate($v, $set_field);
-						$sql .= " WHEN $id_filed = $k THEN $v";
+						$sql .= " WHEN $id_field = $k THEN $v";
 						if (strpos($ids . ',', ",$k,") === false)
 						{
 							$ids .= ",$k";
@@ -376,7 +392,7 @@ class Db_Sql
 
 		if ($ids)
 		{
-			return $sql .= " WHERE `$id_filed` IN (0$ids)";
+			return $sql .= ' WHERE ' . $this->field($id_field) . " IN (0$ids)";
 		}
 		else
 		{
