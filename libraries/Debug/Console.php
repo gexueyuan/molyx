@@ -388,7 +388,6 @@ class Debug_Console
 	/**
 	 * callback method for PHP errorhandling
 	 *
-	 * @TODO implement more errorlevels
 	 */
 	public function errorHandlerCallback($errno, $errstr, $errfile, $errline)
 	{
